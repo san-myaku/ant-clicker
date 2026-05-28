@@ -25,6 +25,8 @@
 
 公開運用:
 
+- GitHubリポジトリ: `https://github.com/san-myaku/ant-clicker`
+- GitHub Pages URL: `https://san-myaku.github.io/ant-clicker/`
 - 当面は「URLを知っている人だけに近い」仮公開として扱う
 - GitHub Pages のURL自体は公開URLなので、アクセス制限ではない
 - `robots.txt` で検索エンジンにクロールしないよう依頼する

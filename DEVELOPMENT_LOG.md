@@ -3,6 +3,28 @@
 このファイルは、仕様そのものではなく「なぜその判断にしたか」を残すための開発ログです。
 最新仕様の一覧は `CURRENT_SYSTEM_OVERVIEW.md` を参照します。
 
+## 2026-05-29 GitHub Pages公開完了
+
+目的:
+
+- スマホブラウザからURLで遊べる状態にする
+
+公開情報:
+
+- GitHubリポジトリ: `https://github.com/san-myaku/ant-clicker`
+- GitHub Pages URL: `https://san-myaku.github.io/ant-clicker/`
+- 公開ブランチ: `main`
+- 公開フォルダ: `/ (root)`
+
+判断:
+
+- 当面はURL共有向けの仮公開として扱う
+- 公開URLなのでアクセス制限ではないが、`robots.txt` と非拡散運用で見つかりにくくする
+
+確認:
+
+- ユーザー側でGitHub Pages有効化と公開完了を確認済み
+
 ## 2026-05-29 URL共有向け仮公開設定
 
 目的:
