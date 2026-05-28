@@ -1,15 +1,13 @@
 # Ant Colony V23 Current System Overview
 
 作成日: 2026-05-23  
-対象ファイル: `ant_colony_v23_improved.html`
+対象ファイル: `index.html`
 
 この文書は、現在の単一HTML版アリコロニーゲームのコード構造と実装済みシステムを整理したものです。開発中の確認用メモとして、実装済み、削除済み、注意点を分けて記録します。
 
 ## 1. 全体構成
 
-`ant_colony_v23_improved.html` は、HTML/CSS/JavaScript を1ファイルに収めた単一HTMLゲームです。
-
-オンライン公開用には、同内容の `index.html` を用意します。GitHub Pages などの静的ホスティングでは `index.html` を入口にします。
+`index.html` は、HTML/CSS/JavaScript を1ファイルに収めた単一HTMLゲームです。GitHub Pages などの静的ホスティングでは、このファイルを入口にします。
 
 主な構成は以下です。
 

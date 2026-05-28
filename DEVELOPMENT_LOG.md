@@ -3,6 +3,23 @@
 このファイルは、仕様そのものではなく「なぜその判断にしたか」を残すための開発ログです。
 最新仕様の一覧は `CURRENT_SYSTEM_OVERVIEW.md` を参照します。
 
+## 2026-05-29 `index.html` 正本化
+
+目的:
+
+- 更新時に `ant_colony_v23_improved.html` と `index.html` の2ファイルを同期する必要が出ないようにする
+- オンライン公開時の入口である `index.html` をそのまま開発・公開の正本にする
+
+変更:
+
+- `index.html` と `ant_colony_v23_improved.html` が同一内容であることを確認
+- 旧正本名 `ant_colony_v23_improved.html` を削除
+- 現行仕様メモの対象ファイルを `index.html` に変更
+
+確認:
+
+- `index.html` のHTML内JavaScriptを抽出して `node --check` 実行済み
+
 ## 2026-05-29 オンライン公開準備
 
 目的:
