@@ -1511,7 +1511,7 @@
                 <div class="dock-icon">🐜</div>
                 <div class="dock-meta">
                   <div class="dock-name">働き <span id="lbl-wlv">未強化</span></div>
-                  <div class="dock-cost">🍃 <span id="c-up-w">100</span></div>
+                  <div class="dock-cost">🍃 <span id="c-up-w">50</span></div>
                 </div>
                 <span class="dock-badge new" data-badge="new">NEW</span>
                 <span class="dock-badge lock" data-badge="lock">🔒</span>
@@ -1854,8 +1854,8 @@
   const BUILDER_LV_MAX = ROLE_LV_MAX;
   const SOLDIER_LV_MAX = ROLE_LV_MAX;
 
-  const WORKER_UP_FIRST_COST = 100;
-  const WORKER_UP_BASE = 200;
+  const WORKER_UP_FIRST_COST = 50;
+  const WORKER_UP_BASE = 100;
   const WORKER_UP_GROWTH = 1.35;
   const NURSE_UP_BASE = 300;
   const NURSE_UP_GROWTH = 1.33;
@@ -3971,7 +3971,7 @@ function ensureRestSlots(n){
     invaderTimer: 60,    // 次の害虫出現までのカウントダウン
     // 季節・天気
     season: { idx: 0, day: 0, dayProgress: 0 },
-    weather: { id: 'clear', label: '晴れ', nextChangeAt: 3.0 },
+    weather: { id: 'clear', label: '晴れ', nextChangeAt: 3.0, changeTimer: WEATHER_CHANGE_INTERVAL },
     weatherParticles: [],
     globalBuffs: { activeId: null },
     // MAJOR_UPGRADE: 発動メジャーの状態（保存不要）
@@ -4044,7 +4044,7 @@ function ensureRestSlots(n){
         nodeVis: this.nodeVis,
         edgeFrac: this.edgeFrac,
         season: this.season,
-        weather: { id: this.weather.id, label: this.weather.label, nextChangeAt: this.weather.nextChangeAt }
+        weather: { id: this.weather.id, label: this.weather.label, nextChangeAt: this.weather.nextChangeAt, changeTimer: this.weather.changeTimer }
       };
     },
 
@@ -4135,6 +4135,7 @@ function ensureRestSlots(n){
         this.weather.id = savedWorld.weather.id || 'clear';
         this.weather.label = savedWorld.weather.label || '晴れ';
         this.weather.nextChangeAt = savedWorld.weather.nextChangeAt || 3.0;
+        this.weather.changeTimer = (typeof savedWorld.weather.changeTimer === 'number') ? savedWorld.weather.changeTimer : null;
       }
       ensureMainShaftState();
 
@@ -6206,6 +6207,25 @@ function expandMap(forcedType, isEmergency) {
   function getSeasonRaidMul() { return getCurrentSeason().raidMul; }
   function getWeatherMoveMul() { return getCurrentWeatherEffect().moveMul; }
 
+  function getClockDeltaHours(prevTime, currentTime) {
+    let delta = currentTime - prevTime;
+    if(delta < 0) delta += 24;
+    return delta;
+  }
+
+  function getClockDistanceHours(fromTime, toTime) {
+    let delta = toTime - fromTime;
+    if(delta < 0) delta += 24;
+    return delta;
+  }
+
+  function ensureWeatherChangeTimer() {
+    if(typeof S.weather.changeTimer === 'number' && isFinite(S.weather.changeTimer) && S.weather.changeTimer > 0) return;
+    const nextAt = (typeof S.weather.nextChangeAt === 'number' && isFinite(S.weather.nextChangeAt)) ? S.weather.nextChangeAt : ((S.time + WEATHER_CHANGE_INTERVAL) % 24);
+    const remaining = getClockDistanceHours(S.time, nextAt);
+    S.weather.changeTimer = (remaining > 0.01) ? remaining : WEATHER_CHANGE_INTERVAL;
+  }
+
   function rollWeather() {
     const season = getCurrentSeason();
     const totalW = season.weathers.reduce((s,w)=>s+w.w, 0);
@@ -6217,6 +6237,7 @@ function expandMap(forcedType, isEmergency) {
   }
 
   function updateSeasonWeather(dt, prevTime) {
+    const clockDelta = getClockDeltaHours(prevTime, S.time);
     // 日送り: S.time が24を跨ぐ = 1日経過
     if(prevTime > S.time) {
       S.season.day++;
@@ -6234,13 +6255,17 @@ function expandMap(forcedType, isEmergency) {
         };
         addQueenWhisper(seasonMsg[newSeason.id] || '季節が巡ったわ', 'season');
         rollWeather();
+        S.weather.changeTimer = WEATHER_CHANGE_INTERVAL;
+        S.weather.nextChangeAt = (S.time + S.weather.changeTimer) % 24;
       }
     }
-    // 天気抽選: ゲーム内 WEATHER_CHANGE_INTERVAL 時間ごと
-    if(S.time >= S.weather.nextChangeAt) {
+    // 天気抽選: 残り時間方式。24時跨ぎ後に毎フレーム抽選されるのを避ける。
+    ensureWeatherChangeTimer();
+    S.weather.changeTimer -= clockDelta;
+    if(S.weather.changeTimer <= 0) {
       rollWeather();
-      S.weather.nextChangeAt = S.time + WEATHER_CHANGE_INTERVAL;
-      if(S.weather.nextChangeAt >= 24) S.weather.nextChangeAt -= 24;
+      while(S.weather.changeTimer <= 0) S.weather.changeTimer += WEATHER_CHANGE_INTERVAL;
+      S.weather.nextChangeAt = (S.time + S.weather.changeTimer) % 24;
     }
     // 天気パーティクル更新
     updateWeatherParticles(dt);
@@ -7942,7 +7967,7 @@ function expandMap(forcedType, isEmergency) {
         const wasteRatio = (larvaTotal > 0) ? (larvaWasteTotal / (larvaTotal * WASTE_FULL_PER_LARVA)) : 0;
         wasteCoef = 1 - WASTE_SLOW_MAX * clamp(wasteRatio, 0, 1);
       }
-      const nurseMulLarvaOff = 1 + ((getNurseHatchMul(G.nLv) - 1) * 0.6); // 育児Lvの60%効果(オフライン)
+      const nurseMulLarvaOff = getNurseHatchMul(G.nLv) * getNurseLarvaAdultCountMul(); // 育児Lv + 育児アリ人数の半分効果
       const larvaRate = (100 / LARVA_TO_ADULT_SEC) * foodCoef * wasteCoef * nurseMulLarvaOff * getBroodLarvaMul();
       const larvaProg = G.larvaToAdultP + larvaRate * sec;
       const larvaRaw = Math.floor(larvaProg / 100);
@@ -8856,6 +8881,10 @@ function syncFermenterUnlockUI() {
     return base * Math.pow(1.03, v - 2);
   }
 
+  function getNurseLarvaAdultCountMul() {
+    return 1 + (Math.max(0, G.ants.nurse || 0) * 0.25);
+  }
+
   function getSoldierPowerMul(lv) {
     const v = clamp(Math.floor(lv || 0), 0, SOLDIER_LV_MAX);
     // MAJOR_UPGRADE: 兵隊攻撃2倍（メジャー）
@@ -8922,10 +8951,10 @@ function syncFermenterUnlockUI() {
       const curMul = getNurseHatchMul(G.nLv);
       const layNote = (G.nLv >= 2) ? '自動産卵 +10% (適用中)' : '自動産卵 +10% (Lv2で解放)';
       if(G.nLv >= NURSE_LV_MAX) {
-        return `育児LvUP\n現在: Lv.${G.nLv} (最大)\n孵化速度ボーナス: x${curMul.toFixed(2)}\n${layNote}\nコスト: MAX`;
+        return `育児LvUP\n現在: Lv.${G.nLv} (最大)\n卵/幼虫成長ボーナス: x${curMul.toFixed(2)}\n${layNote}\nコスト: MAX`;
       }
       const nextMul = getNurseHatchMul(G.nLv + 1);
-      return `育児LvUP\n孵化速度ボーナス: x${curMul.toFixed(2)} → x${nextMul.toFixed(2)}\n${layNote}\nコスト: 🍃 ${G.getUpCost('nurse')}`;
+      return `育児LvUP\n卵/幼虫成長ボーナス: x${curMul.toFixed(2)} → x${nextMul.toFixed(2)}\n${layNote}\nコスト: 🍃 ${G.getUpCost('nurse')}`;
     });
 
     bindTip(document.getElementById('btn-up-builder'), () => {
@@ -9710,7 +9739,7 @@ function syncFermenterUnlockUI() {
     const foodCoef = LARVA_FOOD_BASE + (1 - LARVA_FOOD_BASE) * foodRatio;
     const wasteRatio = (larvaTotal > 0) ? (larvaWasteTotal / (larvaTotal * WASTE_FULL_PER_LARVA)) : 0;
     const wasteCoef = 1 - WASTE_SLOW_MAX * clamp(wasteRatio, 0, 1);
-    const nurseMulLarva = 1 + ((getNurseHatchMul(G.nLv) - 1) * 0.6);
+    const nurseMulLarva = getNurseHatchMul(G.nLv) * getNurseLarvaAdultCountMul();
     const larvaMul = (larvaTotal > 0) ? (foodCoef * wasteCoef * nurseMulLarva * getBroodLarvaMul()) : 0;
     setText(el.larvaAdultSpd, `x${larvaMul.toFixed(2)}`);
 
@@ -10695,7 +10724,7 @@ function syncFermenterUnlockUI() {
       const foodCoef = LARVA_FOOD_BASE + (1 - LARVA_FOOD_BASE) * foodRatio;
       const wasteRatio = larvaWasteTotal / (larvaTotal * WASTE_FULL_PER_LARVA);
       const wasteCoef = 1 - WASTE_SLOW_MAX * clamp(wasteRatio, 0, 1);
-      const nurseMulLarva = 1 + ((getNurseHatchMul(G.nLv) - 1) * 0.6); // 育児Lvの60%効果
+      const nurseMulLarva = getNurseHatchMul(G.nLv) * getNurseLarvaAdultCountMul(); // 育児Lv + 育児アリ人数の半分効果
       const larvaRate = (100 / LARVA_TO_ADULT_SEC) * foodCoef * wasteCoef * nurseMulLarva * getBroodLarvaMul();
       const larvaProg = G.larvaToAdultP + larvaRate * dt;
       const larvaRaw = Math.floor(larvaProg / 100);
