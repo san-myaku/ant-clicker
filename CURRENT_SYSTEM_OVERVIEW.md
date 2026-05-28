@@ -9,6 +9,8 @@
 
 `ant_colony_v23_improved.html` は、HTML/CSS/JavaScript を1ファイルに収めた単一HTMLゲームです。
 
+オンライン公開用には、同内容の `index.html` を用意します。GitHub Pages などの静的ホスティングでは `index.html` を入口にします。
+
 主な構成は以下です。
 
 - HTML: キャンバス、トップバー、右側操作パネル、モーダル、チュートリアル、ゴール表示
@@ -20,6 +22,8 @@
 - `SAVE_KEY = "antSimV23_0"`
 - `SAVE_KEY_OLD = "antSimV22_2"`
 - `VERSION_STR = "V23.0 Season & Invaders"`
+
+公開時のセーブはブラウザごとの `localStorage` に保存されます。ローカル版とオンライン版のセーブ同期は行いません。
 
 旧セーブ互換は設計要件としては不要でしたが、現コードには旧キーからの読み込み補助が一部残っています。また、過去に存在した `mushroom` 部屋はロード時に `food` 部屋へ変換されます。
 
