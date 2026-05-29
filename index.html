@@ -143,6 +143,10 @@
       background: linear-gradient(to bottom, rgba(8, 14, 24, 0.99), rgba(8, 14, 24, 0));
       display: flex; flex-wrap: wrap; gap: 8px; align-items: center; pointer-events: auto;
     }
+    #top-actions { display: contents; }
+    #btn-menu,
+    #mobile-menu-sheet,
+    #mobile-sheet-handle { display: none; }
     .res-box {
       background: rgba(12, 20, 12, 0.92); border: 1px solid rgba(110, 75, 38, 0.55);
       border-radius: 8px; padding: 4px 10px; min-width: 60px;
@@ -789,7 +793,7 @@
     .dock-more-panel { display: none; }
     .dock-more-panel.show { display: grid; }
 
-    @media (max-width: 680px) {
+    @media (max-width: 959px) {
       html, body {
         overflow: hidden;
       }
@@ -802,24 +806,35 @@
       }
       .lucky-target .lucky-icon { font-size: 32px; }
       .lucky-target .lucky-remain { font-size: 11px; }
+      #side-pane {
+        justify-content: flex-start;
+      }
       #top-bar {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 32;
+        display: flex;
+        flex-wrap: nowrap;
         align-items: stretch;
-        padding: max(6px, env(safe-area-inset-top)) 8px 5px;
-        gap: 5px;
-        background: linear-gradient(to bottom, rgba(8, 14, 24, 0.92), rgba(8, 14, 24, 0));
+        padding: max(4px, env(safe-area-inset-top)) 8px 4px;
+        gap: 4px;
+        background: linear-gradient(to bottom, rgba(8, 14, 24, 0.9) 0%, rgba(8, 14, 24, 0.72) 72%, rgba(8, 14, 24, 0) 100%);
       }
       .res-box {
         min-width: 0;
-        min-height: 38px;
+        min-height: 34px;
         box-sizing: border-box;
-        padding: 3px 6px;
+        padding: 3px 7px;
         background: rgba(12, 20, 12, 0.85);
         border: 1px solid rgba(110, 75, 38, 0.45);
         box-shadow: 0 2px 6px rgba(0,0,0,0.35);
       }
-      .res-lbl { font-size: 8px; letter-spacing: 0.01em; line-height: 1.1; }
+      #top-bar > .res-box {
+        flex: 1 1 0;
+      }
+      .res-lbl { font-size: 8px; letter-spacing: 0; line-height: 1.1; }
       .res-val {
         font-size: 12px;
         line-height: 1.15;
@@ -827,64 +842,216 @@
         overflow: hidden;
         text-overflow: ellipsis;
       }
+      #eggs-top-box,
+      #larvae-top-box,
+      #rate-box,
+      #rest-box,
       #season-box,
       #depth-box {
-        grid-column: span 2;
+        display: none !important;
       }
-      #season-box .res-val,
-      #depth-box .res-val {
-        font-size: 12px !important;
+      #cookie-box.ui-locked {
+        display: block !important;
+      }
+      #top-bar > #top-actions {
+        display: none;
+      }
+      #btn-menu {
+        display: flex;
+        flex: 0 0 42px;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        font-size: 17px;
+        color: #e2e8f0;
+        cursor: pointer;
       }
       #next-goal-box {
-        grid-column: 1 / -1;
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 8px;
+        right: 8px;
+        z-index: 31;
         min-height: 0;
-        padding: 5px 8px !important;
+        padding: 4px 8px !important;
+        border-radius: 999px;
+        background: rgba(0,0,0,0.35);
+        border-color: rgba(255,255,255,0.1);
+        box-shadow: none;
+        pointer-events: none;
+        backdrop-filter: blur(4px);
       }
       #next-goal-box > div:first-child {
-        font-size: 8px !important;
-        line-height: 1.1;
+        display: none;
       }
       #next-goal-text {
-        font-size: 12px !important;
+        display: block;
+        font-size: 11px !important;
         line-height: 1.25;
       }
-      #top-bar > button.res-box {
+      #mobile-menu-sheet {
+        position: absolute;
+        top: calc(max(4px, env(safe-area-inset-top)) + 42px);
+        right: 8px;
+        z-index: 48;
+        width: min(308px, calc(100vw - 16px));
+        pointer-events: none;
+      }
+      #mobile-menu-sheet.open {
+        display: block;
+        pointer-events: auto;
+      }
+      .mobile-menu-card {
+        border: 1px solid rgba(110, 75, 38, 0.55);
+        border-radius: 10px;
+        background: rgba(8, 14, 20, 0.96);
+        box-shadow: 0 10px 26px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+        padding: 8px;
+        backdrop-filter: blur(10px);
+      }
+      .mobile-menu-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 8px;
+        color: #cbd5e1;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      #btn-menu-close {
+        width: 28px;
+        height: 28px;
+        border-radius: 7px;
+        border: 1px solid rgba(110, 75, 38, 0.55);
+        background: rgba(15, 23, 42, 0.9);
+        color: #e2e8f0;
+      }
+      #mobile-menu-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      #mobile-menu-actions #top-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+      }
+      #mobile-menu-actions #top-actions .res-box {
         display: flex;
         align-items: center;
         justify-content: center;
-        min-height: 36px;
-        padding: 0;
-        font-size: 16px;
+        gap: 6px;
+        min-height: 40px;
+        padding: 6px 8px;
+        border-color: rgba(110,75,38,0.5) !important;
+        color: #e2e8f0 !important;
+        font-size: 16px !important;
+        cursor: pointer;
+      }
+      #mobile-menu-actions #top-actions .res-box::after {
+        content: attr(data-menu-label);
+        font-size: 12px;
+        font-weight: 700;
+      }
+      #mobile-menu-actions #normal-tools {
+        display: flex;
+        width: 100%;
+      }
+      #mobile-menu-actions #normal-tools .btn {
+        min-height: 40px;
+        justify-content: center;
+        padding: 7px 8px;
+        font-size: 12px;
       }
       #control-panel {
-        max-height: 48dvh;
-        padding: 7px 10px max(10px, env(safe-area-inset-bottom));
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 36;
+        max-height: none;
+        padding: 5px 10px max(10px, env(safe-area-inset-bottom));
         gap: 6px;
+        overflow: visible;
+        background: linear-gradient(to top, rgba(8,14,20,0.98) 0%, rgba(8,14,20,0.92) 82%, rgba(8,14,20,0.68) 100%);
+        border-top-color: rgba(110, 75, 38, 0.38);
+        box-shadow: 0 -8px 22px rgba(0,0,0,0.32);
+      }
+      #mobile-sheet-handle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 22px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: #94a3b8;
+        font-size: 10px;
+        font-weight: 700;
+        cursor: pointer;
+        touch-action: manipulation;
+      }
+      .sheet-grip {
+        width: 72px;
+        height: 4px;
+        border-radius: 999px;
+        background: rgba(148, 163, 184, 0.65);
+        box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+      }
+      #control-panel.sheet-open {
+        max-height: 70dvh;
+        overflow-y: auto;
+        overflow-x: hidden;
+        background: rgba(8, 14, 20, 0.99);
+      }
+      #control-panel > #normal-tools {
+        display: none !important;
       }
       #control-growth-bars {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
         gap: 8px !important;
       }
       #control-growth-bars > div {
         min-width: 0;
       }
       #control-growth-bars .info-row {
-        font-size: 10px;
-        line-height: 1.2;
+        font-size: 9px;
+        line-height: 1.15;
+        gap: 4px;
+        white-space: nowrap;
+      }
+      #control-growth-bars .bar-wrap {
+        height: 5px;
       }
       .growth-bottleneck {
         gap: 4px;
         font-size: 9px;
         line-height: 1.2;
       }
-      #normal-tools .btn {
-        min-height: 34px;
-        justify-content: center;
-        padding: 6px 8px;
+      #control-panel:not(.sheet-open) .growth-bottleneck {
+        display: none;
       }
-      #act-tap { min-height: 50px; padding: 9px 10px; }
+      #act-tap { min-height: 58px; padding: 10px 12px; }
       #act-tap .btn-main { width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
-      #act-tap .btn-tit { font-size: 14px; }
+      #act-tap .btn-tit { font-size: 15px; }
       #act-tap .btn-sub { font-size: 10px; }
+      #control-panel:not(.sheet-open) #control-common-upgrade,
+      #control-panel:not(.sheet-open) #control-tabs,
+      #control-panel:not(.sheet-open) #control-tab-panels {
+        display: none;
+      }
+      #control-panel.sheet-open #control-common-upgrade {
+        display: block;
+      }
+      #control-panel.sheet-open #control-tabs {
+        display: grid;
+      }
+      #control-panel.sheet-open #control-tab-panels {
+        display: flex;
+      }
       .tab-card {
         border-radius: 8px;
         padding: 6px;
@@ -1360,27 +1527,27 @@
 
     <aside id="side-pane">
       <div id="top-bar">
-        <div class="res-box">
+        <div class="res-box" id="food-box">
           <div class="res-lbl">食料</div>
           <div class="res-val txt-green" id="v-food">0</div>
         </div>
-        <div class="res-box">
+        <div class="res-box" id="cookie-box">
           <div class="res-lbl">クッキー</div>
           <div class="res-val txt-gold" id="v-cookie">0</div>
         </div>
-        <div class="res-box">
+        <div class="res-box" id="pop-box">
           <div class="res-lbl">個体数</div>
           <div class="res-val txt-blue" id="v-pop">0</div>
         </div>
-        <div class="res-box">
+        <div class="res-box" id="eggs-top-box">
           <div class="res-lbl">卵</div>
           <div class="res-val" id="v-eggs-top">0</div>
         </div>
-        <div class="res-box">
+        <div class="res-box" id="larvae-top-box">
           <div class="res-lbl">幼虫</div>
           <div class="res-val" id="v-larvae-top">0</div>
         </div>
-        <div class="res-box">
+        <div class="res-box" id="rate-box">
           <div class="res-lbl">増加速度</div>
           <div class="res-val" id="v-rate" style="font-size:11px;">0/s</div>
         </div>
@@ -1400,15 +1567,32 @@
           <div style="font-size:8px; color:#94a3b8; text-transform:uppercase;">次の目標</div>
           <div id="next-goal-text" style="font-size:11px; color:#fcd34d; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></div>
         </div>
-        <button class="res-box" id="btn-save" style="cursor:pointer; border-color:#64748b;">💾</button>
-        <button class="res-box" id="btn-save-export" style="cursor:pointer; border-color:#334155; font-size:9px; color:#64748b;" title="セーブデータを書き出し">📤</button>
-        <button class="res-box" id="btn-diary" style="cursor:pointer; border-color:#8b5cf6;" title="女王の日記">👑</button>
-        <button class="res-box" id="btn-goals" style="cursor:pointer; border-color:#22c55e;" title="コロニーの目標">🗺️</button>
-        <button class="res-box" id="btn-fit" style="cursor:pointer; border-color:#22c55e;" title="全体表示">🧭</button>
-        <button class="res-box" id="btn-err" style="cursor:pointer; border-color:#ef4444;" title="エラー詳細">⚠</button>
+        <div id="top-actions">
+          <button class="res-box" id="btn-save" style="cursor:pointer; border-color:#64748b;" data-menu-label="セーブ" aria-label="セーブ">💾</button>
+          <button class="res-box" id="btn-save-export" style="cursor:pointer; border-color:#334155; font-size:9px; color:#64748b;" title="セーブデータを書き出し" data-menu-label="エクスポート" aria-label="エクスポート">📤</button>
+          <button class="res-box" id="btn-diary" style="cursor:pointer; border-color:#8b5cf6;" title="女王の日記" data-menu-label="日記" aria-label="女王の日記">👑</button>
+          <button class="res-box" id="btn-goals" style="cursor:pointer; border-color:#22c55e;" title="コロニーの目標" data-menu-label="目標" aria-label="コロニーの目標">🗺️</button>
+          <button class="res-box" id="btn-fit" style="cursor:pointer; border-color:#22c55e;" title="全体表示" data-menu-label="全体表示" aria-label="全体表示">🧭</button>
+          <button class="res-box" id="btn-err" style="cursor:pointer; border-color:#ef4444;" title="エラー詳細" data-menu-label="エラー" aria-label="エラー詳細">⚠</button>
+        </div>
+        <button class="res-box" id="btn-menu" type="button" aria-expanded="false" aria-controls="mobile-menu-sheet" title="メニュー">⚙</button>
+      </div>
+
+      <div id="mobile-menu-sheet" aria-hidden="true">
+        <div class="mobile-menu-card">
+          <div class="mobile-menu-head">
+            <span>メニュー</span>
+            <button id="btn-menu-close" type="button" aria-label="メニューを閉じる">×</button>
+          </div>
+          <div id="mobile-menu-actions"></div>
+        </div>
       </div>
 
       <div id="control-panel">
+        <button id="mobile-sheet-handle" type="button" aria-expanded="false" aria-controls="control-tab-panels">
+          <span class="sheet-grip" aria-hidden="true"></span>
+          <span id="mobile-sheet-label">強化パネル</span>
+        </button>
         <div id="control-growth-bars" style="display:flex; gap:10px;">
           <div style="flex:1;">
               <div class="info-row"><span>卵→幼虫 (卵:<span id="v-eggs">0</span>)</span><span id="v-egg-larva-spd">x1.0</span></div>
@@ -9549,6 +9733,87 @@ function syncFermenterUnlockUI() {
       pubBtn.addEventListener('pointerup', () => clearTimeout(_devTimer));
       pubBtn.addEventListener('pointercancel', () => clearTimeout(_devTimer));
     }
+  })();
+
+  // ============================================================
+  // ===== Mobile layout: top menu + bottom sheet =====
+  // ============================================================
+  (function setupMobileLayout(){
+    if(!window.matchMedia) return;
+    const mobileMq = window.matchMedia('(max-width: 959px)');
+    const btnMenu = document.getElementById('btn-menu');
+    const menuSheet = document.getElementById('mobile-menu-sheet');
+    const menuClose = document.getElementById('btn-menu-close');
+    const menuActions = document.getElementById('mobile-menu-actions');
+    const topActions = document.getElementById('top-actions');
+    const normalTools = document.getElementById('normal-tools');
+    const sheetHandle = document.getElementById('mobile-sheet-handle');
+    const controlPanel = document.getElementById('control-panel');
+    const sheetLabel = document.getElementById('mobile-sheet-label');
+    if(!btnMenu || !menuSheet || !menuActions || !topActions || !sheetHandle || !controlPanel) return;
+
+    const topActionsAnchor = document.createComment('top-actions-anchor');
+    topActions.parentNode.insertBefore(topActionsAnchor, topActions);
+    const normalToolsAnchor = document.createComment('normal-tools-anchor');
+    if(normalTools && normalTools.parentNode) normalTools.parentNode.insertBefore(normalToolsAnchor, normalTools);
+
+    function restoreAfter(anchor, node) {
+      if(anchor && anchor.parentNode && node) anchor.parentNode.insertBefore(node, anchor.nextSibling);
+    }
+
+    function setMobileMenuOpen(open) {
+      const next = !!open && mobileMq.matches;
+      menuSheet.classList.toggle('open', next);
+      menuSheet.setAttribute('aria-hidden', next ? 'false' : 'true');
+      btnMenu.setAttribute('aria-expanded', next ? 'true' : 'false');
+    }
+
+    function setBottomSheetOpen(open) {
+      const next = !!open && mobileMq.matches;
+      controlPanel.classList.toggle('sheet-open', next);
+      sheetHandle.setAttribute('aria-expanded', next ? 'true' : 'false');
+      if(sheetLabel) sheetLabel.textContent = next ? '閉じる' : '強化パネル';
+    }
+
+    function syncMobileLayout() {
+      if(mobileMq.matches) {
+        if(topActions.parentNode !== menuActions) menuActions.appendChild(topActions);
+        if(normalTools && normalTools.parentNode !== menuActions) menuActions.appendChild(normalTools);
+      } else {
+        setMobileMenuOpen(false);
+        setBottomSheetOpen(false);
+        restoreAfter(topActionsAnchor, topActions);
+        if(normalTools) restoreAfter(normalToolsAnchor, normalTools);
+      }
+    }
+
+    btnMenu.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      syncMobileLayout();
+      setMobileMenuOpen(!menuSheet.classList.contains('open'));
+    });
+    if(menuClose) {
+      menuClose.addEventListener('click', (e) => {
+        e.preventDefault();
+        setMobileMenuOpen(false);
+      });
+    }
+    menuActions.addEventListener('click', (e) => {
+      if(e.target.closest('button')) setTimeout(() => setMobileMenuOpen(false), 0);
+    });
+    document.addEventListener('pointerdown', (e) => {
+      if(!mobileMq.matches || !menuSheet.classList.contains('open')) return;
+      if(menuSheet.contains(e.target) || btnMenu.contains(e.target)) return;
+      setMobileMenuOpen(false);
+    }, { passive: true });
+    sheetHandle.addEventListener('click', (e) => {
+      e.preventDefault();
+      setBottomSheetOpen(!controlPanel.classList.contains('sheet-open'));
+    });
+    if(mobileMq.addEventListener) mobileMq.addEventListener('change', syncMobileLayout);
+    else mobileMq.addListener(syncMobileLayout);
+    syncMobileLayout();
   })();
 
 
