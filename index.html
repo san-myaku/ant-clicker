@@ -540,6 +540,10 @@
     .btn-tit { font-size: 12px; font-weight: bold; display: block; }
     .btn-sub { font-size: 10px; color: #94a3b8; }
     .btn-cnt { font-size: 16px; font-weight: bold; color: #64748b; padding-left: 10px; pointer-events: none;}
+    .mobile-inline-effect {
+      display: none;
+      pointer-events: none;
+    }
 
     .btn-up-sm {
        background: #0f172a; border: 1px solid #94a3b8; border-radius: 6px;
@@ -696,6 +700,12 @@
     .dock-meta .dock-cost { font-size: 9px; color: #cbd5f0; }
     /* // MAJOR_UPGRADE: 発動メジャーのステータス表示 */
     .dock-meta .dock-status { font-size: 9px; color: #9fb1c9; }
+    .dock-meta .mobile-inline-effect {
+      margin-top: 2px;
+      color: rgba(226, 232, 240, 0.62);
+      font-size: 8px;
+      line-height: 1.15;
+    }
     .dock-badge {
       position: absolute;
       top: 4px;
@@ -1080,7 +1090,7 @@
       }
       .dock-grid-tab {
         grid-auto-flow: row;
-        grid-template-columns: repeat(4, minmax(64px, 1fr));
+        grid-template-columns: repeat(3, minmax(76px, 1fr));
         grid-template-rows: none;
         grid-auto-columns: auto;
         overflow-x: visible;
@@ -1093,21 +1103,53 @@
       }
       #dock-common-grid {
         grid-template-columns: repeat(1, minmax(0, 1fr));
-        grid-auto-rows: 54px;
+        grid-auto-rows: 64px;
         grid-template-rows: none;
         grid-auto-columns: auto;
         overflow: visible;
       }
       .dock-grid-tab .dock-item {
-        min-height: 58px;
+        min-height: 78px;
+        padding: 5px 4px;
+        justify-content: center;
+        overflow: hidden;
       }
       #dock-common-grid .dock-item {
-        min-height: 54px;
+        min-height: 64px;
       }
       .dock-icon { font-size: 16px; }
+      .dock-meta {
+        width: 100%;
+        min-width: 0;
+      }
       .dock-meta .dock-name { font-size: 10px; }
       .dock-meta .dock-cost,
       .dock-meta .dock-status { font-size: 9px; }
+      .dock-meta .mobile-inline-effect {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        overflow-wrap: anywhere;
+      }
+      .ant-buy > div {
+        min-width: 0;
+      }
+      .ant-buy .mobile-inline-effect {
+        display: block;
+        margin-top: 2px;
+        color: rgba(226, 232, 240, 0.62);
+        font-size: 9px;
+        line-height: 1.2;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        max-width: 100%;
+      }
+      .ant-count {
+        min-width: 56px;
+        font-size: 16px;
+      }
       .control-tab-btn {
         min-height: 42px;
         padding: 8px 6px;
@@ -9162,6 +9204,11 @@ function syncFermenterUnlockUI() {
 
   const hoverTip = document.getElementById('hover-tip');
 
+  function shouldUseInlineHints(e = null) {
+    if(e && e.pointerType && e.pointerType !== 'mouse') return true;
+    return !!(window.matchMedia && window.matchMedia('(hover: none)').matches);
+  }
+
   function placeTip(x, y) {
     if(!hoverTip) return;
     const pad = 12;
@@ -9190,7 +9237,9 @@ function syncFermenterUnlockUI() {
 
   function bindTip(el, getText) {
     if(!el) return;
+    let suppressFocusUntil = 0;
     const onEnter = (e) => {
+      if(shouldUseInlineHints(e)) return;
       const text = getText();
       if(!text) return;
       showTip(text, e.clientX, e.clientY);
@@ -9200,11 +9249,21 @@ function syncFermenterUnlockUI() {
       placeTip(e.clientX, e.clientY);
     };
     const onLeave = () => hideTip();
+    el.addEventListener('pointerdown', (e) => {
+      if(shouldUseInlineHints(e)) {
+        suppressFocusUntil = performance.now() + 900;
+        hideTip();
+      }
+    }, { passive: true });
     el.addEventListener('mouseenter', onEnter);
     el.addEventListener('mousemove', onMove);
     el.addEventListener('mouseleave', onLeave);
     el.addEventListener('blur', onLeave);
     el.addEventListener('focus', (e) => {
+      if(shouldUseInlineHints(e) || performance.now() < suppressFocusUntil) {
+        hideTip();
+        return;
+      }
       const text = getText();
       if(!text) return;
       const x = e.clientX || (window.innerWidth * 0.5);
@@ -9292,6 +9351,115 @@ function syncFermenterUnlockUI() {
     }
     const recipe = getFermentRecipe();
     return `発酵室建設\n建設数: ${built}/${FERMENT_ROOM_MAX}\n建設コスト: 🍃 ${FERMENT_ROOM_COST}\nレシピ: 🍃${recipe.foodCost} → ${recipe.timeSec}秒 → 🍪1\n発酵アリ補正: +${bonusPct}%`;
+  }
+
+  function formatInlineMul(v) {
+    const n = Number(v);
+    if(!Number.isFinite(n)) return '0';
+    return n.toFixed(2).replace(/\.00$/, '').replace(/0$/, '');
+  }
+
+  function ensureInlineEffectEl(parent, selector, className) {
+    if(!parent) return null;
+    let out = parent.querySelector(selector);
+    if(out) return out;
+    out = document.createElement('span');
+    out.className = className;
+    parent.appendChild(out);
+    return out;
+  }
+
+  function setDockInlineEffect(btnId, text) {
+    const btn = document.getElementById(btnId);
+    if(!btn) return;
+    const meta = btn.querySelector('.dock-meta');
+    const hint = ensureInlineEffectEl(meta, '.mobile-inline-effect', 'mobile-inline-effect');
+    if(hint) hint.textContent = text || '';
+  }
+
+  function setAntInlineEffect(btnId, text) {
+    const btn = document.getElementById(btnId);
+    if(!btn) return;
+    const body = btn.querySelector('div') || btn;
+    const hint = ensureInlineEffectEl(body, '.mobile-inline-effect', 'btn-sub mobile-inline-effect');
+    if(hint) hint.textContent = text || '';
+  }
+
+  function getWorkerInlineEffect() {
+    const curProd = G.getWorkerProdMul();
+    const curCookie = G.getWorkerCookieMul();
+    if(G.wLv >= WORKER_LV_MAX) return `最大: 食料x${formatInlineMul(curProd)} / 🍪x${formatInlineMul(curCookie)}`;
+    const nextLv = Math.min(WORKER_LV_MAX, G.wLv + 1);
+    const nextProd = getWorkerProdMulForLevel(nextLv);
+    const nextCookie = getWorkerCookieMulForLevel(nextLv);
+    const cookieText = Math.abs(nextCookie - curCookie) > 0.001 ? ` / 🍪x${formatInlineMul(curCookie)}→${formatInlineMul(nextCookie)}` : '';
+    return `次: 食料x${formatInlineMul(curProd)}→${formatInlineMul(nextProd)}${cookieText}`;
+  }
+
+  function getNurseInlineEffect() {
+    const curMul = getNurseHatchMul(G.nLv);
+    if(G.nLv >= NURSE_LV_MAX) return `最大: 成長x${formatInlineMul(curMul)}`;
+    const nextLv = Math.min(NURSE_LV_MAX, G.nLv + 1);
+    const nextMul = getNurseHatchMul(nextLv);
+    const layText = (G.nLv < 2 && nextLv >= 2) ? ' / 産卵+10%' : '';
+    return `次: 成長x${formatInlineMul(curMul)}→${formatInlineMul(nextMul)}${layText}`;
+  }
+
+  function getBuilderInlineEffect() {
+    const curLv = clamp(Math.floor(G.bLv || 0), 0, BUILDER_LV_MAX);
+    const curMul = 1 + curLv * 0.15;
+    if(curLv >= BUILDER_LV_MAX) return `最大: 建築x${formatInlineMul(curMul)}`;
+    const nextMul = 1 + (curLv + 1) * 0.15;
+    return `次: 建築x${formatInlineMul(curMul)}→${formatInlineMul(nextMul)}`;
+  }
+
+  function getSoldierInlineEffect() {
+    const curMul = getSoldierPowerMul(G.sLv);
+    if(G.sLv >= SOLDIER_LV_MAX) return `最大: 戦闘x${formatInlineMul(curMul)}`;
+    const nextMul = getSoldierPowerMul(G.sLv + 1);
+    return `次: 戦闘x${formatInlineMul(curMul)}→${formatInlineMul(nextMul)}`;
+  }
+
+  function getFermentRoomInlineEffect() {
+    if(!isFermentRoomUnlocked()) return '要研究: 発酵室解放';
+    const built = getFermentRoomNodeCount(true);
+    if(built >= FERMENT_ROOM_MAX) return `上限: ${built}/${FERMENT_ROOM_MAX}室`;
+    const recipe = getFermentRecipe();
+    return `効果: 🍃${recipe.foodCost}→🍪1`;
+  }
+
+  function updateMobileInlineHints() {
+    const qCur = (G.qLv * 2).toFixed(1);
+    const qNext = ((G.qLv + 1) * 2).toFixed(1);
+    setDockInlineEffect('act-up-queen', `次: 産卵 ${qCur}%→${qNext}%/秒`);
+    setDockInlineEffect('btn-up-worker', getWorkerInlineEffect());
+    setDockInlineEffect('btn-up-nurse', getNurseInlineEffect());
+    setDockInlineEffect('btn-up-builder', getBuilderInlineEffect());
+    setDockInlineEffect('btn-up-soldier', getSoldierInlineEffect());
+    setDockInlineEffect('btn-unlock-waste', G.unlockWasteRoom ? '解禁済み' : `解放: ゴミ室建設`);
+    setDockInlineEffect('btn-build-ferment', getFermentRoomInlineEffect());
+    setDockInlineEffect('btn-major-golden2x', (G.major && G.major.golden2x) ? '解放済み' : '効果: 黄金出現率x2');
+    setDockInlineEffect('btn-major-cookie2x', (G.major && G.major.cookie2x) ? '解放済み' : '効果: 🍪出現率x2');
+    setDockInlineEffect('btn-major-jaw2x', (G.major && G.major.jaw2x) ? '解放済み' : '効果: 兵隊攻撃x2');
+    setDockInlineEffect('btn-major-depth2', (G.major && G.major.depth2) ? '解放済み' : '解放: 深度II');
+    setDockInlineEffect('btn-major-depth3', (G.major && G.major.depth3) ? '解放済み' : '解放: 深度III');
+    setDockInlineEffect('btn-major-barracks', (G.major && G.major.barracks) ? '入手済み' : '解放: 兵隊アリ');
+    setDockInlineEffect('btn-major-worker-bigcarry', '将来: 大物運搬');
+    setDockInlineEffect('btn-major-act-cookie', '状態: 画面の糖塊をタップ');
+
+    const nurseNowEgg = 1 + Math.max(0, G.ants.nurse || 0) * 0.5;
+    const nurseNextEgg = nurseNowEgg + 0.5;
+    const nurseNowLarva = 1 + Math.max(0, G.ants.nurse || 0) * 0.25;
+    const nurseNextLarva = nurseNowLarva + 0.25;
+    setAntInlineEffect('act-nurse', `次: 卵x${formatInlineMul(nurseNowEgg)}→${formatInlineMul(nurseNextEgg)} / 幼虫x${formatInlineMul(nurseNowLarva)}→${formatInlineMul(nurseNextLarva)}`);
+    setAntInlineEffect('act-builder', '次: 掘削・搬出担当 +1');
+    const soldierPower = Math.round(RAID_CFG.soldierBasePower * getSoldierPowerMul(G.sLv));
+    const soldierLock = isSoldierUnlocked() ? `次: 防衛力 +${soldierPower}` : getSoldierLockText();
+    setAntInlineEffect('act-soldier', soldierLock);
+    const curFermentPct = Math.round(getFermenterBonusRate() * 100);
+    const nextFermentPct = Math.round(clamp(((G.ants.fermenter || 0) + 1) * FERMENTER_BONUS_PER_ANT, 0, FERMENTER_BONUS_MAX) * 100);
+    const fermentText = isFermenterUnlocked() ? `次: 発酵+${curFermentPct}%→+${nextFermentPct}%` : getFermenterLockText();
+    setAntInlineEffect('act-fermenter', fermentText);
   }
 
   function getExpeditionTipText() {
@@ -10389,6 +10557,7 @@ function syncFermenterUnlockUI() {
     }
     updateResearchUI();
     updateFermentPanelUI();
+    updateMobileInlineHints();
     updateUpgradeDock();
     // 改善: プログレッシブUI・タップボタン更新
     updateProgressiveUI();
