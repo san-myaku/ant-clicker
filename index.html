@@ -3316,6 +3316,7 @@ function ensureRestSlots(n){
   
   function maybeShiftBand() {
       if(!S.full) return;
+      ensureBandReady();
       const now = performance.now();
 
       // 連続で帯を下げすぎないための安全策（最低でも2秒は間隔を空ける）
@@ -3370,6 +3371,99 @@ function ensureRestSlots(n){
   const dp = (x) => x * (window.devicePixelRatio || 1);
   // 巣（ワールド）の基準横幅（画面幅に依存しない固定値）
   const WORLD_W_BASE = dp(2400);
+
+  function hasValidBandState(b) {
+    if(!b) return false;
+    const top = +b.top, bottom = +b.bottom, height = +b.height, step = +b.step;
+    return Number.isFinite(top) && Number.isFinite(bottom) &&
+      Number.isFinite(height) && Number.isFinite(step) &&
+      height > 0 && step > 0 && bottom > top + Math.max(1, height * 0.25);
+  }
+
+  function makeFallbackBandState() {
+    const full = S.full || {};
+    const sy = Number.isFinite(+full.sy) ? +full.sy : dp(160);
+    const h = Number.isFinite(+full.h) ? +full.h : Math.max(canvas.height * 3, dp(12000));
+    const w = Number.isFinite(+full.w) ? +full.w : WORLD_W_BASE;
+    let height = Number.isFinite(+(S.band && S.band.height)) && S.band.height > 0 ? +S.band.height : dp(720);
+    let step = Number.isFinite(+(S.band && S.band.step)) && S.band.step > 0 ? +S.band.step : dp(420);
+    height = Math.max(dp(260), height);
+    step = Math.max(dp(160), step);
+
+    const baseTop = sy + dp(80);
+    let top = baseTop;
+    const ys = [];
+    if(S.full && S.full.nodes && S.nodeVis) {
+      for(let i = 0; i < S.full.nodes.length; i++) {
+        if(!S.nodeVis[i]) continue;
+        const n = S.full.nodes[i];
+        if(!n || n.type === 'entrance') continue;
+        if(Number.isFinite(+n.y)) ys.push(+n.y);
+      }
+    }
+    if(ys.length) {
+      const minY = Math.min(...ys);
+      const maxY = Math.max(...ys);
+      if(minY < top || maxY > top + height) {
+        top = maxY - height * 0.45;
+      }
+    }
+    const maxTop = Math.max(baseTop, h - height - dp(120));
+    top = clamp(top, baseTop, maxTop);
+    let bottom = top + height;
+    if(bottom > h - dp(80)) {
+      bottom = h - dp(80);
+      top = Math.max(baseTop, bottom - height);
+      height = bottom - top;
+    }
+
+    return {
+      top,
+      bottom,
+      height,
+      step,
+      index: Math.max(0, Math.floor((top - baseTop) / Math.max(1, step))),
+      targetFill: Math.max(22, Math.min(38, Math.floor(w / Math.max(1, dp(110))) + 18)),
+      targetSpan: 0.68,
+      needSide: false,
+      forceShaft: 0,
+      depthLock: false,
+      lastShiftAt: performance.now(),
+      lastBlockToastAt: 0
+    };
+  }
+
+  function ensureBandReady(savedBand = null) {
+    if(!S.full || !S.band) return;
+    const src = (savedBand && typeof savedBand === 'object') ? savedBand : null;
+    if(!src && hasValidBandState(S.band)) return;
+
+    const fallback = makeFallbackBandState();
+    const b = (src && hasValidBandState(src)) ? src : fallback;
+    let top = Number.isFinite(+b.top) ? +b.top : fallback.top;
+    let bottom = Number.isFinite(+b.bottom) ? +b.bottom : fallback.bottom;
+    let height = Number.isFinite(+b.height) && +b.height > 0 ? +b.height : fallback.height;
+    let step = Number.isFinite(+b.step) && +b.step > 0 ? +b.step : fallback.step;
+    if(bottom <= top + Math.max(1, height * 0.25)) {
+      top = fallback.top;
+      bottom = fallback.bottom;
+      height = fallback.height;
+      step = fallback.step;
+    }
+
+    S.band.top = top;
+    S.band.bottom = bottom;
+    S.band.height = height;
+    S.band.step = step;
+    S.band.index = Math.max(0, Math.floor(+b.index || fallback.index || 0));
+    S.band.targetFill = Math.max(1, +b.targetFill || fallback.targetFill);
+    S.band.targetSpan = clamp(+b.targetSpan || fallback.targetSpan, 0.25, 0.95);
+    S.band.needSide = !!b.needSide;
+    S.band.forceShaft = Math.max(0, Math.floor(+b.forceShaft || 0));
+    S.band.depthLock = !!b.depthLock;
+    S.band.lastShiftAt = performance.now();
+    S.band.lastBlockToastAt = 0;
+  }
 
   // ===== Main shaft management =====
   // main shaft nodes are marked {type:'shaft', main:true}; S.mainTipId tracks the deepest main node.
@@ -4306,6 +4400,18 @@ function ensureRestSlots(n){
         edges: this.full.edges.map(e => ({ u:e.u, v:e.v, p0:e.p0, p1:e.p1, p2:e.p2, p3:e.p3, kind: e.kind || null })),
         nodeVis: this.nodeVis,
         edgeFrac: this.edgeFrac,
+        band: {
+          top: this.band.top,
+          bottom: this.band.bottom,
+          height: this.band.height,
+          step: this.band.step,
+          index: this.band.index,
+          targetFill: this.band.targetFill,
+          targetSpan: this.band.targetSpan,
+          needSide: !!this.band.needSide,
+          forceShaft: Math.max(0, Math.floor(this.band.forceShaft || 0)),
+          depthLock: !!this.band.depthLock
+        },
         season: this.season,
         weather: { id: this.weather.id, label: this.weather.label, nextChangeAt: this.weather.nextChangeAt, changeTimer: this.weather.changeTimer }
       };
@@ -4389,6 +4495,7 @@ function ensureRestSlots(n){
       if(this.full.qid != null) this.nodeVis[this.full.qid] = true;
 
       this.mainTipId = (typeof savedWorld.mainTipId === "number") ? savedWorld.mainTipId : null;
+      ensureBandReady(savedWorld.band);
       // 季節・天気の復元
       if(savedWorld.season) {
         this.season.idx = savedWorld.season.idx || 0;
@@ -6212,6 +6319,7 @@ function expandMap(forcedType, isEmergency) {
         3) 生成する深さはレイヤー（帯）に従う（浅いところを埋めてから下へ）
       */
       if(!S.full) return null;
+      ensureBandReady();
 
       // まず帯の進行状況を更新（十分埋まったら次の帯へ）
       maybeShiftBand();
