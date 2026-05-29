@@ -790,6 +790,12 @@
     .dock-more-panel.show { display: grid; }
 
     @media (max-width: 680px) {
+      html, body {
+        overflow: hidden;
+      }
+      #layout, #game-pane {
+        min-height: 100dvh;
+      }
       .lucky-target {
         width: 84px;
         height: 84px;
@@ -797,27 +803,105 @@
       .lucky-target .lucky-icon { font-size: 32px; }
       .lucky-target .lucky-remain { font-size: 11px; }
       #top-bar {
-        padding: max(6px, env(safe-area-inset-top)) 8px 6px;
-        gap: 6px;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        align-items: stretch;
+        padding: max(6px, env(safe-area-inset-top)) 8px 5px;
+        gap: 5px;
         background: linear-gradient(to bottom, rgba(8, 14, 24, 0.92), rgba(8, 14, 24, 0));
       }
       .res-box {
+        min-width: 0;
+        min-height: 38px;
+        box-sizing: border-box;
         padding: 3px 6px;
-        min-width: 52px;
         background: rgba(12, 20, 12, 0.85);
         border: 1px solid rgba(110, 75, 38, 0.45);
         box-shadow: 0 2px 6px rgba(0,0,0,0.35);
       }
-      .res-lbl { font-size: 8px; letter-spacing: 0.02em; }
-      .res-val { font-size: 12px; }
-      #act-tap { min-height: 56px; padding: 12px 10px; }
+      .res-lbl { font-size: 8px; letter-spacing: 0.01em; line-height: 1.1; }
+      .res-val {
+        font-size: 12px;
+        line-height: 1.15;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      #season-box,
+      #depth-box {
+        grid-column: span 2;
+      }
+      #season-box .res-val,
+      #depth-box .res-val {
+        font-size: 12px !important;
+      }
+      #next-goal-box {
+        grid-column: 1 / -1;
+        min-height: 0;
+        padding: 5px 8px !important;
+      }
+      #next-goal-box > div:first-child {
+        font-size: 8px !important;
+        line-height: 1.1;
+      }
+      #next-goal-text {
+        font-size: 12px !important;
+        line-height: 1.25;
+      }
+      #top-bar > button.res-box {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 36px;
+        padding: 0;
+        font-size: 16px;
+      }
+      #control-panel {
+        max-height: 48dvh;
+        padding: 7px 10px max(10px, env(safe-area-inset-bottom));
+        gap: 6px;
+      }
+      #control-growth-bars {
+        gap: 8px !important;
+      }
+      #control-growth-bars > div {
+        min-width: 0;
+      }
+      #control-growth-bars .info-row {
+        font-size: 10px;
+        line-height: 1.2;
+      }
+      .growth-bottleneck {
+        gap: 4px;
+        font-size: 9px;
+        line-height: 1.2;
+      }
+      #normal-tools .btn {
+        min-height: 34px;
+        justify-content: center;
+        padding: 6px 8px;
+      }
+      #act-tap { min-height: 50px; padding: 9px 10px; }
       #act-tap .btn-main { width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+      #act-tap .btn-tit { font-size: 14px; }
+      #act-tap .btn-sub { font-size: 10px; }
+      .tab-card {
+        border-radius: 8px;
+        padding: 6px;
+      }
+      .tab-sec-title {
+        margin-bottom: 5px;
+        font-size: 10px;
+      }
+      #control-tabs {
+        gap: 5px;
+      }
       #upgradeDock { margin-left: 0; margin-right: 0; }
       .dock-grid {
         grid-auto-flow: column;
         grid-template-columns: none;
-        grid-template-rows: repeat(2, 76px);
-        grid-auto-columns: 80px;
+        grid-template-rows: repeat(2, 68px);
+        grid-auto-columns: 76px;
         overflow-x: auto;
         scroll-snap-type: x mandatory;
         -webkit-overflow-scrolling: touch;
@@ -829,7 +913,7 @@
       }
       .dock-grid-tab {
         grid-auto-flow: row;
-        grid-template-columns: repeat(4, minmax(72px, 1fr));
+        grid-template-columns: repeat(4, minmax(64px, 1fr));
         grid-template-rows: none;
         grid-auto-columns: auto;
         overflow-x: visible;
@@ -842,17 +926,32 @@
       }
       #dock-common-grid {
         grid-template-columns: repeat(1, minmax(0, 1fr));
+        grid-auto-rows: 54px;
         grid-template-rows: none;
         grid-auto-columns: auto;
         overflow: visible;
       }
+      .dock-grid-tab .dock-item {
+        min-height: 58px;
+      }
+      #dock-common-grid .dock-item {
+        min-height: 54px;
+      }
+      .dock-icon { font-size: 16px; }
+      .dock-meta .dock-name { font-size: 10px; }
+      .dock-meta .dock-cost,
+      .dock-meta .dock-status { font-size: 9px; }
       .control-tab-btn {
-        padding: 10px 8px;
+        min-height: 42px;
+        padding: 8px 6px;
         font-size: 12px;
       }
       .tab-alert {
         top: 2px;
         right: 3px;
+      }
+      #version-tag {
+        display: none;
       }
     }
 

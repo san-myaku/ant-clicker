@@ -1,5 +1,12 @@
 # Ant Colony V23 Current System Overview
 
+## 2026-05-29 追記: スマホ表示
+
+- 公開版は `index.html` をGitHub Pagesで配信する
+- 680px以下では上部HUDを4列グリッドにし、下部操作パネルを省スペース化する
+- スマホではバージョンタグを非表示にし、ブラウザ下部UIとの重なりを避ける
+- GitHub Pages URL: `https://san-myaku.github.io/ant-clicker/`
+
 作成日: 2026-05-23  
 対象ファイル: `index.html`
 
