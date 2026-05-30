@@ -2187,6 +2187,8 @@
   const WORKER_ROOM_WANDER_MIN = 0.20;
   const WORKER_ROOM_WANDER_MAX = 0.80;
   const WORKER_ROOM_WANDER_PROB = 1.00;
+  const NURSE_ROOM_WANDER_MIN = 0.25;
+  const NURSE_ROOM_WANDER_MAX = 0.90;
   const DIG_PICK_TIME_BASE = 0.8;
   const DIG_FRAC_PER_CHUNK = 0.02;
   const CARRY_SPEED_MUL = 0.85;
@@ -6259,7 +6261,30 @@ function expandMap(forcedType, isEmergency) {
   function wander(a) {
     a.task='wander';
     a.stT=1+Math.random();
+    clearRoomWander(a);
+  }
+  function clearRoomWander(a) {
     a.wT = null; a.wNode = null; a.wUseSlots = false; a.wtx = null; a.wty = null;
+  }
+  function startRoomWander(a, nodeId, minT, maxT, useSlots) {
+    if(!a || !S.full || nodeId == null) return false;
+    const n = S.full.nodes[nodeId];
+    if(!n || n.type === 'shaft' || n.type === 'entrance') return false;
+    a.task = 'wander';
+    a.wNode = nodeId;
+    a.wUseSlots = useSlots !== false;
+    a.wT = minT + Math.random() * Math.max(0, maxT - minT);
+    a.stT = 0;
+    a.wtx = null; a.wty = null;
+    return true;
+  }
+  function updateTimedRoomWander(a, dt) {
+    if(typeof a.wT === 'number') a.wT -= dt;
+    updateWander(a, dt);
+    if(typeof a.wT === 'number' && a.wT <= 0) {
+      clearRoomWander(a);
+      a.task = 'idle';
+    }
   }
   function updateWander(a,dt) {
     const nodeId = (a.wNode != null && S.full && S.full.nodes[a.wNode]) ? a.wNode : a.node;
@@ -6871,7 +6896,7 @@ function expandMap(forcedType, isEmergency) {
     btn.type = 'button';
     btn.className = `lucky-target ${key}`;
     btn.setAttribute('aria-label', `${cfg.label} ラッキー対象`);
-    btn.innerHTML = `<span class="lucky-icon">${cfg.icon}</span><span class="lucky-remain">--</span>`;
+    btn.innerHTML = `<span class="lucky-icon">${cfg.icon}</span>`;
     btn.addEventListener('pointerdown', (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -6992,10 +7017,6 @@ function expandMap(forcedType, isEmergency) {
     if(pos && target.el) {
       target.el.style.left = `${pos.x}px`;
       target.el.style.top = `${pos.y}px`;
-    }
-    if(target.el) {
-      const remainEl = target.el.querySelector('.lucky-remain');
-      if(remainEl) remainEl.textContent = `${Math.max(0, (a.availUntil || 0) - S.t).toFixed(1)}s`;
     }
   }
 
@@ -7631,18 +7652,11 @@ function expandMap(forcedType, isEmergency) {
               S.full.nodes[a.node].invFood = (S.full.nodes[a.node].invFood||0) + 1;
             }
             a.cargo = null;
-            const room = S.full.nodes[a.node];
-            const canRoomWander = room && room.type !== 'shaft' && room.type !== 'entrance';
-            if(canRoomWander && Math.random() < WORKER_ROOM_WANDER_PROB) {
-              a.task = 'wander';
-              a.wNode = a.node;
-              a.wUseSlots = true;
-              a.wT = WORKER_ROOM_WANDER_MIN + Math.random() * (WORKER_ROOM_WANDER_MAX - WORKER_ROOM_WANDER_MIN);
-              a.stT = 0;
-              a.wtx = null; a.wty = null;
+            if(Math.random() < WORKER_ROOM_WANDER_PROB && startRoomWander(a, a.node, WORKER_ROOM_WANDER_MIN, WORKER_ROOM_WANDER_MAX, true)) {
+              // 部屋内で少し動いてから次の仕事を探す
             } else {
               a.task = 'idle';
-              a.wT = null; a.wNode = null; a.wUseSlots = false; a.wtx = null; a.wty = null;
+              clearRoomWander(a);
             }
           }
         }
@@ -7684,12 +7698,7 @@ function expandMap(forcedType, isEmergency) {
           }
         }
         else if(a.task==='wander') {
-          if(typeof a.wT === 'number') a.wT -= dt;
-          updateWander(a,dt);
-          if(typeof a.wT === 'number' && a.wT <= 0) {
-            a.wT = null; a.wNode = null; a.wUseSlots = false; a.wtx = null; a.wty = null;
-            a.task = 'idle';
-          }
+          updateTimedRoomWander(a, dt);
         }
         a.panic = raidActive && (a.task==='surf' || a.task==='ret');
       } else if(a.role === 'nurse') {
@@ -7780,7 +7789,13 @@ function expandMap(forcedType, isEmergency) {
             return;
           }
 
-          wander(a); return;
+          let idleRoomId = a.node;
+          const idleRoom = S.full.nodes[idleRoomId];
+          if(!idleRoom || idleRoom.type === 'shaft' || idleRoom.type === 'entrance') {
+            idleRoomId = nurseryIds.length ? nurseryIds[0] : S.full.qid;
+          }
+          if(!startRoomWander(a, idleRoomId, NURSE_ROOM_WANDER_MIN, NURSE_ROOM_WANDER_MAX, true)) wander(a);
+          return;
         }
         else if(a.task==='go_q') { move(a,dt); if(a.phase==='done') a.task='idle'; }
         else if(a.task==='go_n') { move(a,dt); if(a.phase==='done') { S.full.nodes[a.node].invEgg++; a.cargo=null; a.task='idle'; } }
@@ -7880,7 +7895,7 @@ function expandMap(forcedType, isEmergency) {
             a.task='idle';
           }
         }
-        else if(a.task==='wander') updateWander(a,dt);
+        else if(a.task==='wander') updateTimedRoomWander(a,dt);
       } else if(a.role === 'soldier') {
         if(raidActive) {
           a._raidDeployed = true;
@@ -12228,7 +12243,8 @@ function syncFermenterUnlockUI() {
       // 追加: 幼虫(invLarva)を優先描画（幼虫→卵→餌）
       const invLarva = Math.max(0, Math.floor(n.invLarva || 0));
       const invEgg = Math.max(0, Math.floor(n.invEgg || 0));
-      const invFood = Math.max(0, Math.floor(n.invFood || 0));
+      const invFoodRaw = Math.max(0, Math.floor(n.invFood || 0));
+      const invFood = (n.type === 'queen') ? 0 : invFoodRaw;
       const invCookie = Math.max(0, Math.floor(n.invCookie || 0));
       const waste = Math.max(0, +n.invWaste || 0);
       const maxSlotsDraw = Math.min(n.slots.length, 60); // 描画上限（負荷対策）
@@ -12744,7 +12760,8 @@ function syncFermenterUnlockUI() {
 
     if(S.nodeVis[S.full.qid]) {
       const q=S.full.nodes[S.full.qid];
-      drawRealisticQueen(ctx, q.x, q.y, S.t, 0.78 * 1.8);
+      const queenScaleMul = (window.matchMedia && window.matchMedia('(max-width: 959px)').matches) ? 2.15 : 1.8;
+      drawRealisticQueen(ctx, q.x, q.y, S.t, 0.78 * queenScaleMul);
       // 女王つぶやき吹き出し
       if(_whisperCurrent && _whisperTimer > 0) {
         const bAlpha = Math.min(1, _whisperTimer, (WHISPER_DISPLAY_SEC - _whisperTimer + 0.5)) * 0.85;
