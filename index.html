@@ -12393,14 +12393,13 @@ function syncFermenterUnlockUI() {
       const invFoodRaw = Math.max(0, Math.floor(n.invFood || 0));
       const invFood = (n.type === 'queen') ? 0 : invFoodRaw;
       const invCookie = Math.max(0, Math.floor(n.invCookie || 0));
+      const invCookieDraw = (n.type === 'cookieroom') ? invCookie : 0;
       const waste = Math.max(0, +n.invWaste || 0);
       const maxSlotsDraw = Math.min(n.slots.length, 60); // 描画上限（負荷対策）
-      const totalDraw = Math.min(maxSlotsDraw, invLarva + invEgg + invFood);
+      const totalDraw = Math.min(maxSlotsDraw, invLarva + invEgg + invFood + invCookieDraw);
       const lightLarva = (antRender.mode === 'dot'); // 軽量モードは簡易描画
       const drawLarvaWaste = isLarvaRoom && waste > 0 && n.slots && n.slots.length;
-      // 日本語: クッキー室は invCookie だけでも描画したいので条件に含める
-      const drawCookieRoom = (n.type === 'cookieroom');
-      if(totalDraw > 0 || drawLarvaWaste || (n.type === 'waste' && n.slots && n.slots.length) || drawCookieRoom) {
+      if(totalDraw > 0 || drawLarvaWaste || (n.type === 'waste' && n.slots && n.slots.length)) {
         ctx.save();
         clipBlobPath(ctx, n);
         for(let k=0; k<totalDraw; k++){
@@ -12427,9 +12426,15 @@ function syncFermenterUnlockUI() {
               ctx.lineWidth = dp(0.8);
               ctx.beginPath(); ctx.arc(s.x, s.y, dp(4.6), 0, 6.28); ctx.stroke();
             }
-          } else {
+          } else if(k < invLarva + invEgg + invFood) {
             ctx.fillStyle = '#4ade80';
             ctx.beginPath(); ctx.arc(s.x, s.y, dp(3), 0, 6.28); ctx.fill();
+          } else {
+            ctx.fillStyle = '#fcd34d';
+            ctx.beginPath(); ctx.arc(s.x, s.y, dp(3), 0, 6.28); ctx.fill();
+            ctx.fillStyle = '#a16207';
+            ctx.beginPath(); ctx.arc(s.x - dp(0.8), s.y - dp(0.6), dp(0.55), 0, 6.28); ctx.fill();
+            ctx.beginPath(); ctx.arc(s.x + dp(1), s.y + dp(0.5), dp(0.45), 0, 6.28); ctx.fill();
           }
         }
         // 幼虫室のゴミ描画（軽量・控えめ）
@@ -12448,52 +12453,6 @@ function syncFermenterUnlockUI() {
               ctx.beginPath(); ctx.arc(s.x, s.y, dp(1.8), 0, 6.28); ctx.fill();
             }
           }
-        }
-        // クッキー室のクッキー描画（棚＋在庫山）
-        if(n.type === 'cookieroom') {
-          ctx.save();
-          clipBlobPath(ctx, n);
-          const pulse = (Math.sin(S.t * 2.2 + n.x * 0.01) + 1) * 0.5;
-          // 中央のクッキーアイコン（背景）
-          ctx.font = `${dp(n.r * 0.45)}px serif`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.globalAlpha = 0.35 + pulse * 0.1;
-          ctx.fillText('🍪', n.x, n.y);
-          ctx.globalAlpha = 1;
-          // 在庫山の描画
-          const invC = Math.min(30, invCookie);
-          if(invC > 0) {
-            const tiers = [
-              { y: n.r * 0.5, count: Math.min(invC, 6), size: dp(3.5), cnt: 6 },
-              { y: n.r * 0.3, count: Math.max(0, Math.min(invC - 6, 6)), size: dp(3.2), cnt: 6 },
-              { y: n.r * 0.1, count: Math.max(0, Math.min(invC - 12, 5)), size: dp(3), cnt: 5 },
-              { y: -n.r * 0.1, count: Math.max(0, Math.min(invC - 17, 5)), size: dp(2.8), cnt: 5 },
-              { y: -n.r * 0.3, count: Math.max(0, Math.min(invC - 22, 4)), size: dp(2.6), cnt: 4 },
-              { y: -n.r * 0.5, count: Math.max(0, Math.min(invC - 26, 4)), size: dp(2.4), cnt: 4 }
-            ];
-            for(const tier of tiers) {
-              if(tier.count <= 0) continue;
-              for(let k = 0; k < tier.count; k++) {
-                const px = n.x + (k - (tier.cnt-1)/2) * dp(5);
-                const py = n.y + tier.y;
-                ctx.fillStyle = '#fcd34d';
-                ctx.beginPath(); ctx.arc(px, py, tier.size, 0, 6.28); ctx.fill();
-                ctx.fillStyle = '#a16207';
-                ctx.beginPath(); ctx.arc(px - dp(0.8), py - dp(0.6), dp(0.6), 0, 6.28); ctx.fill();
-                ctx.beginPath(); ctx.arc(px + dp(1), py + dp(0.4), dp(0.5), 0, 6.28); ctx.fill();
-              }
-            }
-            // 日本語: 31個以上は「+N」を表示して在庫増加が止まって見えない問題を回避
-            if(invCookie > invC) {
-              ctx.fillStyle = 'rgba(245, 158, 11, 0.95)';
-              ctx.font = `bold ${dp(10)}px sans-serif`;
-              ctx.textAlign = 'center';
-              ctx.textBaseline = 'middle';
-              ctx.fillText(`+${invCookie - invC}`, n.x + n.r * 0.42, n.y - n.r * 0.55);
-            }
-          }
-          ctx.restore();
         }
         if(n.type === 'ferment') {
           ctx.save();
