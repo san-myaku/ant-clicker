@@ -1995,7 +1995,8 @@
             <div>経過: <span id="off-time"></span></div>
             <div>食料: +<span id="off-food" class="txt-green"></span></div>
             <div>卵: +<span id="off-egg" class="txt-gold"></span></div>
-            <div>孵化: +<span id="off-hatch" class="txt-blue"></span></div>
+            <div>幼虫化: +<span id="off-larva" class="txt-blue"></span></div>
+            <div>成虫化: +<span id="off-hatch" class="txt-blue"></span></div>
             <div>クッキー: +<span id="off-cookie" class="txt-gold"></span></div>
         </div>
         <button class="modal-btn" onclick="document.getElementById('modal-off').classList.remove('show')">OK</button>
@@ -2883,6 +2884,95 @@ function convertEggToLarvaInRooms(amount, nurseryIds){
     if(remain <= 0) break;
   }
   return req - remain;
+}
+
+function consumeFoodFromVisualStores(amount) {
+  if(!S.full) return 0;
+  let remain = Math.max(0, Math.floor(amount || 0));
+  if(remain <= 0) return 0;
+  const foodIds = getRoomCache().foodRoomIds || [];
+  for(const id of foodIds) {
+    const n = S.full.nodes[id];
+    if(!n || remain <= 0) continue;
+    const have = Math.max(0, Math.floor(n.invFood || 0));
+    const take = Math.min(have, remain);
+    if(take > 0) {
+      n.invFood = have - take;
+      remain -= take;
+    }
+  }
+  const qid = getQueenRoomId();
+  if(remain > 0 && qid != null) {
+    const q = S.full.nodes[qid];
+    if(q) {
+      const have = Math.max(0, Math.floor(q.invFood || 0));
+      const take = Math.min(have, remain);
+      if(take > 0) {
+        q.invFood = have - take;
+        remain -= take;
+      }
+    }
+  }
+  return Math.max(0, Math.floor(amount || 0)) - remain;
+}
+
+function applyOfflineLarvaFeeding(larvaRoomIds, sec, offlineEff) {
+  if(!S.full || !larvaRoomIds || larvaRoomIds.length <= 0) return 0;
+  if((G.ants.nurse || 0) <= 0 || G.food <= 0) return 0;
+  if((getRoomCache().foodRoomIds || []).length <= 0) return 0;
+
+  let totalNeed = 0;
+  const needs = [];
+  for(const id of larvaRoomIds) {
+    const n = S.full.nodes[id];
+    if(!n) continue;
+    const larvaCnt = Math.max(0, Math.floor(n.invLarva || 0));
+    if(larvaCnt <= 0) continue;
+    const target = larvaCnt * LARVA_FOOD_NEED;
+    const need = Math.max(0, target - Math.floor(n.invLarvaFood || 0));
+    if(need > 0) {
+      needs.push({ id, need });
+      totalNeed += need;
+    }
+  }
+  if(totalNeed <= 0) return 0;
+
+  const nurseCount = Math.max(1, Math.floor(G.ants.nurse || 0));
+  const feedRate = nurseCount * LARVA_FOOD_DELIVER * (offlineEff || 0.5) / 8;
+  let budget = Math.min(totalNeed, Math.floor(feedRate * Math.max(0, sec || 0)), Math.floor(G.food));
+  if(budget <= 0) return 0;
+
+  const fed = budget;
+  G.food = Math.max(0, G.food - fed);
+  consumeFoodFromVisualStores(fed);
+  for(const item of needs) {
+    if(budget <= 0) break;
+    const n = S.full.nodes[item.id];
+    if(!n) continue;
+    const add = Math.min(item.need, budget);
+    n.invLarvaFood = Math.max(0, Math.floor(n.invLarvaFood || 0)) + add;
+    budget -= add;
+  }
+  return fed - budget;
+}
+
+function consumeLarvaeFromRooms(amount, larvaRoomIds) {
+  if(!S.full) return 0;
+  let remain = Math.max(0, Math.floor(amount || 0));
+  if(remain <= 0) return 0;
+  const ids = (larvaRoomIds && larvaRoomIds.length) ? larvaRoomIds : getLarvaGrowthRoomIds(getNurseryIds());
+  for(const id of ids) {
+    const n = S.full.nodes[id];
+    if(!n || remain <= 0) continue;
+    const take = Math.min(Math.max(0, Math.floor(n.invLarva || 0)), remain);
+    if(take > 0) {
+      n.invLarva = Math.max(0, Math.floor(n.invLarva || 0) - take);
+      const foodNeed = take * LARVA_FOOD_NEED;
+      n.invLarvaFood = Math.max(0, Math.floor(n.invLarvaFood || 0) - foodNeed);
+      remain -= take;
+    }
+  }
+  return Math.max(0, Math.floor(amount || 0)) - remain;
 }
 
 // 最寄りの部屋IDを返す（距離は部屋中心の直線距離）
@@ -6541,7 +6631,6 @@ function expandMap(forcedType, isEmergency) {
   const WHISPER_DISPLAY_SEC = 5;  // 表示時間
   const WHISPER_COOLDOWN = 15;    // 同じ種類のつぶやき最小間隔
   const WHISPER_MAX_LOG = 50;
-  const WHISPER_UI_SCALE = 3;     // 吹き出し見た目スケール
   let _whisperLastType = {};
   let _whisperCurrent = null;
   let _whisperTimer = 0;
@@ -8305,6 +8394,10 @@ function expandMap(forcedType, isEmergency) {
     const OFFLINE_EFF = 0.5;
     const OFFLINE_MAX_SEC = 8 * 3600;
     sec = Math.min(sec, OFFLINE_MAX_SEC);
+    const nurseryIdsOffline = S.full ? getNurseryIds() : [];
+    let visualEggsPlaced = false;
+    let visualLarvaeConverted = false;
+    let visualAdultsRemoved = false;
     // Food production
     let fRate = G.ants.worker * 0.1 * G.getWorkerProdMul() * getGatherResearchMul() * OFFLINE_EFF; // food/sec per worker (半効率)
     const restMul = (S.restMul || 1);
@@ -8328,11 +8421,16 @@ function expandMap(forcedType, isEmergency) {
       addEgg = Math.floor(layProg / 100);
       G.layP = layProg % 100;
       if(addEgg > 0) G.eggs += addEgg;
+      if(addEgg > 0 && S.full) {
+        // オフライン中は育児アリの運搬を簡略化し、産まれた卵を孵化対象の部屋へ反映する
+        addEggToEggRooms(Math.floor(addEgg), nurseryIdsOffline);
+        visualEggsPlaced = true;
+      }
     } else {
       G.layP = 0;
     }
 
-    // 卵→幼虫（進行は簡易）
+    // 卵→幼虫。先にオフライン産卵を部屋在庫へ反映し、閉じていた間の卵も孵化対象にする。
     let addLarva = 0;
     if(G.eggs > 0) {
       let eggRate = (100 / EGG_TO_LARVA_SEC);
@@ -8341,8 +8439,7 @@ function expandMap(forcedType, isEmergency) {
       eggRate *= getBroodEggMul();
       const eggProg = G.eggToLarvaP + eggRate * sec;
       const eggRaw = Math.floor(eggProg / 100);
-      const nurseryIds = S.full ? getNurseryIds() : [];
-      const hatchableEggs = S.full ? getHatchableEggCount(nurseryIds) : Math.floor(G.eggs);
+      const hatchableEggs = S.full ? getHatchableEggCount(nurseryIdsOffline) : Math.floor(G.eggs);
       const maxEgg = Math.min(eggRaw, Math.floor(G.eggs), hatchableEggs);
       addLarva = maxEgg;
       if(maxEgg < eggRaw) {
@@ -8353,19 +8450,24 @@ function expandMap(forcedType, isEmergency) {
       if(addLarva > 0) {
         G.eggs -= addLarva;
         G.larvae += addLarva;
+        if(S.full) {
+          convertEggToLarvaInRooms(Math.floor(addLarva), nurseryIdsOffline);
+          visualLarvaeConverted = true;
+        }
       }
     } else {
       G.eggToLarvaP = 0;
     }
 
-    // 幼虫→成虫（進行は簡易）
+    // 幼虫→成虫。直前に孵化した幼虫も部屋在庫へ反映済みなので、閉じていた間に成虫化できる。
     let adultInt = 0;
     if(G.larvae > 0 && G.tot < G.caps.pop) {
       let foodCoef = 1;
       let wasteCoef = 1;
+      let larvaRoomIds = [];
       if(S.full) {
-        const nurseryIds = getNurseryIds();
-        const larvaRoomIds = getLarvaGrowthRoomIds(nurseryIds);
+        larvaRoomIds = getLarvaGrowthRoomIds(nurseryIdsOffline);
+        applyOfflineLarvaFeeding(larvaRoomIds, sec, OFFLINE_EFF);
         let larvaTotal = 0, larvaFoodTotal = 0, larvaWasteTotal = 0;
         for(const id of larvaRoomIds) {
           const n = S.full.nodes[id]; if(!n) continue;
@@ -8396,6 +8498,10 @@ function expandMap(forcedType, isEmergency) {
         // ※ G.tot は getter のため代入不可。働きアリに加算すれば G.tot も自動で増える
         G.ants.worker += adultInt;
         rollGoldenHatches(adultInt);
+        if(S.full) {
+          consumeLarvaeFromRooms(adultInt, larvaRoomIds);
+          visualAdultsRemoved = true;
+        }
       }
     } else {
       G.larvaToAdultP = 0;
@@ -8412,6 +8518,7 @@ function expandMap(forcedType, isEmergency) {
     setText(document.getElementById('off-time'), fmtTime(sec));
     setText(document.getElementById('off-food'), Math.floor(addFood));
     setText(document.getElementById('off-egg'), Math.floor(addEgg));
+    setText(document.getElementById('off-larva'), Math.floor(addLarva));
     setText(document.getElementById('off-hatch'), adultInt);
     setText(document.getElementById('off-cookie'), addCookie);
     const modalOff = document.getElementById('modal-off');
@@ -8425,28 +8532,14 @@ function expandMap(forcedType, isEmergency) {
         else S.full.nodes[S.full.qid].invFood = (S.full.nodes[S.full.qid].invFood||0) + Math.floor(addFood);
       }
       if(addEgg > 0) {
-        addEggToQueenRoom(Math.floor(addEgg));
+        if(!visualEggsPlaced) addEggToQueenRoom(Math.floor(addEgg));
       }
       if(addLarva > 0) {
         // 追加: オフライン時も卵室の卵だけ孵化させる
-        const nurseryIds = getNurseryIds();
-        convertEggToLarvaInRooms(Math.floor(addLarva), nurseryIds);
+        if(!visualLarvaeConverted) convertEggToLarvaInRooms(Math.floor(addLarva), nurseryIdsOffline);
       }
       if(adultInt > 0) {
-        const nurseryIds = getNurseryIds();
-        const larvaRoomIds = getLarvaGrowthRoomIds(nurseryIds);
-        let remain = adultInt;
-        for(const id of larvaRoomIds) {
-          const n = S.full.nodes[id]; if(!n) continue;
-          const take = Math.min(n.invLarva || 0, remain);
-          if(take > 0) {
-            n.invLarva = Math.max(0, (n.invLarva || 0) - take);
-            const foodNeed = take * LARVA_FOOD_NEED;
-            n.invLarvaFood = Math.max(0, (n.invLarvaFood || 0) - foodNeed);
-            remain -= take;
-            if(remain <= 0) break;
-          }
-        }
+        if(!visualAdultsRemoved) consumeLarvaeFromRooms(adultInt, getLarvaGrowthRoomIds(nurseryIdsOffline));
       }
       // 追加: ゴミ蓄積（幼虫数に比例）
       for(let i=0; i<S.full.nodes.length; i++) {
@@ -11802,6 +11895,100 @@ function syncFermenterUnlockUI() {
     ctx.restore();
   }
 
+  function wrapWhisperText(text, maxWidth, maxLines) {
+    const raw = String(text || '').replace(/\s+/g, ' ').trim();
+    if(!raw) return [];
+    const lines = [];
+    let line = '';
+    for(const ch of raw) {
+      const next = line + ch;
+      if(line && ctx.measureText(next).width > maxWidth) {
+        lines.push(line);
+        line = ch;
+        if(lines.length >= maxLines) break;
+      } else {
+        line = next;
+      }
+    }
+    if(lines.length < maxLines && line) lines.push(line);
+    if(lines.length >= maxLines) {
+      const lastIdx = lines.length - 1;
+      let last = lines[lastIdx];
+      while(last.length > 1 && ctx.measureText(`${last}…`).width > maxWidth) last = last.slice(0, -1);
+      lines[lastIdx] = `${last}…`;
+    }
+    return lines;
+  }
+
+  function drawQueenWhisperBubble(q, alpha) {
+    if(!_whisperCurrent || !q || alpha <= 0) return;
+    const dpr = window.devicePixelRatio || 1;
+    const isMobile = window.matchMedia && window.matchMedia('(max-width: 959px)').matches;
+    const anchor = worldToScreen(q.x, q.y - (q.r || dp(40)) * 0.35);
+    const pad = dp(10);
+    const topPad = dp(isMobile ? 58 : 12);
+    const bottomPad = dp(isMobile ? 150 : 12);
+    const maxW = Math.max(dp(140), Math.min(dp(isMobile ? 230 : 290), canvas.width - pad * 2));
+    const fontPx = Math.round(dp(isMobile ? 11 : 12));
+
+    ctx.save();
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.font = `${fontPx}px "Hiragino Sans","Noto Sans JP",sans-serif`;
+    const textPadX = dp(10);
+    const textPadY = dp(7);
+    const lineH = Math.round(fontPx * 1.32);
+    const lines = wrapWhisperText(_whisperCurrent.text, maxW - textPadX * 2, isMobile ? 3 : 2);
+    if(lines.length <= 0) { ctx.restore(); return; }
+
+    const textW = Math.max(...lines.map(line => ctx.measureText(line).width));
+    const pw = Math.min(maxW, Math.max(dp(92), textW + textPadX * 2));
+    const ph = Math.max(dp(32), lines.length * lineH + textPadY * 2);
+    let bx = anchor.x + dp(isMobile ? 24 : 52);
+    let by = anchor.y - dp(isMobile ? 50 : 46);
+    bx = clamp(bx, pad + pw * 0.5, canvas.width - pad - pw * 0.5);
+    by = clamp(by, topPad + ph * 0.5, canvas.height - bottomPad - ph * 0.5);
+    const left = bx - pw * 0.5;
+    const top = by - ph * 0.5;
+    const cr = dp(8);
+
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = 'rgba(20, 10, 40, 0.86)';
+    ctx.strokeStyle = 'rgba(139, 92, 246, 0.68)';
+    ctx.lineWidth = Math.max(1, dpr);
+    ctx.beginPath();
+    ctx.moveTo(left + cr, top);
+    ctx.lineTo(left + pw - cr, top);
+    ctx.quadraticCurveTo(left + pw, top, left + pw, top + cr);
+    ctx.lineTo(left + pw, top + ph - cr);
+    ctx.quadraticCurveTo(left + pw, top + ph, left + pw - cr, top + ph);
+    ctx.lineTo(left + cr, top + ph);
+    ctx.quadraticCurveTo(left, top + ph, left, top + ph - cr);
+    ctx.lineTo(left, top + cr);
+    ctx.quadraticCurveTo(left, top, left + cr, top);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    const tailBaseX = clamp(anchor.x, left + dp(18), left + pw - dp(18));
+    ctx.beginPath();
+    ctx.moveTo(tailBaseX - dp(8), top + ph);
+    ctx.lineTo(clamp(anchor.x, pad, canvas.width - pad), clamp(anchor.y, top + ph + dp(8), canvas.height - pad));
+    ctx.lineTo(tailBaseX + dp(8), top + ph);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(20, 10, 40, 0.86)';
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#e9d5ff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const startY = by - ((lines.length - 1) * lineH) * 0.5;
+    for(let i=0; i<lines.length; i++) {
+      ctx.fillText(lines[i], bx, startY + i * lineH);
+    }
+    ctx.restore();
+  }
+
   // 巣・アリ・地表・エフェクトをキャンバスに描画（world 座標のまま描く）
   function render() {
     if(!S.full) { if(S.perf) S.perf.antsDrawn = 0; return; }
@@ -12561,49 +12748,7 @@ function syncFermenterUnlockUI() {
       // 女王つぶやき吹き出し
       if(_whisperCurrent && _whisperTimer > 0) {
         const bAlpha = Math.min(1, _whisperTimer, (WHISPER_DISPLAY_SEC - _whisperTimer + 0.5)) * 0.85;
-        if(bAlpha > 0.01) {
-          ctx.save();
-          const s = WHISPER_UI_SCALE;
-          const bx = q.x + dp(30 * s);
-          const by = q.y - dp(25 * s);
-          const txt = _whisperCurrent.text;
-          ctx.font = `${dp(5.5 * s)}px "Hiragino Sans","Noto Sans JP",sans-serif`;
-          const tm = ctx.measureText(txt);
-          const pw = Math.min(tm.width + dp(12 * s), dp(120 * s));
-          const ph = dp(18 * s);
-          // 吹き出し背景
-          ctx.globalAlpha = bAlpha;
-          ctx.fillStyle = 'rgba(20, 10, 40, 0.82)';
-          ctx.strokeStyle = 'rgba(139, 92, 246, 0.6)';
-          ctx.lineWidth = dp(1 * s);
-          const cr = dp(4 * s);
-          ctx.beginPath();
-          ctx.moveTo(bx - pw/2 + cr, by - ph/2);
-          ctx.lineTo(bx + pw/2 - cr, by - ph/2);
-          ctx.quadraticCurveTo(bx + pw/2, by - ph/2, bx + pw/2, by - ph/2 + cr);
-          ctx.lineTo(bx + pw/2, by + ph/2 - cr);
-          ctx.quadraticCurveTo(bx + pw/2, by + ph/2, bx + pw/2 - cr, by + ph/2);
-          ctx.lineTo(bx - pw/2 + cr, by + ph/2);
-          ctx.quadraticCurveTo(bx - pw/2, by + ph/2, bx - pw/2, by + ph/2 - cr);
-          ctx.lineTo(bx - pw/2, by - ph/2 + cr);
-          ctx.quadraticCurveTo(bx - pw/2, by - ph/2, bx - pw/2 + cr, by - ph/2);
-          ctx.closePath();
-          ctx.fill();
-          ctx.stroke();
-          // しっぽ
-          ctx.beginPath();
-          ctx.moveTo(bx - pw/2 + dp(8 * s), by + ph/2);
-          ctx.lineTo(bx - pw/2 - dp(2 * s), by + ph/2 + dp(6 * s));
-          ctx.lineTo(bx - pw/2 + dp(16 * s), by + ph/2);
-          ctx.fillStyle = 'rgba(20, 10, 40, 0.82)';
-          ctx.fill();
-          // テキスト
-          ctx.fillStyle = '#e9d5ff';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(txt, bx, by, pw - dp(8 * s));
-          ctx.restore();
-        }
+        if(bAlpha > 0.01) drawQueenWhisperBubble(q, bAlpha);
       }
     }
 
