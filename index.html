@@ -1744,7 +1744,7 @@
               <button class="dock-item tier-major" type="button" id="btn-major-golden2x" data-upkey="major-golden2x">
                 <div class="dock-icon">🌟</div>
                 <div class="dock-meta">
-                  <div class="dock-name">黄金出現 x2</div>
+                  <div class="dock-name">黄金の指 <span id="lbl-major-golden-finger-lv">Lv.0</span></div>
                   <div class="dock-cost">🍪 <span id="c-major-golden2x">20</span></div>
                 </div>
                 <span class="dock-badge new" data-badge="new">NEW</span>
@@ -2123,7 +2123,10 @@
   const FERMENTER_BONUS_PER_ANT = 0.08;
   const FERMENTER_BONUS_MAX = 0.40;
   // MAJOR_UPGRADE: メジャー（パッシブ）購入コスト（クッキー）
-  const MAJOR_GOLDEN2X_COST = 20; // 日本語: 黄金出現率2倍
+  const GOLDEN_FINGER_MAX_LV = 5;
+  const GOLDEN_FINGER_COST_BASE = 20;
+  const GOLDEN_FINGER_COST_GROWTH = 2;
+  const GOLDEN_FINGER_CHANCES = [0, 0.002, 0.0035, 0.0055, 0.008, 0.011]; // Lv1..5: 0.2%〜1.1%
   const MAJOR_COOKIE2X_COST = 40; // 日本語: クッキー出現率2倍
   const MAJOR_JAW2X_COST = 60;    // 日本語: 兵隊攻撃2倍
   const MAJOR_DEPTH2_COST = 15;   // 深度II解放コスト
@@ -2237,7 +2240,6 @@
     blizzard: { foodMul: 0.2, moveMul: 0.4 },
   };
 
-  const GOLDEN_HATCH_CHANCE = 0.0001; // 0.01%
   const GOLDEN_BUFFS = [
     { id: 'food', label: '食料生産×1.5', foodMul: 1.5 },
     { id: 'lay', label: '自動産卵速度×2', layMul: 2 },
@@ -2830,7 +2832,7 @@ function addEggToEggRooms(amount, nurseryIds){
 }
 
 // 卵在庫を女王室へ追加（クリック/自動産卵の着地先）
-function addEggToQueenRoom(amount){
+function addEggToQueenRoom(amount, goldenAmount=0){
   if(!S.full) return;
   const qid = getQueenRoomId();
   if(qid == null) return;
@@ -2839,6 +2841,8 @@ function addEggToQueenRoom(amount){
   const add = Math.max(0, Math.floor(amount || 0));
   if(add <= 0) return;
   n.invEgg = Math.max(0, Math.floor(n.invEgg || 0)) + add;
+  const goldenAdd = Math.min(add, Math.max(0, Math.floor(goldenAmount || 0)));
+  if(goldenAdd > 0) n.invGoldenEgg = Math.max(0, Math.floor(n.invGoldenEgg || 0)) + goldenAdd;
 }
 
 // 幼虫在庫を卵室側へ分散配置（卵→幼虫の発生先）
@@ -2862,10 +2866,11 @@ function getHatchableEggCount(nurseryIds){
 
 // 卵在庫を部屋単位で幼虫へ変換（先頭1部屋固定を避ける）
 function convertEggToLarvaInRooms(amount, nurseryIds){
-  if(!S.full) return 0;
+  if(!S.full) return { total: 0, golden: 0 };
   const req = Math.max(0, Math.floor(amount || 0));
   let remain = req;
-  if(remain <= 0) return 0;
+  let golden = 0;
+  if(remain <= 0) return { total: 0, golden: 0 };
 
   const ids = nurseryIds || getNurseryIds();
   const eggRoomIds = getEggPlacementRoomIds(ids);
@@ -2876,7 +2881,14 @@ function convertEggToLarvaInRooms(amount, nurseryIds){
     const haveEgg = Math.max(0, Math.floor(n.invEgg || 0));
     if(haveEgg <= 0) return;
     const take = Math.min(haveEgg, remain);
+    const haveGoldenEgg = Math.min(haveEgg, Math.max(0, Math.floor(n.invGoldenEgg || 0)));
+    const takeGolden = Math.min(haveGoldenEgg, take);
     n.invEgg = haveEgg - take;
+    if(takeGolden > 0) {
+      n.invGoldenEgg = haveGoldenEgg - takeGolden;
+      n.invGoldenLarva = Math.max(0, Math.floor(n.invGoldenLarva || 0)) + takeGolden;
+      golden += takeGolden;
+    }
     n.invLarva = Math.max(0, Math.floor(n.invLarva || 0)) + take;
     remain -= take;
   };
@@ -2885,7 +2897,11 @@ function convertEggToLarvaInRooms(amount, nurseryIds){
     consumeOne(id);
     if(remain <= 0) break;
   }
-  return req - remain;
+  if(golden > 0) {
+    G.goldenEggs = Math.max(0, Math.floor(G.goldenEggs || 0) - golden);
+    G.goldenLarvae = Math.max(0, Math.floor(G.goldenLarvae || 0) + golden);
+  }
+  return { total: req - remain, golden };
 }
 
 function consumeFoodFromVisualStores(amount) {
@@ -2959,22 +2975,32 @@ function applyOfflineLarvaFeeding(larvaRoomIds, sec, offlineEff) {
 }
 
 function consumeLarvaeFromRooms(amount, larvaRoomIds) {
-  if(!S.full) return 0;
+  if(!S.full) return { total: 0, golden: 0 };
   let remain = Math.max(0, Math.floor(amount || 0));
-  if(remain <= 0) return 0;
+  let consumed = 0;
+  let golden = 0;
+  if(remain <= 0) return { total: 0, golden: 0 };
   const ids = (larvaRoomIds && larvaRoomIds.length) ? larvaRoomIds : getLarvaGrowthRoomIds(getNurseryIds());
   for(const id of ids) {
     const n = S.full.nodes[id];
     if(!n || remain <= 0) continue;
     const take = Math.min(Math.max(0, Math.floor(n.invLarva || 0)), remain);
     if(take > 0) {
+      const haveGoldenLarva = Math.min(Math.max(0, Math.floor(n.invGoldenLarva || 0)), Math.max(0, Math.floor(n.invLarva || 0)));
+      const takeGolden = Math.min(haveGoldenLarva, take);
       n.invLarva = Math.max(0, Math.floor(n.invLarva || 0) - take);
+      if(takeGolden > 0) {
+        n.invGoldenLarva = haveGoldenLarva - takeGolden;
+        golden += takeGolden;
+      }
       const foodNeed = take * LARVA_FOOD_NEED;
       n.invLarvaFood = Math.max(0, Math.floor(n.invLarvaFood || 0) - foodNeed);
       remain -= take;
+      consumed += take;
     }
   }
-  return Math.max(0, Math.floor(amount || 0)) - remain;
+  if(golden > 0) G.goldenLarvae = Math.max(0, Math.floor(G.goldenLarvae || 0) - golden);
+  return { total: consumed, golden };
 }
 
 // 最寄りの部屋IDを返す（距離は部屋中心の直線距離）
@@ -3738,9 +3764,9 @@ function ensureRestSlots(n){
 
       const nid = S.full.nodes.length;
       const newNode = {
-        id:nid, x:nx, y:ny, r:roomSize, type:'shaft', main:true, invEgg:0, invFood:0, invCookie:0,
+        id:nid, x:nx, y:ny, r:roomSize, type:'shaft', main:true, invEgg:0, invGoldenEgg:0, invFood:0, invCookie:0,
         // 追加在庫（卵→幼虫→成虫の拡張用）
-        invLarva:0, invLarvaFood:0, invWaste:0,
+        invLarva:0, invGoldenLarva:0, invLarvaFood:0, invWaste:0,
         waste:0,
         fermentState:'idle', fermentProgress:0, fermentInputFood:0,
         branch: false,
@@ -3825,9 +3851,9 @@ function ensureRestSlots(n){
     const isMain = ((nu && nv && nu.main && nv.main) || e.kind === 'main');
     const midNode = {
       id: midId, x: p0123.x, y: p0123.y, r: midR,
-      type: 'shaft', main: !!isMain, branch: false, invEgg: 0, invFood: 0, invCookie: 0,
+      type: 'shaft', main: !!isMain, branch: false, invEgg: 0, invGoldenEgg: 0, invFood: 0, invCookie: 0,
       // 追加在庫（卵→幼虫→成虫の拡張用）
-      invLarva: 0, invLarvaFood: 0, invWaste: 0,
+      invLarva: 0, invGoldenLarva: 0, invLarvaFood: 0, invWaste: 0,
       waste: 0,
       fermentState:'idle', fermentProgress:0, fermentInputFood:0,
       blobScaleX: null, blobScaleY: null, floorFlat: null,
@@ -4160,9 +4186,12 @@ function ensureRestSlots(n){
     cookie: 0,      // クッキー（女王LvUP用、たまに働きアリが取得）
     eggs: 5,        // 卵の数（孵化で働きアリになる）
     larvae: 0,      // 幼虫数（将来拡張用）
+    goldenEggs: 0,  // 黄金の指で生まれた黄金卵（通常卵の内数）
+    goldenLarvae: 0,// 黄金卵から孵った黄金幼虫（通常幼虫の内数）
     qLv: 0, nLv: 0, bLv: 0, sLv: 0, wLv: 0,  // 女王・育児・建築・兵隊・働きのレベル
     ants: { worker: 8, nurse: 0, builder: 0, soldier: 0, fermenter: 0 },
     goldenCount: 0,
+    goldenFingerLv: 0,
     eggToLarvaP: 0, // 卵→幼虫ゲージ 0～100%（100で1匹）
     larvaToAdultP: 0, // 幼虫→成虫ゲージ 0～100%（100で1匹）
     layP: 0,        // 女王の自動産卵ゲージ 0～100%
@@ -4302,9 +4331,11 @@ function ensureRestSlots(n){
       return {
         // 追加: 幼虫数(larvae)も保存
         food: this.food, cookie: this.cookie, eggs: this.eggs, larvae: this.larvae,
+        goldenEggs: this.goldenEggs || 0, goldenLarvae: this.goldenLarvae || 0,
         qLv: this.qLv, nLv: this.nLv, bLv: this.bLv, sLv: this.sLv, wLv: this.wLv,
         ants: this.ants,
         goldenCount: this.goldenCount,
+        goldenFingerLv: this.goldenFingerLv || 0,
         globalBuffs: S.globalBuffs,
         // 追加: 成長ゲージも保存
         eggToLarvaP: this.eggToLarvaP, larvaToAdultP: this.larvaToAdultP, layP: this.layP,
@@ -4370,6 +4401,8 @@ function ensureRestSlots(n){
         this.eggs = +d.eggs || 0;
         // 追加（旧セーブ互換のため未定義は 0）
         this.larvae = Math.max(0, Math.floor(+d.larvae || 0));
+        this.goldenEggs = Math.max(0, Math.min(Math.floor(+d.goldenEggs || 0), Math.floor(this.eggs || 0)));
+        this.goldenLarvae = Math.max(0, Math.min(Math.floor(+d.goldenLarvae || 0), Math.floor(this.larvae || 0)));
 
         this.qLv = +d.qLv || 0;
         this.nLv = +d.nLv || 0;
@@ -4391,6 +4424,8 @@ function ensureRestSlots(n){
         } else {
           this.major = Object.assign({}, majorDefault);
         }
+        const legacyGoldenFinger = (this.major && this.major.golden2x) ? 1 : 0;
+        this.goldenFingerLv = clamp(Math.floor(+d.goldenFingerLv || legacyGoldenFinger), 0, GOLDEN_FINGER_MAX_LV);
         delete this.major.workerLeaf;
         delete this.major.workerClean;
 
@@ -4524,9 +4559,9 @@ function ensureRestSlots(n){
         mainTipId: this.mainTipId,
         nodes: this.full.nodes.map(n => ({
           id:n.id, x:n.x, y:n.y, r:n.r, type:n.type, main: !!n.main, branch: !!n.branch,
-          invEgg:n.invEgg||0, invFood:n.invFood||0, invCookie:n.invCookie||0,
+          invEgg:n.invEgg||0, invGoldenEgg:n.invGoldenEgg||0, invFood:n.invFood||0, invCookie:n.invCookie||0,
           // 追加在庫（卵→幼虫→成虫の拡張用）
-          invLarva:n.invLarva||0, invLarvaFood:n.invLarvaFood||0, invWaste:n.invWaste||0,
+          invLarva:n.invLarva||0, invGoldenLarva:n.invGoldenLarva||0, invLarvaFood:n.invLarvaFood||0, invWaste:n.invWaste||0,
           waste:n.waste||0,
           fermentState:n.fermentState||'idle', fermentProgress:n.fermentProgress||0, fermentInputFood:n.fermentInputFood||0,
           blobScaleX:n.blobScaleX, blobScaleY:n.blobScaleY, floorFlat:n.floorFlat
@@ -4565,10 +4600,12 @@ function ensureRestSlots(n){
         main: !!n.main,
         branch: !!n.branch,
         invEgg: n.invEgg || 0,
+        invGoldenEgg: n.invGoldenEgg || 0,
         invFood: n.invFood || 0,
         invCookie: n.invCookie || 0,
         // 追加在庫（卵→幼虫→成虫の拡張用）
         invLarva: n.invLarva || 0,
+        invGoldenLarva: n.invGoldenLarva || 0,
         invLarvaFood: n.invLarvaFood || 0,
         invWaste: n.invWaste || 0,
         waste: Math.max(0, +n.waste || 0),
@@ -5280,9 +5317,9 @@ window._dbg = {
     const addN = (x,y,r,type,main=false) => {
       const id=nodes.length;
       nodes.push({
-        id,x,y,r,type,main: !!main,invEgg:0,invFood:0,
+        id,x,y,r,type,main: !!main,invEgg:0,invGoldenEgg:0,invFood:0,
         // 追加在庫（卵→幼虫→成虫の拡張用）
-        invLarva:0, invLarvaFood:0, invWaste:0,
+        invLarva:0, invGoldenLarva:0, invLarvaFood:0, invWaste:0,
         waste:0,
         fermentState:'idle', fermentProgress:0, fermentInputFood:0,
         branch: false,
@@ -5857,9 +5894,9 @@ function expandMap(forcedType, isEmergency) {
             // 置けた！ → ノード（部屋）を生成。最初は「未掘削」のため不可視（nodeVis=false）
             const nid = S.full.nodes.length;
             const newNode = {
-              id:nid, x:nx, y:ny, r:roomSize, type:type, main:false, invEgg:0, invFood:0, invCookie:0,
+              id:nid, x:nx, y:ny, r:roomSize, type:type, main:false, invEgg:0, invGoldenEgg:0, invFood:0, invCookie:0,
               // 追加在庫（卵→幼虫→成虫の拡張用）
-              invLarva:0, invLarvaFood:0, invWaste:0,
+              invLarva:0, invGoldenLarva:0, invLarvaFood:0, invWaste:0,
               waste:0,
               fermentState:'idle', fermentProgress:0, fermentInputFood:0,
               branch: !!branchMode,
@@ -5980,9 +6017,9 @@ function expandMap(forcedType, isEmergency) {
 
           const nid = S.full.nodes.length;
           const newNode = {
-            id:nid, x:nx, y:ny, r:roomSize, type:roomType, main:false, invEgg:0, invFood:0, invCookie:0,
+            id:nid, x:nx, y:ny, r:roomSize, type:roomType, main:false, invEgg:0, invGoldenEgg:0, invFood:0, invCookie:0,
             // 追加在庫（卵→幼虫→成虫の拡張用）
-            invLarva:0, invLarvaFood:0, invWaste:0,
+            invLarva:0, invGoldenLarva:0, invLarvaFood:0, invWaste:0,
             waste:0,
             fermentState:'idle', fermentProgress:0, fermentInputFood:0,
             branch: false,
@@ -6022,7 +6059,7 @@ function expandMap(forcedType, isEmergency) {
       role, task:'idle', stateT:0,
       node: S.full.qid, eid:-1, t:0.5, x:q.x, y:q.y,
       path:[], pIdx:0, anim:Math.random()*10,
-      sp: 1, cargo:null,
+      sp: 1, cargo:null, goldenCargo:false,
       golden: (role === 'worker' && shouldSpawnGoldenWorker()),
       restNode: null, restSlot: -1, restStay: 0
     });
@@ -7110,6 +7147,26 @@ function expandMap(forcedType, isEmergency) {
     return clamp((base + getGlobalCookieAdd()) * majorMul * actMul * roomMul, 0, 1);
   }
 
+  function getGoldenFingerLevel(){
+    return clamp(Math.floor(G.goldenFingerLv || 0), 0, GOLDEN_FINGER_MAX_LV);
+  }
+
+  function getGoldenFingerChance(lv=getGoldenFingerLevel()){
+    const idx = clamp(Math.floor(lv || 0), 0, GOLDEN_FINGER_MAX_LV);
+    return GOLDEN_FINGER_CHANCES[idx] || 0;
+  }
+
+  function getGoldenFingerCost(){
+    const lv = getGoldenFingerLevel();
+    if(lv >= GOLDEN_FINGER_MAX_LV) return Infinity;
+    return Math.floor(GOLDEN_FINGER_COST_BASE * Math.pow(GOLDEN_FINGER_COST_GROWTH, lv));
+  }
+
+  function formatChancePct(chance){
+    const pct = Math.max(0, Number(chance) || 0) * 100;
+    return `${pct.toFixed(pct < 1 ? 2 : 1).replace(/\.?0+$/, '')}%`;
+  }
+
   function getCookieRoomStoredCount() {
     if(!S.full || !S.nodeVis) return 0;
     let sum = 0;
@@ -7162,30 +7219,24 @@ function expandMap(forcedType, isEmergency) {
     if(okBtn) okBtn.onclick = () => overlay.remove();
     overlay.addEventListener('click', (e) => { if(e.target === overlay) overlay.remove(); });
     // モバイル振動
-    if(navigator.vibrate) navigator.vibrate([30, 50, 30, 50, 60]);
+    safeVibrate([30, 50, 30, 50, 60]);
   }
 
-  // MAJOR_UPGRADE: 黄金誕生率（メジャー倍率込み）
-  function getGoldenHatchChance(){
-    const majorMul = (G.major && G.major.golden2x) ? 2 : 1;
-    return clamp(GOLDEN_HATCH_CHANCE * majorMul, 0, 1);
+  function safeVibrate(pattern) {
+    try {
+      if(!navigator.vibrate) return;
+      if(navigator.userActivation && !navigator.userActivation.isActive) return;
+      navigator.vibrate(pattern);
+    } catch(_) {}
   }
 
-  function rollGoldenHatches(count){
-    if(!count || count <= 0) return 0;
-    let g = 0;
-    const chance = getGoldenHatchChance(); // MAJOR_UPGRADE: 2倍を反映
-    for(let i=0; i<count; i++){
-      if(Math.random() < chance){
-        g++;
-        applyGoldenBuff();
-      }
-    }
-    if(g > 0){
-      G.goldenCount = (G.goldenCount || 0) + g;
-      clampGoldenCount();
-      addQueenWhisper('黄金の卵……特別な子が生まれたわ', 'golden');
-    }
+  function promoteGoldenAdults(count){
+    const g = Math.max(0, Math.floor(count || 0));
+    if(g <= 0) return 0;
+    G.goldenCount = (G.goldenCount || 0) + g;
+    clampGoldenCount();
+    for(let i=0; i<g; i++) applyGoldenBuff();
+    addQueenWhisper('黄金の卵から、特別な子が生まれたわ', 'golden');
     return g;
   }
 
@@ -7744,13 +7795,18 @@ function expandMap(forcedType, isEmergency) {
                 a.path = getPath(a.node, S.full.qid);
                 if(a.path){ a.task='go_q'; a.pIdx=0; a.phase='path'; return; }
               } else {
+                const goldenTake = Math.min(Math.max(0, Math.floor(q.invGoldenEgg || 0)), 1);
                 q.invEgg = Math.max(0, Math.floor((q.invEgg || 0) - 1));
+                if(goldenTake > 0) q.invGoldenEgg = Math.max(0, Math.floor(q.invGoldenEgg || 0) - goldenTake);
                 a.cargo='egg';
+                a.goldenCargo = goldenTake > 0;
                 a.path=getPath(S.full.qid, dstId);
                 if(a.path){ a.task='go_n'; a.pIdx=0; a.phase='path'; return; }
                 // パスが作れない場合は卵を巻き戻す
                 q.invEgg = (q.invEgg || 0) + 1;
+                if(a.goldenCargo) q.invGoldenEgg = (q.invGoldenEgg || 0) + 1;
                 a.cargo = null;
+                a.goldenCargo = false;
               }
             }
           }
@@ -7798,7 +7854,7 @@ function expandMap(forcedType, isEmergency) {
           return;
         }
         else if(a.task==='go_q') { move(a,dt); if(a.phase==='done') a.task='idle'; }
-        else if(a.task==='go_n') { move(a,dt); if(a.phase==='done') { S.full.nodes[a.node].invEgg++; a.cargo=null; a.task='idle'; } }
+        else if(a.task==='go_n') { move(a,dt); if(a.phase==='done') { const dst = S.full.nodes[a.node]; dst.invEgg++; if(a.goldenCargo) dst.invGoldenEgg = Math.max(0, Math.floor(dst.invGoldenEgg || 0)) + 1; a.cargo=null; a.goldenCargo=false; a.task='idle'; } }
         else if(a.task==='go_feed_pick') {
           move(a,dt);
           if(a.phase==='done') {
@@ -7854,8 +7910,11 @@ function expandMap(forcedType, isEmergency) {
             const src = S.full.nodes[a.larvaSrc];
             const dst = S.full.nodes[a.larvaDst];
             if(src && dst && (src.invLarva||0) > 0) {
+              const goldenTake = Math.min(Math.max(0, Math.floor(src.invGoldenLarva || 0)), 1);
               src.invLarva = Math.max(0, (src.invLarva||0) - 1);
+              if(goldenTake > 0) src.invGoldenLarva = Math.max(0, Math.floor(src.invGoldenLarva || 0) - goldenTake);
               dst.invLarva = (dst.invLarva||0) + 1;
+              if(goldenTake > 0) dst.invGoldenLarva = Math.max(0, Math.floor(dst.invGoldenLarva || 0)) + goldenTake;
             }
             a.cargo=null; a.carryType=null; a.larvaSrc=null; a.larvaDst=null; a.task='idle';
           }
@@ -8123,6 +8182,7 @@ function expandMap(forcedType, isEmergency) {
       clampGoldenCount();
       G.food = Math.floor(G.food * out.foodMul);
       G.eggs = Math.floor(G.eggs * out.eggMul);
+      G.goldenEggs = Math.min(Math.max(0, Math.floor(G.goldenEggs || 0)), Math.floor(G.eggs || 0));
       modalOut.loseWorkers = out.loseWorkers || 0;
       toast(`敗北... 働きアリ${out.loseWorkers}匹と資源を失いました`, true);
       fx(S.full.nodes[S.full.qid].x, S.full.nodes[S.full.qid].y, "BREACH!", "#ef4444");
@@ -8330,13 +8390,54 @@ function expandMap(forcedType, isEmergency) {
     let totalInvEgg = 0;
     let totalInvLarva = 0;
     const qid = S.full.qid;
+    const reconcileSubsetInventory = (roomIds, subKey, baseKey, target, cursorKey) => {
+      const ids = (roomIds || []).filter(id => id != null && S.full.nodes[id]);
+      const desired = Math.max(0, Math.floor(target || 0));
+      let current = 0;
+      for(const id of ids) {
+        const n = S.full.nodes[id];
+        n[subKey] = Math.min(Math.max(0, Math.floor(n[subKey] || 0)), Math.max(0, Math.floor(n[baseKey] || 0)));
+        current += n[subKey];
+      }
+      if(current < desired) {
+        let need = desired - current;
+        const start = Math.max(0, Math.floor(S[cursorKey] || 0));
+        for(let step=0; step<ids.length && need>0; step++) {
+          const id = ids[(start + step) % ids.length];
+          const n = S.full.nodes[id];
+          const cap = Math.max(0, Math.floor(n[baseKey] || 0)) - Math.max(0, Math.floor(n[subKey] || 0));
+          const add = Math.min(cap, need);
+          if(add > 0) {
+            n[subKey] = Math.max(0, Math.floor(n[subKey] || 0)) + add;
+            need -= add;
+          }
+        }
+        S[cursorKey] = ids.length ? ((start + 1) % ids.length) : 0;
+        return desired - need;
+      }
+      if(current > desired) {
+        let over = current - desired;
+        for(const id of ids) {
+          const n = S.full.nodes[id];
+          const take = Math.min(Math.max(0, Math.floor(n[subKey] || 0)), over);
+          if(take > 0) {
+            n[subKey] = Math.max(0, Math.floor(n[subKey] || 0) - take);
+            over -= take;
+            if(over <= 0) break;
+          }
+        }
+      }
+      return desired;
+    };
 
     for(let i=0; i<S.full.nodes.length; i++) {
       if(!S.nodeVis[i]) continue;
       const n = S.full.nodes[i];
       // 追加在庫の未定義/負数を補正
       n.invEgg = Math.max(0, Math.floor(n.invEgg || 0));
+      n.invGoldenEgg = Math.max(0, Math.floor(n.invGoldenEgg || 0));
       n.invLarva = Math.max(0, Math.floor(n.invLarva || 0));
+      n.invGoldenLarva = Math.max(0, Math.floor(n.invGoldenLarva || 0));
       n.invLarvaFood = Math.max(0, Math.floor(n.invLarvaFood || 0));
       n.invWaste = Math.max(0, Math.floor(n.invWaste || 0));
       n.fermentState = (n.fermentState === 'processing') ? 'processing' : 'idle';
@@ -8348,9 +8449,13 @@ function expandMap(forcedType, isEmergency) {
       // 合計は後段の整合ロジックで G 側に合わせて再配置されるため、ここでは0にしてよい
       if(n.type !== 'nursery' && n.type !== 'queen') {
         n.invEgg = 0;
+        n.invGoldenEgg = 0;
         n.invLarva = 0;
+        n.invGoldenLarva = 0;
         n.invLarvaFood = 0;
       }
+      n.invGoldenEgg = Math.min(n.invGoldenEgg, n.invEgg);
+      n.invGoldenLarva = Math.min(n.invGoldenLarva, n.invLarva);
 
       totalInvEgg += n.invEgg;
       totalInvLarva += n.invLarva;
@@ -8379,6 +8484,8 @@ function expandMap(forcedType, isEmergency) {
         }
       }
     }
+    G.goldenEggs = Math.min(Math.max(0, Math.floor(G.goldenEggs || 0)), targetEgg);
+    G.goldenEggs = reconcileSubsetInventory(addEggOrder, 'invGoldenEgg', 'invEgg', G.goldenEggs, '_goldenEggRoomCursor');
 
     // 追加: 幼虫在庫も同様に整合（現状は 0 運用）
     const larvaAllowed = nurseryIds.length ? nurseryIds : (qid != null ? [qid] : []);
@@ -8400,6 +8507,8 @@ function expandMap(forcedType, isEmergency) {
         }
       }
     }
+    G.goldenLarvae = Math.min(Math.max(0, Math.floor(G.goldenLarvae || 0)), targetLarva);
+    G.goldenLarvae = reconcileSubsetInventory(addLarvaOrder, 'invGoldenLarva', 'invLarva', G.goldenLarvae, '_goldenLarvaRoomCursor');
   }
 
   // ===== Offline progress (fixed to match online) =====
@@ -8512,9 +8621,9 @@ function expandMap(forcedType, isEmergency) {
         G.larvae -= adultInt;
         // ※ G.tot は getter のため代入不可。働きアリに加算すれば G.tot も自動で増える
         G.ants.worker += adultInt;
-        rollGoldenHatches(adultInt);
         if(S.full) {
-          consumeLarvaeFromRooms(adultInt, larvaRoomIds);
+          const adultOut = consumeLarvaeFromRooms(adultInt, larvaRoomIds);
+          promoteGoldenAdults(adultOut.golden);
           visualAdultsRemoved = true;
         }
       }
@@ -8554,7 +8663,10 @@ function expandMap(forcedType, isEmergency) {
         if(!visualLarvaeConverted) convertEggToLarvaInRooms(Math.floor(addLarva), nurseryIdsOffline);
       }
       if(adultInt > 0) {
-        if(!visualAdultsRemoved) consumeLarvaeFromRooms(adultInt, getLarvaGrowthRoomIds(nurseryIdsOffline));
+        if(!visualAdultsRemoved) {
+          const adultOut = consumeLarvaeFromRooms(adultInt, getLarvaGrowthRoomIds(nurseryIdsOffline));
+          promoteGoldenAdults(adultOut.golden);
+        }
       }
       // 追加: ゴミ蓄積（幼虫数に比例）
       for(let i=0; i<S.full.nodes.length; i++) {
@@ -8594,6 +8706,7 @@ function expandMap(forcedType, isEmergency) {
     qLv2: document.getElementById('v-queen-lv'),
     c_q: document.getElementById('c-queen'),
     // MAJOR_UPGRADE: メジャーアップグレードのコスト表示
+    l_major_golden_finger: document.getElementById('lbl-major-golden-finger-lv'),
     c_major_golden2x: document.getElementById('c-major-golden2x'),
     c_major_cookie2x: document.getElementById('c-major-cookie2x'),
     c_major_jaw2x: document.getElementById('c-major-jaw2x'),
@@ -9085,7 +9198,7 @@ function syncFermenterUnlockUI() {
       important: true,
       order: 0.2,
       unlocked: () => true,
-      canBuy: () => !(G.major && G.major.golden2x) && (G.cookie >= MAJOR_GOLDEN2X_COST)
+      canBuy: () => getGoldenFingerLevel() < GOLDEN_FINGER_MAX_LV && (G.cookie >= getGoldenFingerCost())
     },
     {
       key: 'major_cookie2x',
@@ -9546,7 +9659,14 @@ function syncFermenterUnlockUI() {
     setDockInlineEffect('btn-up-soldier', getSoldierInlineEffect());
     setDockInlineEffect('btn-unlock-waste', G.unlockWasteRoom ? '解禁済み' : `解放: ゴミ室建設`);
     setDockInlineEffect('btn-build-ferment', getFermentRoomInlineEffect());
-    setDockInlineEffect('btn-major-golden2x', (G.major && G.major.golden2x) ? '解放済み' : '効果: 黄金出現率x2');
+    {
+      const lv = getGoldenFingerLevel();
+      const nextLv = Math.min(GOLDEN_FINGER_MAX_LV, lv + 1);
+      const text = lv >= GOLDEN_FINGER_MAX_LV
+        ? `最大: 黄金卵 ${formatChancePct(getGoldenFingerChance(lv))}`
+        : `次: 黄金卵 ${formatChancePct(getGoldenFingerChance(lv))}→${formatChancePct(getGoldenFingerChance(nextLv))}`;
+      setDockInlineEffect('btn-major-golden2x', text);
+    }
     setDockInlineEffect('btn-major-cookie2x', (G.major && G.major.cookie2x) ? '解放済み' : '効果: 🍪出現率x2');
     setDockInlineEffect('btn-major-jaw2x', (G.major && G.major.jaw2x) ? '解放済み' : '効果: 兵隊攻撃x2');
     setDockInlineEffect('btn-major-depth2', (G.major && G.major.depth2) ? '解放済み' : '解放: 深度II');
@@ -9580,6 +9700,17 @@ function syncFermenterUnlockUI() {
       const cur = (G.qLv * 2).toFixed(1);
       const nxt = ((G.qLv + 1) * 2).toFixed(1);
       return `女王の威厳 LvUP\n自動産卵速度: ${cur}%/秒 → ${nxt}%/秒\nコスト: 🍪 ${cost}`;
+    });
+
+    bindTip(document.getElementById('btn-major-golden2x'), () => {
+      const lv = getGoldenFingerLevel();
+      const cur = formatChancePct(getGoldenFingerChance(lv));
+      if(lv >= GOLDEN_FINGER_MAX_LV) {
+        return `黄金の指\n現在: Lv.${lv} (最大)\nタップ産卵時の黄金卵率: ${cur}\n自動産卵では黄金卵は生まれない`;
+      }
+      const nextLv = lv + 1;
+      const next = formatChancePct(getGoldenFingerChance(nextLv));
+      return `黄金の指\n現在: Lv.${lv} → Lv.${nextLv}\nタップ産卵時の黄金卵率: ${cur} → ${next}\n自動産卵では黄金卵は生まれない\nコスト: 🍪 ${getGoldenFingerCost()}`;
     });
 
     bindTip(document.getElementById('btn-up-worker'), () => {
@@ -10518,13 +10649,16 @@ function syncFermenterUnlockUI() {
     const majorGoldenBtn = document.getElementById('btn-major-golden2x');
     const majorCookieBtn = document.getElementById('btn-major-cookie2x');
     const majorJawBtn = document.getElementById('btn-major-jaw2x');
-    const majorGoldenBought = !!(G.major && G.major.golden2x);
+    const goldenFingerLv = getGoldenFingerLevel();
+    const goldenFingerMax = goldenFingerLv >= GOLDEN_FINGER_MAX_LV;
+    const goldenFingerCost = getGoldenFingerCost();
     const majorCookieBought = !!(G.major && G.major.cookie2x);
     const majorJawBought = !!(G.major && G.major.jaw2x);
-    if(el.c_major_golden2x) el.c_major_golden2x.textContent = majorGoldenBought ? '解放済' : String(MAJOR_GOLDEN2X_COST);
+    if(el.l_major_golden_finger) el.l_major_golden_finger.textContent = `Lv.${goldenFingerLv}`;
+    if(el.c_major_golden2x) el.c_major_golden2x.textContent = goldenFingerMax ? 'MAX' : String(goldenFingerCost);
     if(el.c_major_cookie2x) el.c_major_cookie2x.textContent = majorCookieBought ? '解放済' : String(MAJOR_COOKIE2X_COST);
     if(el.c_major_jaw2x) el.c_major_jaw2x.textContent = majorJawBought ? '解放済' : String(MAJOR_JAW2X_COST);
-    if(majorGoldenBtn) majorGoldenBtn.classList.toggle('disabled', majorGoldenBought || (G.cookie < MAJOR_GOLDEN2X_COST));
+    if(majorGoldenBtn) majorGoldenBtn.classList.toggle('disabled', goldenFingerMax || (G.cookie < goldenFingerCost));
     if(majorCookieBtn) majorCookieBtn.classList.toggle('disabled', majorCookieBought || (G.cookie < MAJOR_COOKIE2X_COST));
     if(majorJawBtn) majorJawBtn.classList.toggle('disabled', majorJawBought || (G.cookie < MAJOR_JAW2X_COST));
     // 深度II/III/兵舎/将来枠の表示更新
@@ -10903,16 +11037,29 @@ function syncFermenterUnlockUI() {
     }
   }
 
+  function isManualEggSource(source) {
+    return source === 'tap' || source === 'canvas';
+  }
+
+  function rollGoldenEggForManualTap(source) {
+    if(!isManualEggSource(source)) return false;
+    const chance = getGoldenFingerChance();
+    if(chance <= 0) return false;
+    return Math.random() < chance;
+  }
+
   // 卵を 1 個追加。TAP ボタンまたは女王をタップしたときに実行
   function tryLayEgg(source="tap", sx=null, sy=null) {
     // 産卵は常に可能（育児室の上限は「孵化」にのみ影響する想定）
     const MAX_EGGS = 1e9; // 過剰な数値での表示崩れ対策（実質無制限）
+    const goldenEgg = rollGoldenEggForManualTap(source);
     G.eggs = Math.min(MAX_EGGS, G.eggs + 1);
+    if(goldenEgg) G.goldenEggs = Math.min(Math.floor(G.eggs || 0), Math.max(0, Math.floor(G.goldenEggs || 0)) + 1);
     sfxTap(); // 産卵SE
-    if(navigator.vibrate) navigator.vibrate(8); // モバイル振動
+    safeVibrate(8); // モバイル振動
     // 追加: 卵は女王室に産み、育児アリが卵室へ運搬する
     if(S.full) {
-      addEggToQueenRoom(1);
+      addEggToQueenRoom(1, goldenEgg ? 1 : 0);
     }
     updateUI();
     // UI feedback: only for manual egg laying (change)
@@ -10924,7 +11071,13 @@ function syncFermenterUnlockUI() {
         sy = r.top + r.height/2;
       }
     }
-    if(sx!=null && sy!=null) spawnFloatPlus(sx, sy, "+1");
+    if(goldenEgg) {
+      toast("黄金の卵が産まれた！");
+      addQueenWhisper('黄金の卵……大切に育てましょう', 'golden');
+      if(sx!=null && sy!=null) spawnFloatPlus(sx, sy, "黄金卵!");
+    } else if(sx!=null && sy!=null) {
+      spawnFloatPlus(sx, sy, "+1");
+    }
     pulseEggNumber();
   }
 
@@ -10966,11 +11119,14 @@ function syncFermenterUnlockUI() {
   // MAJOR_UPGRADE: パッシブ系メジャー購入
   const btnMajorGolden2x = document.getElementById('btn-major-golden2x');
   if(btnMajorGolden2x) btnMajorGolden2x.onclick = function() {
-    if(G.major && G.major.golden2x) { toast("黄金出現2倍は解放済み"); return; }
-    if(G.cookie < MAJOR_GOLDEN2X_COST) { toast("クッキーが足りません", true); return; }
-    G.cookie -= MAJOR_GOLDEN2X_COST;
-    G.major.golden2x = true; // 日本語: メジャー解放
-    toast("黄金出現率が2倍になった！");
+    const lv = getGoldenFingerLevel();
+    if(lv >= GOLDEN_FINGER_MAX_LV) { toast("黄金の指は最大Lvです"); return; }
+    const cost = getGoldenFingerCost();
+    if(G.cookie < cost) { toast("クッキーが足りません", true); return; }
+    G.cookie -= cost;
+    G.goldenFingerLv = Math.min(GOLDEN_FINGER_MAX_LV, lv + 1);
+    if(G.major) G.major.golden2x = G.goldenFingerLv > 0; // legacy flag: セーブ互換用
+    toast(`黄金の指 Lv.${G.goldenFingerLv}！ タップ時の黄金卵率 ${formatChancePct(getGoldenFingerChance())}`);
     updateUI();
   };
   const btnMajorCookie2x = document.getElementById('btn-major-cookie2x');
@@ -11446,20 +11602,9 @@ function syncFermenterUnlockUI() {
       if(maxAdult > 0) {
         G.larvae = Math.max(0, G.larvae - maxAdult);
         G.ants.worker += maxAdult;
-        rollGoldenHatches(maxAdult);
-        // 幼虫室から消費し、給餌ストックも減らす
-        let remain = maxAdult;
-        for(const id of larvaRoomIds) {
-          const n = S.full.nodes[id]; if(!n) continue;
-          const take = Math.min(n.invLarva || 0, remain);
-          if(take > 0) {
-            n.invLarva = Math.max(0, (n.invLarva || 0) - take);
-            const foodNeed = take * LARVA_FOOD_NEED;
-            n.invLarvaFood = Math.max(0, (n.invLarvaFood || 0) - foodNeed);
-            remain -= take;
-            if(remain <= 0) break;
-          }
-        }
+        // 幼虫室から消費し、黄金幼虫なら黄金アリとして成虫化する
+        const adultOut = consumeLarvaeFromRooms(maxAdult, larvaRoomIds);
+        promoteGoldenAdults(adultOut.golden);
       }
     } else {
       G.larvaToAdultP = 0;
@@ -12242,7 +12387,9 @@ function syncFermenterUnlockUI() {
 
       // 追加: 幼虫(invLarva)を優先描画（幼虫→卵→餌）
       const invLarva = Math.max(0, Math.floor(n.invLarva || 0));
+      const invGoldenLarva = Math.min(invLarva, Math.max(0, Math.floor(n.invGoldenLarva || 0)));
       const invEgg = Math.max(0, Math.floor(n.invEgg || 0));
+      const invGoldenEgg = Math.min(invEgg, Math.max(0, Math.floor(n.invGoldenEgg || 0)));
       const invFoodRaw = Math.max(0, Math.floor(n.invFood || 0));
       const invFood = (n.type === 'queen') ? 0 : invFoodRaw;
       const invCookie = Math.max(0, Math.floor(n.invCookie || 0));
@@ -12263,9 +12410,23 @@ function syncFermenterUnlockUI() {
             // 幼虫サイズを1.5倍（見た目強調）
             if(lightLarva) drawLarvaSimple(ctx, s.x, s.y, seed, 0.78);
             else drawLarvaAt(ctx, s.x, s.y, S.t, seed, 0.72);
+            if(k < invGoldenLarva) {
+              ctx.save();
+              ctx.strokeStyle = 'rgba(250, 204, 21, 0.95)';
+              ctx.lineWidth = dp(1.2);
+              ctx.beginPath(); ctx.arc(s.x, s.y, dp(5.2), 0, 6.28); ctx.stroke();
+              ctx.restore();
+            }
           } else if(k < invLarva + invEgg) {
-            ctx.fillStyle = '#fef3c7';
-            ctx.beginPath(); ctx.arc(s.x, s.y, dp(3), 0, 6.28); ctx.fill();
+            const eggIdx = k - invLarva;
+            const isGoldenEgg = eggIdx < invGoldenEgg;
+            ctx.fillStyle = isGoldenEgg ? '#facc15' : '#fef3c7';
+            ctx.beginPath(); ctx.arc(s.x, s.y, dp(isGoldenEgg ? 3.6 : 3), 0, 6.28); ctx.fill();
+            if(isGoldenEgg) {
+              ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+              ctx.lineWidth = dp(0.8);
+              ctx.beginPath(); ctx.arc(s.x, s.y, dp(4.6), 0, 6.28); ctx.stroke();
+            }
           } else {
             ctx.fillStyle = '#4ade80';
             ctx.beginPath(); ctx.arc(s.x, s.y, dp(3), 0, 6.28); ctx.fill();
