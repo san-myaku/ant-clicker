@@ -6420,8 +6420,8 @@ function expandMap(forcedType, isEmergency) {
   // ===== 大物運搬イベント（MVP） =====
   // 地表に大きな餌が出現し、働きアリが集まって巣入口へ運ぶと食料報酬が入る。
   // ランタイム専用のイベント（S.largeFood）で、セーブ/オフライン進行には含めない。
-  const LARGE_FOOD_MIN_WORKERS = 12;        // この働きアリ数以上で出現対象になる
-  const LARGE_FOOD_REQUIRED_WORKERS = 5;    // 運搬開始に必要な集合数
+  const LARGE_FOOD_MIN_WORKERS = 20;        // この働きアリ数以上で出現対象になる
+  const LARGE_FOOD_REQUIRED_WORKERS = 15;   // 運搬開始に必要な集合数
   const LARGE_FOOD_MIN_INTERVAL = 60;       // 次の出現抽選までの最短秒
   const LARGE_FOOD_MAX_INTERVAL = 120;      // 次の出現抽選までの最長秒
   const LARGE_FOOD_SPAWN_CHANCE = 0.7;      // 出現タイマー到達時に実際に出る確率（低確率寄り）
@@ -6431,7 +6431,7 @@ function expandMap(forcedType, isEmergency) {
   const LARGE_FOOD_REWARD_BASE = 300;       // 基本食料報酬
   const LARGE_FOOD_REWARD_PER_WORKER = 50;  // 出現時の働きアリ数に応じた追加報酬（上限あり）
   const LARGE_FOOD_REWARD_WORKER_CAP = 40;  // 報酬計算に使う働きアリ数の上限
-  const LARGE_FOOD_RADIUS = dp(17);         // 描画半径の基準
+  const LARGE_FOOD_RADIUS = dp(26);         // 描画半径の基準
 
   // ノード from から to への経路（node列）を BFS で探索。完成した通路（edgeFrac>=0.99）のみ通れる
   function findNodePath(srcNodeId, dstNodeId) {
@@ -8112,7 +8112,7 @@ function expandMap(forcedType, isEmergency) {
     const minX = w * 0.06, maxX = w * 0.94;
     if(x < minX) x = minX;
     if(x > maxX) x = maxX;
-    const required = Math.max(3, Math.min(LARGE_FOOD_REQUIRED_WORKERS, Math.floor((G.ants.worker || 0) * 0.5) || LARGE_FOOD_REQUIRED_WORKERS));
+    const required = Math.max(5, Math.min(LARGE_FOOD_REQUIRED_WORKERS, Math.floor((G.ants.worker || 0) * 0.5) || LARGE_FOOD_REQUIRED_WORKERS));
     const rewardWorkers = Math.min(LARGE_FOOD_REWARD_WORKER_CAP, Math.max(0, Math.floor(G.ants.worker || 0)));
     const rewardFood = Math.floor(LARGE_FOOD_REWARD_BASE + LARGE_FOOD_REWARD_PER_WORKER * rewardWorkers);
     S.largeFood = {
@@ -8279,18 +8279,8 @@ function expandMap(forcedType, isEmergency) {
     grad.addColorStop(1, '#4d7c0f');
     ctx.fillStyle = grad;
     ctx.fill();
-    ctx.lineWidth = dp(1.6);
-    ctx.strokeStyle = 'rgba(54,83,20,0.92)';
-    ctx.stroke();
-
-    // 葉脈っぽい線（テクスチャ）
-    ctx.strokeStyle = 'rgba(54,83,20,0.5)';
-    ctx.lineWidth = dp(1);
-    ctx.beginPath();
-    ctx.moveTo(lf.x - r * 0.5, cy);
-    ctx.lineTo(lf.x + r * 0.5, cy);
-    ctx.moveTo(lf.x, cy - r * 0.45);
-    ctx.lineTo(lf.x, cy + r * 0.45);
+    ctx.lineWidth = dp(1.2);
+    ctx.strokeStyle = 'rgba(54,83,20,0.25)';
     ctx.stroke();
 
     // ラベル（集合数 or 搬送中）
