@@ -1,5 +1,64 @@
 # Development Log
 
+## 2026-05-31 レイド警戒バナーを画面最上部へ移動（47a0ce6）
+
+目的:
+
+- 警戒警報バナーが地面・巣入口付近に被って見えない問題を改善する。
+
+変更:
+
+- `#raid-banner` の `top` を `max(58px, calc(env(safe-area-inset-top) + 50px))` から `max(6px, calc(env(safe-area-inset-top) + 4px))` に変更。
+- ノッチ付き端末でも safe-area 直下に収まり、ゲームキャンバスの地表・入口が見えるようになった。
+
+## 2026-05-31 発酵室建設を予約方式に変更（1713c2f）
+
+目的:
+
+- ボタン押下時に `forceExpandRoom` を即時呼び出していたため、コロニーが密集していると「建設可能な位置が見つかりません」で失敗していた問題を根本的に解決する。
+- 兵舎設計図と同じ「予約→建築AI優先建設」の考え方に統一する。
+
+変更:
+
+- `G.fermentRoomPending`（予約数・整数、デフォルト0）を追加。セーブ/ロード対象。
+- ボタンクリック時: 条件チェック・食料消費 → `G.fermentRoomPending++` のみ。`forceExpandRoom` は呼ばない。
+- `getDigTarget()` にメインシャフト・兵舎の直下（`score: 9800`）の高優先ブランチを追加。予約がある場合は毎フレーム `forceExpandRoom('ferment')` を試みる。成功したらカウントを減らす。今フレームが無理でも次フレーム以降で自動再挑戦。
+- `canBuy`・`getFermentRoomInlineEffect`・`getFermentRoomTipText` に予約数を考慮。予約中は「🔨 建設予約中 (N/2室)」と表示。
+- 上限チェック: 建設数＋予約数 ≥ `FERMENT_ROOM_MAX` でボタン無効化。
+
+## 2026-05-31 forceExpandRoom の密集時失敗を修正（b16b125）
+
+目的:
+
+- コロニーが密集（部屋40個以上）していると `forceExpandRoom` が80回全て衝突して `null` を返し、発酵室建設が失敗していた問題を改善する。
+
+変更:
+
+- 親ノード候補を「mainTipId または ランダム1個の shaft」から「全 visible shaft（mainTipId 優先）」に拡張。
+- 親1個あたり最低40回、合計200回以上の試行に増加。
+- 配置距離の上限を旧 `baseLen * 1.25` から `baseLen * 1.45` に拡大し、密集部分を迂回できるようにした。
+- ループを `for(parent) { for(t) { ... } }` のネスト構造に変更し、親を切り替えながら探索する。
+
+備考:
+
+- この修正は発酵室予約システムへの移行と組み合わせることで、「配置失敗でもエラーにならず次フレームで再試行」という動作を実現している。
+
+## 2026-05-31 スマホで研究ボタンが押せない問題を修正（dd4bac2）
+
+目的:
+
+- 研究タブの「研究する」ボタンがスマホで反応しない問題を修正する。
+
+原因:
+
+- 親の `#control-panel` が `touch-action: pan-y`（縦スクロール専用）に設定されていたが、`.research-node-action` に `touch-action` が未設定だったため、ブラウザがタッチをスクロール操作か判定待ちし、`click` イベントの発火が不安定だった。
+- さらに `updateResearchUI()` が毎フレーム `innerHTML` を置き換えていたため、タップ中に `e.target` の DOM 要素が破棄されるリスクがあった。
+
+変更:
+
+- `.research-node-action` に `touch-action: manipulation` を追加（`.dock-item` と同じ対策）。
+- `updateResearchUI()` 内で `researchUI.branchList.innerHTML` を変更前の HTML と比較し、同一なら更新をスキップするようにした（毎フレームの不要な DOM 置き換えを防止）。
+
 ## 2026-05-31 大物運搬イベント バランス・外見調整まとめ
 
 以下の調整を順次実施した。

@@ -1,6 +1,6 @@
 # Ant Colony V23 Current System Overview
 
-Last updated: 2026-05-31
+Last updated: 2026-06-01
 Target file: `index.html`
 
 This document is the current implementation overview for the single-file ant clicker game. When gameplay, UI, save data, AI behavior, or public deployment assumptions change, update this file together with `DEVELOPMENT_LOG.md`.
@@ -44,6 +44,7 @@ Important fields:
 - `research`
 - `fermentFirstStarted`, `fermentFirstCompleted`, `fermenterFirstHired`
 - `_fermentCookieMade`
+- `fermentRoomPending`
 
 Current ant roles in `G.ants`:
 
@@ -503,7 +504,8 @@ Ferment room:
 - Unlock: research `ferment_unlock`
 - Build cost: food `2000`
 - Max rooms: `2`
-- Build action uses `forceExpandRoom('ferment')`
+- Build action: player presses the button → food is deducted → `G.fermentRoomPending` increments (reservation). `getDigTarget()` then places the room with high priority (score 9800, just below first barracks) by calling `forceExpandRoom('ferment')` each frame until placement succeeds. The pending count is saved and survives reload.
+- `G.fermentRoomPending`: saved integer. canBuy check uses `built + pending < FERMENT_ROOM_MAX`.
 
 Base recipe:
 
