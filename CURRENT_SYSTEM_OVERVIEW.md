@@ -1,6 +1,6 @@
 # Ant Colony V23 Current System Overview
 
-Last updated: 2026-06-01 (6)
+Last updated: 2026-06-01 (7)
 Target file: `index.html`
 
 This document is the current implementation overview for the single-file ant clicker game. When gameplay, UI, save data, AI behavior, or public deployment assumptions change, update this file together with `DEVELOPMENT_LOG.md`.
@@ -158,7 +158,7 @@ Upgrade cards are grouped into the current tab area.
 Tab grouping:
 
 - **Ants tab**: Queen level, Worker upgrade, Nurse level, Builder level, Soldier level, Golden Finger, Big carry
-- **Rooms tab**: Waste room unlock, Ferment room build
+- **Rooms tab**: Waste room unlock, Ferment room build, Barracks blueprint
 - **Common (always visible)**: Queen level up button
 
 Important upgrades/actions:
@@ -172,6 +172,7 @@ Important upgrades/actions:
 - Ferment room build
 - Golden Finger
 - Big carry (large food carry unlock; requires worker Lv 5 + cookie 5; gates `maybeSpawnLargeFood`)
+- Barracks blueprint (moved back from research to the Rooms tab dock; requires builder Lv 3 + cookie 25; sets `G.major.barracks` and saves immediately, then builder AI prioritizes the first barracks)
 
 `クッキー出現 x2` and `兵隊攻撃 x2` are no longer normal dock purchases. Their old buttons remain in the DOM for compatibility, but are hidden and redirect to the research tab if triggered directly.
 
@@ -179,7 +180,9 @@ The old standalone golden boost system is not active. Golden progression is now 
 
 `major_act_cookie` remains as the cookie boost lucky-target system. The cookie boost button UI is not a normal dock button, but the runtime system still exists through `S.majorActives.cookie` and related lucky target state.
 
-Depth II, Depth III, and barracks blueprint are also no longer normal dock purchases. Their old buttons remain in the DOM for compatibility, but are hidden and redirect to the research tab if triggered directly.
+Depth II and Depth III are no longer normal dock purchases. Their old buttons remain in the DOM for compatibility, but are hidden and redirect to the research tab if triggered directly.
+
+The barracks blueprint was moved back OUT of research to the Rooms tab dock. It is removed from `RESEARCH_NODE_DEFS` (no longer shown in the research tree), but the `BARRACKS_BLUEPRINT_NODE` constant, `G.major.barracks` flag, and `ensureResearchState()` sync are kept for save compatibility. `hasBarracksBlueprint()` still reads either the old research-node flag or `G.major.barracks`.
 
 ## 6. World Generation And Rooms
 
@@ -472,8 +475,9 @@ Current implemented nodes:
 - `cookie_find_2x`: Sweet scouting / cookie appearance x2 passive
 - `geo_depth_2`: Depth II unlock
 - `geo_depth_3`: Depth III unlock
-- `military_barracks_blueprint`: Barracks blueprint unlock
 - `soldier_jaw_2x`: Jaw strengthening / soldier attack x2 passive
+
+`military_barracks_blueprint` was removed from the research tree (the barracks blueprint is now a Rooms tab dock purchase). Its constant and `G.major.barracks` compatibility plumbing are kept, so old saves that researched it stay valid. The defense branch now contains only `soldier_jaw_2x`.
 
 Expedition branch exists but its nodes are not implemented yet.
 

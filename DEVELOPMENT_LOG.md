@@ -1,5 +1,29 @@
 # Development Log
 
+## 2026-06-01 兵舎設計図を研究→部屋タブの購入カードへ戻す
+
+目的:
+
+- 兵舎設計図を研究タブ（Phase 5Bで移管済み）ではなく、部屋タブの通常購入カードから買えるようにする。
+
+変更:
+
+- CSS: `#btn-major-barracks` を強制非表示ルールから外す（深度II/IIIは引き続き非表示）。
+- `upgradeDefs` の `major_barracks`: `unlocked = G.bLv>=3`、`canBuy = !hasBarracksBlueprint() && bLv>=3 && cookie>=25`、`order` を部屋枠に合わせて 4.5 に。タブ割当は既存の `upgradeTabGroupByKey.major_barracks='rooms'` を使用。
+- onclick: 研究タブ誘導をやめ、実購入に変更（条件チェック→クッキー25消費→`G.major.barracks=true`→toast/女王つぶやき→`G.recalc()`→**`G.save()` 即セーブ**→`updateUI()`）。
+- `updateUI` 内の旧ブロックが毎フレーム強制していた `display:none`/`disabled` をやめ、表示＋購入可否（未所持・建築Lv3・クッキー25）に応じた disabled 切替へ。コスト表示は所持時「建設待ち/入手済」、未所持時「25」。
+- インライン効果 `getBarracksBlueprintInlineEffect()` を「研究タブへ移管」から「条件: 建築Lv3 / 🍪25 で入手 / 入手済み・建設待ち」に変更。
+- `RESEARCH_NODE_DEFS` から `military_barracks_blueprint` を削除（研究ツリーに出さない）。互換のため定数 `BARRACKS_BLUEPRINT_NODE`・`G.major.barracks`・`ensureResearchState` の同期処理は維持。`hasBarracksBlueprint()` は従来通り（研究ノードフラグ or `G.major.barracks`）。
+
+バランス・フロー不変:
+
+- コスト（クッキー25）・建築Lv3条件・購入後の挙動（建築AIが兵舎を最優先建設、兵隊雇用は実建設後）は従来通り。`computeRaidOutcome` 等のレイド計算には無関係。
+
+検証:
+
+- inline JS `node --check`（OK）、`git diff --check`（クリーン）。
+- ヘッドレスChrome/CDP: 兵舎カードが部屋タブのグリッドに配置・建築Lv3で非ロック表示、研究タブのノード一覧に「兵舎設計図」が無い、クリックで `G.major.barracks=true`＆クッキー25消費＆localStorage保存、購入後はカードが disabled で「建設待ち」表示、コンソールエラー0 を確認。
+
 ## 2026-06-01 Phase 7B-2 兵隊アリの地表出撃＋敵への接近
 
 目的:

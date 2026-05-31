@@ -645,8 +645,7 @@
     #btn-major-cookie2x,
     #btn-major-jaw2x,
     #btn-major-depth2,
-    #btn-major-depth3,
-    #btn-major-barracks { display: none !important; }
+    #btn-major-depth3 { display: none !important; }
     .dock-item.can-buy {
       box-shadow: 0 0 8px rgba(250, 204, 21, 0.7), 0 0 16px rgba(250, 204, 21, 0.45);
       animation: dockPulse 1.1s ease-in-out infinite;
@@ -2772,7 +2771,8 @@ const RESEARCH_BRANCH_DEFS = [
   { id: COOKIE_FIND_2X_NODE, branch: 'ferment', name: '甘味探索', desc: '働きアリが甘い匂いを見つけやすくなり、クッキー発見の機会が増える。', costCookie: MAJOR_COOKIE2X_COST, costFood: 0, prereq: [], breakthrough: false },
   { id: GEO_DEPTH_2_NODE, branch: 'geology', name: '深度II解放', desc: 'より深い地層への掘削を可能にし、新しい部屋候補と拡張範囲を解放する。', costCookie: MAJOR_DEPTH2_COST, costFood: 0, prereq: [], breakthrough: true },
   { id: GEO_DEPTH_3_NODE, branch: 'geology', name: '深度III解放', desc: 'さらに深い地層への拡張を可能にし、大規模コロニー化の土台を作る。', costCookie: MAJOR_DEPTH3_COST, costFood: 0, prereq: [GEO_DEPTH_2_NODE], breakthrough: true },
-  { id: BARRACKS_BLUEPRINT_NODE, branch: 'defense', name: '兵舎設計図', desc: '兵隊アリを組織的に育成するための兵舎建設を解放する。', costCookie: MAJOR_BARRACKS_COST, costFood: 0, prereq: [], breakthrough: true },
+  // 兵舎設計図(BARRACKS_BLUEPRINT_NODE)は部屋タブの購入カードへ戻したため研究ツリーには出さない。
+  // 互換: 定数 BARRACKS_BLUEPRINT_NODE と G.major.barracks、ensureResearchState の同期処理は維持。
   { id: SOLDIER_JAW_2X_NODE, branch: 'defense', name: '顎強化', desc: '兵隊アリの大顎を鍛え、レイドや害虫への攻撃力を高める。', costCookie: MAJOR_JAW2X_COST, costFood: 0, prereq: [], breakthrough: false }
 ];
 
@@ -10671,14 +10671,14 @@ function syncFermenterUnlockUI() {
       unlocked: () => false,
       canBuy: () => false
     },
-    // 兵舎設計図
+    // 兵舎設計図（部屋タブの購入カードへ復帰）
     {
       key: 'major_barracks',
       id: 'btn-major-barracks',
       important: true,
-      order: 0.9,
-      unlocked: () => false,
-      canBuy: () => false
+      order: 4.5,
+      unlocked: () => (G.bLv || 0) >= 3,
+      canBuy: () => !hasBarracksBlueprint() && (G.bLv || 0) >= 3 && (G.cookie >= MAJOR_BARRACKS_COST)
     },
     {
       key: 'major_worker_bigcarry',
@@ -11026,7 +11026,8 @@ function syncFermenterUnlockUI() {
     if(hasBarracksBlueprint()) {
       return S.hasBarracks ? '入手済み' : '兵舎初建設待ち';
     }
-    return '研究タブへ移管';
+    if((G.bLv || 0) < 3) return '条件: 建築Lv3';
+    return `🍪${MAJOR_BARRACKS_COST} で入手`;
   }
 
   function getFermentRoomInlineEffect() {
@@ -12224,9 +12225,11 @@ function syncFermenterUnlockUI() {
       if(cbig) cbig.textContent = bigCarryDone ? '解放済' : String(MAJOR_WORKER_BIGCARRY_COST_COOKIE);
       if(d2Btn) { d2Btn.classList.toggle('disabled', true); d2Btn.style.display = 'none'; }
       if(d3Btn) { d3Btn.classList.toggle('disabled', true); d3Btn.style.display = 'none'; }
+      // 兵舎設計図は部屋タブの通常購入カードとして表示・購入可否を反映
       if(barrBtn) {
-        barrBtn.classList.toggle('disabled', true);
-        barrBtn.style.display = 'none';
+        barrBtn.style.display = '';
+        const canBuyBarr = !barrDone && (G.bLv || 0) >= 3 && (G.cookie >= MAJOR_BARRACKS_COST);
+        barrBtn.classList.toggle('disabled', !canBuyBarr);
       }
       if(cleanBtn) cleanBtn.style.display = 'none';
       if(bigCarryBtn) {
@@ -12721,8 +12724,16 @@ function syncFermenterUnlockUI() {
   // 兵舎設計図
   const btnMajorBarracks = document.getElementById('btn-major-barracks');
   if(btnMajorBarracks) btnMajorBarracks.onclick = function() {
-    setControlTab('research');
-    toast('研究タブの「兵舎設計図」で解放できます');
+    if(hasBarracksBlueprint()) { toast('兵舎設計図は入手済みです'); return; }
+    if((G.bLv || 0) < 3) { toast(`条件未達: 建築Lv3が必要（現在Lv${G.bLv || 0}）`, true); return; }
+    if(G.cookie < MAJOR_BARRACKS_COST) { toast('クッキーが足りません', true); return; }
+    G.cookie -= MAJOR_BARRACKS_COST;
+    if(G.major) G.major.barracks = true;
+    toast('🛡️ 兵舎設計図を入手！建築アリが兵舎を最優先で建設します');
+    addQueenWhisper('兵舎が建てば、巣を守る兵士を育てられるわ', 'barracks_blueprint');
+    G.recalc();
+    G.save({ showToast: false }); // 購入を即セーブ（リロードで消えないように）
+    updateUI();
   };
   // 大物運搬の解放onclickは上で定義済み（btn-major-worker-bigcarry）。
   // ここで旧プレースホルダを再代入しないこと（上書きで解放できなくなるため）。
