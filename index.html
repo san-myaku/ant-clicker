@@ -6326,14 +6326,30 @@ function expandMap(forcedType, isEmergency) {
       }
       if(parents.length === 0) return null;
 
-      let parent = null;
-      if(S.mainTipId != null && S.nodeVis[S.mainTipId]) parent = S.full.nodes[S.mainTipId];
-      if(!parent) parent = parents[Math.floor(Math.random()*parents.length)];
+      // 配置候補となる親シャフトのリストを作る。
+      // 旧実装は mainTipId かランダム1個の shaft しか試さなかったため、
+      // コロニーが密集すると80回の試行が全部衝突して失敗していた。
+      // 改善: mainTipId → 全 shaft（入口に近い順）の順に親を切り替えながら試す。
+      const parentCandidates = [];
+      if(S.mainTipId != null && S.nodeVis[S.mainTipId]) {
+        parentCandidates.push(S.full.nodes[S.mainTipId]);
+      }
+      for(const p of parents) {
+        if(!parentCandidates.includes(p)) parentCandidates.push(p);
+      }
+      if(parentCandidates.length === 0) return null;
 
-      const tries = 80;
-      for(let t=0; t<tries; t++) {
+      // 親1個あたりの試行回数。全親合計で最低 200 回は試す。
+      const triesPerParent = Math.max(40, Math.ceil(200 / parentCandidates.length));
+      const roomSize = dp(30*ROOM_SCALE);
+      const collDist = dp(74*ROOM_SCALE);
+
+      for(const parent of parentCandidates) {
+      for(let t=0; t<triesPerParent; t++) {
+          // コロニーが密な場合に備え、距離を少し広めに取る
           const baseLen = dp(150);
-          const len = baseLen * (0.9 + 0.35*Math.random());
+          const lenMul = 0.9 + 0.55*Math.random(); // 旧: 0.9+0.35 → 最大 1.45r まで伸ばす
+          const len = baseLen * lenMul;
           let ang = 0;
           if(parent.type === 'shaft') {
               const side = (Math.random() < 0.5) ? -1 : 1;
@@ -6345,14 +6361,12 @@ function expandMap(forcedType, isEmergency) {
 
           let nx = parent.x + Math.cos(ang)*len;
           let ny = parent.y + Math.sin(ang)*len;
-          const roomSize = dp(30*ROOM_SCALE);
           nx = clamp(nx, dp(40), W - dp(40));
           const minY = Math.max(top + dp(60), getUndergroundMinY(nx, roomSize));
           const maxY = bottom - dp(60);
           if(minY > maxY) continue;
           ny = clamp(ny, minY, maxY);
 
-          const collDist = dp(74*ROOM_SCALE);
           let ok = true;
           for (const n of S.full.nodes) {
             const d = dist(n.x,n.y,nx,ny);
@@ -6395,6 +6409,7 @@ function expandMap(forcedType, isEmergency) {
           S.full.byNode[nid].push(eid);
           return eid;
       }
+      } // end for(parent)
       return null;
   }
 
