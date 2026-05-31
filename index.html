@@ -640,6 +640,11 @@
     .dock-item:active { transform: scale(0.97); }
     .dock-item.disabled { opacity: 0.45; filter: grayscale(0.9); cursor: not-allowed; }
     .dock-item.locked { opacity: 0.4; filter: grayscale(1); }
+    #btn-major-cookie2x,
+    #btn-major-jaw2x,
+    #btn-major-depth2,
+    #btn-major-depth3,
+    #btn-major-barracks { display: none !important; }
     .dock-item.can-buy {
       box-shadow: 0 0 8px rgba(250, 204, 21, 0.7), 0 0 16px rgba(250, 204, 21, 0.45);
       animation: dockPulse 1.1s ease-in-out infinite;
@@ -1180,6 +1185,232 @@
         position: sticky; top: 0; z-index: 2;
         background: rgba(8, 14, 20, 0.99);
         border-bottom: 1px solid rgba(110, 75, 38, 0.35);
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 6px;
+        align-items: stretch;
+        padding: 8px 14px;
+      }
+      #food-box,
+      #cookie-box,
+      #pop-box {
+        min-height: 44px;
+        padding: 7px 10px;
+        border-color: rgba(110, 75, 38, 0.62);
+        background: rgba(10, 18, 14, 0.94);
+      }
+      #food-box .res-val,
+      #cookie-box .res-val,
+      #pop-box .res-val {
+        font-size: 15px;
+        line-height: 1.2;
+      }
+      #food-box {
+        grid-column: 1 / span 2;
+      }
+      #cookie-box {
+        grid-column: 3 / span 2;
+      }
+      #pop-box {
+        grid-column: 5 / span 2;
+        margin-right: 46px;
+      }
+      #eggs-top-box,
+      #larvae-top-box,
+      #rate-box,
+      #rest-box,
+      #season-box,
+      #depth-box {
+        min-width: 0;
+        min-height: 26px;
+        padding: 3px 5px;
+        border-radius: 7px;
+        border-color: rgba(110, 75, 38, 0.34);
+        background: rgba(15, 23, 18, 0.62);
+        box-shadow: none;
+      }
+      #eggs-top-box .res-lbl,
+      #larvae-top-box .res-lbl,
+      #rate-box .res-lbl,
+      #rest-box .res-lbl,
+      #season-box .res-lbl,
+      #depth-box .res-lbl {
+        font-size: 7px;
+        line-height: 1.05;
+        color: #718096;
+        white-space: nowrap;
+      }
+      #eggs-top-box .res-val,
+      #larvae-top-box .res-val,
+      #rate-box .res-val,
+      #rest-box .res-val,
+      #season-box .res-val,
+      #depth-box .res-val {
+        font-size: 11px !important;
+        line-height: 1.15;
+        color: #cbd5e1;
+        display: block;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      #season-box .res-val {
+        font-size: 9px !important;
+      }
+      #eggs-top-box {
+        grid-column: 1;
+      }
+      #larvae-top-box {
+        grid-column: 2;
+      }
+      #rate-box {
+        grid-column: 3;
+      }
+      #rest-box {
+        grid-column: 4;
+      }
+      #season-box {
+        grid-column: 5;
+      }
+      #depth-box {
+        grid-column: 6;
+      }
+      #top-bar > #top-actions {
+        display: none;
+      }
+      #next-goal-box {
+        grid-column: 1 / -1;
+        min-width: 0;
+      }
+      #btn-menu {
+        position: absolute;
+        top: 8px;
+        right: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 44px;
+        min-width: 0;
+        min-height: 0;
+        padding: 0;
+        cursor: pointer;
+        font-size: 18px;
+        color: #e2e8f0;
+      }
+      #mobile-menu-sheet {
+        position: fixed;
+        top: 64px;
+        right: 16px;
+        z-index: 48;
+        width: 244px;
+        pointer-events: none;
+      }
+      #mobile-menu-sheet.open {
+        display: block;
+        pointer-events: auto;
+      }
+      .mobile-menu-card {
+        border: 1px solid rgba(110, 75, 38, 0.55);
+        border-radius: 8px;
+        background: rgba(8, 14, 20, 0.97);
+        box-shadow: 0 12px 28px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+        padding: 8px;
+        backdrop-filter: blur(10px);
+      }
+      .mobile-menu-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 8px;
+        color: #cbd5e1;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      #btn-menu-close {
+        width: 28px;
+        height: 28px;
+        border-radius: 7px;
+        border: 1px solid rgba(110, 75, 38, 0.55);
+        background: rgba(15, 23, 42, 0.9);
+        color: #e2e8f0;
+        cursor: pointer;
+      }
+      #mobile-menu-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      #mobile-menu-actions #top-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+      }
+      #mobile-menu-actions #top-actions .res-box {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        min-height: 38px;
+        min-width: 0;
+        padding: 6px 8px;
+        border-color: rgba(110,75,38,0.5) !important;
+        color: #e2e8f0 !important;
+        font-size: 15px !important;
+        cursor: pointer;
+      }
+      #mobile-menu-actions #top-actions .res-box::after {
+        content: attr(data-menu-label);
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .growth-bottleneck {
+        gap: 5px;
+        align-items: center;
+        font-size: 0;
+      }
+      .growth-bottleneck::before {
+        content: "成長";
+        color: #94a3b8;
+        font-size: 10px;
+        line-height: 1.2;
+      }
+      .growth-bottleneck .support,
+      .growth-bottleneck .penalty,
+      .growth-bottleneck .blocker {
+        display: inline-flex;
+        align-items: center;
+        min-height: 20px;
+        padding: 2px 6px;
+        border-radius: 999px;
+        font-size: 10px;
+        line-height: 1.2;
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        background: rgba(15, 23, 42, 0.72);
+      }
+      .growth-bottleneck .support {
+        color: #d9f99d;
+        border-color: rgba(132, 204, 22, 0.35);
+        background: rgba(63, 98, 18, 0.28);
+      }
+      .growth-bottleneck .penalty {
+        color: #fecaca;
+        border-color: rgba(248, 113, 113, 0.35);
+        background: rgba(127, 29, 29, 0.28);
+      }
+      .growth-bottleneck .blocker {
+        color: #fde68a;
+        border-color: rgba(251, 191, 36, 0.42);
+        background: rgba(120, 53, 15, 0.28);
+      }
+      .growth-bottleneck.ok {
+        font-size: 10px;
+        color: #86efac;
+      }
+      .growth-bottleneck.ok::before {
+        display: none;
       }
       #control-panel {
         max-height: none; overflow-y: auto; overflow-x: hidden;
@@ -1392,7 +1623,7 @@
     .tut-dot.active { background: #f59e0b; }
 
     /* ===== Progressive UI unlock ===== */
-    .res-box.ui-locked { display: none !important; }
+    .res-box.ui-locked { display: flex; }
 
     /* ===== Cookie discovery modal ===== */
     #cookie-discovery {
@@ -1428,6 +1659,7 @@
     .goal-text { flex: 1; }
     .goal-name { font-size: 13px; font-weight: 600; color: #f1f5f9; }
     .goal-prog { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+    .goal-reward { font-size: 10px; color: #fcd34d; margin-top: 2px; }
     .goal-check { font-size: 16px; flex-shrink: 0; }
 
     /* ===== Prestige button ===== */
@@ -1442,7 +1674,8 @@
     @keyframes prestigeGlow { 0%,100%{box-shadow:0 0 20px rgba(109,40,217,0.3)} 50%{box-shadow:0 0 35px rgba(109,40,217,0.6)} }
 
     /* ===== Save export button ===== */
-    #btn-save-export { display: none; }
+    #btn-save-export,
+    #btn-save-import { display: none; }
 
     /* Modals */
     .modal-overlay {
@@ -1605,13 +1838,14 @@
           <div class="res-lbl">深度</div>
           <div class="res-val" id="v-depth" style="font-size:11px;">第1層</div>
         </div>
-        <div class="res-box" id="next-goal-box" style="flex-basis:100%; order:99; display:none; padding:3px 8px;">
+        <div class="res-box" id="next-goal-box" role="button" tabindex="0" title="コロニーの目標を開く" style="flex-basis:100%; order:99; display:none; padding:3px 8px; cursor:pointer;">
           <div style="font-size:8px; color:#94a3b8; text-transform:uppercase;">次の目標</div>
           <div id="next-goal-text" style="font-size:11px; color:#fcd34d; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></div>
         </div>
         <div id="top-actions">
           <button class="res-box" id="btn-save" style="cursor:pointer; border-color:#64748b;" data-menu-label="セーブ" aria-label="セーブ">💾</button>
           <button class="res-box" id="btn-save-export" style="cursor:pointer; border-color:#334155; font-size:9px; color:#64748b;" title="セーブデータを書き出し" data-menu-label="エクスポート" aria-label="エクスポート">📤</button>
+          <button class="res-box" id="btn-save-import" style="cursor:pointer; border-color:#334155; font-size:9px; color:#64748b;" title="セーブデータを読み込み" data-menu-label="ロード" aria-label="ロード">📥</button>
           <button class="res-box" id="btn-diary" style="cursor:pointer; border-color:#8b5cf6;" title="女王の日記" data-menu-label="日記" aria-label="女王の日記">👑</button>
           <button class="res-box" id="btn-goals" style="cursor:pointer; border-color:#22c55e;" title="コロニーの目標" data-menu-label="目標" aria-label="コロニーの目標">🗺️</button>
           <button class="res-box" id="btn-fit" style="cursor:pointer; border-color:#22c55e;" title="全体表示" data-menu-label="全体表示" aria-label="全体表示">🧭</button>
@@ -2082,6 +2316,7 @@
   // ブラウザの localStorage に保存するときのキー名（変更すると既存セーブが読めなくなります）
   const SAVE_KEY = "antSimV23_0";
   const SAVE_KEY_OLD = "antSimV22_2";
+  const AUTO_SAVE_INTERVAL_MS = 5 * 60 * 1000;
   const RENDER_SETTINGS_KEY = "ant_render_settings_v1";
   const RENDER_MODE_OPTIONS = ['auto','vector','sprite','dot'];
   const RENDER_CAP_OPTIONS = [160, 300, 600, 1000];
@@ -2129,9 +2364,14 @@
   const GOLDEN_FINGER_CHANCES = [0, 0.002, 0.0035, 0.0055, 0.008, 0.011]; // Lv1..5: 0.2%〜1.1%
   const MAJOR_COOKIE2X_COST = 40; // 日本語: クッキー出現率2倍
   const MAJOR_JAW2X_COST = 60;    // 日本語: 兵隊攻撃2倍
+  const COOKIE_FIND_2X_NODE = 'cookie_find_2x';
+  const SOLDIER_JAW_2X_NODE = 'soldier_jaw_2x';
   const MAJOR_DEPTH2_COST = 15;   // 深度II解放コスト
   const MAJOR_DEPTH3_COST = 40;   // 深度III解放コスト
   const MAJOR_BARRACKS_COST = 25; // 兵舎設計図コスト
+  const GEO_DEPTH_2_NODE = 'geo_depth_2';
+  const GEO_DEPTH_3_NODE = 'geo_depth_3';
+  const BARRACKS_BLUEPRINT_NODE = 'military_barracks_blueprint';
   // MAJOR_UPGRADE: 発動メジャー（アクティブ）設定
   const MAJOR_ACT_COOKIE_CD = 600;   // 日本語: クッキーブーストCD（秒）
   const MAJOR_ACT_COOKIE_WIN = 15;   // 日本語: 出現ウィンドウ（秒）
@@ -2195,6 +2435,9 @@
   const DIG_PICK_TIME_BASE = 0.8;
   const DIG_FRAC_PER_CHUNK = 0.02;
   const CARRY_SPEED_MUL = 0.85;
+  const BUILDER_LOGIC_MAX_SLOTS = 18;
+  const BUILDER_LOGIC_BASE_CHUNK_SEC = 4.8;
+  const BUILDER_ASSIGNMENT_MAX_TARGETS = 3;
   // Branching shafts (tuning)
   const SHAFT_BRANCH_PROB = 0.35;
   const SHAFT_BRANCH_MIN_DEPTH = 180;   // dp units from soil start (S.full.sy)
@@ -2482,6 +2725,8 @@ function makeDefaultResearchState(){
       brood: true,
       hygiene: true,
       ferment: true,
+      geology: true,
+      defense: true,
       expedition: false
     },
     unlockedNodes: {}
@@ -2493,6 +2738,8 @@ const RESEARCH_BRANCH_DEFS = [
   { id: 'brood', label: '育児枝' },
   { id: 'hygiene', label: '衛生枝' },
   { id: 'ferment', label: '発酵枝' },
+  { id: 'geology', label: '地質枝' },
+  { id: 'defense', label: '防衛枝' },
   { id: 'expedition', label: '遠征枝' }
 ];
 
@@ -2508,7 +2755,12 @@ const RESEARCH_BRANCH_DEFS = [
   { id: 'ferment_1', branch: 'ferment', name: '発酵短縮I', desc: '発酵時間 45秒 → 38秒', costCookie: 4, costFood: 0, prereq: ['ferment_unlock'], breakthrough: false },
   { id: 'ferment_2', branch: 'ferment', name: '甘味濃縮', desc: '発酵完了時 10%でクッキー+1', costCookie: 6, costFood: 0, prereq: ['ferment_1'], breakthrough: false },
   { id: 'ferment_3', branch: 'ferment', name: '原料節約', desc: '発酵に必要な食料 100 → 90', costCookie: 8, costFood: 0, prereq: ['ferment_2'], breakthrough: false },
-  { id: 'ferment_worker_unlock', branch: 'ferment', name: '発酵アリ解放', desc: '発酵室を2室建設し、巣内に出現させると発酵アリを雇用可能にする突破研究', costCookie: 20, costFood: 3000, prereq: ['ferment_2'], breakthrough: true }
+  { id: 'ferment_worker_unlock', branch: 'ferment', name: '発酵アリ解放', desc: '発酵室を2室建設し、巣内に出現させると発酵アリを雇用可能にする突破研究', costCookie: 20, costFood: 3000, prereq: ['ferment_2'], breakthrough: true },
+  { id: COOKIE_FIND_2X_NODE, branch: 'ferment', name: '甘味探索', desc: '働きアリが甘い匂いを見つけやすくなり、クッキー発見の機会が増える。', costCookie: MAJOR_COOKIE2X_COST, costFood: 0, prereq: [], breakthrough: false },
+  { id: GEO_DEPTH_2_NODE, branch: 'geology', name: '深度II解放', desc: 'より深い地層への掘削を可能にし、新しい部屋候補と拡張範囲を解放する。', costCookie: MAJOR_DEPTH2_COST, costFood: 0, prereq: [], breakthrough: true },
+  { id: GEO_DEPTH_3_NODE, branch: 'geology', name: '深度III解放', desc: 'さらに深い地層への拡張を可能にし、大規模コロニー化の土台を作る。', costCookie: MAJOR_DEPTH3_COST, costFood: 0, prereq: [GEO_DEPTH_2_NODE], breakthrough: true },
+  { id: BARRACKS_BLUEPRINT_NODE, branch: 'defense', name: '兵舎設計図', desc: '兵隊アリを組織的に育成するための兵舎建設を解放する。', costCookie: MAJOR_BARRACKS_COST, costFood: 0, prereq: [], breakthrough: true },
+  { id: SOLDIER_JAW_2X_NODE, branch: 'defense', name: '顎強化', desc: '兵隊アリの大顎を鍛え、レイドや害虫への攻撃力を高める。', costCookie: MAJOR_JAW2X_COST, costFood: 0, prereq: [], breakthrough: false }
 ];
 
 const RESEARCH_NODE_BY_ID = {};
@@ -2527,12 +2779,43 @@ function ensureResearchState(target = G){
     unlockedBranches: Object.assign({}, def.unlockedBranches, (src.unlockedBranches && typeof src.unlockedBranches === 'object') ? src.unlockedBranches : {}),
     unlockedNodes: (src.unlockedNodes && typeof src.unlockedNodes === 'object') ? Object.assign({}, src.unlockedNodes) : {}
   };
+  if(target.major && target.major.cookie2x) target.research.unlockedNodes[COOKIE_FIND_2X_NODE] = true;
+  if(target.major && target.major.jaw2x) target.research.unlockedNodes[SOLDIER_JAW_2X_NODE] = true;
+  if(target.major && target.major.depth2) target.research.unlockedNodes[GEO_DEPTH_2_NODE] = true;
+  if(target.major && target.major.depth3) target.research.unlockedNodes[GEO_DEPTH_3_NODE] = true;
+  if(target.major && target.major.barracks) target.research.unlockedNodes[BARRACKS_BLUEPRINT_NODE] = true;
+  if(target.research.unlockedNodes[GEO_DEPTH_3_NODE]) target.research.unlockedNodes[GEO_DEPTH_2_NODE] = true;
+  if(target.major && target.research.unlockedNodes[COOKIE_FIND_2X_NODE]) target.major.cookie2x = true;
+  if(target.major && target.research.unlockedNodes[SOLDIER_JAW_2X_NODE]) target.major.jaw2x = true;
+  if(target.major && target.research.unlockedNodes[GEO_DEPTH_2_NODE]) target.major.depth2 = true;
+  if(target.major && target.research.unlockedNodes[GEO_DEPTH_3_NODE]) target.major.depth3 = true;
+  if(target.major && target.research.unlockedNodes[BARRACKS_BLUEPRINT_NODE]) target.major.barracks = true;
   return target.research;
 }
 
 function hasResearchNode(nodeId){
   const rs = ensureResearchState();
   return !!(rs.unlockedNodes && rs.unlockedNodes[nodeId]);
+}
+
+function hasCookieFind2x(){
+  return hasResearchNode(COOKIE_FIND_2X_NODE) || !!(G.major && G.major.cookie2x);
+}
+
+function hasSoldierJaw2x(){
+  return hasResearchNode(SOLDIER_JAW_2X_NODE) || !!(G.major && G.major.jaw2x);
+}
+
+function hasDepth2Unlock(){
+  return hasResearchNode(GEO_DEPTH_2_NODE) || !!(G.major && G.major.depth2);
+}
+
+function hasDepth3Unlock(){
+  return hasDepth2Unlock() && (hasResearchNode(GEO_DEPTH_3_NODE) || !!(G.major && G.major.depth3));
+}
+
+function hasBarracksBlueprint(){
+  return hasResearchNode(BARRACKS_BLUEPRINT_NODE) || !!(G.major && G.major.barracks);
 }
 
 function isResearchSystemUnlocked(){
@@ -2578,6 +2861,21 @@ function isResearchNodeConditionMet(def){
   if(def.id === FERMENT_WORKER_UNLOCK_NODE) {
     return getFermentRoomNodeCount(false) >= FERMENT_WORKER_ROOM_REQ;
   }
+  if(def.id === COOKIE_FIND_2X_NODE) {
+    return !!(G.major && G.major.cookie2x) || !!G.cookieDiscovered || (G.cookie || 0) > 0;
+  }
+  if(def.id === SOLDIER_JAW_2X_NODE) {
+    return !!(G.major && G.major.jaw2x) || isSoldierUnlocked() || (G.ants && (G.ants.soldier || 0) > 0);
+  }
+  if(def.id === GEO_DEPTH_2_NODE) {
+    return !!(G.major && G.major.depth2) || (G.bLv || 0) >= 2;
+  }
+  if(def.id === GEO_DEPTH_3_NODE) {
+    return !!(G.major && G.major.depth3) || (hasDepth2Unlock() && (G.bLv || 0) >= 4);
+  }
+  if(def.id === BARRACKS_BLUEPRINT_NODE) {
+    return !!(G.major && G.major.barracks) || (G.bLv || 0) >= 3;
+  }
   return true;
 }
 
@@ -2586,6 +2884,22 @@ function getResearchNodeConditionText(def){
   if(def.id === FERMENT_WORKER_UNLOCK_NODE) {
     const visible = getFermentRoomNodeCount(false);
     return `条件: 巣内に出現済みの発酵室 ${visible}/${FERMENT_WORKER_ROOM_REQ}`;
+  }
+  if(def.id === COOKIE_FIND_2X_NODE) {
+    return isResearchNodeConditionMet(def) ? '条件: クッキー発見済み' : '条件: クッキーを発見する';
+  }
+  if(def.id === SOLDIER_JAW_2X_NODE) {
+    return isResearchNodeConditionMet(def) ? '条件: 防衛体制確認済み' : '条件: 兵舎を建設し兵隊アリを解放する';
+  }
+  if(def.id === GEO_DEPTH_2_NODE) {
+    return isResearchNodeConditionMet(def) ? '条件: 建築Lv2 達成' : `条件: 建築Lv2（現在Lv${G.bLv || 0}）`;
+  }
+  if(def.id === GEO_DEPTH_3_NODE) {
+    if(!hasDepth2Unlock()) return '条件: 深度II解放';
+    return isResearchNodeConditionMet(def) ? '条件: 建築Lv4 達成' : `条件: 建築Lv4（現在Lv${G.bLv || 0}）`;
+  }
+  if(def.id === BARRACKS_BLUEPRINT_NODE) {
+    return isResearchNodeConditionMet(def) ? '条件: 建築Lv3 達成' : `条件: 建築Lv3（現在Lv${G.bLv || 0}）`;
   }
   return '';
 }
@@ -2612,6 +2926,11 @@ function buyResearchNode(nodeId){
   G.food = Math.max(0, G.food - (def.costFood || 0));
   const rs = ensureResearchState();
   rs.unlockedNodes[def.id] = true;
+  if(def.id === COOKIE_FIND_2X_NODE && G.major) G.major.cookie2x = true;
+  if(def.id === SOLDIER_JAW_2X_NODE && G.major) G.major.jaw2x = true;
+  if(def.id === GEO_DEPTH_2_NODE && G.major) G.major.depth2 = true;
+  if(def.id === GEO_DEPTH_3_NODE && G.major) G.major.depth3 = true;
+  if(def.id === BARRACKS_BLUEPRINT_NODE && G.major) G.major.barracks = true;
   toast(`🔬 研究完了: ${def.name}`);
   if(def.id === 'ferment_unlock') {
     addQueenWhisper('発酵室の設計が完成したわ。建設を始めて', 'ferment_unlock');
@@ -2619,6 +2938,15 @@ function buyResearchNode(nodeId){
   if(def.id === FERMENT_WORKER_UNLOCK_NODE) {
     toast('🧪 発酵アリが雇用可能になった');
     addQueenWhisper('発酵室の専任が生まれたわ。香りの流れが変わるはず', 'ferment_worker_unlock');
+  }
+  if(def.id === GEO_DEPTH_2_NODE) {
+    addQueenWhisper('新しい層への道が開いたわ。何が待っているかしら', 'depth2_unlock');
+  }
+  if(def.id === GEO_DEPTH_3_NODE) {
+    addQueenWhisper('さらに深い世界へ……未知の領域ね', 'depth3_unlock');
+  }
+  if(def.id === BARRACKS_BLUEPRINT_NODE) {
+    addQueenWhisper('兵舎が建てば、巣を守る兵士を育てられるわ', 'barracks_blueprint');
   }
   G.recalc();
   updateResearchUI();
@@ -4223,8 +4551,8 @@ function ensureRestSlots(n){
     get tot() { return this.ants.worker + this.ants.nurse + this.ants.builder + this.ants.soldier + (this.ants.fermenter || 0); },
     // MAJOR_UPGRADE: 深度解放の段数を返す（depth3はdepth2前提）
     getDepthUnlocked() {
-      const d2 = !!(this.major && this.major.depth2);
-      const d3 = d2 && !!(this.major && this.major.depth3);
+      const d2 = hasDepth2Unlock();
+      const d3 = hasDepth3Unlock();
       return 1 + (d2 ? 1 : 0) + (d3 ? 1 : 0);
     },
 
@@ -4363,7 +4691,9 @@ function ensureRestSlots(n){
       };
     },
 
-    save() {
+    save(options = {}) {
+      const showToast = options.showToast !== false;
+      const toastText = options.toastText || "保存完了";
       const pack = {
         v: "23.0",
         g: this.toSave(),
@@ -4371,7 +4701,7 @@ function ensureRestSlots(n){
       };
       localStorage.setItem(SAVE_KEY, JSON.stringify(pack));
       this.lastSave = pack.g.lastSave;
-      toast("保存完了");
+      if(showToast) toast(toastText);
     },
 
     load() {
@@ -4488,9 +4818,16 @@ function ensureRestSlots(n){
   const S = {
     t: 0, time: 8,
     timeScale: 1,
+    lastAutoSaveAt: Date.now(),
     renderSettings: { mode: DEFAULT_RENDER_SETTINGS.mode, lod: DEFAULT_RENDER_SETTINGS.lod, cap: DEFAULT_RENDER_SETTINGS.cap },
-    perf: { fps: 0, dt: 0, updateMs: 0, renderMs: 0, antsDrawn: 0, lodUsed: false, modeUsed: 'vector' },
+    perf: {
+      fps: 0, dt: 0, updateMs: 0, renderMs: 0,
+      antsDrawn: 0, lodUsed: false, modeUsed: 'vector',
+      aiFull: 0, aiLight: 0, aiSkipped: 0,
+      drawDot: 0, drawSprite: 0, drawVector: 0, drawBatches: 0
+    },
     full: null, nodeVis: [], edgeFrac: [],
+    frameCount: 0,
     ants: [], effects: [], dust: [], trails: [],
     enemies: [],
     invaders: [],        // 地下侵略者（害虫）
@@ -4513,6 +4850,10 @@ function ensureRestSlots(n){
     bgPebbles: [], bgRoots: [], bgFossils: [],
     colors: { soil:['#5d4037','#6d4c41','#795548'], tun:'#3e2723' },
     builderState: "待機中",
+    buildAssignments: {
+      targets: {},
+      stats: { realBuilders: 0, visibleBuilders: 0, workSlots: 0, assignedSlots: 0, targetCount: 0, renderCap: DEFAULT_RENDER_SETTINGS.cap }
+    },
     hasBarracks: false,
     mainTipId: null, // deepest main shaft node id (node.main === true)
       // ====== レイヤー（地層）制御 ======
@@ -6160,6 +6501,24 @@ function expandMap(forcedType, isEmergency) {
   const debugNodePath = { show:false, nodes:null, from:null, to:null };
 
   // アリ a を path に沿って 1 ステップ分移動。ベジェ曲線上の位置 a.t を dir 方向に進める
+  function getEdgeTravelAngle(e, t, dir) {
+    const baseT = clamp(t, 0, 1);
+    const travelDir = dir >= 0 ? 1 : -1;
+    const look = 0.025;
+    let tAhead = clamp(baseT + travelDir * look, 0, 1);
+    let tBehind = clamp(baseT - travelDir * look, 0, 1);
+    if(Math.abs(tAhead - tBehind) < 0.0001) {
+      tAhead = baseT;
+      tBehind = clamp(baseT - travelDir * look * 2, 0, 1);
+    }
+    const pAhead = cubic(e.p0, e.p1, e.p2, e.p3, tAhead);
+    const pBehind = cubic(e.p0, e.p1, e.p2, e.p3, tBehind);
+    const dx = pAhead.x - pBehind.x;
+    const dy = pAhead.y - pBehind.y;
+    if(Math.hypot(dx, dy) < 0.001) return null;
+    return Math.atan2(dy, dx);
+  }
+
   function move(a, dt, speedMul=1) {
     if(!a.path||a.pIdx>=a.path.length){ a.phase='done'; return; }
     const s = a.path[a.pIdx];
@@ -6177,9 +6536,8 @@ function expandMap(forcedType, isEmergency) {
     const p = cubic(e.p0,e.p1,e.p2,e.p3, clamp(a.t,0,1));
     a.x=p.x; a.y=p.y;
 
-    const p2 = cubic(e.p0,e.p1,e.p2,e.p3, clamp(a.t+0.01,0,1));
-    a.rot = Math.atan2(p2.y-p.y, p2.x-p.x);
-    if(s.dir===-1) a.rot += Math.PI;
+    const nextRot = getEdgeTravelAngle(e, a.t, s.dir);
+    if(nextRot != null) a.rot = nextRot;
 
     if((s.dir===1&&a.t>=1)||(s.dir===-1&&a.t<=0)) {
       a.pIdx++; a.node=s.to; a.phase='next';
@@ -6235,9 +6593,8 @@ function expandMap(forcedType, isEmergency) {
 
     const p = cubic(e.p0, e.p1, e.p2, e.p3, clamp(a.edgeT, 0, 1));
     a.x = p.x; a.y = p.y;
-    const nextT = clamp(a.edgeT + dir * 0.01, 0, 1);
-    const p2 = cubic(e.p0, e.p1, e.p2, e.p3, nextT);
-    a.rot = Math.atan2(p2.y - p.y, p2.x - p.x);
+    const nextRot = getEdgeTravelAngle(e, a.edgeT, dir);
+    if(nextRot != null) a.rot = nextRot;
 
     return a.edgeT === targetT;
   }
@@ -6504,6 +6861,94 @@ function expandMap(forcedType, isEmergency) {
     if(a.restStay <= 0) { clearRest(a); a.task='idle'; }
   }
 
+  function ensureBuildAssignments() {
+    if(!S.buildAssignments || typeof S.buildAssignments !== 'object') {
+      S.buildAssignments = { targets: {}, stats: {} };
+    }
+    if(!S.buildAssignments.targets || typeof S.buildAssignments.targets !== 'object') {
+      S.buildAssignments.targets = {};
+    }
+    if(!S.buildAssignments.stats || typeof S.buildAssignments.stats !== 'object') {
+      S.buildAssignments.stats = {};
+    }
+    return S.buildAssignments;
+  }
+
+  function getBuildTargetKeyFromEid(eid) {
+    return `e:${eid}`;
+  }
+
+  function getBuildTargetKey(t) {
+    if(!t || t.eid == null) return '';
+    return getBuildTargetKeyFromEid(t.eid);
+  }
+
+  function getBuildReservedCount(eid) {
+    const st = ensureBuildAssignments();
+    const cur = st.targets[getBuildTargetKeyFromEid(eid)];
+    return cur ? Math.max(0, Math.floor(cur.assigned || 0)) : 0;
+  }
+
+  function isBuilderAssignedEdge(eid) {
+    if(eid == null) return false;
+    const st = ensureBuildAssignments();
+    return !!st.targets[getBuildTargetKeyFromEid(eid)];
+  }
+
+  function isBuilderVisualTargetAssigned(t) {
+    return !!(t && t.eid != null && isBuilderAssignedEdge(t.eid));
+  }
+
+  function shouldDrawEdgeProgress(eid) {
+    const f = S.edgeFrac[eid] || 0;
+    if(f <= 0) return false;
+    if(f >= 0.99) return true;
+    return isBuilderAssignedEdge(eid);
+  }
+
+  function getDigTargetPriority(eid, to, reason) {
+    const n = S.full && S.full.nodes ? S.full.nodes[to] : null;
+    const text = String(reason || '');
+    const needFirstBarracks = hasBarracksBlueprint() && !S.hasBarracks;
+    if(text === 'main-shaft') return 100;
+    if(needFirstBarracks && n && n.type === 'soldier') return 95;
+    if(text.indexOf('forceShaft') === 0) return 90;
+    if(text.indexOf('force:') === 0) return 82;
+    if(text.indexOf('expand:') === 0) return 74;
+    if(n && n.type === 'shaft') return 62;
+    if(text.indexOf('existing:') === 0) return 58;
+    return 50;
+  }
+
+  function getDigTargetStackLimit(eid, to, reason) {
+    const n = S.full && S.full.nodes ? S.full.nodes[to] : null;
+    const text = String(reason || '');
+    const needFirstBarracks = hasBarracksBlueprint() && !S.hasBarracks;
+    if(text === 'main-shaft') return 4;
+    if(needFirstBarracks && n && n.type === 'soldier') return 5;
+    if(text.indexOf('forceShaft') === 0) return 3;
+    if(text.indexOf('force:') === 0) return 3;
+    if(n && n.type === 'ferment') return 2;
+    if(n && n.type === 'shaft' && S.band && S.band.forceShaft > 0) return 2;
+    return 1;
+  }
+
+  function decorateDigTarget(t) {
+    if(!t) return null;
+    const reason = t.reason || 'target';
+    t.key = getBuildTargetKey(t);
+    t.priority = getDigTargetPriority(t.eid, t.to, reason);
+    t.stackLimit = getDigTargetStackLimit(t.eid, t.to, reason);
+    return t;
+  }
+
+  function isDigTargetReservable(eid, to, reason) {
+    if(eid == null || !S.full || !S.full.edges[eid]) return false;
+    if((S.edgeFrac[eid] || 0) >= 1) return false;
+    const limit = getDigTargetStackLimit(eid, to, reason);
+    return getBuildReservedCount(eid) < limit;
+  }
+
   function getDigTarget(builderLv) {
       /*
         ====== 建築アリが「次に何を掘るか」を決める関数 ======
@@ -6520,8 +6965,11 @@ function expandMap(forcedType, isEmergency) {
 
       // Main shaft pending edge (always highest priority).
       const mainPending = getMainPendingEdge();
-      if(mainPending) return mainPending;
+      if(mainPending && isDigTargetReservable(mainPending.eid, mainPending.to, mainPending.reason)) {
+        return decorateDigTarget(mainPending);
+      }
 
+      const needFirstBarracks = (hasBarracksBlueprint() && !S.hasBarracks);
       const depthLock = !!S.band.depthLock;
       const depthLimit = (S.band && typeof S.band.bottom === 'number') ? S.band.bottom : Infinity;
       const allowShaftLink = (e, hidden, visNode) => {
@@ -6534,7 +6982,7 @@ function expandMap(forcedType, isEmergency) {
         return false;
       };
       // === 0) 帯を下げた直後は、縦の通路（shaft）を少し優先して作る ===
-      if(S.band.forceShaft > 0) {
+      if(S.band.forceShaft > 0 && !needFirstBarracks) {
           // 既に「shaftの未完成枝」があるならそれを掘る
           for(let i=0; i<S.full.edges.length; i++) {
               if(S.edgeFrac[i] >= 1) continue;
@@ -6550,14 +6998,16 @@ function expandMap(forcedType, isEmergency) {
 	              if(isNodeAboveGround(hidden)) continue;
 	              if(hidden.type === 'shaft' && visNode && visNode.type === 'shaft' && !allowShaftLink(e, hidden, visNode)) continue;
 	              if(hidden.type === 'shaft') {
-	                  return { eid:i, to:hiddenIdx, dir:uv?1:-1, score:9999, reason:"forceShaft: existing" };
+                    const reason = "forceShaft: existing";
+                    if(!isDigTargetReservable(i, hiddenIdx, reason)) continue;
+	                  return decorateDigTarget({ eid:i, to:hiddenIdx, dir:uv?1:-1, score:9999, reason });
 	              }
           }
 
           // 無ければ新しくshaftを生成して掘る
           const newEid = expandMap('shaft', true);
           if(newEid !== null && newEid !== undefined) {
-              return { eid:newEid, to:S.full.edges[newEid].v, dir:1, score:9990, reason:"forceShaft: new" };
+              return decorateDigTarget({ eid:newEid, to:S.full.edges[newEid].v, dir:1, score:9990, reason:"forceShaft: new" });
           }
       }
 
@@ -6565,8 +7015,6 @@ function expandMap(forcedType, isEmergency) {
       const popCap = Math.max(1, G.caps.pop || 0);
       const foodCap = Math.max(1, G.caps.food || 0);
       const soldierCap = Math.max(0, G.caps.soldier || 0);
-      // MAJOR_UPGRADE: 兵舎はメジャー解放後に初回だけ優先
-      const needFirstBarracks = (!!(G.major && G.major.barracks) && !S.hasBarracks);
       const restLimit = (typeof S.restLimit === 'number')
         ? S.restLimit
         : Math.max(0, Math.ceil((S.roomTotal || 0) * REST_MAX_RATIO));
@@ -6582,7 +7030,8 @@ function expandMap(forcedType, isEmergency) {
       const soldierRatio = needFirstBarracks ? 1 : ((soldierCap > 0) ? (G.ants.soldier / soldierCap) : 0);
 
       let forcedType = null;
-      if(popRatio > 0.50) forcedType = 'nursery';
+      if(needFirstBarracks) forcedType = 'soldier';
+      else if(popRatio > 0.50) forcedType = 'nursery';
       else if(foodRatio > 0.70) forcedType = 'food';
       else if(soldierRatio > 0.70) forcedType = 'soldier';
       else if(builderLv >= 2 && canAddRest) forcedType = 'rest';
@@ -6598,7 +7047,7 @@ function expandMap(forcedType, isEmergency) {
       }
 
       if(builderLv < 2 && forcedType === 'rest') forcedType = 'shaft';
-      if(!(G.major && G.major.barracks) && forcedType === 'soldier') forcedType = 'shaft';
+      if(!hasBarracksBlueprint() && forcedType === 'soldier') forcedType = 'shaft';
       if(forcedType === 'rest' && !canAddRest) forcedType = 'shaft';
       if(forcedType === 'waste' && !canAddWaste) forcedType = 'shaft';
       if(forcedType === 'cookieroom' && !canAddCookieRoom) forcedType = 'shaft';
@@ -6615,17 +7064,19 @@ function expandMap(forcedType, isEmergency) {
 	              if(depthLock && hidden.y > depthLimit) continue;
 	              if(isNodeAboveGround(hidden)) continue;
 	              if(hidden.type !== forcedType) continue;
-	              return { eid:i, to:hiddenIdx, dir:uv?1:-1, score:1200, reason:"existing:"+forcedType };
+	              const reason = "existing:"+forcedType;
+	              if(!isDigTargetReservable(i, hiddenIdx, reason)) continue;
+	              return decorateDigTarget({ eid:i, to:hiddenIdx, dir:uv?1:-1, score:1200, reason });
 	          }
 
           const newEidPref = expandMap(forcedType, true);
           if(newEidPref !== null && newEidPref !== undefined) {
-              return { eid:newEidPref, to:S.full.edges[newEidPref].v, dir:1, score:1100, reason:"expand:"+forcedType };
+              return decorateDigTarget({ eid:newEidPref, to:S.full.edges[newEidPref].v, dir:1, score:1100, reason:"expand:"+forcedType });
           }
 
           const forcedRoomEid = forceExpandRoom(forcedType);
           if(forcedRoomEid !== null && forcedRoomEid !== undefined) {
-              return { eid:forcedRoomEid, to:S.full.edges[forcedRoomEid].v, dir:1, score:1050, reason:"force:"+forcedType };
+              return decorateDigTarget({ eid:forcedRoomEid, to:S.full.edges[forcedRoomEid].v, dir:1, score:1050, reason:"force:"+forcedType });
           }
       }
 
@@ -6649,10 +7100,11 @@ function expandMap(forcedType, isEmergency) {
           if(hidden.type === 'shaft') allowed = true;
           if(hidden.type === 'nursery' || hidden.type === 'food') allowed = true;
           if(builderLv >= 2 && hidden.type === 'rest' && canAddRest) allowed = true;
-          if(G.major && G.major.barracks && hidden.type === 'soldier') allowed = true; // 日本語: 兵舎メジャー解放後のみ許可
+          if(hasBarracksBlueprint() && hidden.type === 'soldier') allowed = true; // 日本語: 兵舎設計図解放後のみ許可
           if(canAddWaste && hidden.type === 'waste') allowed = true; // ゴミ室は最大1部屋のみ
           if(isFermentRoomUnlocked() && hidden.type === 'ferment') allowed = true;
           if(!allowed) continue;
+          if(!isDigTargetReservable(i, hiddenIdx, "existing")) continue;
 
           const bandCenter = (S.band.top + S.band.bottom) * 0.5;
           let score = 1000 - Math.abs(hidden.y - bandCenter) * 0.01;
@@ -6662,20 +7114,188 @@ function expandMap(forcedType, isEmergency) {
               bestExisting = { eid:i, to:hiddenIdx, dir:uv?1:-1, score, reason:"existing" };
           }
       }
-      if(bestExisting) return bestExisting;
+      if(bestExisting) return decorateDigTarget(bestExisting);
 
       // === 3) Expand new room
       const newEid = expandMap(forcedType, (forcedType !== 'shaft'));
       if(newEid !== null && newEid !== undefined) {
-          return { eid:newEid, to:S.full.edges[newEid].v, dir:1, score:500, reason:"expand:"+forcedType };
+          return decorateDigTarget({ eid:newEid, to:S.full.edges[newEid].v, dir:1, score:500, reason:"expand:"+forcedType });
       }
       // Fallback: expand a shaft if nothing else is possible.
       const fallbackEid = expandMap('shaft', true);
       if(fallbackEid !== null && fallbackEid !== undefined) {
-          return { eid:fallbackEid, to:S.full.edges[fallbackEid].v, dir:1, score:400, reason:"fallback shaft" };
+          return decorateDigTarget({ eid:fallbackEid, to:S.full.edges[fallbackEid].v, dir:1, score:400, reason:"fallback shaft" });
       }
 
       return null;
+  }
+
+  function calcBuilderWorkSlots(builderCount) {
+    const count = Math.max(0, Math.floor(builderCount || 0));
+    if(count <= 0) return 0;
+    if(count <= 5) return count;
+    return Math.min(count, BUILDER_LOGIC_MAX_SLOTS, 5 + Math.floor(Math.sqrt(count - 5) * 1.5));
+  }
+
+  function calcBuilderTargetCap(workSlots) {
+    const slots = Math.max(0, Math.floor(workSlots || 0));
+    if(slots <= 0) return 0;
+    if(slots <= 2) return slots;
+    return Math.min(BUILDER_ASSIGNMENT_MAX_TARGETS, 2 + Math.floor(Math.sqrt(slots)));
+  }
+
+  function countVisibleBuilders() {
+    if(!Array.isArray(S.ants)) return 0;
+    let count = 0;
+    for(const a of S.ants) if(a.role === 'builder') count++;
+    return count;
+  }
+
+  function getBuilderLogicChunkSec(target) {
+    let travelSec = 2.8;
+    try {
+      const startNode = getDigStartNode(target);
+      const start = S.full.nodes[startNode];
+      const entrance = S.full.nodes[S.full.eid];
+      if(start && entrance) {
+        const d = Math.hypot(start.x - entrance.x, start.y - entrance.y);
+        travelSec += Math.min(5.0, d / Math.max(1, dp(180)));
+      }
+    } catch(_) {}
+    return Math.max(2.0, BUILDER_LOGIC_BASE_CHUNK_SEC + getBuilderPickTime() + travelSec * 0.35);
+  }
+
+  function addBuilderAssignmentSlot(target, prevTargets) {
+    const st = ensureBuildAssignments();
+    const t = decorateDigTarget(Object.assign({}, target));
+    const key = getBuildTargetKey(t);
+    if(!key) return false;
+    let cur = st.targets[key];
+    if(!cur) {
+      const prev = prevTargets && prevTargets[key];
+      cur = Object.assign({}, t, {
+        assigned: 0,
+        acc: prev ? Math.max(0, +prev.acc || 0) : 0,
+        chunkSec: prev ? Math.max(0.1, +prev.chunkSec || getBuilderLogicChunkSec(t)) : getBuilderLogicChunkSec(t)
+      });
+      st.targets[key] = cur;
+    }
+    cur.assigned = Math.min((cur.assigned || 0) + 1, cur.stackLimit || 1);
+    cur.priority = t.priority;
+    cur.stackLimit = t.stackLimit;
+    cur.reason = t.reason;
+    cur.to = t.to;
+    cur.dir = t.dir;
+    cur.score = t.score;
+    cur.chunkSec = getBuilderLogicChunkSec(cur);
+    return true;
+  }
+
+  function findStackableAssignedTarget() {
+    const st = ensureBuildAssignments();
+    const list = Object.values(st.targets)
+      .filter(t => t && (S.edgeFrac[t.eid] || 0) < 1 && (t.assigned || 0) < (t.stackLimit || 1))
+      .sort((a,b) => (b.priority || 0) - (a.priority || 0));
+    return list[0] || null;
+  }
+
+  function rebuildBuilderAssignments() {
+    const st = ensureBuildAssignments();
+    const prevTargets = st.targets || {};
+    st.targets = {};
+
+    const realBuilders = Math.max(0, Math.floor(G.ants.builder || 0));
+    const workSlots = calcBuilderWorkSlots(realBuilders);
+    const targetCap = calcBuilderTargetCap(workSlots);
+    let assignedSlots = 0;
+    let attempts = 0;
+
+    while(assignedSlots < workSlots && attempts < workSlots * 3 + 8) {
+      attempts++;
+      const targetCount = Object.keys(st.targets).length;
+      if(targetCount >= targetCap) {
+        const stackable = findStackableAssignedTarget();
+        if(!stackable) break;
+        stackable.assigned++;
+        assignedSlots++;
+        continue;
+      }
+
+      const t = getDigTarget(G.bLv);
+      if(!t) break;
+      if(addBuilderAssignmentSlot(t, prevTargets)) {
+        assignedSlots++;
+      }
+    }
+
+    const visibleBuilders = countVisibleBuilders();
+    st.stats = {
+      realBuilders,
+      visibleBuilders,
+      workSlots,
+      assignedSlots,
+      targetCount: Object.keys(st.targets).length,
+      renderCap: getRenderCap()
+    };
+    return st;
+  }
+
+  function updateBuilderLogic(dt) {
+    if(!S.full) return;
+    const st = rebuildBuilderAssignments();
+    for(const target of Object.values(st.targets)) {
+      if(!target || target.eid == null || !S.full.edges[target.eid]) continue;
+      if((S.edgeFrac[target.eid] || 0) >= 1) continue;
+      const assigned = Math.max(0, Math.floor(target.assigned || 0));
+      if(assigned <= 0) continue;
+      const chunkSec = Math.max(0.1, target.chunkSec || getBuilderLogicChunkSec(target));
+      target.acc = Math.max(0, +target.acc || 0) + dt * assigned / chunkSec;
+      let safety = 0;
+      while(target.acc >= 1 && safety < 8) {
+        target.acc -= 1;
+        safety++;
+        const completed = advanceDigEdge(target);
+        if(completed || (S.edgeFrac[target.eid] || 0) >= 1) {
+          target.acc = 0;
+          break;
+        }
+      }
+    }
+  }
+
+  function getVisualBuilderTarget() {
+    const st = ensureBuildAssignments();
+    const targets = Object.values(st.targets)
+      .filter(t => t && S.full && S.full.edges[t.eid] && (S.edgeFrac[t.eid] || 0) < 1);
+    if(!targets.length) return null;
+
+    const visualCounts = {};
+    for(const a of S.ants || []) {
+      if(a.role !== 'builder' || !a.digT) continue;
+      const key = getBuildTargetKey(a.digT);
+      if(key) visualCounts[key] = (visualCounts[key] || 0) + 1;
+    }
+
+    targets.sort((a,b) => {
+      const ak = getBuildTargetKey(a), bk = getBuildTargetKey(b);
+      const av = visualCounts[ak] || 0, bv = visualCounts[bk] || 0;
+      if(av !== bv) return av - bv;
+      return (b.priority || 0) - (a.priority || 0);
+    });
+    return decorateDigTarget(Object.assign({}, targets[0]));
+  }
+
+  function getBuilderDebugStats() {
+    const st = ensureBuildAssignments();
+    const stats = st.stats || {};
+    return {
+      realBuilders: Math.max(0, Math.floor(stats.realBuilders || G.ants.builder || 0)),
+      visibleBuilders: Math.max(0, Math.floor(stats.visibleBuilders || countVisibleBuilders())),
+      workSlots: Math.max(0, Math.floor(stats.workSlots || 0)),
+      assignedSlots: Math.max(0, Math.floor(stats.assignedSlots || 0)),
+      targetCount: Math.max(0, Math.floor(stats.targetCount || 0)),
+      renderCap: Math.max(0, Math.floor(stats.renderCap || getRenderCap()))
+    };
   }
 
   function dust(x,y){ S.dust.push({x,y,vx:(Math.random()-0.5)*dp(20),vy:dp(20),l:0.6}); }
@@ -7141,7 +7761,7 @@ function expandMap(forcedType, isEmergency) {
 
   function getWorkerCookieChance(){
     const base = 0.005 * G.getWorkerCookieMul();
-    const majorMul = (G.major && G.major.cookie2x) ? 2 : 1;
+    const majorMul = hasCookieFind2x() ? 2 : 1;
     const actMul = isMajorActActive('cookie') ? MAJOR_ACT_COOKIE_MUL : 1;
     const roomMul = (S.cookieRoomMul || 1); // クッキー室による倍率
     return clamp((base + getGlobalCookieAdd()) * majorMul * actMul * roomMul, 0, 1);
@@ -7432,8 +8052,52 @@ function expandMap(forcedType, isEmergency) {
     ensureGoldenRepresentation();
   }
 
+  function getAntUpdateInterval(a, idx, raidActive) {
+    if(!a) return 1;
+    if(raidActive) return 1;
+    if(a.golden) return 1;
+    if(S.invaders && S.invaders.length && a.role === 'soldier') return 1;
+    const task = a.task || 'idle';
+    if(a.cargo || a.carryType || a.wasteCarry || a.foodCarry) return 1;
+    if(task === 'rest') return 4;
+    if(task === 'wander') return 3;
+    if(task === 'idle') {
+      if(a.role === 'nurse') return 2;
+      if(a.role === 'builder') return 2;
+      if(a.role === 'soldier') return 3;
+      return 4;
+    }
+    return 1;
+  }
+
+  function shouldFullUpdateAnt(a, idx, raidActive) {
+    const interval = getAntUpdateInterval(a, idx, raidActive);
+    if(interval <= 1) return true;
+    return (((S.frameCount || 0) + idx) % interval) === 0;
+  }
+
+  function lightweightUpdateAnt(a, dt) {
+    if(!a) return;
+    if(a.task === 'rest') {
+      updateRest(a, dt);
+      return;
+    }
+    if(a.task === 'wander') {
+      if(a.wT != null || a.wNode != null || a.wUseSlots) updateTimedRoomWander(a, dt);
+      else updateWander(a, dt);
+      return;
+    }
+  }
+
   function updateAnts(dt) {
+    S.frameCount = (S.frameCount || 0) + 1;
     syncAntVisuals();
+    updateBuilderLogic(dt);
+    if(S.perf) {
+      S.perf.aiFull = 0;
+      S.perf.aiLight = 0;
+      S.perf.aiSkipped = 0;
+    }
 
     let builderState = "待機中";
     let builderStateRank = 0;
@@ -7473,7 +8137,16 @@ function expandMap(forcedType, isEmergency) {
     const goldenCookieOnly = isGoldenCookieOnlyActive();
     const workerCookieChance = getWorkerCookieChance();
 
-    S.ants.forEach(a => {
+    S.ants.forEach((a, antIdx) => {
+      if(!shouldFullUpdateAnt(a, antIdx, raidActive)) {
+        lightweightUpdateAnt(a, dt);
+        if(S.perf) {
+          S.perf.aiLight++;
+          if(a.task === 'idle') S.perf.aiSkipped++;
+        }
+        return;
+      }
+      if(S.perf) S.perf.aiFull++;
       if(a.role === 'builder') {
         // ===== 建築アリの行動ループ =====
         // idle      : 次に掘る通路を選ぶ（getDigTarget）
@@ -7482,7 +8155,16 @@ function expandMap(forcedType, isEmergency) {
         // haul_out  : 掘り先端→入口へ運搬して捨てる（edgeFrac進行）
         // return_dig: 掘削開始ノードへ戻り、掘り先端へ復帰して再開
 
-        const hasDigT = a.digT && S.full && S.full.edges[a.digT.eid];
+        let hasDigT = a.digT && S.full && S.full.edges[a.digT.eid];
+        if(hasDigT && !isBuilderVisualTargetAssigned(a.digT)) {
+          a.task = 'idle';
+          a.cargo = null;
+          a.digT = null;
+          a.edgeT = null;
+          a.edgePhase = null;
+          a.returnPhase = null;
+          hasDigT = false;
+        }
         if(a.task !== 'idle' && !hasDigT) {
           a.task = 'idle';
           a.cargo = null;
@@ -7504,7 +8186,7 @@ function expandMap(forcedType, isEmergency) {
           a.edgeT = null;
           a.edgePhase = null;
           a.returnPhase = null;
-          const t = getDigTarget(G.bLv);
+          const t = getVisualBuilderTarget();
           if(t) {
             a.digT = t;
             const startNode = getDigStartNode(t);
@@ -7570,7 +8252,8 @@ function expandMap(forcedType, isEmergency) {
             if(a.phase==='done') {
               dust(a.x, a.y);
               if(Math.random() < 0.4) dust(a.x + (Math.random()-0.5)*dp(6), a.y + (Math.random()-0.5)*dp(6));
-              advanceDigEdge(a.digT);
+              // 掘削進捗は G.ants.builder 基準の updateBuilderLogic() が進める。
+              // 表示中の建築アリは土の搬出演出だけを担当する。
               a.cargo = null;
               a.edgePhase = null;
               if((S.edgeFrac[a.digT.eid] || 0) >= 1) {
@@ -8022,6 +8705,8 @@ function expandMap(forcedType, isEmergency) {
     });
 
     ensureGoldenRepresentation();
+    const bStats = getBuilderDebugStats();
+    if(builderStateRank === 0 && bStats.assignedSlots > 0) builderState = "自動建築中";
     S.builderState = builderState;
   }
 
@@ -9148,11 +9833,11 @@ function renderResearchNodeCard(def){
   };
 
   function isSoldierUnlocked() {
-    return !!(G.major && G.major.barracks) && !!S.hasBarracks;
+    return hasBarracksBlueprint() && !!S.hasBarracks;
   }
 
 function getSoldierLockText() {
-  if(!(G.major && G.major.barracks)) return '兵舎設計図が必要';
+  if(!hasBarracksBlueprint()) return '兵舎設計図が必要';
   if(!S.hasBarracks) return '兵舎の初建設が必要';
   return '防衛任務に配備できる';
 }
@@ -9205,16 +9890,16 @@ function syncFermenterUnlockUI() {
       id: 'btn-major-cookie2x',
       important: true,
       order: 0.3,
-      unlocked: () => true,
-      canBuy: () => !(G.major && G.major.cookie2x) && (G.cookie >= MAJOR_COOKIE2X_COST)
+      unlocked: () => false,
+      canBuy: () => false
     },
     {
       key: 'major_jaw2x',
       id: 'btn-major-jaw2x',
       important: true,
       order: 0.4,
-      unlocked: () => true,
-      canBuy: () => !(G.major && G.major.jaw2x) && (G.cookie >= MAJOR_JAW2X_COST)
+      unlocked: () => false,
+      canBuy: () => false
     },
     // MAJOR_UPGRADE: 発動メジャー
     {
@@ -9279,8 +9964,8 @@ function syncFermenterUnlockUI() {
       id: 'btn-major-depth2',
       important: true,
       order: 0.7,
-      unlocked: () => G.bLv >= 2 && !(G.major && G.major.depth2),
-      canBuy: () => G.bLv >= 2 && !(G.major && G.major.depth2) && G.cookie >= MAJOR_DEPTH2_COST
+      unlocked: () => false,
+      canBuy: () => false
     },
     // 深度III解放
     {
@@ -9288,8 +9973,8 @@ function syncFermenterUnlockUI() {
       id: 'btn-major-depth3',
       important: true,
       order: 0.8,
-      unlocked: () => G.bLv >= 4 && !!(G.major && G.major.depth2) && !(G.major && G.major.depth3),
-      canBuy: () => G.bLv >= 4 && !!(G.major && G.major.depth2) && !(G.major && G.major.depth3) && G.cookie >= MAJOR_DEPTH3_COST
+      unlocked: () => false,
+      canBuy: () => false
     },
     // 兵舎設計図
     {
@@ -9297,8 +9982,8 @@ function syncFermenterUnlockUI() {
       id: 'btn-major-barracks',
       important: true,
       order: 0.9,
-      unlocked: () => G.bLv >= 3 && !(G.major && G.major.barracks),
-      canBuy: () => G.bLv >= 3 && !(G.major && G.major.barracks) && G.cookie >= MAJOR_BARRACKS_COST
+      unlocked: () => false,
+      canBuy: () => false
     },
     {
       key: 'major_worker_bigcarry',
@@ -9538,8 +10223,7 @@ function syncFermenterUnlockUI() {
 
   function getSoldierPowerMul(lv) {
     const v = clamp(Math.floor(lv || 0), 0, SOLDIER_LV_MAX);
-    // MAJOR_UPGRADE: 兵隊攻撃2倍（メジャー）
-    const jawMul = (G.major && G.major.jaw2x) ? 2 : 1; // 日本語: メジャー未購入なら1倍
+    const jawMul = hasSoldierJaw2x() ? 2 : 1; // 日本語: 未研究なら1倍
     return (1 + (v * RAID_CFG.soldierLvBonus)) * jawMul;
   }
 
@@ -9549,7 +10233,7 @@ function syncFermenterUnlockUI() {
   }
 
   function getSoldierUnlockHintText() {
-    if(!(G.major && G.major.barracks)) return '\n※兵舎設計図が必要';
+    if(!hasBarracksBlueprint()) return '\n※兵舎設計図が必要';
     if(!S.hasBarracks) return '\n※兵舎の初建設が必要';
     return '';
   }
@@ -9635,10 +10319,18 @@ function syncFermenterUnlockUI() {
   }
 
   function getSoldierInlineEffect() {
+    if(!isSoldierUnlocked()) return getSoldierLockText();
     const curMul = getSoldierPowerMul(G.sLv);
     if(G.sLv >= SOLDIER_LV_MAX) return `最大: 戦闘x${formatInlineMul(curMul)}`;
     const nextMul = getSoldierPowerMul(G.sLv + 1);
     return `次: 戦闘x${formatInlineMul(curMul)}→${formatInlineMul(nextMul)}`;
+  }
+
+  function getBarracksBlueprintInlineEffect() {
+    if(hasBarracksBlueprint()) {
+      return S.hasBarracks ? '入手済み' : '兵舎初建設待ち';
+    }
+    return '研究タブへ移管';
   }
 
   function getFermentRoomInlineEffect() {
@@ -9667,11 +10359,11 @@ function syncFermenterUnlockUI() {
         : `次: 黄金卵 ${formatChancePct(getGoldenFingerChance(lv))}→${formatChancePct(getGoldenFingerChance(nextLv))}`;
       setDockInlineEffect('btn-major-golden2x', text);
     }
-    setDockInlineEffect('btn-major-cookie2x', (G.major && G.major.cookie2x) ? '解放済み' : '効果: 🍪出現率x2');
-    setDockInlineEffect('btn-major-jaw2x', (G.major && G.major.jaw2x) ? '解放済み' : '効果: 兵隊攻撃x2');
-    setDockInlineEffect('btn-major-depth2', (G.major && G.major.depth2) ? '解放済み' : '解放: 深度II');
-    setDockInlineEffect('btn-major-depth3', (G.major && G.major.depth3) ? '解放済み' : '解放: 深度III');
-    setDockInlineEffect('btn-major-barracks', (G.major && G.major.barracks) ? '入手済み' : '解放: 兵隊アリ');
+    setDockInlineEffect('btn-major-cookie2x', hasCookieFind2x() ? '研究済み' : '研究タブへ移管');
+    setDockInlineEffect('btn-major-jaw2x', hasSoldierJaw2x() ? '研究済み' : '研究タブへ移管');
+    setDockInlineEffect('btn-major-depth2', hasDepth2Unlock() ? '解放済み' : '研究タブへ移管');
+    setDockInlineEffect('btn-major-depth3', hasDepth3Unlock() ? '解放済み' : '研究タブへ移管');
+    setDockInlineEffect('btn-major-barracks', getBarracksBlueprintInlineEffect());
     setDockInlineEffect('btn-major-worker-bigcarry', '将来: 大物運搬');
     setDockInlineEffect('btn-major-act-cookie', '状態: 画面の糖塊をタップ');
 
@@ -9808,7 +10500,7 @@ function syncFermenterUnlockUI() {
       title: '👑 女王として産卵しよう',
       body: 'このボタンをタップするたびに卵が1個産まれる。まずは5回タップしてみよう！',
       arrow: 'bottom',
-      waitFor: () => Math.floor(G.eggs) >= 5 || G.tot >= 5
+      waitFor: () => (TUT.firstStepTapCount || 0) >= 5
     },
     {
       targetId: 'bar-egg-larva',
@@ -9852,6 +10544,7 @@ function syncFermenterUnlockUI() {
     nextBtn: null,
     skipEl: null,
     _autoTimer: null,
+    firstStepTapCount: 0,
 
     init() {
       this.overlay = document.getElementById('tutorial-overlay');
@@ -9870,6 +10563,7 @@ function syncFermenterUnlockUI() {
         return;
       }
       this.active = true;
+      this.firstStepTapCount = 0;
       // 日本語: オーバーレイ全体はクリックを透過し、吹き出し操作だけ有効にする
       if(this.overlay) { this.overlay.classList.remove('hidden'); this.overlay.style.pointerEvents = 'none'; }
       if(this.bubble) this.bubble.style.pointerEvents = 'auto';
@@ -9918,6 +10612,11 @@ function syncFermenterUnlockUI() {
       else this.finish();
     },
 
+    recordTap(source) {
+      if(!this.active || this.step !== 0 || source !== 'tap') return;
+      this.firstStepTapCount = Math.min(5, (this.firstStepTapCount || 0) + 1);
+    },
+
     finish() {
       if(this._autoTimer) { clearTimeout(this._autoTimer); this._autoTimer = null; }
       this.active = false;
@@ -9941,23 +10640,21 @@ function syncFermenterUnlockUI() {
 
   function updateProgressiveUI() {
     for(const item of PROGRESSIVE_UI) {
-      if(uiUnlocked[item.key]) continue;
-      if(!item.condition()) continue;
       uiUnlocked[item.key] = true;
       const e2 = document.getElementById(item.id);
       if(!e2) continue;
       const box = item.boxClass ? e2.closest('.res-box') : e2;
-      if(box) { box.classList.remove('ui-locked'); box.style.animation = 'fadein 0.5s ease-out'; }
+      if(box) box.classList.remove('ui-locked');
     }
   }
 
   function initProgressiveUI() {
     for(const item of PROGRESSIVE_UI) {
-      if(item.condition()) { uiUnlocked[item.key] = true; continue; }
+      uiUnlocked[item.key] = true;
       const e2 = document.getElementById(item.id);
       if(!e2) continue;
       const box = item.boxClass ? e2.closest('.res-box') : e2;
-      if(box) box.classList.add('ui-locked');
+      if(box) box.classList.remove('ui-locked');
     }
   }
 
@@ -10056,41 +10753,70 @@ function syncFermenterUnlockUI() {
   // ===== Phase 3: 目標ツリー =====
   // ============================================================
   const COLONY_GOALS = [
-    { id:'pop10',    icon:'🐜', name:'個体数10匹達成',           check:()=>G.tot>=10,    prog:()=>`${Math.min(G.tot,10)}/10匹` },
-    { id:'nurse1',   icon:'🤱', name:'育児アリを雇う',           check:()=>G.ants.nurse>=1, prog:()=>G.ants.nurse>=1?'達成！':'0/1匹' },
-    { id:'pop50',    icon:'🐜', name:'個体数50匹達成',           check:()=>G.tot>=50,    prog:()=>`${Math.min(G.tot,50)}/50匹` },
-    { id:'cookie1',  icon:'🍪', name:'初めてのクッキー獲得',     check:()=>G.cookieDiscovered, prog:()=>G.cookieDiscovered?'達成！':'未獲得' },
-    { id:'builder1', icon:'⛏️', name:'建築アリを雇う',           check:()=>G.ants.builder>=1, prog:()=>G.ants.builder>=1?'達成！':'0/1匹' },
-    { id:'pop100',   icon:'🐜', name:'個体数100匹達成',          check:()=>G.tot>=100,   prog:()=>`${Math.min(G.tot,100)}/100匹` },
-    { id:'research_unlock', icon:'🔬', name:'研究機能を解放する', check:()=>isResearchSystemUnlocked(), prog:()=>isResearchSystemUnlocked()?'解放済':'未解放' },
-    { id:'queenlv3', icon:'👑', name:'女王Lv.3に到達',           check:()=>G.qLv>=3,     prog:()=>`Lv.${G.qLv}/3` },
-    { id:'ferment_unlock', icon:'🧪', name:'発酵室を解放する',   check:()=>hasResearchNode('ferment_unlock'), prog:()=>hasResearchNode('ferment_unlock')?'解放済':'未解放' },
-    { id:'ferment_room1', icon:'🏺', name:'発酵室を1室建設する', check:()=>getFermentRoomNodeCount(false)>=1, prog:()=>`${Math.min(getFermentRoomNodeCount(false),1)}/1室` },
-    { id:'ferment_cookie1', icon:'🍪', name:'初めて発酵でクッキーを作る', check:()=>!!G._fermentCookieMade, prog:()=>G._fermentCookieMade?'達成！':'未達成' },
-    { id:'fermenter_unlock', icon:'🧪', name:'発酵アリを解放する', check:()=>isFermenterUnlocked(), prog:()=>isFermenterUnlocked()?'解放済':'未解放' },
-    { id:'barracks', icon:'🛡️', name:'兵舎設計図を入手',         check:()=>!!(G.major&&G.major.barracks), prog:()=>(G.major&&G.major.barracks)?'入手済':'未入手' },
-    { id:'barracks_room1', icon:'🏰', name:'兵舎を初建設',        check:()=>!!S.hasBarracks, prog:()=>S.hasBarracks?'建設済':'未建設' },
-    { id:'soldier1', icon:'⚔️', name:'兵隊アリを初めて雇う',     check:()=>G.ants.soldier>=1, prog:()=>G.ants.soldier>=1?'達成！':'0/1匹' },
-    { id:'raid_win', icon:'⚔️', name:'最初のレイドに勝利',       check:()=>(G.raidWins||0)>=1, prog:()=>(G.raidWins||0)>=1?'勝利！':'未挑戦' },
-    { id:'pop500',   icon:'🐜', name:'個体数500匹達成',          check:()=>G.tot>=500,   prog:()=>`${Math.min(G.tot,500)}/500匹` },
-    { id:'depth2',   icon:'⬇️', name:'深度IIを解放',             check:()=>!!(G.major&&G.major.depth2), prog:()=>(G.major&&G.major.depth2)?'解放済':'未解放' },
-    { id:'cookieroom1', icon:'🍪', name:'クッキー室を初建設',    check:()=>(S.cookieRoomCount||0)>=1, prog:()=>(S.cookieRoomCount||0)>=1?'達成！':'未建設' },
-    { id:'pop1000',  icon:'🏆', name:'個体数1,000匹達成',        check:()=>G.tot>=1000,  prog:()=>`${Math.min(G.tot,1000)}/1000匹` },
-    { id:'queenlv5', icon:'👑', name:'女王Lv.5に到達',           check:()=>G.qLv>=5,     prog:()=>`Lv.${G.qLv}/5` },
-    { id:'pop5000',  icon:'🏆', name:'個体数5,000匹達成',        check:()=>G.tot>=5000,  prog:()=>`${Math.min(G.tot,5000)}/5000匹` },
-    { id:'depth3',   icon:'🕳️', name:'深度IIIを解放',            check:()=>!!(G.major&&G.major.depth3), prog:()=>(G.major&&G.major.depth3)?'解放済':'未解放' },
-    { id:'pop10000', icon:'🌟', name:'個体数10,000匹達成（エンド）', check:()=>G.tot>=10000, prog:()=>`${Math.min(G.tot,10000)}/10000匹` },
+    { id:'pop10',    icon:'🐜', name:'個体数10匹達成',           check:()=>G.tot>=10,    prog:()=>`${Math.min(G.tot,10)}/10匹`, reward:{food:50} },
+    { id:'nurse1',   icon:'🤱', name:'育児アリを雇う',           check:()=>G.ants.nurse>=1, prog:()=>G.ants.nurse>=1?'達成！':'0/1匹', reward:{food:75} },
+    { id:'pop50',    icon:'🐜', name:'個体数50匹達成',           check:()=>G.tot>=50,    prog:()=>`${Math.min(G.tot,50)}/50匹`, reward:{food:150} },
+    { id:'cookie1',  icon:'🍪', name:'初めてのクッキー獲得',     check:()=>G.cookieDiscovered, prog:()=>G.cookieDiscovered?'達成！':'未獲得', reward:{cookie:3} },
+    { id:'builder1', icon:'⛏️', name:'建築アリを雇う',           check:()=>G.ants.builder>=1, prog:()=>G.ants.builder>=1?'達成！':'0/1匹', reward:{food:250} },
+    { id:'pop100',   icon:'🐜', name:'個体数100匹達成',          check:()=>G.tot>=100,   prog:()=>`${Math.min(G.tot,100)}/100匹`, reward:{food:300,cookie:2} },
+    { id:'research_unlock', icon:'🔬', name:'研究機能を解放する', check:()=>isResearchSystemUnlocked(), prog:()=>isResearchSystemUnlocked()?'解放済':'未解放', reward:{cookie:5} },
+    { id:'queenlv3', icon:'👑', name:'女王Lv.3に到達',           check:()=>G.qLv>=3,     prog:()=>`Lv.${G.qLv}/3`, reward:{cookie:6} },
+    { id:'ferment_unlock', icon:'🧪', name:'発酵室を解放する',   check:()=>hasResearchNode('ferment_unlock'), prog:()=>hasResearchNode('ferment_unlock')?'解放済':'未解放', reward:{cookie:8} },
+    { id:'ferment_room1', icon:'🏺', name:'発酵室を1室建設する', check:()=>getFermentRoomNodeCount(false)>=1, prog:()=>`${Math.min(getFermentRoomNodeCount(false),1)}/1室`, reward:{food:600,cookie:8} },
+    { id:'ferment_cookie1', icon:'🍪', name:'初めて発酵でクッキーを作る', check:()=>!!G._fermentCookieMade, prog:()=>G._fermentCookieMade?'達成！':'未達成', reward:{cookie:12} },
+    { id:'fermenter_unlock', icon:'🧪', name:'発酵アリを解放する', check:()=>isFermenterUnlocked(), prog:()=>isFermenterUnlocked()?'解放済':'未解放', reward:{cookie:12} },
+    { id:'barracks', icon:'🛡️', name:'兵舎設計図を入手',         check:()=>hasBarracksBlueprint(), prog:()=>hasBarracksBlueprint()?'入手済':'未入手', reward:{cookie:12} },
+    { id:'barracks_room1', icon:'🏰', name:'兵舎を初建設',        check:()=>!!S.hasBarracks, prog:()=>S.hasBarracks?'建設済':'未建設', reward:{food:1000,cookie:15} },
+    { id:'soldier1', icon:'⚔️', name:'兵隊アリを初めて雇う',     check:()=>G.ants.soldier>=1, prog:()=>G.ants.soldier>=1?'達成！':'0/1匹', reward:{cookie:15} },
+    { id:'raid_win', icon:'⚔️', name:'最初のレイドに勝利',       check:()=>(G.raidWins||0)>=1, prog:()=>(G.raidWins||0)>=1?'勝利！':'未挑戦', reward:{food:1500,cookie:20} },
+    { id:'pop500',   icon:'🐜', name:'個体数500匹達成',          check:()=>G.tot>=500,   prog:()=>`${Math.min(G.tot,500)}/500匹`, reward:{food:2000,cookie:25} },
+    { id:'depth2',   icon:'⬇️', name:'深度IIを解放',             check:()=>hasDepth2Unlock(), prog:()=>hasDepth2Unlock()?'解放済':'未解放', reward:{cookie:30} },
+    { id:'cookieroom1', icon:'🍪', name:'クッキー室を初建設',    check:()=>(S.cookieRoomCount||0)>=1, prog:()=>(S.cookieRoomCount||0)>=1?'達成！':'未建設', reward:{cookie:35} },
+    { id:'pop1000',  icon:'🏆', name:'個体数1,000匹達成',        check:()=>G.tot>=1000,  prog:()=>`${Math.min(G.tot,1000)}/1000匹`, reward:{food:4000,cookie:50} },
+    { id:'queenlv5', icon:'👑', name:'女王Lv.5に到達',           check:()=>G.qLv>=5,     prog:()=>`Lv.${G.qLv}/5`, reward:{cookie:80} },
+    { id:'pop5000',  icon:'🏆', name:'個体数5,000匹達成',        check:()=>G.tot>=5000,  prog:()=>`${Math.min(G.tot,5000)}/5000匹`, reward:{food:10000,cookie:150} },
+    { id:'depth3',   icon:'🕳️', name:'深度IIIを解放',            check:()=>hasDepth3Unlock(), prog:()=>hasDepth3Unlock()?'解放済':'未解放', reward:{cookie:200} },
+    { id:'pop10000', icon:'🌟', name:'個体数10,000匹達成（エンド）', check:()=>G.tot>=10000, prog:()=>`${Math.min(G.tot,10000)}/10000匹`, reward:{cookie:500} },
   ];
 
   function checkGoalAchievements() {
     if(!G.achievements) G.achievements = {};
     for(const goal of COLONY_GOALS) {
       if(!G.achievements[goal.id] && goal.check()) {
-        G.achievements[goal.id] = true;
-        toast(`🏆 目標達成：${goal.name}`);
+        completeGoal(goal, true);
       }
     }
     updateNextGoalDisplay();
+  }
+
+  function formatGoalReward(reward) {
+    if(!reward) return '';
+    const parts = [];
+    if(reward.food) parts.push(`🍃+${Math.floor(reward.food)}`);
+    if(reward.cookie) parts.push(`🍪+${Math.floor(reward.cookie)}`);
+    return parts.join(' / ');
+  }
+
+  function applyGoalReward(goal) {
+    const reward = goal && goal.reward;
+    if(!reward) return '';
+    const food = Math.max(0, Math.floor(reward.food || 0));
+    const cookie = Math.max(0, Math.floor(reward.cookie || 0));
+    if(food > 0) G.food = Math.min(Math.max(G.caps.food || 0, G.food || 0), (G.food || 0) + food);
+    if(cookie > 0) addCookie(cookie);
+    return formatGoalReward(reward);
+  }
+
+  function completeGoal(goal, showToast) {
+    if(!goal || !goal.id) return false;
+    if(!G.achievements) G.achievements = {};
+    if(G.achievements[goal.id]) return false;
+    G.achievements[goal.id] = true;
+    const rewardText = applyGoalReward(goal);
+    if(showToast) {
+      toast(`🏆 目標達成：${goal.name}${rewardText ? ` / 報酬 ${rewardText}` : ''}`);
+    }
+    return true;
   }
 
   // ===== 次の目標 常時表示 =====
@@ -10124,14 +10850,15 @@ function syncFermenterUnlockUI() {
     let firstActive = true;
     list.innerHTML = COLONY_GOALS.map((goal, i) => {
       const done = !!G.achievements[goal.id] || goal.check();
-      if(done && !G.achievements[goal.id]) G.achievements[goal.id] = true;
+      if(done && !G.achievements[goal.id]) completeGoal(goal, false);
       const prevDone = i===0 || (!!G.achievements[COLONY_GOALS[i-1].id] || COLONY_GOALS[i-1].check());
       const locked = !prevDone && !done;
       let cls = 'goal-item'; let chk = '○';
       if(done) { cls += ' done'; chk = '✅'; }
       else if(!locked && firstActive) { cls += ' active'; firstActive = false; chk = '▶'; }
       else if(locked) { cls += ' locked'; chk = '🔒'; }
-      return `<div class="${cls}"><div class="goal-icon">${goal.icon}</div><div class="goal-text"><div class="goal-name">${goal.name}</div><div class="goal-prog">${goal.prog()}</div></div><div class="goal-check">${chk}</div></div>`;
+      const reward = formatGoalReward(goal.reward);
+      return `<div class="${cls}"><div class="goal-icon">${goal.icon}</div><div class="goal-text"><div class="goal-name">${goal.name}</div><div class="goal-prog">${goal.prog()}</div>${reward ? `<div class="goal-reward">報酬 ${reward}</div>` : ''}</div><div class="goal-check">${chk}</div></div>`;
     }).join('');
     const allDone = COLONY_GOALS.every(g => !!G.achievements[g.id] || g.check());
     const ps = document.getElementById('prestige-section');
@@ -10141,7 +10868,20 @@ function syncFermenterUnlockUI() {
   const modalGoals = document.getElementById('modal-goals');
   const btnGoals = document.getElementById('btn-goals');
   const btnGoalsClose = document.getElementById('btn-goals-close');
-  if(btnGoals) btnGoals.onclick = () => { renderGoalTree(); if(modalGoals) modalGoals.classList.add('show'); };
+  const nextGoalBox = document.getElementById('next-goal-box');
+  function openGoalsModal() {
+    renderGoalTree();
+    if(modalGoals) modalGoals.classList.add('show');
+  }
+  if(btnGoals) btnGoals.onclick = openGoalsModal;
+  if(nextGoalBox) {
+    nextGoalBox.addEventListener('click', openGoalsModal);
+    nextGoalBox.addEventListener('keydown', (e) => {
+      if(e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      openGoalsModal();
+    });
+  }
   if(btnGoalsClose) btnGoalsClose.onclick = () => { if(modalGoals) modalGoals.classList.remove('show'); };
   if(modalGoals) modalGoals.addEventListener('click', e => { if(e.target===modalGoals) modalGoals.classList.remove('show'); });
 
@@ -10203,13 +10943,18 @@ function syncFermenterUnlockUI() {
   // ===== Phase 4: セーブ エクスポート/インポート =====
   // ============================================================
   const btnSaveExport = document.getElementById('btn-save-export');
+  const btnSaveImport = document.getElementById('btn-save-import');
   if(btnSaveExport) {
-    btnSaveExport.style.display = '';
+    btnSaveExport.style.display = 'inline-flex';
     let _exportHeld = false, _exportTimer = null;
     btnSaveExport.addEventListener('pointerdown', () => { _exportTimer = setTimeout(() => { _exportHeld = true; doImport(); }, 1000); });
     btnSaveExport.addEventListener('pointerup', () => { clearTimeout(_exportTimer); if(!_exportHeld) doExport(); _exportHeld = false; });
     btnSaveExport.addEventListener('pointercancel', () => { clearTimeout(_exportTimer); _exportHeld = false; });
     btnSaveExport.title = "タップ：データ書き出し / 長押し：データ読み込み";
+  }
+  if(btnSaveImport) {
+    btnSaveImport.style.display = 'inline-flex';
+    btnSaveImport.addEventListener('click', doImport);
   }
   async function doExport() {
     try {
@@ -10277,7 +11022,7 @@ function syncFermenterUnlockUI() {
     }
 
     function setMobileMenuOpen(open) {
-      const next = !!open && mobileMq.matches;
+      const next = !!open;
       menuSheet.classList.toggle('open', next);
       menuSheet.setAttribute('aria-hidden', next ? 'false' : 'true');
       btnMenu.setAttribute('aria-expanded', next ? 'true' : 'false');
@@ -10297,7 +11042,7 @@ function syncFermenterUnlockUI() {
       } else {
         setMobileMenuOpen(false);
         setBottomSheetOpen(false);
-        restoreAfter(topActionsAnchor, topActions);
+        if(topActions.parentNode !== menuActions) menuActions.appendChild(topActions);
         if(normalTools) restoreAfter(normalToolsAnchor, normalTools);
       }
     }
@@ -10318,7 +11063,7 @@ function syncFermenterUnlockUI() {
       if(e.target.closest('button')) setTimeout(() => setMobileMenuOpen(false), 0);
     });
     document.addEventListener('pointerdown', (e) => {
-      if(!mobileMq.matches || !menuSheet.classList.contains('open')) return;
+      if(!menuSheet.classList.contains('open')) return;
       if(menuSheet.contains(e.target) || btnMenu.contains(e.target)) return;
       setMobileMenuOpen(false);
     }, { passive: true });
@@ -10376,16 +11121,23 @@ function syncFermenterUnlockUI() {
     const updateMs = (perf.updateMs || 0).toFixed(1);
     const renderMs = (perf.renderMs || 0).toFixed(1);
     const antsDrawn = (typeof perf.antsDrawn === 'number') ? perf.antsDrawn : (S.ants ? S.ants.length : 0);
+    const logicalPop = Math.max(0, Math.floor(G.tot || 0));
     const cap = getRenderCap();
     const camScale = (S.cam && typeof S.cam.scale === 'number') ? S.cam.scale.toFixed(2) : '1.00';
     const dpr = (window.devicePixelRatio || 1).toFixed(2);
-    const mode = (S.renderSettings && S.renderSettings.mode) ? S.renderSettings.mode : 'auto';
+    const modeSetting = (S.renderSettings && S.renderSettings.mode) ? S.renderSettings.mode : 'auto';
+    const modeUsed = perf.modeUsed || modeSetting;
     const lod = (S.renderSettings && S.renderSettings.lod) ? 'ON' : 'OFF';
+    const lodUsed = perf.lodUsed ? 'USED' : 'off';
+    const bStats = getBuilderDebugStats();
 
     return (
       `fps:${fps} dt:${dtMs}ms upd:${updateMs}ms ren:${renderMs}ms\n` +
-      `ants:${S.ants.length} draw:${antsDrawn} cap:${cap}\n` +
-      `cam:${camScale} dpr:${dpr} mode:${mode} lod:${lod}\n` +
+      `ants visual:${S.ants.length} logical:${logicalPop} draw:${antsDrawn} cap:${cap}\n` +
+      `ai full:${perf.aiFull || 0} light:${perf.aiLight || 0} skipped:${perf.aiSkipped || 0}\n` +
+      `draw dot:${perf.drawDot || 0} sprite:${perf.drawSprite || 0} vector:${perf.drawVector || 0} batches:${perf.drawBatches || 0}\n` +
+      `builder real:${bStats.realBuilders} visible:${bStats.visibleBuilders} work:${bStats.assignedSlots}/${bStats.workSlots} targets:${bStats.targetCount} cap:${bStats.renderCap}\n` +
+      `cam:${camScale} dpr:${dpr} mode:${modeSetting}->${modeUsed} lod:${lod}/${lodUsed}\n` +
       `nodes:${nodes} edges:${edges} loops≈${loops}\n` +
       `deg avg:${avgDeg} shaft:${avgDegS} room:${avgDegR}\n` +
       `nearest avg:${nnAvg}px\n` +
@@ -10538,6 +11290,18 @@ function syncFermenterUnlockUI() {
   };
   updateSpeedUI();
 
+  function maybeAutoSave() {
+    const now = Date.now();
+    if(now - (S.lastAutoSaveAt || 0) < AUTO_SAVE_INTERVAL_MS) return;
+    S.lastAutoSaveAt = now;
+    try {
+      G.save({ toastText: '自動保存しました' });
+    } catch(e) {
+      console.error('autosave failed', e);
+      toast('自動保存に失敗しました', true);
+    }
+  }
+
   function updateUI() {
     setText(el.food, Math.floor(G.food)+"/"+G.caps.food);
     setText(el.cookie, Math.floor(G.cookie));
@@ -10652,15 +11416,15 @@ function syncFermenterUnlockUI() {
     const goldenFingerLv = getGoldenFingerLevel();
     const goldenFingerMax = goldenFingerLv >= GOLDEN_FINGER_MAX_LV;
     const goldenFingerCost = getGoldenFingerCost();
-    const majorCookieBought = !!(G.major && G.major.cookie2x);
-    const majorJawBought = !!(G.major && G.major.jaw2x);
+    const majorCookieBought = hasCookieFind2x();
+    const majorJawBought = hasSoldierJaw2x();
     if(el.l_major_golden_finger) el.l_major_golden_finger.textContent = `Lv.${goldenFingerLv}`;
     if(el.c_major_golden2x) el.c_major_golden2x.textContent = goldenFingerMax ? 'MAX' : String(goldenFingerCost);
     if(el.c_major_cookie2x) el.c_major_cookie2x.textContent = majorCookieBought ? '解放済' : String(MAJOR_COOKIE2X_COST);
     if(el.c_major_jaw2x) el.c_major_jaw2x.textContent = majorJawBought ? '解放済' : String(MAJOR_JAW2X_COST);
     if(majorGoldenBtn) majorGoldenBtn.classList.toggle('disabled', goldenFingerMax || (G.cookie < goldenFingerCost));
-    if(majorCookieBtn) majorCookieBtn.classList.toggle('disabled', majorCookieBought || (G.cookie < MAJOR_COOKIE2X_COST));
-    if(majorJawBtn) majorJawBtn.classList.toggle('disabled', majorJawBought || (G.cookie < MAJOR_JAW2X_COST));
+    if(majorCookieBtn) { majorCookieBtn.classList.toggle('disabled', true); majorCookieBtn.style.display = 'none'; }
+    if(majorJawBtn) { majorJawBtn.classList.toggle('disabled', true); majorJawBtn.style.display = 'none'; }
     // 深度II/III/兵舎/将来枠の表示更新
     {
       const d2Btn = document.getElementById('btn-major-depth2');
@@ -10668,9 +11432,9 @@ function syncFermenterUnlockUI() {
       const barrBtn = document.getElementById('btn-major-barracks');
       const cleanBtn = document.getElementById('btn-major-worker-clean');
       const bigCarryBtn = document.getElementById('btn-major-worker-bigcarry');
-      const d2Done = !!(G.major && G.major.depth2);
-      const d3Done = !!(G.major && G.major.depth3);
-      const barrDone = !!(G.major && G.major.barracks);
+      const d2Done = hasDepth2Unlock();
+      const d3Done = hasDepth3Unlock();
+      const barrDone = hasBarracksBlueprint();
       const bigCarryDone = !!(G.major && G.major.workerBigCarry);
       const cd2 = document.getElementById('c-major-depth2');
       const cd3 = document.getElementById('c-major-depth3');
@@ -10678,11 +11442,14 @@ function syncFermenterUnlockUI() {
       const cbig = document.getElementById('c-major-worker-bigcarry');
       if(cd2) cd2.textContent = d2Done ? '解放済' : String(MAJOR_DEPTH2_COST);
       if(cd3) cd3.textContent = d3Done ? '解放済' : String(MAJOR_DEPTH3_COST);
-      if(cbarr) cbarr.textContent = barrDone ? '入手済' : String(MAJOR_BARRACKS_COST);
+      if(cbarr) cbarr.textContent = barrDone ? (S.hasBarracks ? '入手済' : '建設待ち') : String(MAJOR_BARRACKS_COST);
       if(cbig) cbig.textContent = bigCarryDone ? '準備済' : '将来実装';
-      if(d2Btn) { d2Btn.classList.toggle('disabled', d2Done || G.bLv < 2 || G.cookie < MAJOR_DEPTH2_COST); d2Btn.style.display = d2Done ? 'none' : ''; }
-      if(d3Btn) { d3Btn.classList.toggle('disabled', d3Done || !d2Done || G.bLv < 4 || G.cookie < MAJOR_DEPTH3_COST); d3Btn.style.display = (d3Done || !d2Done) ? (d3Done ? 'none' : '') : ''; }
-      if(barrBtn) { barrBtn.classList.toggle('disabled', barrDone || G.bLv < 3 || G.cookie < MAJOR_BARRACKS_COST); barrBtn.style.display = barrDone ? 'none' : ''; }
+      if(d2Btn) { d2Btn.classList.toggle('disabled', true); d2Btn.style.display = 'none'; }
+      if(d3Btn) { d3Btn.classList.toggle('disabled', true); d3Btn.style.display = 'none'; }
+      if(barrBtn) {
+        barrBtn.classList.toggle('disabled', true);
+        barrBtn.style.display = 'none';
+      }
       if(cleanBtn) cleanBtn.style.display = 'none';
       if(bigCarryBtn) { bigCarryBtn.classList.add('disabled'); bigCarryBtn.style.display = ''; }
     }
@@ -11054,6 +11821,7 @@ function syncFermenterUnlockUI() {
     const MAX_EGGS = 1e9; // 過剰な数値での表示崩れ対策（実質無制限）
     const goldenEgg = rollGoldenEggForManualTap(source);
     G.eggs = Math.min(MAX_EGGS, G.eggs + 1);
+    if(TUT && typeof TUT.recordTap === 'function') TUT.recordTap(source);
     if(goldenEgg) G.goldenEggs = Math.min(Math.floor(G.eggs || 0), Math.max(0, Math.floor(G.goldenEggs || 0)) + 1);
     sfxTap(); // 産卵SE
     safeVibrate(8); // モバイル振動
@@ -11131,61 +11899,31 @@ function syncFermenterUnlockUI() {
   };
   const btnMajorCookie2x = document.getElementById('btn-major-cookie2x');
   if(btnMajorCookie2x) btnMajorCookie2x.onclick = function() {
-    if(G.major && G.major.cookie2x) { toast("クッキー出現2倍は解放済み"); return; }
-    if(G.cookie < MAJOR_COOKIE2X_COST) { toast("クッキーが足りません", true); return; }
-    G.cookie -= MAJOR_COOKIE2X_COST;
-    G.major.cookie2x = true; // 日本語: メジャー解放
-    toast("クッキー出現率が2倍になった！");
-    updateUI();
+    setControlTab('research');
+    toast('研究タブの「甘味探索」で解放できます');
   };
   const btnMajorJaw2x = document.getElementById('btn-major-jaw2x');
   if(btnMajorJaw2x) btnMajorJaw2x.onclick = function() {
-    if(G.major && G.major.jaw2x) { toast("兵隊攻撃2倍は解放済み"); return; }
-    if(G.cookie < MAJOR_JAW2X_COST) { toast("クッキーが足りません", true); return; }
-    G.cookie -= MAJOR_JAW2X_COST;
-    G.major.jaw2x = true; // 日本語: メジャー解放
-    toast("兵隊の攻撃力が2倍になった！");
-    updateUI();
+    setControlTab('research');
+    toast('研究タブの「顎強化」で解放できます');
   };
   // 深度II解放
   const btnMajorDepth2 = document.getElementById('btn-major-depth2');
   if(btnMajorDepth2) btnMajorDepth2.onclick = function() {
-    if(G.major && G.major.depth2) { toast("深度IIは解放済み"); return; }
-    if(G.bLv < 2) { toast("建築Lv2が必要です", true); return; }
-    if(G.cookie < MAJOR_DEPTH2_COST) { toast("クッキーが足りません", true); return; }
-    G.cookie -= MAJOR_DEPTH2_COST;
-    G.major.depth2 = true;
-    toast("⬇️ 深度IIが解放された！より深く掘削できる");
-    addQueenWhisper('新しい層への道が開いたわ。何が待っているかしら');
-    G.recalc();
-    updateUI();
+    setControlTab('research');
+    toast('研究タブの「深度II解放」で解放できます');
   };
   // 深度III解放
   const btnMajorDepth3 = document.getElementById('btn-major-depth3');
   if(btnMajorDepth3) btnMajorDepth3.onclick = function() {
-    if(G.major && G.major.depth3) { toast("深度IIIは解放済み"); return; }
-    if(!(G.major && G.major.depth2)) { toast("深度IIの解放が先です", true); return; }
-    if(G.bLv < 4) { toast("建築Lv4が必要です", true); return; }
-    if(G.cookie < MAJOR_DEPTH3_COST) { toast("クッキーが足りません", true); return; }
-    G.cookie -= MAJOR_DEPTH3_COST;
-    G.major.depth3 = true;
-    toast("🕳️ 深度IIIが解放された！最深部へ到達");
-    addQueenWhisper('さらに深い世界へ……未知の領域ね');
-    G.recalc();
-    updateUI();
+    setControlTab('research');
+    toast('研究タブの「深度III解放」で解放できます');
   };
   // 兵舎設計図
   const btnMajorBarracks = document.getElementById('btn-major-barracks');
   if(btnMajorBarracks) btnMajorBarracks.onclick = function() {
-    if(G.major && G.major.barracks) { toast("兵舎設計図は入手済み"); return; }
-    if(G.bLv < 3) { toast("建築Lv3が必要です", true); return; }
-    if(G.cookie < MAJOR_BARRACKS_COST) { toast("クッキーが足りません", true); return; }
-    G.cookie -= MAJOR_BARRACKS_COST;
-    G.major.barracks = true;
-    toast("🛡️ 兵舎設計図を入手！兵隊アリが雇えるようになった");
-    addQueenWhisper('これで巣を守る兵士を育てられるわ');
-    G.recalc();
-    updateUI();
+    setControlTab('research');
+    toast('研究タブの「兵舎設計図」で解放できます');
   };
   // 予約枠: 大物運搬（今回未実装）
   const btnMajorWorkerBigCarry = document.getElementById('btn-major-worker-bigcarry');
@@ -11499,6 +12237,7 @@ function syncFermenterUnlockUI() {
     updateQueenWhisper(dt);
     TUT.tick();
     checkGoalAchievements();
+    maybeAutoSave();
 
     if(S.shake.t > 0) {
       S.shake.t -= dt;
@@ -11710,8 +12449,8 @@ function syncFermenterUnlockUI() {
       if(settings.lod) {
         const count = (S.ants && S.ants.length) ? S.ants.length : 0;
         const zoom = (S.cam && typeof S.cam.scale === 'number') ? S.cam.scale : 1;
-        if(count >= 600 || zoom < 0.55) { mode = 'dot'; lodUsed = true; }
-        else if(count >= 300 || zoom < 0.75) { mode = 'sprite'; lodUsed = true; }
+        if(count >= 500 || zoom < 0.62) { mode = 'dot'; lodUsed = true; }
+        else if(count >= 180 || zoom < 0.88) { mode = 'sprite'; lodUsed = true; }
         else mode = 'vector';
       } else {
         mode = 'vector';
@@ -11753,6 +12492,86 @@ function syncFermenterUnlockUI() {
     if(carry === 'cookie'){ctx.fillStyle='#fcd34d'; ctx.beginPath(); ctx.arc(dp(3.4),0,dp(1.6),0,6.28); ctx.fill();}
     if(carry === 'soil'){ctx.fillStyle='#5b2a0f'; ctx.beginPath(); ctx.arc(dp(3.1),0,dp(1.2),0,6.28); ctx.fill();}
     ctx.restore();
+  }
+
+  function drawCircleBatch(list, radius, color) {
+    if(!list || !list.length) return 0;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    for(const p of list) ctx.moveTo(p.x + radius, p.y), ctx.arc(p.x, p.y, radius, 0, 6.28);
+    ctx.fill();
+    return 1;
+  }
+
+  function drawCircleBatchDynamic(list, radiusFn, color) {
+    if(!list || !list.length) return 0;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    for(const p of list) {
+      const r = radiusFn(p);
+      ctx.moveTo(p.x + r, p.y);
+      ctx.arc(p.x, p.y, r, 0, 6.28);
+    }
+    ctx.fill();
+    return 1;
+  }
+
+  function addBatchPoint(groups, key, x, y, extra) {
+    if(!groups[key]) groups[key] = [];
+    const p = extra || {};
+    p.x = x;
+    p.y = y;
+    groups[key].push(p);
+  }
+
+  function drawAntDotsBatched(ants) {
+    const baseGroups = {};
+    const carryGroups = {};
+    const goldenGlow = [];
+    const panic = [];
+    const dotR = dp(2.2);
+    const carryR = dp(1.25);
+    for(const a of ants) {
+      if(!a) continue;
+      const x = a.x, y = a.y;
+      if(a.golden) {
+        goldenGlow.push({ x, y, anim: a.anim || 0 });
+      }
+      addBatchPoint(baseGroups, getAntBaseColor(a), x, y);
+      const carry = a.cargo || a.carryType;
+      if(carry === 'food') addBatchPoint(carryGroups, '#4ade80', x + dp(3.3), y);
+      else if(carry === 'egg') addBatchPoint(carryGroups, '#fef3c7', x + dp(3.3), y);
+      else if(carry === 'larva') addBatchPoint(carryGroups, '#fef3c7', x + dp(3.3), y);
+      else if(carry === 'waste') addBatchPoint(carryGroups, '#6b7280', x + dp(3.2), y);
+      else if(carry === 'cookie') addBatchPoint(carryGroups, '#fcd34d', x + dp(3.4), y);
+      else if(carry === 'soil') addBatchPoint(carryGroups, '#5b2a0f', x + dp(3.1), y);
+      if(a.panic && a.role === 'worker') panic.push({ x, y });
+    }
+
+    let batches = 0;
+    if(goldenGlow.length) {
+      const pulseBase = (Math.sin(S.t * 4) + 1) * 0.5;
+      batches += drawCircleBatchDynamic(
+        goldenGlow,
+        p => dp(4) + ((Math.sin(S.t * 4 + p.anim) + 1) * 0.5) * dp(1.4),
+        `rgba(250, 204, 21, ${0.18 + 0.18 * pulseBase})`
+      );
+    }
+    for(const color of Object.keys(baseGroups)) batches += drawCircleBatch(baseGroups[color], dotR, color);
+    for(const color of Object.keys(carryGroups)) batches += drawCircleBatch(carryGroups[color], carryR, color);
+    if(panic.length) {
+      ctx.strokeStyle = 'rgba(248, 113, 113, 0.85)';
+      ctx.lineWidth = dp(1);
+      ctx.beginPath();
+      const r = dp(5.5);
+      for(const p of panic) {
+        ctx.moveTo(p.x + r, p.y);
+        ctx.arc(p.x, p.y, r, 0, 6.28);
+      }
+      ctx.stroke();
+      batches++;
+    }
+    return { drawn: ants.length, batches };
   }
 
   function drawAntSprite(a) {
@@ -12297,8 +13116,8 @@ function syncFermenterUnlockUI() {
       const stampPad = dp(60);
 
       S.full.edges.forEach((e,i)=>{
+        if(!shouldDrawEdgeProgress(i)) return;
         const f = S.edgeFrac[i];
-        if(f<=0) return;
         if(!e.stamps) buildEdgeStamps(e, S.full.nodes);
         const stamps = e.stamps;
         if(!stamps || stamps.length===0) return;
@@ -12323,8 +13142,8 @@ function syncFermenterUnlockUI() {
       ctx.clip();
       ctx.fillStyle = cavGr;
       S.full.edges.forEach((e,i)=>{
+        if(!shouldDrawEdgeProgress(i)) return;
         const f = S.edgeFrac[i];
-        if(f<=0) return;
         if(!e.stamps) buildEdgeStamps(e, S.full.nodes);
         const stamps = e.stamps;
         if(!stamps || stamps.length===0) return;
@@ -12347,8 +13166,8 @@ function syncFermenterUnlockUI() {
       ctx.globalAlpha = 0.18;
       ctx.fillStyle = 'rgba(0,0,0,0.35)';
       S.full.edges.forEach((e,i)=>{
+        if(!shouldDrawEdgeProgress(i)) return;
         const f = S.edgeFrac[i];
-        if(f<=0) return;
         if(!e.stamps) buildEdgeStamps(e, S.full.nodes);
         const stamps = e.stamps;
         if(!stamps || stamps.length===0) return;
@@ -12652,11 +13471,13 @@ function syncFermenterUnlockUI() {
     // ===== 掘削中のエッジを光らせる =====
     {
       const activeDigEids = new Set();
-      for(const a of S.ants) {
-        if(a.role === 'builder' && a.digT && a.digT.eid != null) {
-          const f = S.edgeFrac[a.digT.eid] || 0;
-          if(f > 0 && f < 1) activeDigEids.add(a.digT.eid);
-        }
+      const assignedTargets = (S.buildAssignments && S.buildAssignments.targets)
+        ? Object.values(S.buildAssignments.targets)
+        : [];
+      for(const t of assignedTargets) {
+        if(!t || t.eid == null) continue;
+        const f = S.edgeFrac[t.eid] || 0;
+        if(f > 0 && f < 1) activeDigEids.add(t.eid);
       }
       if(activeDigEids.size > 0) {
         ctx.save();
@@ -12737,12 +13558,30 @@ function syncFermenterUnlockUI() {
     if(S.perf) {
       S.perf.modeUsed = antRender.mode;
       S.perf.lodUsed = antRender.lodUsed;
+      S.perf.drawDot = 0;
+      S.perf.drawSprite = 0;
+      S.perf.drawVector = 0;
+      S.perf.drawBatches = 0;
     }
     let antsDrawn = 0;
+    if(antRender.mode === 'dot') {
+      const batchStats = drawAntDotsBatched(S.ants);
+      antsDrawn = batchStats.drawn;
+      if(S.perf) {
+        S.perf.drawDot = antsDrawn;
+        S.perf.drawBatches = batchStats.batches;
+        S.perf.antsDrawn = antsDrawn;
+      }
+    } else {
     S.ants.forEach(a=>{
-      if(antRender.mode === 'dot') { drawAntDot(a); antsDrawn++; return; }
-      if(antRender.mode === 'sprite') { drawAntSprite(a); antsDrawn++; return; }
+      if(antRender.mode === 'sprite') {
+        drawAntSprite(a);
+        antsDrawn++;
+        if(S.perf) S.perf.drawSprite++;
+        return;
+      }
       antsDrawn++;
+      if(S.perf) S.perf.drawVector++;
       const isResting = (a.task === 'rest');
       const isGolden = !!a.golden;
       // ===== スムーズ首振り補間 =====
@@ -12876,6 +13715,7 @@ function syncFermenterUnlockUI() {
 
       ctx.restore();
     });
+    }
     if(S.perf) S.perf.antsDrawn = antsDrawn;
 
     if(S.nodeVis[S.full.qid]) {

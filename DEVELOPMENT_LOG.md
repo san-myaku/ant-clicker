@@ -1,5 +1,295 @@
 # Development Log
 
+## 2026-05-30 Right HUD resource boxes always visible
+
+Purpose:
+
+- Stop hiding top/right HUD resource boxes such as cookie, larvae, rate, and rest room before their first unlock/discovery.
+
+Changes:
+
+- Changed `.res-box.ui-locked` so it no longer removes HUD resource boxes from layout.
+- Changed progressive UI initialization/update to clear `ui-locked` from HUD boxes instead of hiding them.
+- The values now remain visible as `0`, `0/s`, or the current default until the related system progresses.
+
+Verification:
+
+- Extracted inline JavaScript and ran `node --check`.
+
+## 2026-05-30 Phase 5B depth and barracks research migration
+
+Purpose:
+
+- Move the remaining depth/geology and military buy-once major upgrades into the research system.
+- Keep Phase 3 builder assignment logic, Phase 4 Perf-1, and Phase 5A passive research nodes intact.
+
+Changes:
+
+- Added research branch `geology`.
+- Added research node `geo_depth_2` for Depth II unlock using the old cookie cost and builder Lv2 condition.
+- Added research node `geo_depth_3` for Depth III unlock using the old cookie cost, `geo_depth_2` prerequisite, and builder Lv4 condition.
+- Added research node `military_barracks_blueprint` for the barracks blueprint using the old cookie cost and builder Lv3 condition.
+- Hid `btn-major-depth2`, `btn-major-depth3`, and `btn-major-barracks` from the normal upgrade dock and removed their dock purchase availability.
+- Kept the old DOM IDs and old `G.major.depth2`, `G.major.depth3`, and `G.major.barracks` flags for compatibility.
+- Added `hasDepth2Unlock()`, `hasDepth3Unlock()`, and `hasBarracksBlueprint()` and moved depth/barracks checks to those helpers.
+- Existing old flags now mark the matching research nodes unlocked, while new research purchases keep old flags true for compatibility paths.
+- Preserved the barracks flow: blueprint research unlocks `G.major.barracks`, then first barracks construction remains prioritized by builder target selection, and soldier hiring still waits for an actual barracks room.
+- Updated colony goals for depth and barracks to use the new helper-based unlock checks.
+
+Verification:
+
+- Extracted inline JavaScript and ran `node --check`.
+- Ran `git diff --check`.
+- Ran headless Chrome `--dump-dom` with virtual time and checked output for `Uncaught`, `ReferenceError`, `TypeError`, and `SyntaxError` patterns.
+- Static checks confirmed the new nodes, helpers, hidden old buttons, and research-tab redirects.
+- In-app browser automation was unavailable in this environment because the browser connection failed during sandbox setup.
+
+Remaining notes:
+
+- Golden Finger, active cookie boost, and future big-carry flow remain outside research.
+
+## 2026-05-30 Phase 5A passive major research migration
+
+Purpose:
+
+- Move the light buy-once passive major upgrades into the research system so research owns permanent ability unlocks and the upgrade dock stays focused on repeatable/structural actions.
+- Keep Phase 3 builder logic and Phase 4 Perf-1 rendering/AI changes untouched.
+
+Changes:
+
+- Added research node `cookie_find_2x` (`甘味探索`) in the ferment branch with the old cookie x2 cost.
+- Added research node `soldier_jaw_2x` (`顎強化`) in a new defense branch with the old soldier attack x2 cost.
+- Hid the old `btn-major-cookie2x` and `btn-major-jaw2x` dock buttons with CSS and removed them from upgrade dock availability.
+- Kept the old DOM IDs and old `G.major.cookie2x` / `G.major.jaw2x` flags for compatibility.
+- Added compatibility helpers so old saves with those flags mark the corresponding research nodes as unlocked, and new research purchases keep the old flags true for remaining compatibility paths.
+- Changed cookie find chance and soldier power calculations to use the new research-aware helpers.
+- Redirected any direct old-button click path to the research tab instead of allowing a second purchase route.
+
+Verification:
+
+- Static checks confirmed the two old buttons are hidden and their upgrade definitions are not available.
+- Static checks confirmed cookie chance uses `hasCookieFind2x()` and soldier power uses `hasSoldierJaw2x()`.
+
+Remaining notes:
+
+- Golden, depth, barracks, Golden Finger, cookie active boost, and other major upgrade flows were not migrated in this pass.
+
+## 2026-05-30 Builder visual reservation cleanup
+
+Purpose:
+
+- Make the visible builder construction highlights match the Phase 3 target reservation cap.
+- Hide abandoned partial dig slivers that are no longer assigned to active builder work.
+
+Changes:
+
+- Added helpers to detect whether an edge is currently assigned by `S.buildAssignments`.
+- Cleared visible builder `digT` when it no longer belongs to the current assignment set.
+- Changed partial tunnel rendering so unfinished edges are drawn only when completed enough for normal paths or currently assigned to builder work.
+- Changed the active dig highlight to use `S.buildAssignments.targets` instead of stale visible-builder targets.
+
+Verification:
+
+- Extracted inline JavaScript and ran `node --check`.
+- Ran `git diff --check -- index.html`.
+- Ran headless Chrome `--dump-dom` with virtual time and checked output for `Uncaught`, `ReferenceError`, `TypeError`, and `SyntaxError` patterns.
+
+## 2026-05-30 Phase 4 Perf-1 lightweight MVP
+
+Purpose:
+
+- Reduce Canvas 2D draw overhead and per-frame ant AI work before larger ant counts and future carry/combat systems.
+- Keep the current `S.ants` structure, Canvas 2D renderer, and Phase 3 builder separation intact.
+
+Changes:
+
+- Added batched dot-mode ant rendering through `drawAntDotsBatched()`.
+- Dot mode now groups base ant colors, carry markers, golden glow, and panic rings into a small number of Canvas path/fill calls instead of one full draw routine per ant.
+- Kept sprite and vector renderers intact for closer/lower-count views.
+- Strengthened auto LOD:
+  - `dot` when visible ants are at least 500 or zoom is below 0.62.
+  - `sprite` when visible ants are at least 180 or zoom is below 0.88.
+  - `vector` remains the close/low-count mode.
+- Added conservative AI throttling:
+  - transport, construction, combat, cargo, golden ants, raid, and invader-response ants still full-update every frame.
+  - idle, rest, and room-wander ants update at lower frequency by role/task.
+  - light frames keep rest/wander motion alive without running full role reassignment logic.
+- Added `S.frameCount` and expanded `S.perf` with `aiFull`, `aiLight`, `aiSkipped`, `drawDot`, `drawSprite`, `drawVector`, and `drawBatches`.
+- Expanded the perf debug overlay with logical population, used render mode, LOD usage, AI update counts, and draw mode counts.
+
+Verification:
+
+- Extracted inline JavaScript and ran `node --check`.
+- Ran `git diff --check`.
+- Ran headless Chrome `--dump-dom` with virtual time and checked output for `Uncaught`, `ReferenceError`, `TypeError`, and `SyntaxError` patterns.
+- Static path check confirmed render cap options remain `160 / 300 / 600 / 1000` and render modes remain `auto / vector / sprite / dot`.
+
+Remaining notes:
+
+- AI throttling is intentionally conservative. It reduces low-priority per-frame work but does not yet separate nurse/worker/soldier throughput from visible ants.
+- Sprite/vector are not fully batched; dot mode is the main Perf-1 draw win.
+- Browser screenshot/interactive mode cycling was not available in this environment, so verification focused on syntax, startup, and code-path checks.
+
+## 2026-05-30 Ant junction heading and goal rewards
+
+Purpose:
+
+- Remove the brief sideways ant rotation seen at shaft junctions.
+- Give colony goals small completion rewards so achievements have mechanical value.
+
+Changes:
+
+- Replaced endpoint-only ant heading sampling with forward/backward edge sampling through `getEdgeTravelAngle()`.
+- Updated both path movement and edge movement to preserve travel direction at curve endpoints and junctions.
+- Added per-goal reward definitions for food and/or cookies.
+- Added goal reward application on first achievement completion and reward text in the goal tree.
+- Existing completed goals do not re-grant rewards because `G.achievements` remains the single completion guard.
+
+Verification:
+
+- Extracted inline JavaScript and ran `node --check`.
+- Ran `git diff --check`.
+- Ran headless Chrome `--dump-dom` with virtual time and checked output for `Uncaught`, `ReferenceError`, `TypeError`, and `SyntaxError` patterns.
+
+## 2026-05-30 Tutorial first-step tap gate fix
+
+Purpose:
+
+- Prevent the first tutorial step from advancing automatically when an existing save already has eggs or population.
+
+Changes:
+
+- Changed the first tutorial wait condition from total eggs/population to tutorial-session TAP count.
+- Added `TUT.firstStepTapCount` and increment it only when the TAP button lays an egg during tutorial step 0.
+
+Verification:
+
+- Not run per request.
+
+## 2026-05-30 Builder parallel target cap tuning
+
+Purpose:
+
+- Keep Phase 3 builder parallelism from spreading construction across too many simultaneous targets.
+- Preserve parallel construction while making the colony feel more focused.
+
+Changes:
+
+- Reduced `BUILDER_ASSIGNMENT_MAX_TARGETS` from 8 to 3.
+- Builder work slots still scale from `G.ants.builder`, but extra slots now stack onto priority/stackable targets once 2-3 active targets exist.
+
+Verification:
+
+- Extracted inline JavaScript and ran `node --check`.
+- Ran `git diff --check`.
+- Ran headless Chrome `--dump-dom` with virtual time and checked output for `Uncaught`, `ReferenceError`, `TypeError`, and `SyntaxError` patterns.
+
+## 2026-05-30 Desktop right-panel HUD cleanup
+
+Purpose:
+
+- Reduce information density at the top of the desktop side panel without changing the mobile layout.
+- Keep food, cookie, and population as the primary desktop HUD resources.
+- Move always-visible action buttons, including the red error button, into the gear menu on desktop.
+
+Changes:
+
+- Added desktop-only `@media (min-width: 960px)` grid styling for `#top-bar`.
+- Made food, cookie, and population span the primary row, with eggs, larvae, rate, rest, season, and depth as smaller secondary chips on one row.
+- Enabled the existing `#btn-menu` / `#mobile-menu-sheet` menu path on desktop.
+- Kept the desktop gear button as a compact square overlay so it does not consume a tall HUD column.
+- Kept all existing action button IDs and moved `#top-actions` into the menu instead of removing or renaming buttons.
+- Unified menu action button borders in the desktop menu so the warning action is no longer a persistent red outline in the HUD.
+- Restyled the growth-factor line as desktop-only chips using the existing `.support`, `.penalty`, and `.blocker` spans.
+
+Verification:
+
+- Extracted inline JavaScript and ran `node --check`.
+- Ran `git diff --check`.
+- Ran headless Chrome `--dump-dom` with virtual time and checked output for `Uncaught`, `ReferenceError`, `TypeError`, and `SyntaxError` patterns.
+- Confirmed the CSS changes for layout/chips are scoped to `@media (min-width: 960px)`; the existing `@media (max-width: 959px)` mobile rules were not changed.
+
+## 2026-05-30 Save import load button
+
+Purpose:
+
+- Make save import/load discoverable without relying on long-pressing the export button.
+- Keep the mobile menu layout stable after adding the extra action.
+
+Changes:
+
+- Added a dedicated `btn-save-import` top action with 📥 icon and `ロード` mobile label.
+- Kept the existing export-button long-press import shortcut for compatibility.
+- Reused the existing `doImport()` prompt-based load flow.
+- Hid the new load button by default in CSS and enabled it alongside the export button in JS, matching the existing export behavior.
+
+Verification:
+
+- Extracted inline JavaScript and ran `node --check`.
+- Ran `git diff --check`.
+- Confirmed the mobile menu already uses a 2-column grid for `#top-actions`, so the added load action wraps into the menu without changing the bottom sheet controls.
+
+## 2026-05-30 Phase 3 Builder real-count work power and target reservations
+
+Purpose:
+
+- Stop render cap / visible builder count from being the main driver of construction speed.
+- Make builder work scale from `G.ants.builder` while keeping visible builders as representative animation.
+- Add target reservations so multiple builder slots can spread across several dig targets instead of stacking everywhere.
+
+Changes:
+
+- Added runtime-only `S.buildAssignments` with active target reservations and debug stats.
+- Added builder work-slot calculation from logical builder count:
+  - 1 builder -> 1 work slot
+  - 5 builders -> 5 work slots
+  - 20 builders -> 10 work slots
+  - 50 builders -> 15 work slots
+  - hard cap: 18 work slots
+- Added target caps so many builders can open several parallel targets without creating unlimited pending edges.
+- Added stack limits for important work:
+  - main shaft can stack several slots
+  - first barracks after blueprint can stack several slots
+  - force/priority construction can stack modestly
+  - normal targets mostly stay one slot each
+- Moved actual dig progress to `updateBuilderLogic(dt)`, which advances `edgeFrac` from logical builder assignments.
+- Changed visible builder ants so their haul loop is presentation only; they no longer directly call `advanceDigEdge()`.
+- Visible builder ants now prefer active assigned targets, so they still appear to travel to and work at real construction sites.
+- Added perf/debug overlay line for builder real count, visible count, work slots, target count, and render cap.
+
+Verification:
+
+- Extracted inline JavaScript and ran `node --check`.
+- Ran `git diff --check -- index.html`.
+- Ran headless Chrome `--dump-dom` with virtual time and checked output for `Uncaught`, `ReferenceError`, `TypeError`, and `SyntaxError` patterns.
+- Confirmed the builder work-slot formula is independent of render cap and scales with logical builder count.
+
+Remaining notes:
+
+- Phase 3 only separates builder construction progress. Nurse/worker/soldier per-frame task throughput can still depend on `S.ants` and remains a future cleanup item.
+- Builder assignment reservations are runtime-only and are rebuilt after load, which is intentional.
+- Construction speed is deliberately capped/softened to avoid making large builder populations linearly overpowered.
+
+## 2026-05-30 Barracks unlock visibility and first-build priority
+
+Purpose:
+
+- Clarify the state where the barracks blueprint has already been bought but no barracks room has appeared yet.
+- Make the first barracks room a real priority after buying the blueprint.
+
+Changes:
+
+- Kept the barracks blueprint card visible as a disabled "construction pending" status until the first barracks room exists.
+- Changed the soldier level inline hint to show the current lock reason while soldiers are still locked.
+- Changed the blueprint purchase toast so it says soldiers become hireable after the barracks is built.
+- Changed builder target selection so the first barracks room wins over nursery/food/rest preferences and the temporary forced-shaft preference.
+
+Verification:
+
+- Extracted inline JavaScript and ran `node --check`.
+- Ran `git diff --check`.
+- Ran headless Chrome/Playwright against `index.html`; in a blueprint-bought/no-barracks state the barracks card stays visible as `建設待ち`, soldier hire/level hints show `兵舎の初建設が必要`, and `getDigTarget()` returns `expand:soldier` even while forced-shaft is active.
+
 ## 2026-05-30 クッキー室描画整理
 
 目的:

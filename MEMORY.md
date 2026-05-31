@@ -1,8 +1,15 @@
 # Memory
 
-## このプロジェクトでの確認方針
+## Project Verification Notes
 
-- Codex内蔵ブラウザ操作は、この環境では不安定なので原則使わない。
-- UI/スマホ幅/コンソール確認は、成功実績のあるヘッドレスChrome/CDP確認を優先する。
-- 目視確認が本当に必要なUI変更だけ、通常Chromeでの確認が必要だと短く伝える。
-- トークン節約のため、内蔵ブラウザ接続のリトライに時間を使いすぎない。
+- In-app browser automation can be unstable in this environment.
+- For UI, mobile-width, and console-error verification, prefer the already proven headless Chrome/CDP approach when available.
+- Only require browser verification for changes where visual layout, interaction, or runtime console behavior matters.
+- Avoid spending too much time retrying flaky browser connections when static checks or headless Chrome/CDP can answer the question.
+
+## Documentation Discipline
+
+- For every meaningful game update, update both `DEVELOPMENT_LOG.md` and `CURRENT_SYSTEM_OVERVIEW.md`.
+- `DEVELOPMENT_LOG.md` is the chronological change log.
+- `CURRENT_SYSTEM_OVERVIEW.md` is the current source-of-truth system overview. Keep it aligned with `index.html`.
+- If behavior, save shape, UI, AI, rendering, unlocks, public deployment assumptions, or known TODOs change, update the overview in the same work session.
