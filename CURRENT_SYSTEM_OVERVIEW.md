@@ -296,7 +296,7 @@ Logical builder work:
   - hard cap: 18 slots
 - Each assigned target accumulates dig progress over time and calls `advanceDigEdge()` when enough work has accumulated.
 - Reservations are rebuilt after load; no old reservation state is stored in saves.
-- Construction speed decreases with distance from the entrance. `getBuilderLogicChunkSec(target)` adds a travel-time penalty of `min(5.0, distanceFromEntrance / dp(180))` seconds, then multiplies by 0.35 before adding to the base chunk duration. This means deep or far-flung sites take noticeably longer per dig unit than sites near the entrance, simulating the round-trip cost of hauling soil.
+- Construction speed decreases with distance from the entrance. `getBuilderLogicChunkSec(target)` adds a travel-time penalty of `min(2.5, distanceFromEntrance / dp(360))` seconds (halved from the original `min(5.0, d/dp(180))`), then multiplies by 0.35 before adding to the base chunk duration. This means deep or far-flung sites take noticeably longer per dig unit than sites near the entrance, simulating the round-trip cost of hauling soil.
 
 Target reservation:
 
