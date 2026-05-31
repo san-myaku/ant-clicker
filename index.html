@@ -8189,7 +8189,7 @@ function expandMap(forcedType, isEmergency) {
       }
     } else if(lf.state === 'carrying') {
       // 運搬開始直後に餌をゆっくり浮き上がらせる（最大 dp(26) ≒ 1r 分）
-      lf.floatY = Math.min((lf.floatY || 0) + dp(48) * dt, dp(26));
+      lf.floatY = Math.min((lf.floatY || 0) + dp(48) * dt, dp(11));
       const ex = ENX();
       const dx = ex - lf.x;
       const dir = Math.sign(dx) || -1;
@@ -8259,7 +8259,7 @@ function expandMap(forcedType, isEmergency) {
     const floatOff = lf.floatY || 0;
     // 運搬中は揺れを大きくして「みんなで頑張ってる」感を出す
     const carrying = (lf.state === 'carrying');
-    const bobAmp  = carrying ? dp(4.5) : dp(1.2);
+    const bobAmp  = carrying ? dp(3.0) : dp(1.2);
     const bobFreq = carrying ? 5.5 : 3;
     const bob = Math.sin(S.t * bobFreq + (lf.seed || 0)) * bobAmp;
     // 浮き上がり量を加算（地面より上に持ち上がる）
