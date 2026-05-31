@@ -417,6 +417,8 @@
       font-weight: 700;
       padding: 6px 8px;
       cursor: pointer;
+      /* スマホでスクロールかタップかの判定待ち(300ms遅延)を回避し、即座にclickを発火させる */
+      touch-action: manipulation;
     }
     .research-node-action.disabled {
       opacity: 0.45;
@@ -10078,7 +10080,13 @@ function renderResearchNodeCard(def){
         </section>
       `);
     }
-    researchUI.branchList.innerHTML = sections.join('');
+    // innerHTML の不要な置き換えを防ぐ。
+    // updateResearchUI は毎フレーム呼ばれるが、内容が同じなら DOM を触らない。
+    // これにより「タップ中に innerHTML が置き換わってクリックが失われる」問題も軽減する。
+    const newHtml = sections.join('');
+    if(researchUI.branchList.innerHTML !== newHtml) {
+      researchUI.branchList.innerHTML = newHtml;
+    }
   }
 
   function updateFermentPanelUI(){
