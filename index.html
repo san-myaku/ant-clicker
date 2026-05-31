@@ -11802,8 +11802,8 @@ function syncFermenterUnlockUI() {
     if(!S.full) return;
     if(S.raidVis.state !== 'none') { toast('レイドは既に進行中です'); return; }
     if((G.ants.soldier || 0) <= 0) { toast('テスト用レイドには兵隊アリが必要です（兵舎建設→兵隊雇用）', true); return; }
-    // 短い予告（3秒）で 予告→攻撃→結果 を素早く確認できる
-    G.raidTimer = 3;
+    // 予告（10秒）で 予告→攻撃→結果 を確認できる（準備時間を取りやすい長さ）
+    G.raidTimer = 10;
     S.raidVis.state = 'countdown';
     _raidPrevPhase = '';
     toast('🧪 テスト用レイドを発生させました（予告→攻撃→結果）');
