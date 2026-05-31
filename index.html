@@ -12359,8 +12359,11 @@ function syncFermenterUnlockUI() {
     if(G.cookie < MAJOR_WORKER_BIGCARRY_COST_COOKIE) { toast('クッキーが足りません', true); return; }
     G.cookie -= MAJOR_WORKER_BIGCARRY_COST_COOKIE;
     if(G.major) G.major.workerBigCarry = true;
-    toast('🌿 大物運搬を解放！地表に大きな餌が出現するようになった');
+    // 解放直後に最初の出現が早く来るようタイマーを短縮（5秒後に初回抽選）
+    S.largeFoodTimer = 5;
+    toast('🌿 大物運搬を解放！まもなく地表に大きな餌が出現します');
     addQueenWhisper('地表の大きな餌を運べるようになったわ。みんなで力を合わせて', 'bigcarry_unlock');
+    G.save({ showToast: false }); // 購入を即セーブ（リロードしても消えないように）
     updateUI();
   };
 
