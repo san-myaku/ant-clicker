@@ -1,5 +1,29 @@
 # Development Log
 
+## 2026-06-01 建築LvをAntsタブへ移動・大物運搬をアップグレード解放制に変更
+
+目的:
+
+- 建築アリのレベルアップが「蟻アップグレード」セクションにないと分かりにくいため、Antsタブへ移動する。
+- 大物運搬イベントが解放なしで自動発生していたため、「大物運搬」アップグレードカードを購入した後にのみ発生するようにする。
+
+変更:
+
+- `upgradeTabGroupByKey` の `builder` を `'rooms'` → `'ants'` に変更。建築LvUPカードが蟻アップグレードに表示されるようになった。
+- `MAJOR_WORKER_BIGCARRY_WLV` を 8 → **5** に変更（より早い段階で解放可能に）。
+- `MAJOR_WORKER_BIGCARRY_COST_COOKIE = 5` を新たに定義。
+- `btn-major-worker-bigcarry` カードを実際に購入可能に:
+  - `unlocked: () => G.wLv >= 5`
+  - `canBuy: () => !workerBigCarry && wLv >= 5 && cookie >= 5`
+  - onclick で `G.major.workerBigCarry = true`、クッキー消費、toast / 女王つぶやき。
+- `maybeSpawnLargeFood()` に `G.major.workerBigCarry` のゲートを追加。未解放なら大物は出現しない。
+- ボタンのコスト表示を「将来実装」→「🍪 5」に更新。
+- インラインエフェクトとチップテキストを解放状況に応じたわかりやすい内容に更新。
+
+セーブ互換:
+
+- `G.major.workerBigCarry` は既存フィールド（デフォルト false）のため、旧セーブでは未解放扱いになり大物が出なくなる（既プレイヤーは一度解放操作が必要）。
+
 ## 2026-05-31 レイド警戒バナーを画面最上部へ移動（47a0ce6）
 
 目的:

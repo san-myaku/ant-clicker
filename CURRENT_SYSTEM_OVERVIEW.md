@@ -1,6 +1,6 @@
 # Ant Colony V23 Current System Overview
 
-Last updated: 2026-06-01
+Last updated: 2026-06-01 (2)
 Target file: `index.html`
 
 This document is the current implementation overview for the single-file ant clicker game. When gameplay, UI, save data, AI behavior, or public deployment assumptions change, update this file together with `DEVELOPMENT_LOG.md`.
@@ -155,17 +155,23 @@ Top/right HUD resource boxes stay visible from the start. Discovery and unlocks 
 
 Upgrade cards are grouped into the current tab area.
 
+Tab grouping:
+
+- **Ants tab**: Queen level, Worker upgrade, Nurse level, Builder level, Soldier level, Golden Finger, Big carry
+- **Rooms tab**: Waste room unlock, Ferment room build
+- **Common (always visible)**: Queen level up button
+
 Important upgrades/actions:
 
 - Queen level
 - Worker upgrade
 - Nurse level
-- Builder level
+- Builder level (moved to Ants tab; was previously in Rooms tab)
 - Soldier level
 - Waste room unlock
 - Ferment room build
 - Golden Finger
-- Big carry
+- Big carry (large food carry unlock; requires worker Lv 5 + cookie 5; gates `maybeSpawnLargeFood`)
 
 `クッキー出現 x2` and `兵隊攻撃 x2` are no longer normal dock purchases. Their old buttons remain in the DOM for compatibility, but are hidden and redirect to the research tab if triggered directly.
 
@@ -594,9 +600,10 @@ State:
 
 Spawn conditions (`maybeSpawnLargeFood`):
 
+- **`G.major.workerBigCarry === true`** (unlock by purchasing the "大物運搬" dock card; requires worker Lv 5 + cookie 5).
 - No active event (single slot).
 - Not during a raid.
-- `G.ants.worker >= LARGE_FOOD_MIN_WORKERS` (12).
+- `G.ants.worker >= LARGE_FOOD_MIN_WORKERS` (20).
 - `S.largeFoodTimer` counts down; on expiry, a low-probability roll spawns the event and reschedules 60-120s, otherwise retries after a short interval.
 - Debug: key `L` or `window.__spawnLargeFood()` force-spawns one.
 

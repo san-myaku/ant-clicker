@@ -2044,7 +2044,7 @@
                 <div class="dock-icon">📦</div>
                 <div class="dock-meta">
                   <div class="dock-name">大物運搬</div>
-                  <div class="dock-cost"><span id="c-major-worker-bigcarry">将来実装</span></div>
+                  <div class="dock-cost">🍪 <span id="c-major-worker-bigcarry">5</span></div>
                 </div>
                 <span class="dock-badge new" data-badge="new">NEW</span>
                 <span class="dock-badge lock" data-badge="lock">🔒</span>
@@ -2394,7 +2394,8 @@
   const WASTE_PICK_CLEAN = 1;
   const WASTE_URGENT_CLEAN = 2;
   const WASTE_JOB_CLEAN = 0.18;
-  const MAJOR_WORKER_BIGCARRY_WLV = 8; // 大物運搬（将来）
+  const MAJOR_WORKER_BIGCARRY_WLV = 5;        // 大物運搬解放に必要な働きアリ強化Lv
+  const MAJOR_WORKER_BIGCARRY_COST_COOKIE = 5; // 大物運搬解放コスト（クッキー）
 
   // 育児アリ・建築アリ・兵隊アリの「1匹目」の食料コスト。2匹目以降は COST_GROWTH 倍ずつ増えていく
   const BASE_COSTS = { nurse: 50, builder: 100, soldier: 1000, fermenter: 800 };
@@ -8205,6 +8206,7 @@ function expandMap(forcedType, isEmergency) {
   // 出現抽選（update から毎フレーム）
   function maybeSpawnLargeFood(dt) {
     if(!S.full) return;
+    if(!(G.major && G.major.workerBigCarry)) return;           // 大物運搬未解放なら出さない
     if(S.largeFood) return;                                    // 既に出ている（同時に1個まで）
     const raidActive = (S.raidVis.state === "countdown" || S.raidVis.state === "attack");
     if(raidActive) return;                                     // レイド中は出さない
@@ -9956,7 +9958,7 @@ function expandMap(forcedType, isEmergency) {
     major_golden2x: 'ants',
     major_cookie2x: 'ants',
     major_act_cookie: 'ants',
-    builder: 'rooms',
+    builder: 'ants',
     waste: 'rooms',
     ferment_room: 'rooms',
     major_depth2: 'rooms',
@@ -10380,11 +10382,10 @@ function syncFermenterUnlockUI() {
     {
       key: 'major_worker_bigcarry',
       id: 'btn-major-worker-bigcarry',
-      important: false,
+      important: true,
       order: 5.6,
-      // 日本語: 今回は枠のみ。将来実装までロック表示を維持
-      unlocked: () => false,
-      canBuy: () => false
+      unlocked: () => (G.wLv || 0) >= MAJOR_WORKER_BIGCARRY_WLV,
+      canBuy: () => !(G.major && G.major.workerBigCarry) && (G.wLv || 0) >= MAJOR_WORKER_BIGCARRY_WLV && (G.cookie >= MAJOR_WORKER_BIGCARRY_COST_COOKIE)
     }
   ];
 
@@ -10760,7 +10761,15 @@ function syncFermenterUnlockUI() {
     setDockInlineEffect('btn-major-depth2', hasDepth2Unlock() ? '解放済み' : '研究タブへ移管');
     setDockInlineEffect('btn-major-depth3', hasDepth3Unlock() ? '解放済み' : '研究タブへ移管');
     setDockInlineEffect('btn-major-barracks', getBarracksBlueprintInlineEffect());
-    setDockInlineEffect('btn-major-worker-bigcarry', '将来: 大物運搬');
+    {
+      const done = !!(G.major && G.major.workerBigCarry);
+      const condOk = (G.wLv || 0) >= MAJOR_WORKER_BIGCARRY_WLV;
+      setDockInlineEffect('btn-major-worker-bigcarry',
+        done ? '解放済み: 大物出現中' :
+        condOk ? `🍪${MAJOR_WORKER_BIGCARRY_COST_COOKIE} で解放` :
+        `条件: 働き強化Lv${MAJOR_WORKER_BIGCARRY_WLV}`
+      );
+    }
     setDockInlineEffect('btn-major-act-cookie', '状態: 画面の糖塊をタップ');
 
     const nurseNowEgg = 1 + Math.max(0, G.ants.nurse || 0) * 0.5;
@@ -10875,8 +10884,10 @@ function syncFermenterUnlockUI() {
 
     bindTip(document.getElementById('btn-major-worker-bigcarry'), () => {
       const done = !!(G.major && G.major.workerBigCarry);
-      if(done) return '大物運搬\n準備済み（将来有効化）';
-      return `大物運搬\n条件(予定): 働きLv${MAJOR_WORKER_BIGCARRY_WLV}\n状態: 近日解放（枠のみ実装）`;
+      if(done) return '大物運搬\n解放済み！地表に大きな餌が出現し、働きアリが集まって運ぶ。';
+      const wlv = G.wLv || 0;
+      const condOk = wlv >= MAJOR_WORKER_BIGCARRY_WLV;
+      return `大物運搬\n条件: 働き強化Lv${MAJOR_WORKER_BIGCARRY_WLV}（現在Lv${wlv}）${condOk ? ' ✅' : ''}\nコスト: 🍪 ${MAJOR_WORKER_BIGCARRY_COST_COOKIE}\n効果: 地表に大きな餌が定期的に出現し、働きアリが集結して運び食料を得る`;
     });
 
     bindTip(document.getElementById('hint-cookieroom'), () => getCookieRoomTipText());
@@ -12301,6 +12312,19 @@ function syncFermenterUnlockUI() {
     toast(`黄金の指 Lv.${G.goldenFingerLv}！ タップ時の黄金卵率 ${formatChancePct(getGoldenFingerChance())}`);
     updateUI();
   };
+  // 大物運搬解放
+  const btnMajorBigCarry = document.getElementById('btn-major-worker-bigcarry');
+  if(btnMajorBigCarry) btnMajorBigCarry.onclick = function() {
+    if(G.major && G.major.workerBigCarry) { toast('大物運搬はすでに解放済みです'); return; }
+    if((G.wLv || 0) < MAJOR_WORKER_BIGCARRY_WLV) { toast(`条件未達: 働き強化Lv${MAJOR_WORKER_BIGCARRY_WLV}が必要（現在Lv${G.wLv || 0}）`, true); return; }
+    if(G.cookie < MAJOR_WORKER_BIGCARRY_COST_COOKIE) { toast('クッキーが足りません', true); return; }
+    G.cookie -= MAJOR_WORKER_BIGCARRY_COST_COOKIE;
+    if(G.major) G.major.workerBigCarry = true;
+    toast('🌿 大物運搬を解放！地表に大きな餌が出現するようになった');
+    addQueenWhisper('地表の大きな餌を運べるようになったわ。みんなで力を合わせて', 'bigcarry_unlock');
+    updateUI();
+  };
+
   const btnMajorCookie2x = document.getElementById('btn-major-cookie2x');
   if(btnMajorCookie2x) btnMajorCookie2x.onclick = function() {
     setControlTab('research');
