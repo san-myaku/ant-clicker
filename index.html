@@ -7242,7 +7242,7 @@ function expandMap(forcedType, isEmergency) {
       const entrance = S.full.nodes[S.full.eid];
       if(start && entrance) {
         const d = Math.hypot(start.x - entrance.x, start.y - entrance.y);
-        travelSec += Math.min(5.0, d / Math.max(1, dp(180)));
+        travelSec += Math.min(2.5, d / Math.max(1, dp(360))); // ペナルティを旧の半分に緩和
       }
     } catch(_) {}
     return Math.max(2.0, BUILDER_LOGIC_BASE_CHUNK_SEC + getBuilderPickTime() + travelSec * 0.35);
@@ -7437,6 +7437,17 @@ function expandMap(forcedType, isEmergency) {
     // 人口上限
     if(G.tot >= G.caps.pop * 0.95 && G.caps.pop > 20) {
       addQueenWhisper('巣が手狭になってきたわ。新しい部屋を掘って', 'popcap');
+    }
+    // 建築アリが深い場所で作業中: 遠距離ペナルティをやんわり示唆
+    if(S.full && G.ants.builder >= 3 && S.mainTipId != null) {
+      const tip = S.full.nodes[S.mainTipId];
+      const entrance = S.full.nodes[S.full.eid];
+      if(tip && entrance) {
+        const dist = Math.hypot(tip.x - entrance.x, tip.y - entrance.y);
+        if(dist > dp(400)) {
+          addQueenWhisper('深い場所の建設は時間がかかるわ。建築アリを増やすと少し助かるのだけど', 'deep_build');
+        }
+      }
     }
   }
 
@@ -13378,13 +13389,22 @@ function syncFermenterUnlockUI() {
     ctx.stroke();
 
     const tailBaseX = clamp(anchor.x, left + dp(18), left + pw - dp(18));
+    const tailTipX = clamp(anchor.x, pad, canvas.width - pad);
+    const tailTipY = clamp(anchor.y, top + ph + dp(8), canvas.height - pad);
+    // 三角形を塗りつぶし（上辺＝長方形との接続部は枠線なし、吹き出しとして自然に見えるよう）
     ctx.beginPath();
     ctx.moveTo(tailBaseX - dp(8), top + ph);
-    ctx.lineTo(clamp(anchor.x, pad, canvas.width - pad), clamp(anchor.y, top + ph + dp(8), canvas.height - pad));
+    ctx.lineTo(tailTipX, tailTipY);
     ctx.lineTo(tailBaseX + dp(8), top + ph);
     ctx.closePath();
     ctx.fillStyle = 'rgba(20, 10, 40, 0.86)';
     ctx.fill();
+    // 上辺（長方形底辺と重なる部分）を除き、2つの斜辺だけ枠線を引く
+    ctx.beginPath();
+    ctx.moveTo(tailBaseX - dp(8), top + ph);
+    ctx.lineTo(tailTipX, tailTipY);
+    ctx.lineTo(tailBaseX + dp(8), top + ph);
+    // closePath しない → 上辺は描かれない
     ctx.stroke();
 
     ctx.fillStyle = '#e9d5ff';
