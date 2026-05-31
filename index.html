@@ -10622,7 +10622,7 @@ function syncFermenterUnlockUI() {
 
   function getBuilderUnlockText(lv) {
     // NORMAL_UPGRADE: 建築Lvの説明は効率アップのみに統一
-    return '建築効率 +15%（内部は1+lv*0.15式）';
+    return '掘削速度 +15%';
   }
 
   function getSoldierUnlockHintText() {
@@ -10833,13 +10833,15 @@ function syncFermenterUnlockUI() {
     });
 
     bindTip(document.getElementById('btn-up-builder'), () => {
-      if(G.bLv >= BUILDER_LV_MAX) {
-        const curMul = 1 + clamp(Math.floor(G.bLv || 0), 0, BUILDER_LV_MAX) * 0.15;
-        return `建築LvUP\n現在: Lv.${G.bLv} (最大)\n建築効率: x${curMul.toFixed(2)}\nコスト: MAX`;
+      const lv = clamp(Math.floor(G.bLv || 0), 0, BUILDER_LV_MAX);
+      const curSpeedPct = Math.round(lv * 15);
+      if(lv >= BUILDER_LV_MAX) {
+        return `建築LvUP\n現在: Lv.${lv} (最大)\n掘削速度: +${curSpeedPct}%\nコスト: MAX`;
       }
-      const nextLv = Math.min(BUILDER_LV_MAX, G.bLv + 1);
+      const nextLv = lv + 1;
+      const nextSpeedPct = Math.round(nextLv * 15);
       const nextUnlock = getBuilderUnlockText(nextLv);
-      return `建築LvUP\n次の解放: ${nextUnlock}\n現在: Lv.${G.bLv} → 次: Lv.${nextLv}\nコスト: 🍃 ${G.getUpCost('builder')}`;
+      return `建築LvUP\n効果: 掘削速度 +${curSpeedPct}% → +${nextSpeedPct}%\n次の解放: ${nextUnlock}\n現在: Lv.${lv} → 次: Lv.${nextLv}\nコスト: 🍃 ${G.getUpCost('builder')}`;
     });
 
     // ゴミ室解禁のツールチップ
