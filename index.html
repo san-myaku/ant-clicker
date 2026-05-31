@@ -7002,28 +7002,41 @@ function expandMap(forcedType, isEmergency) {
       };
       // === 0) 帯を下げた直後は、縦の通路（shaft）を少し優先して作る ===
       if(S.band.forceShaft > 0 && !needFirstBarracks) {
-          // 既に「shaftの未完成枝」があるならそれを掘る
+          // 既に「shaftの未完成枝」があるなら候補を全収集して選ぶ。
+          // 旧実装はエッジ配列の先頭から最初に見つかったものを即採用していたため、
+          // 右端など遠い場所に作られた古いエッジが優先されやすかった。
+          // 入口に近い順・進捗が多い順にソートすることで、
+          // 巣の中心付近の通路を優先して完成させるようにする。
+          const shaftCandidates = [];
+          const ex = ENX();
           for(let i=0; i<S.full.edges.length; i++) {
               if(S.edgeFrac[i] >= 1) continue;
               const e = S.full.edges[i];
               const uv = S.nodeVis[e.u], vv = S.nodeVis[e.v];
               if(uv === vv) continue;
-
-	              const hiddenIdx = uv ? e.v : e.u;
-	              const hidden = S.full.nodes[hiddenIdx];
-	              const visIdx = uv ? e.u : e.v;
-	              const visNode = S.full.nodes[visIdx];
-	              if(depthLock && hidden.y > depthLimit) continue;
-	              if(isNodeAboveGround(hidden)) continue;
-	              if(hidden.type === 'shaft' && visNode && visNode.type === 'shaft' && !allowShaftLink(e, hidden, visNode)) continue;
-	              if(hidden.type === 'shaft') {
-                    const reason = "forceShaft: existing";
-                    if(!isDigTargetReservable(i, hiddenIdx, reason)) continue;
-	                  return decorateDigTarget({ eid:i, to:hiddenIdx, dir:uv?1:-1, score:9999, reason });
-	              }
+              const hiddenIdx = uv ? e.v : e.u;
+              const hidden = S.full.nodes[hiddenIdx];
+              const visIdx = uv ? e.u : e.v;
+              const visNode = S.full.nodes[visIdx];
+              if(depthLock && hidden.y > depthLimit) continue;
+              if(isNodeAboveGround(hidden)) continue;
+              if(hidden.type === 'shaft' && visNode && visNode.type === 'shaft' && !allowShaftLink(e, hidden, visNode)) continue;
+              if(hidden.type === 'shaft') {
+                  const reason = "forceShaft: existing";
+                  if(!isDigTargetReservable(i, hiddenIdx, reason)) continue;
+                  shaftCandidates.push({ eid:i, to:hiddenIdx, dir:uv?1:-1, score:9999, reason,
+                      _dist: Math.abs(hidden.x - ex),
+                      _frac: S.edgeFrac[i] || 0 });
+              }
+          }
+          if(shaftCandidates.length > 0) {
+              // 進捗が多い（完成に近い）順 → 入口に近い順 で並べて先頭を選ぶ
+              shaftCandidates.sort((a, b) => (b._frac - a._frac) || (a._dist - b._dist));
+              const best = shaftCandidates[0];
+              return decorateDigTarget({ eid:best.eid, to:best.to, dir:best.dir, score:best.score, reason:best.reason });
           }
 
-          // 無ければ新しくshaftを生成して掘る
+          // 候補が無ければ新しくshaftを生成して掘る
           const newEid = expandMap('shaft', true);
           if(newEid !== null && newEid !== undefined) {
               return decorateDigTarget({ eid:newEid, to:S.full.edges[newEid].v, dir:1, score:9990, reason:"forceShaft: new" });
