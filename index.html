@@ -9261,14 +9261,19 @@ function expandMap(forcedType, isEmergency) {
     spawnEnemies();
     shake(dp(6), 0.4);
 
-    const out = computeRaidOutcome();
-    S.raidVis._pendingOutcome = out;
+    // Phase 7A: 勝敗はここ（攻撃開始時）では確定しない。
+    // 戦闘終了時（resolveRaid）で computeRaidOutcome() を呼んで確定する。
+    // 古い途中状態が残っていると誤判定の元になるため、攻撃開始時に消しておく。
+    delete S.raidVis._pendingOutcome;
 
     setRaidUI(true, "⚔️ 襲撃開始", "地表から敵アリが雪崩れ込む…！", "ATTACK");
   }
 
   function resolveRaid() {
-    const out = S.raidVis._pendingOutcome;
+    // Phase 7A: 勝敗は戦闘終了（この resolveRaid）時点で確定する。
+    // 通常は _pendingOutcome が無いので、ここで computeRaidOutcome() を呼んで確定する。
+    // 互換: 何らかの古い途中状態で _pendingOutcome が残っていれば、それを尊重して壊さない。
+    const out = S.raidVis._pendingOutcome || computeRaidOutcome();
     if(!out) return;
     const modalOut = { win: !!out.win, rewardFood: 0, rewardCookie: 0, loseWorkers: 0, winProb: out.winProb || 0 };
 

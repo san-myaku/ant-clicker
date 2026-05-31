@@ -1,6 +1,6 @@
 # Ant Colony V23 Current System Overview
 
-Last updated: 2026-06-01 (3)
+Last updated: 2026-06-01 (4)
 Target file: `index.html`
 
 This document is the current implementation overview for the single-file ant clicker game. When gameplay, UI, save data, AI behavior, or public deployment assumptions change, update this file together with `DEVELOPMENT_LOG.md`.
@@ -591,7 +591,15 @@ Invaders:
 
 - Underground invaders can target food rooms and nursery rooms.
 - Surface raid system uses `S.raidVis` and `resolveRaid()`.
-- Raid phases include warning/countdown, attack, and result.
+- Raid phases are warning/countdown -> attack -> result.
+
+Raid outcome timing (Phase 7A):
+
+- The win/lose outcome is decided at the END of combat, when `resolveRaid()` runs, not when the attack starts.
+- `beginRaidAttack()` only sets up the attack phase (close result modal, `state="attack"`, reset timer, spawn enemies, screen shake, alert UI). It does NOT call `computeRaidOutcome()` and clears any stale `S.raidVis._pendingOutcome`.
+- `resolveRaid()` calls `computeRaidOutcome()` itself (`const out = S.raidVis._pendingOutcome || computeRaidOutcome()`), then applies rewards/damage, updates `G.raidWins`/`G.raidTotal`, and shows the result modal. The `_pendingOutcome` fallback is only a compatibility guard for stale in-flight state; new raids resolve fresh.
+- Balance is unchanged: `RAID_CFG`, `getColonyCombatPower()`, `getEnemyPower()`, `getRaidWinProb()`, `computeRaidOutcome()` formula, rewards, and loss amounts are identical to before.
+- Enemy HP, soldier surface interception, nearest-target seeking, ranged attacks, and breach-count win logic are NOT implemented yet. These are planned for Phase 7B.
 
 ## 17. Large Food Carry Event
 

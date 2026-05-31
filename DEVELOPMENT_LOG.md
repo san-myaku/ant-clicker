@@ -1,5 +1,36 @@
 # Development Log
 
+## 2026-06-01 Phase 7A レイド結果を戦闘終了時に確定
+
+目的:
+
+- レイドの勝敗を「攻撃開始時（beginRaidAttack）」ではなく「戦闘終了時（resolveRaid）」で確定する構造に変更する。Phase 7B（敵HP・兵隊地表迎撃など）の土台。
+
+変更した関数:
+
+- `beginRaidAttack()`: `computeRaidOutcome()` の呼び出しと `S.raidVis._pendingOutcome` への保存を削除。攻撃フェーズの準備（結果モーダルを閉じる / `state="attack"` / `timer=0` / 敵出現 / 画面揺れ / 警報UI）だけを行う。誤判定防止のため開始時に古い `_pendingOutcome` を `delete` する。
+- `resolveRaid()`: 先頭を `const out = S.raidVis._pendingOutcome || computeRaidOutcome();` に変更。通常レイドでは `_pendingOutcome` が無いので、この時点で勝敗を計算して確定する。`_pendingOutcome` は古い途中状態が残っていた場合の互換ガードとしてのみ機能（`S.raidVis` は非保存なので通常は発生しない）。
+
+勝敗確定タイミングの変更:
+
+- 旧: 攻撃開始（beginRaidAttack）で `computeRaidOutcome()` を実行し `_pendingOutcome` に保持 → 6秒後の resolveRaid で適用。
+- 新: 攻撃開始では計算しない → 6秒後の resolveRaid で `computeRaidOutcome()` を実行し、その場で勝敗・報酬・被害を確定。
+
+バランス不変:
+
+- `RAID_CFG`、`getColonyCombatPower()`、`getEnemyPower()`、`getRaidWinProb()`、`computeRaidOutcome()` の式、報酬量、敗北損害、発生条件、予告秒数、敵の見た目/速度/数は一切変更なし。タイミングのみの変更。
+
+検証:
+
+- inline JS抽出 `node --check`（SYNTAX OK）。`git diff --check`（空白エラーなし）。
+- 静的: `beginRaidAttack()` から `computeRaidOutcome()` 直接呼び出しが消え、呼び出しは `resolveRaid()` の1箇所のみであることを確認。
+- 実機（ヘッドレスChrome/CDP, timeScale=2）: 兵隊2・働き80でレイドを誘発し、予告→攻撃→結果→通常 の遷移を確認。攻撃中の4サンプルで `_pendingOutcome` 無し・`raidTotal` 据え置き（=開始時未確定）。resolveRaid 時に `raidTotal` が +1、食料・働きアリが変化（この回は敗北: 食料100000→70182, 働き80→67）、結果モーダル表示。コンソールエラー0。
+- 大物運搬の副作用なし: 解放→`__spawnLargeFood()` で出現→レイド誘発で `S.largeFood` が中断クリアされることを確認。
+
+Phase 7B（未実装）:
+
+- 敵HP、兵隊の地表迎撃、最寄り敵ターゲット、距離攻撃、突破数による勝敗判定などは未実装。次フェーズで対応予定。
+
 ## 2026-06-01 大物運搬解放バグ・発酵室予約バグの修正（実機検証で発見）
 
 ヘッドレスChrome/CDPの総合検証で2つの実バグを発見し修正した。
