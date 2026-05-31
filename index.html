@@ -6427,7 +6427,7 @@ function expandMap(forcedType, isEmergency) {
   const LARGE_FOOD_SPAWN_CHANCE = 0.7;      // 出現タイマー到達時に実際に出る確率（低確率寄り）
   const LARGE_FOOD_RETRY_INTERVAL = 25;     // 抽選に外れた/出せなかったときの短い再抽選秒
   const LARGE_FOOD_GATHER_TIMEOUT = 45;     // 集合が間に合わないと自然消滅するまでの秒数
-  const LARGE_FOOD_CARRY_SPEED = dp(34);    // 入口へ運ぶ速度（device px/sec）
+  const LARGE_FOOD_CARRY_SPEED = dp(17);    // 入口へ運ぶ速度（device px/sec）
   const LARGE_FOOD_REWARD_BASE = 300;       // 基本食料報酬
   const LARGE_FOOD_REWARD_PER_WORKER = 50;  // 出現時の働きアリ数に応じた追加報酬（上限あり）
   const LARGE_FOOD_REWARD_WORKER_CAP = 40;  // 報酬計算に使う働きアリ数の上限
@@ -8125,6 +8125,7 @@ function expandMap(forcedType, isEmergency) {
       rewardFood,
       progress: 0,               // 運搬の進捗 0..1
       rewarded: false,
+      floatY: 0,           // 運搬中に浮き上がる量（px）。0 = 地面。運搬開始でアニメーション
       r: LARGE_FOOD_RADIUS,
       seed: Math.random() * Math.PI * 2,
       shape: makeLargeFoodShape(),
@@ -8187,6 +8188,8 @@ function expandMap(forcedType, isEmergency) {
         return;
       }
     } else if(lf.state === 'carrying') {
+      // 運搬開始直後に餌をゆっくり浮き上がらせる（最大 dp(26) ≒ 1r 分）
+      lf.floatY = Math.min((lf.floatY || 0) + dp(48) * dt, dp(26));
       const ex = ENX();
       const dx = ex - lf.x;
       const dir = Math.sign(dx) || -1;
@@ -8253,14 +8256,21 @@ function expandMap(forcedType, isEmergency) {
     if(lf.x < view.x - pad || lf.x > view.x + view.w + pad) return;
     const r = lf.r || LARGE_FOOD_RADIUS;
     const baseY = lf.y; // 働きアリと同じ地表ラインに合わせる（S.full.sy）
-    const bob = Math.sin(S.t * 3 + (lf.seed || 0)) * dp(1.2);
-    const cy = baseY - r * 0.55 + bob;
+    const floatOff = lf.floatY || 0;
+    // 運搬中は揺れを大きくして「みんなで頑張ってる」感を出す
+    const carrying = (lf.state === 'carrying');
+    const bobAmp  = carrying ? dp(4.5) : dp(1.2);
+    const bobFreq = carrying ? 5.5 : 3;
+    const bob = Math.sin(S.t * bobFreq + (lf.seed || 0)) * bobAmp;
+    // 浮き上がり量を加算（地面より上に持ち上がる）
+    const cy = baseY - r * 0.55 + bob - floatOff;
     ctx.save();
 
-    // 影
-    ctx.fillStyle = 'rgba(0,0,0,0.22)';
+    // 影：浮いている分だけ小さく・薄くなる
+    const shadowScale = Math.max(0.35, 1 - floatOff / dp(50));
+    ctx.fillStyle = `rgba(0,0,0,${(0.22 * shadowScale).toFixed(2)})`;
     ctx.beginPath();
-    ctx.ellipse(lf.x, baseY + dp(2), r * 1.05, r * 0.32, 0, 0, Math.PI * 2);
+    ctx.ellipse(lf.x, baseY + dp(2), r * 1.05 * shadowScale, r * 0.32 * shadowScale, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // いびつな多角形の本体
