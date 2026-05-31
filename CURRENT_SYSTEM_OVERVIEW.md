@@ -601,6 +601,11 @@ Raid outcome timing (Phase 7A):
 - Balance is unchanged: `RAID_CFG`, `getColonyCombatPower()`, `getEnemyPower()`, `getRaidWinProb()`, `computeRaidOutcome()` formula, rewards, and loss amounts are identical to before.
 - Enemy HP, soldier surface interception, nearest-target seeking, ranged attacks, and breach-count win logic are NOT implemented yet. These are planned for Phase 7B.
 
+Debug raid trigger (test only, not exposed in normal UI):
+
+- `debugForceRaid()` starts a raid immediately with a short 3s warning when `state==='none'` and at least one soldier exists (the update loop cancels raids without soldiers).
+- Triggers: key `R` (desktop), long-press (~0.9s) on the population HUD box `#pop-box` (mobile), or `window.__forceRaid()` (console).
+
 ## 17. Large Food Carry Event
 
 A lightweight surface event (MVP). A single large food appears on the surface, idle workers gather, escort it to the nest entrance, and the colony gains food.

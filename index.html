@@ -11729,6 +11729,45 @@ function syncFermenterUnlockUI() {
   });
   window.__spawnLargeFood = function(){ return S.full ? spawnLargeFood() : null; };
 
+  // デバッグ：テスト用にレイドを即時発生させる
+  //  - PC      : キー R
+  //  - スマホ  : 個体数ボックス(#pop-box)を約0.9秒 長押し
+  //  - コンソール: window.__forceRaid()
+  // ※兵隊アリが0だと巣の更新ループがレイドを毎フレーム即キャンセルするため、兵隊が必要。
+  function debugForceRaid() {
+    if(!S.full) return;
+    if(S.raidVis.state !== 'none') { toast('レイドは既に進行中です'); return; }
+    if((G.ants.soldier || 0) <= 0) { toast('テスト用レイドには兵隊アリが必要です（兵舎建設→兵隊雇用）', true); return; }
+    // 短い予告（3秒）で 予告→攻撃→結果 を素早く確認できる
+    G.raidTimer = 3;
+    S.raidVis.state = 'countdown';
+    _raidPrevPhase = '';
+    toast('🧪 テスト用レイドを発生させました（予告→攻撃→結果）');
+    setRaidUI(true, '👁️ 警戒警報', '遠くに影が見える。兵隊を準備せよ。', `${Math.ceil(G.raidTimer)}s`);
+  }
+  window.__forceRaid = debugForceRaid;
+
+  window.addEventListener('keydown', (e)=>{
+    if(e.key !== 'r' && e.key !== 'R') return;
+    if(e.repeat) return;
+    const t = e.target;
+    if(t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+    debugForceRaid();
+  });
+
+  // スマホ用: 個体数ボックスの長押し（約0.9秒）でテスト用レイド
+  (function(){
+    const popBox = document.getElementById('pop-box');
+    if(!popBox) return;
+    let lpTimer = null;
+    const startLP = () => { clearTimeout(lpTimer); lpTimer = setTimeout(() => { lpTimer = null; debugForceRaid(); }, 900); };
+    const cancelLP = () => { if(lpTimer){ clearTimeout(lpTimer); lpTimer = null; } };
+    popBox.addEventListener('pointerdown', startLP);
+    popBox.addEventListener('pointerup', cancelLP);
+    popBox.addEventListener('pointercancel', cancelLP);
+    popBox.addEventListener('pointerleave', cancelLP);
+  })();
+
   const btnReset = document.getElementById('btn-reset');
   const btnSpeed5 = document.getElementById('btn-speed-5');
   const btnSpeed10 = document.getElementById('btn-speed-10');
