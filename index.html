@@ -4549,6 +4549,7 @@ function ensureRestSlots(n){
     fermentFirstCompleted: false,
     fermenterFirstHired: false,
     _fermentCookieMade: false,
+    fermentRoomPending: 0,   // 発酵室の「建設予約」数。食料支払い済み・建設待ち。
 
     get tot() { return this.ants.worker + this.ants.nurse + this.ants.builder + this.ants.soldier + (this.ants.fermenter || 0); },
     // MAJOR_UPGRADE: 深度解放の段数を返す（depth3はdepth2前提）
@@ -4689,7 +4690,8 @@ function ensureRestSlots(n){
         fermentFirstStarted: !!this.fermentFirstStarted,
         fermentFirstCompleted: !!this.fermentFirstCompleted,
         fermenterFirstHired: !!this.fermenterFirstHired,
-        fermentCookieMade: !!this._fermentCookieMade
+        fermentCookieMade: !!this._fermentCookieMade,
+        fermentRoomPending: Math.max(0, Math.floor(this.fermentRoomPending || 0))
       };
     },
 
@@ -4787,6 +4789,7 @@ function ensureRestSlots(n){
         this.fermentFirstCompleted = !!d.fermentFirstCompleted;
         this.fermenterFirstHired = !!d.fermenterFirstHired;
         this._fermentCookieMade = !!d.fermentCookieMade;
+        this.fermentRoomPending = Math.max(0, Math.floor(+d.fermentRoomPending || 0));
         if(d.research && typeof d.research === 'object') {
           this.research = d.research;
         } else {
@@ -7006,6 +7009,24 @@ function expandMap(forcedType, isEmergency) {
       }
 
       const needFirstBarracks = (hasBarracksBlueprint() && !S.hasBarracks);
+
+      // 発酵室の建設予約がある場合：兵舎の次の高優先で処理する
+      // 食料は購入時点で払い済み。forceExpandRoom が成功したらカウントを減らす。
+      if((G.fermentRoomPending || 0) > 0 && isFermentRoomUnlocked()) {
+        const builtNow = getFermentRoomNodeCount(true);
+        if(builtNow < FERMENT_ROOM_MAX) {
+          const feid = forceExpandRoom('ferment');
+          if(feid != null) {
+            G.fermentRoomPending = Math.max(0, (G.fermentRoomPending || 0) - 1);
+            return decorateDigTarget({ eid: feid, to: S.full.edges[feid].v, dir: 1, score: 9800, reason: 'ferment:reserved' });
+          }
+          // 今フレームは配置できなかった（まだ密集）→ 次フレームで再挑戦
+        } else {
+          // すでに上限に達しているなら予約を消す（過剰予約の安全ガード）
+          G.fermentRoomPending = 0;
+        }
+      }
+
       const depthLock = !!S.band.depthLock;
       const depthLimit = (S.band && typeof S.band.bottom === 'number') ? S.band.bottom : Infinity;
       const allowShaftLink = (e, hidden, visNode) => {
@@ -10319,7 +10340,7 @@ function syncFermenterUnlockUI() {
       important: true,
       order: 4.2,
       unlocked: () => isFermentRoomUnlocked(),
-      canBuy: () => isFermentRoomUnlocked() && (getFermentRoomNodeCount(true) < FERMENT_ROOM_MAX) && (G.food >= FERMENT_ROOM_COST)
+      canBuy: () => isFermentRoomUnlocked() && (getFermentRoomNodeCount(true) + (G.fermentRoomPending || 0) < FERMENT_ROOM_MAX) && (G.food >= FERMENT_ROOM_COST)
     },
     {
       key: 'soldier',
@@ -10625,8 +10646,10 @@ function syncFermenterUnlockUI() {
     if(!isFermentRoomUnlocked()) {
       return `発酵室建設\n解放条件: 研究「発酵室解放」\n建設コスト: 🍃 ${FERMENT_ROOM_COST}`;
     }
+    const pending = G.fermentRoomPending || 0;
+    const pendingStr = pending > 0 ? ` (予約中: ${pending})` : '';
     const recipe = getFermentRecipe();
-    return `発酵室建設\n建設数: ${built}/${FERMENT_ROOM_MAX}\n建設コスト: 🍃 ${FERMENT_ROOM_COST}\nレシピ: 🍃${recipe.foodCost} → ${recipe.timeSec}秒 → 🍪1\n発酵アリ補正: +${bonusPct}%`;
+    return `発酵室建設\n建設数: ${built}/${FERMENT_ROOM_MAX}${pendingStr}\n建設コスト: 🍃 ${FERMENT_ROOM_COST}\nレシピ: 🍃${recipe.foodCost} → ${recipe.timeSec}秒 → 🍪1\n発酵アリ補正: +${bonusPct}%`;
   }
 
   function formatInlineMul(v) {
@@ -10707,6 +10730,8 @@ function syncFermenterUnlockUI() {
   function getFermentRoomInlineEffect() {
     if(!isFermentRoomUnlocked()) return '要研究: 発酵室解放';
     const built = getFermentRoomNodeCount(true);
+    const pending = G.fermentRoomPending || 0;
+    if(pending > 0) return `🔨 建設予約中 (${built + pending}/${FERMENT_ROOM_MAX}室)`;
     if(built >= FERMENT_ROOM_MAX) return `上限: ${built}/${FERMENT_ROOM_MAX}室`;
     const recipe = getFermentRecipe();
     return `効果: 🍃${recipe.foodCost}→🍪1`;
@@ -12390,16 +12415,14 @@ function syncFermenterUnlockUI() {
   if(btnBuildFerment) btnBuildFerment.onclick = function() {
     if(!isFermentRoomUnlocked()) { toast('研究「発酵室解放」が必要です', true); return; }
     const built = getFermentRoomNodeCount(true);
-    if(built >= FERMENT_ROOM_MAX) { toast(`発酵室は上限です (${FERMENT_ROOM_MAX})`, true); return; }
+    const pending = G.fermentRoomPending || 0;
+    if(built + pending >= FERMENT_ROOM_MAX) { toast(`発酵室は上限です (${FERMENT_ROOM_MAX})`, true); return; }
     if(G.food < FERMENT_ROOM_COST) { toast(`食料が足りません (必要: ${FERMENT_ROOM_COST})`, true); return; }
+    // 即時配置は行わず「建設予約」を立てる。
+    // 建築アリが次フレーム以降に高優先で発酵室を探して掘り始める。
     G.food -= FERMENT_ROOM_COST;
-    const eid = forceExpandRoom('ferment');
-    if(eid == null) {
-      G.food += FERMENT_ROOM_COST;
-      toast('建設可能な位置が見つかりません', true);
-      return;
-    }
-    toast('🧪 発酵室の建設を開始した');
+    G.fermentRoomPending = pending + 1;
+    toast('🧪 発酵室の建設を予約した。建築アリが場所を探します');
     addQueenWhisper('発酵室の掘削を始めたのね。甘い香りが広がるわ', 'ferment_build');
     updateUI();
   };
