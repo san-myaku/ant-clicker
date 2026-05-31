@@ -6346,8 +6346,14 @@ function expandMap(forcedType, isEmergency) {
       // 親1個あたりの試行回数。全親合計で最低 200 回は試す。
       const triesPerParent = Math.max(40, Math.ceil(200 / parentCandidates.length));
       const roomSize = dp(30*ROOM_SCALE);
-      const collDist = dp(74*ROOM_SCALE);
+      const baseCollDist = dp(74*ROOM_SCALE);
 
+      // コロニーが密だと通常の衝突距離では空きが見つからないことがある。
+      // プレイヤーが明示的に建てる部屋（発酵室など）なので、通常距離→段階的に緩めて
+      // 詰め込み配置を許可する。これで43部屋級の密なコロニーでも建設できる。
+      const collFactors = [1.0, 0.72, 0.5];
+      for(const collFactor of collFactors) {
+      const collDist = baseCollDist * collFactor;
       for(const parent of parentCandidates) {
       for(let t=0; t<triesPerParent; t++) {
           // コロニーが密な場合に備え、距離を少し広めに取る
@@ -6414,6 +6420,7 @@ function expandMap(forcedType, isEmergency) {
           return eid;
       }
       } // end for(parent)
+      } // end for(collFactor)
       return null;
   }
 
@@ -7013,44 +7020,46 @@ function expandMap(forcedType, isEmergency) {
 
       const needFirstBarracks = (hasBarracksBlueprint() && !S.hasBarracks);
 
-      // 発酵室の建設予約がある場合：兵舎の次の高優先で処理する
-      // ポイント: pending は「部屋配置完了」ではなく「掘削完了（edgeFrac>=1 or visible化）」
-      //           まで維持する。こうすることで毎フレーム高優先で掘削が選ばれる。
-      if((G.fermentRoomPending || 0) > 0 && isFermentRoomUnlocked()) {
-        // Step1: 既に配置済み・未完成の発酵室エッジがあるか探す
-        let pendingFermentEid = null;
-        for(let _fi = 0; _fi < S.full.edges.length; _fi++) {
-          if((S.edgeFrac[_fi] || 0) >= 1) continue;
-          const _fe = S.full.edges[_fi];
-          const _fuv = S.nodeVis[_fe.u], _fvv = S.nodeVis[_fe.v];
-          if(_fuv === _fvv) continue;
-          const _fhiddenIdx = _fuv ? _fe.v : _fe.u;
-          const _fhidden = S.full.nodes[_fhiddenIdx];
-          if(!_fhidden || _fhidden.type !== 'ferment') continue;
-          if(isNodeAboveGround(_fhidden)) continue;
-          if(isDigTargetReservable(_fi, _fhiddenIdx, 'ferment:reserved')) {
-            pendingFermentEid = { eid: _fi, to: _fhiddenIdx, dir: _fuv ? 1 : -1 };
-            break;
+      // 発酵室の建設予約：兵舎の次の高優先で処理する。
+      // 設計:
+      //   A) 配置済み・未掘削の発酵室エッジがあれば、最優先で掘る（pending とは無関係に掘り切る）。
+      //   B) pending が残っていて未掘削エッジが無いなら、新しい発酵室を配置し、配置成功でpendingを1減らす。
+      //  → pending は「まだ配置されていない予約数」、掘削進行は A が edgeFrac で判断するため、
+      //     既存の発酵室があっても2室目が誤ってスキップされない。
+      // 走査コスト削減のため、pendingあり or「配置済み>可視（=未掘削の発酵室あり）」のときだけ実行。
+      if(isFermentRoomUnlocked()) {
+        const fermentPlaced = getFermentRoomNodeCount(true);
+        const fermentVisible = getFermentRoomNodeCount(false);
+        const hasUnbuiltFerment = fermentPlaced > fermentVisible;
+        if((G.fermentRoomPending || 0) > 0 || hasUnbuiltFerment) {
+          // A) 未掘削の発酵室エッジを最優先で掘る
+          if(hasUnbuiltFerment) {
+            for(let _fi = 0; _fi < S.full.edges.length; _fi++) {
+              if((S.edgeFrac[_fi] || 0) >= 1) continue;
+              const _fe = S.full.edges[_fi];
+              const _fuv = S.nodeVis[_fe.u], _fvv = S.nodeVis[_fe.v];
+              if(_fuv === _fvv) continue;
+              const _fhiddenIdx = _fuv ? _fe.v : _fe.u;
+              const _fhidden = S.full.nodes[_fhiddenIdx];
+              if(!_fhidden || _fhidden.type !== 'ferment') continue;
+              if(isNodeAboveGround(_fhidden)) continue;
+              if(!isDigTargetReservable(_fi, _fhiddenIdx, 'ferment:reserved')) continue;
+              return decorateDigTarget({ eid: _fi, to: _fhiddenIdx, dir: _fuv ? 1 : -1, score: 9800, reason: 'ferment:reserved' });
+            }
           }
-        }
-        if(pendingFermentEid) {
-          // 未完成エッジが存在 → 高優先で返す（pending は維持）
-          return decorateDigTarget({ ...pendingFermentEid, score: 9800, reason: 'ferment:reserved' });
-        }
-        // Step2: 未完成エッジなし
-        // 可視済み（完成）発酵室数が予約数以上なら予約達成とみなして消す
-        const visibleFermentCount = getFermentRoomNodeCount(false);
-        const totalFermentBuilt = getFermentRoomNodeCount(true);
-        if(totalFermentBuilt >= FERMENT_ROOM_MAX || visibleFermentCount >= (G.fermentRoomPending || 0)) {
-          G.fermentRoomPending = 0;
-        } else {
-          // まだ部屋を配置できていない → 新規配置を試みる
-          const feid = forceExpandRoom('ferment');
-          if(feid != null) {
-            // 配置成功。pending は維持したまま（次フレームでStep1が拾う）
-            return decorateDigTarget({ eid: feid, to: S.full.edges[feid].v, dir: 1, score: 9800, reason: 'ferment:reserved' });
+          // B) 予約が残っていれば新しい発酵室を配置する
+          if((G.fermentRoomPending || 0) > 0) {
+            if(fermentPlaced >= FERMENT_ROOM_MAX) {
+              G.fermentRoomPending = 0; // これ以上建てられない → 予約を破棄（安全ガード）
+            } else {
+              const feid = forceExpandRoom('ferment');
+              if(feid != null) {
+                G.fermentRoomPending = Math.max(0, (G.fermentRoomPending || 0) - 1); // 配置できたら予約を1消費
+                return decorateDigTarget({ eid: feid, to: S.full.edges[feid].v, dir: 1, score: 9800, reason: 'ferment:reserved' });
+              }
+              // 配置失敗（密集）→ 次フレームで再挑戦（pending 維持）
+            }
           }
-          // 配置失敗 → 次フレームで再挑戦（pending 維持）
         }
       }
 
@@ -11897,7 +11906,8 @@ function syncFermenterUnlockUI() {
       if(cd2) cd2.textContent = d2Done ? '解放済' : String(MAJOR_DEPTH2_COST);
       if(cd3) cd3.textContent = d3Done ? '解放済' : String(MAJOR_DEPTH3_COST);
       if(cbarr) cbarr.textContent = barrDone ? (S.hasBarracks ? '入手済' : '建設待ち') : String(MAJOR_BARRACKS_COST);
-      if(cbig) cbig.textContent = bigCarryDone ? '準備済' : '将来実装';
+      // 大物運搬は通常購入カードとして解放状態を反映する（🍪はHTML側に既にある）
+      if(cbig) cbig.textContent = bigCarryDone ? '解放済' : String(MAJOR_WORKER_BIGCARRY_COST_COOKIE);
       if(d2Btn) { d2Btn.classList.toggle('disabled', true); d2Btn.style.display = 'none'; }
       if(d3Btn) { d3Btn.classList.toggle('disabled', true); d3Btn.style.display = 'none'; }
       if(barrBtn) {
@@ -11905,7 +11915,12 @@ function syncFermenterUnlockUI() {
         barrBtn.style.display = 'none';
       }
       if(cleanBtn) cleanBtn.style.display = 'none';
-      if(bigCarryBtn) { bigCarryBtn.classList.add('disabled'); bigCarryBtn.style.display = ''; }
+      if(bigCarryBtn) {
+        bigCarryBtn.style.display = '';
+        // 購入可能（未解放・働き強化Lv達成・クッキー足りる）でなければ disabled 表示
+        const canBuyBig = !bigCarryDone && (G.wLv || 0) >= MAJOR_WORKER_BIGCARRY_WLV && (G.cookie >= MAJOR_WORKER_BIGCARRY_COST_COOKIE);
+        bigCarryBtn.classList.toggle('disabled', !canBuyBig);
+      }
     }
     // MAJOR_UPGRADE: 発動メジャーの表示更新
     const nowSec = S.t;
@@ -12395,12 +12410,8 @@ function syncFermenterUnlockUI() {
     setControlTab('research');
     toast('研究タブの「兵舎設計図」で解放できます');
   };
-  // 予約枠: 大物運搬（今回未実装）
-  const btnMajorWorkerBigCarry = document.getElementById('btn-major-worker-bigcarry');
-  if(btnMajorWorkerBigCarry) btnMajorWorkerBigCarry.onclick = function() {
-    if(G.major && G.major.workerBigCarry) { toast("大物運搬は準備済みです"); return; }
-    toast("📦 大物運搬は近日解放予定です");
-  };
+  // 大物運搬の解放onclickは上で定義済み（btn-major-worker-bigcarry）。
+  // ここで旧プレースホルダを再代入しないこと（上書きで解放できなくなるため）。
   // MAJOR_UPGRADE: 発動メジャーは画面内ラッキー対象タップで発動（Dockは状態表示）
   const btnMajorActCookie = document.getElementById('btn-major-act-cookie');
   if(btnMajorActCookie) btnMajorActCookie.onclick = function() {

@@ -1,6 +1,6 @@
 # Ant Colony V23 Current System Overview
 
-Last updated: 2026-06-01 (2)
+Last updated: 2026-06-01 (3)
 Target file: `index.html`
 
 This document is the current implementation overview for the single-file ant clicker game. When gameplay, UI, save data, AI behavior, or public deployment assumptions change, update this file together with `DEVELOPMENT_LOG.md`.
@@ -511,7 +511,12 @@ Ferment room:
 - Unlock: research `ferment_unlock`
 - Build cost: food `2000`
 - Max rooms: `2`
-- Build action: player presses the button → food is deducted → `G.fermentRoomPending` increments (reservation). `getDigTarget()` then places the room with high priority (score 9800, just below first barracks) by calling `forceExpandRoom('ferment')` each frame until placement succeeds. The pending count is saved and survives reload.
+- Build action: player presses the button → food is deducted → `G.fermentRoomPending` increments (reservation). The pending count is saved and survives reload.
+- `getDigTarget()` ferment reservation logic (A/B):
+  - A) If any placed-but-undug ferment edge exists, dig it at high priority (score 9800, just below first barracks) regardless of pending.
+  - B) If `pending > 0` and no undug ferment edge exists, call `forceExpandRoom('ferment')` to place a new room; on success decrement pending by 1.
+  - `pending` therefore only counts ferment rooms not yet placed, so a 2nd reservation still builds even when one ferment room already exists.
+- `forceExpandRoom` uses multiple shaft parents and progressive collision-distance relaxation (`collFactor` 1.0 → 0.72 → 0.5) so dense colonies (40+ rooms) can still place the room.
 - `G.fermentRoomPending`: saved integer. canBuy check uses `built + pending < FERMENT_ROOM_MAX`.
 
 Base recipe:
