@@ -2529,6 +2529,14 @@
     rewardCookieMin: 6,
     rewardCookieMax: 12
   };
+
+  // ===== Phase 7B-1: レイド敵HP =====
+  // 敵にHPを持たせる準備。現時点ではHPは見た目（HPバー）と将来の兵隊攻撃接続用で、
+  // 勝敗判定（computeRaidOutcome）には一切使わない。RAID_CFG は変更しない。
+  const RAID_ENEMY_BASE_HP = 10;        // 敵HPの基準値
+  const RAID_ENEMY_HP_PER_POWER = 0.08; // 1体あたり敵パワーに対するHP係数
+  const RAID_ENEMY_HP_RANDOM_MIN = 0.85; // HPの個体差（下限）
+  const RAID_ENEMY_HP_RANDOM_MAX = 1.15; // HPの個体差（上限）
   // ===== 地下侵略者（害虫）システム =====
   const INVADER_SPAWN_MIN = 60;    // 最短出現間隔（秒）
   const INVADER_SPAWN_MAX = 180;   // 最長出現間隔（秒）
@@ -9193,6 +9201,35 @@ function expandMap(forcedType, isEmergency) {
     S.shake.t = Math.max(S.shake.t, t);
   }
 
+  // Phase 7B-1: 敵1体あたりの基準HP（敵パワーを頭数で割って反映）
+  function getRaidEnemyBaseHp(enemyPower, enemyCount) {
+    const perEnemyPower = enemyCount > 0 ? enemyPower / enemyCount : enemyPower;
+    return Math.max(1, Math.floor(RAID_ENEMY_BASE_HP + perEnemyPower * RAID_ENEMY_HP_PER_POWER));
+  }
+
+  // Phase 7B-1: 個体差込みの敵HP
+  function makeRaidEnemyHp(enemyPower, enemyCount) {
+    const base = getRaidEnemyBaseHp(enemyPower, enemyCount);
+    const r = RAID_ENEMY_HP_RANDOM_MIN + Math.random() * (RAID_ENEMY_HP_RANDOM_MAX - RAID_ENEMY_HP_RANDOM_MIN);
+    return Math.max(1, Math.floor(base * r));
+  }
+
+  // Phase 7B-1: 敵へダメージ（将来の兵隊攻撃から呼ぶ想定。今は通常プレイには未接続）
+  function damageRaidEnemy(en, amount) {
+    if(!en || en.dead) return false;
+    const dmg = Math.max(0, +amount || 0);
+    if(dmg <= 0) return false;
+    en.hp = Math.max(0, (en.hp || 0) - dmg);
+    en.hitFlash = 0.15;
+    if(en.hp <= 0) {
+      en.dead = true;
+      en.phase = "dead";
+      en.fade = Math.min(en.fade == null ? 1 : en.fade, 1);
+      return true;
+    }
+    return false;
+  }
+
   function spawnEnemies() {
     S.enemies = [];
     const enemyPower = getEnemyPower();
@@ -9204,6 +9241,7 @@ function expandMap(forcedType, isEmergency) {
       const side = (Math.random()<0.5) ? -1 : 1;
       const x0 = side < 0 ? -dp(30) - Math.random()*dp(80) : (S.full.w + dp(30) + Math.random()*dp(80));
       const speed = dp(90 + Math.random()*60);
+      const hp = makeRaidEnemyHp(enemyPower, n);
       S.enemies.push({
         x: x0,
         y: sy + Math.random()*dp(6),
@@ -9212,9 +9250,35 @@ function expandMap(forcedType, isEmergency) {
         phase: "approach",
         t: Math.random()*10,
         targetX: ex + (Math.random()-0.5)*dp(12),
-        fade: 1
+        fade: 1,
+        // Phase 7B-1: HP状態（勝敗判定にはまだ未使用）
+        hp,
+        maxHp: hp,
+        dead: false,
+        hitFlash: 0
       });
     }
+  }
+
+  // Phase 7B-1: 敵頭上のHPバー描画（ワールド座標。死亡敵には出さない）
+  function drawRaidEnemyHpBar(ctx, en) {
+    if(!en || en.dead || !en.maxHp || en.maxHp <= 0) return;
+    const alpha = clamp(en.fade == null ? 1 : en.fade, 0, 1);
+    if(alpha <= 0) return;
+    const ratio = clamp((en.hp || 0) / en.maxHp, 0, 1);
+    const w = dp(18), h = dp(3);
+    const x = en.x - w / 2;
+    const y = en.y - dp(18);
+    ctx.save();
+    ctx.globalAlpha *= alpha;
+    ctx.fillStyle = "rgba(15,23,42,0.85)";
+    ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = ratio > 0.45 ? "rgba(248,113,113,0.95)" : "rgba(251,146,60,0.95)";
+    ctx.fillRect(x, y, w * ratio, h);
+    ctx.strokeStyle = "rgba(0,0,0,0.45)";
+    ctx.lineWidth = Math.max(1, dp(0.75));
+    ctx.strokeRect(x, y, w, h);
+    ctx.restore();
   }
 
   function getSoldierIndividualMul() {
@@ -11747,6 +11811,16 @@ function syncFermenterUnlockUI() {
   }
   window.__forceRaid = debugForceRaid;
 
+  // デバッグ：レイド敵全体にダメージを与える（Phase 7B-1 のHP/HPバー確認用。通常UIには非露出）
+  window.__damageRaidEnemies = function(amount = 5) {
+    if(!S.enemies) return 0;
+    let hit = 0;
+    for(const en of S.enemies) {
+      if(en && !en.dead) { damageRaidEnemy(en, amount); hit++; }
+    }
+    return hit;
+  };
+
   window.addEventListener('keydown', (e)=>{
     if(e.key !== 'r' && e.key !== 'R') return;
     if(e.repeat) return;
@@ -12904,6 +12978,14 @@ function syncFermenterUnlockUI() {
         const sy = S.full.sy;
         S.enemies.forEach(en => {
           en.t += dt;
+          // Phase 7B-1: ヒット閃光の減衰（全敵共通）
+          if(en.hitFlash) en.hitFlash = Math.max(0, en.hitFlash - dt);
+          // Phase 7B-1: 死亡敵は移動せずフェードアウト
+          if(en.dead || en.phase === "dead") {
+            en.fade -= dt * 1.4;
+            en.fade = clamp(en.fade, 0, 1);
+            return;
+          }
           if(en.phase === "approach") {
             const dx = en.targetX - en.x;
             en.x += Math.sign(dx) * en.sp * dt;
@@ -14070,8 +14152,10 @@ function syncFermenterUnlockUI() {
     if(S.enemies.length) {
       S.enemies.forEach(en => {
         if(en.fade <= 0) return;
+        const isDead = (en.dead || en.phase === 'dead');
         ctx.save();
-        ctx.globalAlpha = en.fade;
+        // Phase 7B-1: 死亡敵は少し暗く見せる
+        ctx.globalAlpha = en.fade * (isDead ? 0.6 : 1);
         ctx.translate(en.x, en.y);
         const dir = (en.targetX - en.x) >= 0 ? 0 : Math.PI;
         ctx.rotate(dir);
@@ -14086,7 +14170,17 @@ function syncFermenterUnlockUI() {
         ctx.beginPath(); ctx.moveTo(dp(8), -dp(1)); ctx.lineTo(dp(12), -dp(4)); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(dp(8), dp(1)); ctx.lineTo(dp(12), dp(4)); ctx.stroke();
 
+        // Phase 7B-1: 被弾閃光（ダメージ時の白フラッシュ）
+        if(en.hitFlash > 0) {
+          ctx.globalAlpha = en.fade * clamp(en.hitFlash / 0.15, 0, 1) * 0.7;
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath(); ctx.ellipse(0, 0, dp(6), dp(4.4), 0, 0, 6.28); ctx.fill();
+        }
+
         ctx.restore();
+
+        // Phase 7B-1: HPバー（ワールド座標・回転を受けない）
+        drawRaidEnemyHpBar(ctx, en);
       });
     }
 

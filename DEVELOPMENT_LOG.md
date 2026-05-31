@@ -1,5 +1,48 @@
 # Development Log
 
+## 2026-06-01 Phase 7B-1 レイド敵HPとHPバー
+
+目的:
+
+- 地表レイドの敵にHP状態を持たせ、頭上にHPバーを表示する。将来の兵隊地表迎撃（Phase 7B-2 以降）に接続できる土台を作る。
+- この段階では HP は見た目と将来接続用のみ。勝敗判定には一切使わない。
+
+追加した敵フィールド（`spawnEnemies()` の各敵）:
+
+- `hp` / `maxHp`: 敵HP（`makeRaidEnemyHp` で算出）
+- `dead`: 死亡フラグ
+- `hitFlash`: 被弾閃光タイマー（将来の演出用）
+
+追加した定数（`RAID_CFG` は変更せず別 const で追加）:
+
+- `RAID_ENEMY_BASE_HP=10` / `RAID_ENEMY_HP_PER_POWER=0.08` / `RAID_ENEMY_HP_RANDOM_MIN=0.85` / `RAID_ENEMY_HP_RANDOM_MAX=1.15`
+
+追加した主な関数:
+
+- `getRaidEnemyBaseHp(enemyPower, enemyCount)`: 敵パワーを頭数で割った1体あたり基準HP。
+- `makeRaidEnemyHp(enemyPower, enemyCount)`: 個体差込みのHP。
+- `damageRaidEnemy(en, amount)`: 敵にダメージ（HP0で `dead=true`, `phase="dead"`）。**今は通常プレイの兵隊攻撃には未接続**。
+- `drawRaidEnemyHpBar(ctx, en)`: 敵頭上のHPバー（ワールド座標、死亡敵には出さない、`fade` 反映）。
+
+その他の変更:
+
+- 攻撃フェーズの敵更新ループ: 死亡敵は移動せず `fade` を速めに下げる、`hitFlash` を毎フレーム減衰。
+- 敵描画: 死亡敵は少し暗く、`hitFlash>0` の間は白フラッシュ、本体描画後にHPバーを描画。
+- デバッグ: `window.__damageRaidEnemies(amount=5)` で全敵にダメージ（通常UIには非露出）。
+
+勝敗判定は不変:
+
+- レイド勝敗は従来通り Phase 7A の `resolveRaid()` 内 `computeRaidOutcome()` で確定。敵HPが0でも全滅でも勝敗には影響しない。`computeRaidOutcome()` の式・報酬・損害は無変更。
+
+Phase 7B-2（未実装）:
+
+- 兵隊アリの地表迎撃AI、ターゲット探索、攻撃処理、敵全滅勝利、突破数による敗北はまだ実装していない。
+
+検証:
+
+- inline JS `node --check`（OK）、`git diff --check`（クリーン）。`spawnEnemies` に `hp/maxHp/dead/hitFlash` があること、`computeRaidOutcome`/`resolveRaid` の勝敗ロジックが無変更であることを確認。
+- ヘッドレスChrome/CDP: レイドを `__forceRaid()` で発生→攻撃中の敵8体すべてに `hp/maxHp`（totalHp 93=totalMax 93）、`__damageRaidEnemies(3)` でHP減少（93→69）、`__damageRaidEnemies(99999)` で全員 `dead`（minDeadFade 0 までフェード）、その状態でも従来通り resolve して `raidTotal` +1・結果モーダル表示・通常復帰、大物運搬の出現/中断に副作用なし、コンソールエラー0 を確認。
+
 ## 2026-06-01 テスト用レイド強制発生（デバッグ）
 
 目的:

@@ -1,6 +1,6 @@
 # Ant Colony V23 Current System Overview
 
-Last updated: 2026-06-01 (4)
+Last updated: 2026-06-01 (5)
 Target file: `index.html`
 
 This document is the current implementation overview for the single-file ant clicker game. When gameplay, UI, save data, AI behavior, or public deployment assumptions change, update this file together with `DEVELOPMENT_LOG.md`.
@@ -599,7 +599,14 @@ Raid outcome timing (Phase 7A):
 - `beginRaidAttack()` only sets up the attack phase (close result modal, `state="attack"`, reset timer, spawn enemies, screen shake, alert UI). It does NOT call `computeRaidOutcome()` and clears any stale `S.raidVis._pendingOutcome`.
 - `resolveRaid()` calls `computeRaidOutcome()` itself (`const out = S.raidVis._pendingOutcome || computeRaidOutcome()`), then applies rewards/damage, updates `G.raidWins`/`G.raidTotal`, and shows the result modal. The `_pendingOutcome` fallback is only a compatibility guard for stale in-flight state; new raids resolve fresh.
 - Balance is unchanged: `RAID_CFG`, `getColonyCombatPower()`, `getEnemyPower()`, `getRaidWinProb()`, `computeRaidOutcome()` formula, rewards, and loss amounts are identical to before.
-- Enemy HP, soldier surface interception, nearest-target seeking, ranged attacks, and breach-count win logic are NOT implemented yet. These are planned for Phase 7B.
+Raid enemy HP (Phase 7B-1):
+
+- Each raid enemy spawned by `spawnEnemies()` has `hp`, `maxHp`, `dead`, and `hitFlash` fields. HP is derived from enemy power per head via `getRaidEnemyBaseHp()` / `makeRaidEnemyHp()` (constants `RAID_ENEMY_BASE_HP`, `RAID_ENEMY_HP_PER_POWER`, `RAID_ENEMY_HP_RANDOM_MIN/MAX`; `RAID_CFG` itself is unchanged).
+- A small HP bar is drawn above each living enemy (`drawRaidEnemyHpBar()`), reflecting `hp/maxHp` and the enemy `fade`.
+- `damageRaidEnemy(en, amount)` reduces HP; at 0 the enemy becomes `dead` / `phase="dead"`, stops moving, and fades out. This helper exists for the future Phase 7B-2 soldier attacks and is NOT yet connected to normal play (only `window.__damageRaidEnemies()` debug uses it).
+- Important: HP is currently visual / future-connection only. It does NOT affect the raid outcome. Win/lose is still decided by `computeRaidOutcome()` inside `resolveRaid()` (Phase 7A) regardless of how many enemies are alive or dead.
+
+Soldier surface interception, nearest-target seeking, ranged attacks, all-enemies-dead win, and breach-count loss are NOT implemented yet. These are planned for Phase 7B-2 and later.
 
 Debug raid trigger (test only, not exposed in normal UI):
 
