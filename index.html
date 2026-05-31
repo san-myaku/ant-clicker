@@ -7086,20 +7086,28 @@ function expandMap(forcedType, isEmergency) {
 
       // Prefer a matching hidden room (nursery/food) or create one before shafts.
       if(forcedType !== 'shaft') {
+          // ② 配列順で最初に採用するのをやめ、入口に近い部屋を優先する。
+          // 同じ深さに複数の未接続部屋があるとき、右端/左端の遠い部屋から掘り始める問題を防ぐ。
+          let bestPref = null;
+          const exXPref = ENX();
           for(let i=0; i<S.full.edges.length; i++) {
               if(S.edgeFrac[i] >= 1) continue;
               const e = S.full.edges[i];
               const uv = S.nodeVis[e.u], vv = S.nodeVis[e.v];
               if(uv === vv) continue;
-	              const hiddenIdx = uv ? e.v : e.u;
-	              const hidden = S.full.nodes[hiddenIdx];
-	              if(depthLock && hidden.y > depthLimit) continue;
-	              if(isNodeAboveGround(hidden)) continue;
-	              if(hidden.type !== forcedType) continue;
-	              const reason = "existing:"+forcedType;
-	              if(!isDigTargetReservable(i, hiddenIdx, reason)) continue;
-	              return decorateDigTarget({ eid:i, to:hiddenIdx, dir:uv?1:-1, score:1200, reason });
-	          }
+              const hiddenIdx = uv ? e.v : e.u;
+              const hidden = S.full.nodes[hiddenIdx];
+              if(depthLock && hidden.y > depthLimit) continue;
+              if(isNodeAboveGround(hidden)) continue;
+              if(hidden.type !== forcedType) continue;
+              const reason = "existing:"+forcedType;
+              if(!isDigTargetReservable(i, hiddenIdx, reason)) continue;
+              const dist = Math.abs(hidden.x - exXPref);
+              if(!bestPref || dist < bestPref.dist) {
+                  bestPref = { eid:i, to:hiddenIdx, dir:uv?1:-1, score:1200, reason, dist };
+              }
+          }
+          if(bestPref) return decorateDigTarget(bestPref);
 
           const newEidPref = expandMap(forcedType, true);
           if(newEidPref !== null && newEidPref !== undefined) {
@@ -7139,7 +7147,11 @@ function expandMap(forcedType, isEmergency) {
           if(!isDigTargetReservable(i, hiddenIdx, "existing")) continue;
 
           const bandCenter = (S.band.top + S.band.bottom) * 0.5;
-          let score = 1000 - Math.abs(hidden.y - bandCenter) * 0.01;
+          const exXExist = ENX();
+          // ③ Y距離だけでなくX距離（入口からの横ずれ）もスコアに反映する。
+          // 遠い右端/左端の部分掘削エッジより、入口付近の中心的なエッジを優先させる。
+          let score = 1000 - Math.abs(hidden.y - bandCenter) * 0.01
+                           - Math.abs(hidden.x - exXExist) * 0.015;
           if(hidden.type !== 'shaft') score += 50;
 
           if(!bestExisting || score > bestExisting.score) {
