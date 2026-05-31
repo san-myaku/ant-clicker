@@ -4832,6 +4832,9 @@ function ensureRestSlots(n){
     enemies: [],
     invaders: [],        // 地下侵略者（害虫）
     invaderTimer: 60,    // 次の害虫出現までのカウントダウン
+    // 大物運搬イベント（ランタイム専用・非保存）
+    largeFood: null,     // 出現中の大きな餌（1個まで）。null=なし
+    largeFoodTimer: 30,  // 次の出現抽選までのカウントダウン秒（初回は短め）
     // 季節・天気
     season: { idx: 0, day: 0, dayProgress: 0 },
     weather: { id: 'clear', label: '晴れ', nextChangeAt: 3.0, changeTimer: WEATHER_CHANGE_INTERVAL },
@@ -6413,6 +6416,22 @@ function expandMap(forcedType, isEmergency) {
   const ANT_SURFACE_SPEED_RET = dp(70 * ANT_MOVE_GLOBAL_MUL);
   const ANT_WANDER_JITTER_SPEED = dp(20 * ANT_MOVE_GLOBAL_MUL);
   const ANT_WANDER_STEP_SPEED = dp(40 * ANT_MOVE_GLOBAL_MUL);
+
+  // ===== 大物運搬イベント（MVP） =====
+  // 地表に大きな餌が出現し、働きアリが集まって巣入口へ運ぶと食料報酬が入る。
+  // ランタイム専用のイベント（S.largeFood）で、セーブ/オフライン進行には含めない。
+  const LARGE_FOOD_MIN_WORKERS = 12;        // この働きアリ数以上で出現対象になる
+  const LARGE_FOOD_REQUIRED_WORKERS = 5;    // 運搬開始に必要な集合数
+  const LARGE_FOOD_MIN_INTERVAL = 60;       // 次の出現抽選までの最短秒
+  const LARGE_FOOD_MAX_INTERVAL = 120;      // 次の出現抽選までの最長秒
+  const LARGE_FOOD_SPAWN_CHANCE = 0.7;      // 出現タイマー到達時に実際に出る確率（低確率寄り）
+  const LARGE_FOOD_RETRY_INTERVAL = 25;     // 抽選に外れた/出せなかったときの短い再抽選秒
+  const LARGE_FOOD_GATHER_TIMEOUT = 45;     // 集合が間に合わないと自然消滅するまでの秒数
+  const LARGE_FOOD_CARRY_SPEED = dp(34);    // 入口へ運ぶ速度（device px/sec）
+  const LARGE_FOOD_REWARD_BASE = 300;       // 基本食料報酬
+  const LARGE_FOOD_REWARD_PER_WORKER = 50;  // 出現時の働きアリ数に応じた追加報酬（上限あり）
+  const LARGE_FOOD_REWARD_WORKER_CAP = 40;  // 報酬計算に使う働きアリ数の上限
+  const LARGE_FOOD_RADIUS = dp(17);         // 描画半径の基準
 
   // ノード from から to への経路（node列）を BFS で探索。完成した通路（edgeFrac>=0.99）のみ通れる
   function findNodePath(srcNodeId, dstNodeId) {
@@ -8052,6 +8071,248 @@ function expandMap(forcedType, isEmergency) {
     ensureGoldenRepresentation();
   }
 
+  // ===== 大物運搬イベント（MVP） =====
+  // 地表に大きな餌（lf）が1個だけ出現し、働きアリが集合する。
+  // 必要数が集まると餌は巣入口へゆっくり移動し、到達すると食料報酬が入る。
+  // 物理シミュレーションはせず、餌は update 内で入口へ寄せ、働きアリは見た目だけ追従させる。
+  // ランタイム専用（S.largeFood）。セーブ/オフライン進行には含めない。
+
+  // 出現中の大物に割当/到着している働きアリ数を数える
+  function countLargeFoodWorkers() {
+    let assigned = 0, arrived = 0;
+    for(const a of S.ants) {
+      if(a.role !== 'worker') continue;
+      if(a.task === 'large_food_wait' || a.task === 'large_food_carry') { assigned++; arrived++; }
+      else if(a.task === 'go_large_food') { assigned++; }
+    }
+    return { assigned, arrived };
+  }
+
+  // いびつな多角形の頂点（角度と半径倍率）を生成
+  function makeLargeFoodShape() {
+    const n = 9 + Math.floor(Math.random() * 3); // 9〜11頂点
+    const pts = [];
+    for(let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2;
+      const rad = 0.78 + Math.random() * 0.42;   // 0.78〜1.20
+      pts.push({ a, rad });
+    }
+    return pts;
+  }
+
+  // 大物を1個生成（出現条件は呼び出し側で確認済み前提。デバッグ手動出現にも使う）
+  function spawnLargeFood() {
+    if(!S.full) return null;
+    const ex = ENX();
+    const w = S.full.w || 0;
+    // 入口からある程度離れた地表に出す（左右どちらか）。世界の端には寄せすぎない。
+    const dir = (Math.random() < 0.5) ? -1 : 1;
+    const dist = w * (0.18 + Math.random() * 0.16); // 世界幅の18〜34%
+    let x = ex + dir * dist;
+    const minX = w * 0.06, maxX = w * 0.94;
+    if(x < minX) x = minX;
+    if(x > maxX) x = maxX;
+    const required = Math.max(3, Math.min(LARGE_FOOD_REQUIRED_WORKERS, Math.floor((G.ants.worker || 0) * 0.5) || LARGE_FOOD_REQUIRED_WORKERS));
+    const rewardWorkers = Math.min(LARGE_FOOD_REWARD_WORKER_CAP, Math.max(0, Math.floor(G.ants.worker || 0)));
+    const rewardFood = Math.floor(LARGE_FOOD_REWARD_BASE + LARGE_FOOD_REWARD_PER_WORKER * rewardWorkers);
+    S.largeFood = {
+      id: Date.now(),
+      x, y: S.full.sy,
+      state: 'waiting',          // waiting | gathering | carrying | done
+      requiredWorkers: required,
+      assignedWorkers: 0,
+      arrivedWorkers: 0,
+      rewardFood,
+      progress: 0,               // 運搬の進捗 0..1
+      rewarded: false,
+      r: LARGE_FOOD_RADIUS,
+      seed: Math.random() * Math.PI * 2,
+      shape: makeLargeFoodShape(),
+      life: LARGE_FOOD_GATHER_TIMEOUT,
+      carryStartX: x,
+      t: 0,
+      doneT: 0,
+      spawnTime: S.t
+    };
+    toast("🌿 地表に大きな餌が出現！働きアリが集まっています");
+    return S.largeFood;
+  }
+
+  // 出現抽選（update から毎フレーム）
+  function maybeSpawnLargeFood(dt) {
+    if(!S.full) return;
+    if(S.largeFood) return;                                    // 既に出ている（同時に1個まで）
+    const raidActive = (S.raidVis.state === "countdown" || S.raidVis.state === "attack");
+    if(raidActive) return;                                     // レイド中は出さない
+    if((G.ants.worker || 0) < LARGE_FOOD_MIN_WORKERS) return;  // 働きアリが少ないうちは出さない
+    if(S.largeFoodTimer == null) S.largeFoodTimer = LARGE_FOOD_MIN_INTERVAL;
+    S.largeFoodTimer -= dt;
+    if(S.largeFoodTimer > 0) return;
+    if(Math.random() < LARGE_FOOD_SPAWN_CHANCE) {
+      // 出現。次の抽選は通常間隔（60〜120秒）でリスケジュール。
+      S.largeFoodTimer = LARGE_FOOD_MIN_INTERVAL + Math.random() * (LARGE_FOOD_MAX_INTERVAL - LARGE_FOOD_MIN_INTERVAL);
+      spawnLargeFood();
+    } else {
+      // 低確率で外れたときは短い間隔で再抽選。
+      S.largeFoodTimer = LARGE_FOOD_RETRY_INTERVAL;
+    }
+  }
+
+  // 大物の状態更新（update から毎フレーム、updateAnts の前に呼ぶ）
+  function updateLargeFood(dt) {
+    maybeSpawnLargeFood(dt);
+    const lf = S.largeFood;
+    if(!lf || !S.full) return;
+    const raidActive = (S.raidVis.state === "countdown" || S.raidVis.state === "attack");
+    if(raidActive) {
+      // レイド発生でイベント中止（働きアリは updateAnts 側で入口へ戻る）
+      S.largeFood = null;
+      return;
+    }
+    lf.t += dt;
+    lf.y = S.full.sy;
+
+    if(lf.state === 'waiting' || lf.state === 'gathering') {
+      const counts = countLargeFoodWorkers();
+      lf.assignedWorkers = counts.assigned;
+      lf.arrivedWorkers = counts.arrived;
+      lf.state = (counts.assigned > 0) ? 'gathering' : 'waiting';
+      lf.life -= dt;
+      if(counts.arrived >= lf.requiredWorkers) {
+        lf.state = 'carrying';
+        lf.carryStartX = lf.x;
+      } else if(lf.life <= 0) {
+        // 集合が間に合わず自然消滅（報酬なし）。働きアリは updateAnts 側で解放。
+        S.largeFood = null;
+        return;
+      }
+    } else if(lf.state === 'carrying') {
+      const ex = ENX();
+      const dx = ex - lf.x;
+      const dir = Math.sign(dx) || -1;
+      lf.x += dir * LARGE_FOOD_CARRY_SPEED * dt;
+      const total = Math.abs(ex - lf.carryStartX) || 1;
+      lf.progress = clamp(1 - Math.abs(ex - lf.x) / total, 0, 1);
+      lf.arrivedWorkers = countLargeFoodWorkers().arrived;
+      if(Math.abs(ex - lf.x) < dp(14)) {
+        lf.x = ex;
+        lf.progress = 1;
+        lf.state = 'done';
+      }
+    } else if(lf.state === 'done') {
+      if(!lf.rewarded) {
+        lf.rewarded = true;
+        const before = G.food;
+        G.food = Math.min(G.caps.food, G.food + lf.rewardFood);
+        const gained = Math.max(0, Math.floor(G.food - before));
+        fx(lf.x, lf.y - dp(24), `大物 +${fmtCount(gained)}`, '#a3e635');
+        toast(`🌿 大きな餌を巣に搬入！ 食料 +${fmtCount(gained)}`);
+        shake(dp(2), 0.15);
+      }
+      lf.doneT += dt;
+      if(lf.doneT > 0.5) S.largeFood = null;
+    }
+  }
+
+  // 待機/集合中の働きアリを1匹割り当て（updateAnts の worker idle から呼ぶ）
+  function tryAssignLargeFood(a) {
+    if(!S.largeFood || !S.full) return false;
+    clearRoomWander(a);
+    a.cargo = null;
+    a.lfOffset = (Math.random() - 0.5) * dp(30); // 餌の周囲にばらけさせる横ずれ
+    if(a.node === S.full.eid) {
+      // 既に入口にいるなら地表移動から開始
+      a.task = 'go_large_food';
+      a.lfPhase = 'surf';
+      a.x = ENX(); a.y = S.full.sy;
+      return true;
+    }
+    const path = getPath(a.node, S.full.eid);
+    if(!path) return false;
+    a.path = path; a.pIdx = 0; a.phase = 'path';
+    a.task = 'go_large_food';
+    a.lfPhase = 'path';
+    return true;
+  }
+
+  // 大物タスクから解放し、入口へ戻して巣内へ（既存 ret を再利用）
+  function releaseFromLargeFood(a) {
+    a.lfPhase = null;
+    a.lfOffset = 0;
+    a.cargo = null;
+    a.task = 'ret';
+    a.tx = ENX();
+    if(S.full) a.y = S.full.sy;
+  }
+
+  // 大物の地表描画（render から、アリ描画の前に呼ぶ）
+  function drawLargeFood(ctx, view) {
+    const lf = S.largeFood;
+    if(!lf || !S.full) return;
+    const pad = dp(80);
+    if(lf.x < view.x - pad || lf.x > view.x + view.w + pad) return;
+    const r = lf.r || LARGE_FOOD_RADIUS;
+    const baseY = lf.y; // 働きアリと同じ地表ラインに合わせる（S.full.sy）
+    const bob = Math.sin(S.t * 3 + (lf.seed || 0)) * dp(1.2);
+    const cy = baseY - r * 0.55 + bob;
+    ctx.save();
+
+    // 影
+    ctx.fillStyle = 'rgba(0,0,0,0.22)';
+    ctx.beginPath();
+    ctx.ellipse(lf.x, baseY + dp(2), r * 1.05, r * 0.32, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // いびつな多角形の本体
+    const pts = lf.shape || [];
+    ctx.beginPath();
+    for(let i = 0; i < pts.length; i++) {
+      const ang = pts[i].a;
+      const rr = r * pts[i].rad;
+      const px = lf.x + Math.cos(ang) * rr;
+      const py = cy + Math.sin(ang) * rr * 0.9;
+      if(i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    const grad = ctx.createLinearGradient(lf.x, cy - r, lf.x, cy + r);
+    grad.addColorStop(0, '#84cc16');
+    grad.addColorStop(1, '#4d7c0f');
+    ctx.fillStyle = grad;
+    ctx.fill();
+    ctx.lineWidth = dp(1.6);
+    ctx.strokeStyle = 'rgba(54,83,20,0.92)';
+    ctx.stroke();
+
+    // 葉脈っぽい線（テクスチャ）
+    ctx.strokeStyle = 'rgba(54,83,20,0.5)';
+    ctx.lineWidth = dp(1);
+    ctx.beginPath();
+    ctx.moveTo(lf.x - r * 0.5, cy);
+    ctx.lineTo(lf.x + r * 0.5, cy);
+    ctx.moveTo(lf.x, cy - r * 0.45);
+    ctx.lineTo(lf.x, cy + r * 0.45);
+    ctx.stroke();
+
+    // ラベル（集合数 or 搬送中）
+    let label = '';
+    if(lf.state === 'waiting' || lf.state === 'gathering') {
+      label = `${Math.min(lf.arrivedWorkers || 0, lf.requiredWorkers)}/${lf.requiredWorkers}`;
+    } else if(lf.state === 'carrying') {
+      label = '搬送中';
+    }
+    if(label) {
+      ctx.font = `${dp(11)}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.lineWidth = dp(3);
+      ctx.strokeStyle = 'rgba(31,26,18,0.7)';
+      ctx.strokeText(label, lf.x, cy - r - dp(4));
+      ctx.fillStyle = '#ecfccb';
+      ctx.fillText(label, lf.x, cy - r - dp(4));
+    }
+    ctx.restore();
+  }
+
   function getAntUpdateInterval(a, idx, raidActive) {
     if(!a) return 1;
     if(raidActive) return 1;
@@ -8059,6 +8320,8 @@ function expandMap(forcedType, isEmergency) {
     if(S.invaders && S.invaders.length && a.role === 'soldier') return 1;
     const task = a.task || 'idle';
     if(a.cargo || a.carryType || a.wasteCarry || a.foodCarry) return 1;
+    // 大物運搬中の働きアリは止めない（毎フレーム更新）
+    if(task === 'go_large_food' || task === 'large_food_wait' || task === 'large_food_carry') return 1;
     if(task === 'rest') return 4;
     if(task === 'wander') return 3;
     if(task === 'idle') {
@@ -8136,6 +8399,17 @@ function expandMap(forcedType, isEmergency) {
     const surfaceMul = (S.restMul || 1);
     const goldenCookieOnly = isGoldenCookieOnlyActive();
     const workerCookieChance = getWorkerCookieChance();
+
+    // 大物運搬：集合が必要かと、現在の参加者数
+    const lfEvent = S.largeFood;
+    const largeFoodNeedsWorkers = !!(lfEvent && (lfEvent.state === 'waiting' || lfEvent.state === 'gathering') && !raidActive);
+    let largeFoodWorkersNow = 0;
+    if(largeFoodNeedsWorkers) {
+      for(const b of S.ants) {
+        if(b.role !== 'worker') continue;
+        if(b.task === 'go_large_food' || b.task === 'large_food_wait' || b.task === 'large_food_carry') largeFoodWorkersNow++;
+      }
+    }
 
     S.ants.forEach((a, antIdx) => {
       if(!shouldFullUpdateAnt(a, antIdx, raidActive)) {
@@ -8306,6 +8580,9 @@ function expandMap(forcedType, isEmergency) {
           } else if(a.task==='go_out') {
             a.task='idle';
             a.path=null; a.phase=null;
+          } else if(a.task==='go_large_food' || a.task==='large_food_wait' || a.task==='large_food_carry') {
+            // レイド中は大物運搬を中断して入口へ退避
+            releaseFromLargeFood(a);
           }
         }
         if(a.task==='go_rest') {
@@ -8316,6 +8593,11 @@ function expandMap(forcedType, isEmergency) {
           updateRest(a,dt);
         }
         else if(a.task==='idle') {
+          // 最優先：大物運搬の集合（必要数まで）
+          if(largeFoodNeedsWorkers && largeFoodWorkersNow < S.largeFood.requiredWorkers && tryAssignLargeFood(a)) {
+            largeFoodWorkersNow++;
+            return;
+          }
           if(restTarget > 0 && restingNow < restTarget && tryStartRest(a, restRooms)) { restingNow++; return; }
 
           // 低優先：通常の採餌行動
@@ -8429,6 +8711,47 @@ function expandMap(forcedType, isEmergency) {
             }
             clearWasteTask(a);
             a.task='idle';
+          }
+        }
+        else if(a.task==='go_large_food') {
+          // 大物へ向かう：入口まで巣内を移動 → 地表を餌の位置へ歩く
+          const lf = S.largeFood;
+          if(!lf) { releaseFromLargeFood(a); }
+          else if(a.lfPhase === 'path') {
+            move(a, dt);
+            if(a.phase==='done') { a.lfPhase='surf'; a.node=S.full.eid; a.x=ENX(); a.y=S.full.sy; }
+          } else {
+            const tx = lf.x + (a.lfOffset || 0);
+            const dx = tx - a.x;
+            a.x += Math.sign(dx) * ANT_SURFACE_SPEED_OUT * surfaceMul * dt;
+            a.y = S.full.sy; a.rot = (dx>=0 ? 0 : Math.PI);
+            if(Math.abs(dx) < dp(8)) a.task = 'large_food_wait';
+          }
+        }
+        else if(a.task==='large_food_wait') {
+          // 餌の周囲で待機。運搬開始（carrying）になったら付いて動く
+          const lf = S.largeFood;
+          if(!lf || lf.state === 'done') { releaseFromLargeFood(a); }
+          else {
+            a.y = S.full.sy;
+            const tx = lf.x + (a.lfOffset || 0);
+            const dx = tx - a.x;
+            if(Math.abs(dx) > dp(3)) { a.x += Math.sign(dx) * ANT_SURFACE_SPEED_OUT * surfaceMul * dt * 0.6; a.rot = (dx>=0 ? 0 : Math.PI); }
+            if(lf.state === 'carrying') a.task = 'large_food_carry';
+          }
+        }
+        else if(a.task==='large_food_carry') {
+          // 餌に付いて入口方向へ一緒に動く（見た目だけ）。餌の移動は updateLargeFood が行う
+          const lf = S.largeFood;
+          if(!lf || lf.state === 'done') { releaseFromLargeFood(a); }
+          else {
+            a.y = S.full.sy;
+            const tx = lf.x + (a.lfOffset || 0);
+            const dx = tx - a.x;
+            const step = Math.min(Math.abs(dx), ANT_SURFACE_SPEED_RET * surfaceMul * dt);
+            a.x += Math.sign(dx) * step;
+            const travel = ENX() - lf.x;
+            a.rot = (travel >= 0 ? 0 : Math.PI);
           }
         }
         else if(a.task==='wander') {
@@ -11261,6 +11584,14 @@ function syncFermenterUnlockUI() {
     debugNodePath.show = !!nodePath;
   });
 
+  // デバッグ：キーLで大物運搬イベントを手動出現（コンソールからは window.__spawnLargeFood()）
+  window.addEventListener('keydown', (e)=>{
+    if(e.key !== 'l' && e.key !== 'L') return;
+    if(!S.full) return;
+    spawnLargeFood();
+  });
+  window.__spawnLargeFood = function(){ return S.full ? spawnLargeFood() : null; };
+
   const btnReset = document.getElementById('btn-reset');
   const btnSpeed5 = document.getElementById('btn-speed-5');
   const btnSpeed10 = document.getElementById('btn-speed-10');
@@ -12423,6 +12754,7 @@ function syncFermenterUnlockUI() {
       G.raidTimer = -1;
     }
 
+    updateLargeFood(dt);
     updateAnts(dt);
 
     updateTrails(dt);
@@ -13532,6 +13864,8 @@ function syncFermenterUnlockUI() {
       ctx.restore();
     }
 
+    drawLargeFood(ctx, view);
+
     if(S.enemies.length) {
       S.enemies.forEach(en => {
         if(en.fade <= 0) return;
@@ -13942,6 +14276,7 @@ function syncFermenterUnlockUI() {
     if(S.trails) S.trails.forEach(tr => { tr.x += dx; });
     if(S.effects) S.effects.forEach(e => { e.x += dx; });
     if(S.enemies) S.enemies.forEach(en => { en.x += dx; if(en.targetX != null) en.targetX += dx; });
+    if(S.largeFood) { S.largeFood.x += dx; if(S.largeFood.carryStartX != null) S.largeFood.carryStartX += dx; }
   }
 
   function resizeCanvas() {

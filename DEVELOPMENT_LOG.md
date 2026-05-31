@@ -1,5 +1,54 @@
 # Development Log
 
+## 2026-05-31 Large food carry event MVP
+
+Purpose:
+
+- Add a minimal surface "large food" carry event without touching the existing systems.
+- A big food appears on the surface, idle workers gather, escort it to the nest entrance, and the colony gains food.
+- Intentionally scoped to the carry event only. No leaf/mushroom/cultivation/expedition/surface-combat systems.
+
+Changes:
+
+- Added a runtime-only event slot `S.largeFood` (single event at a time) and a `S.largeFoodTimer` countdown. Neither is saved.
+- Added gameplay constants: min worker gate, required gather count, 60-120s spawn interval with a low-probability roll and short retry, gather timeout, carry speed, reward, and draw radius.
+- Added system functions near the ant-update code:
+  - `spawnLargeFood()` builds one event on the surface, offset from the entrance, with an irregular polygon shape, required worker count, and a worker-scaled food reward.
+  - `maybeSpawnLargeFood(dt)` rolls the timer; only when there is no active event, no raid, and `G.ants.worker >= LARGE_FOOD_MIN_WORKERS`.
+  - `updateLargeFood(dt)` runs the state machine `waiting -> gathering -> carrying -> done`, moves the food to the entrance during carry, grants the food reward once on arrival, and clears the event. Aborts on raid.
+  - `tryAssignLargeFood(a)` / `releaseFromLargeFood(a)` assign an idle worker to the event and release them back inside via the existing `ret` flow.
+  - `drawLargeFood(ctx, view)` draws the food as a shadowed irregular green polygon with a `arrived/required` or `搬送中` label, on the same surface line as workers.
+  - `countLargeFoodWorkers()` counts assigned/arrived workers by scanning `S.ants` (no per-ant stable IDs needed).
+- Added three worker tasks: `go_large_food`, `large_food_wait`, `large_food_carry`. Assignment happens in the worker idle branch (highest priority, capped at `requiredWorkers`); only idle workers join.
+- Wired calls: `updateLargeFood(dt)` before `updateAnts(dt)` in `update`; `drawLargeFood(ctx, view)` before the raid-enemy draw in `render`; `S.largeFood.x` shift in `shiftWorldX(dx)`.
+- Phase 4 integration: `getAntUpdateInterval()` returns 1 (full update every frame) for the three large-food tasks, so escorting workers never freeze under AI throttling. Workers escorting/gathering also abort to the entrance when a raid starts.
+- Debug: key `L` and `window.__spawnLargeFood()` force-spawn one event.
+
+Data shape (`S.largeFood`):
+
+- `id, x, y, state, requiredWorkers, assignedWorkers, arrivedWorkers, rewardFood, progress, rewarded, r, seed, shape, life, carryStartX, t, doneT, spawnTime`
+
+Reward:
+
+- `rewardFood = LARGE_FOOD_REWARD_BASE(300) + 50 * min(G.ants.worker, 40)` food, added once on arrival, clamped to `G.caps.food`.
+
+Save/Load/Offline:
+
+- Not saved, not restored, not part of offline progression. The event simply disappears on reload, which is intentional for the MVP.
+
+Verification:
+
+- Extracted inline JavaScript and ran `node --check` (syntax OK).
+- Ran `git diff --check` (no whitespace errors).
+- Headless Chrome via CDP (real time + `S.timeScale=12`), main flow PASS: game initializes with no console errors; forced event reaches `gathering` (4 workers arrived for required 2), then `carrying`, food moves to the entrance, food reward `+1545` is granted once, the event becomes null, and a second `__spawnLargeFood()` call keeps a single slot. Existing `surf/ret/go_in` tasks and normal food production keep running; zero console errors during the run.
+- Headless Chrome via CDP spawn-condition test PASS: no spawn at worker 5 (below gate), natural timer spawn at worker 24, and no spawn while a held `attack` raid is active.
+
+Remaining notes / future hooks:
+
+- Reward is food only. Cookie/other rewards, multiple simultaneous events, and a research node for the event are intentionally out of scope.
+- The surface large-food slot and irregular-blob/escort presentation are designed to be extendable later toward leaf/mushroom carry or surface combat, but none of that is implemented now.
+- Worker participation is idle-only and capped at `requiredWorkers`; nurse/builder/soldier and non-idle workers are never pulled in.
+
 ## 2026-05-30 Right HUD resource boxes always visible
 
 Purpose:

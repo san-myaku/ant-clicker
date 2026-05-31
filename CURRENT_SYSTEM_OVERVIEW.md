@@ -1,6 +1,6 @@
 # Ant Colony V23 Current System Overview
 
-Last updated: 2026-05-30
+Last updated: 2026-05-31
 Target file: `index.html`
 
 This document is the current implementation overview for the single-file ant clicker game. When gameplay, UI, save data, AI behavior, or public deployment assumptions change, update this file together with `DEVELOPMENT_LOG.md`.
@@ -67,6 +67,7 @@ Important fields:
 - `ants`
 - `effects`, `dust`, `trails`
 - `enemies`, `invaders`
+- `largeFood`, `largeFoodTimer` (runtime-only large food carry event; not saved)
 - `season`, `weather`
 - `globalBuffs`
 - `majorActives`
@@ -342,6 +343,7 @@ Workers handle:
 - Food/cookie return
 - Rest room usage
 - Room wandering
+- Large food carry event participation (tasks `go_large_food`, `large_food_wait`, `large_food_carry`; see section 17)
 
 Worker upgrade:
 
@@ -577,7 +579,54 @@ Invaders:
 - Surface raid system uses `S.raidVis` and `resolveRaid()`.
 - Raid phases include warning/countdown, attack, and result.
 
-## 17. Season, Weather, Buffs, And Lucky Targets
+## 17. Large Food Carry Event
+
+A lightweight surface event (MVP). A single large food appears on the surface, idle workers gather, escort it to the nest entrance, and the colony gains food.
+
+State:
+
+- Runtime-only `S.largeFood` (one event at a time) and `S.largeFoodTimer`. Neither is saved or restored.
+- `S.largeFood` fields: `id`, `x`, `y`, `state`, `requiredWorkers`, `assignedWorkers`, `arrivedWorkers`, `rewardFood`, `progress`, `rewarded`, `r`, `seed`, `shape`, `life`, `carryStartX`, `t`, `doneT`, `spawnTime`.
+- `state` machine: `waiting -> gathering -> carrying -> done`.
+
+Spawn conditions (`maybeSpawnLargeFood`):
+
+- No active event (single slot).
+- Not during a raid.
+- `G.ants.worker >= LARGE_FOOD_MIN_WORKERS` (12).
+- `S.largeFoodTimer` counts down; on expiry, a low-probability roll spawns the event and reschedules 60-120s, otherwise retries after a short interval.
+- Debug: key `L` or `window.__spawnLargeFood()` force-spawns one.
+
+Gather / carry / complete (`updateLargeFood`, called before `updateAnts`):
+
+- Idle workers are assigned in the worker idle branch at highest priority, capped at `requiredWorkers`. Only idle workers join; nurse/builder/soldier and busy/cargo workers never do.
+- Assigned workers walk to the entrance, then across the surface to the food (`go_large_food`), then mill around it (`large_food_wait`).
+- When arrived workers reach `requiredWorkers`, state becomes `carrying`; the food moves toward the entrance and workers follow as presentation (`large_food_carry`). The food movement is driven by `updateLargeFood`, not by the ants.
+- On reaching the entrance, the food reward is granted once (`G.food += rewardFood`, clamped to cap), with a toast and `fx`, then the event clears after a short linger.
+- If workers cannot gather in time (`life` timeout) or a raid starts, the event aborts and the workers return inside via the existing `ret` flow.
+
+Reward:
+
+- Food only. `rewardFood = LARGE_FOOD_REWARD_BASE (300) + 50 * min(G.ants.worker, 40)`.
+
+Rendering (`drawLargeFood`, before the raid-enemy draw):
+
+- Irregular green polygon with a shadow on the same surface line as workers, plus an `arrived/required` (e.g. `3/5`) or `搬送中` label. Workers draw on top, so they appear to gather around and escort it.
+- `shiftWorldX(dx)` also offsets `S.largeFood.x` so the event stays aligned when the world shifts.
+
+Phase 4 integration:
+
+- `getAntUpdateInterval()` returns 1 (full update) for `go_large_food`, `large_food_wait`, and `large_food_carry`, so escorting workers are not throttled.
+
+Save / offline:
+
+- Not saved, not part of offline progression. The event disappears on reload, which is intentional for the MVP.
+
+Future hooks:
+
+- The surface large-food slot and escort presentation can be extended later toward leaf/mushroom carry or surface combat, but none of that is implemented now. Cookie/other rewards, multiple simultaneous events, and a research node for the event are out of scope.
+
+## 18. Season, Weather, Buffs, And Lucky Targets
 
 Season/weather:
 
@@ -598,7 +647,7 @@ Major lucky targets:
 - Cookie boost target appears around the surface and can trigger `S.majorActives.cookie`.
 - On mobile, the sweet-fragrance countdown text is hidden and the icon-only target is used.
 
-## 18. Offline Progression
+## 19. Offline Progression
 
 Offline progression is applied after load if enough time has passed.
 
@@ -618,7 +667,7 @@ Important current correction:
 - Offline egg/larva/adult progression now updates room inventories so closed-time growth is reflected more consistently.
 - Golden egg/larva subset counts are normalized during inventory reconciliation.
 
-## 19. Goals, Tutorial, Diary, Notifications
+## 20. Goals, Tutorial, Diary, Notifications
 
 Goal tree includes:
 
@@ -671,7 +720,7 @@ Save transfer UI:
 - `📥` loads an exported save string through a prompt and reloads the page.
 - Long-pressing export still opens the import prompt as a compatibility shortcut.
 
-## 20. Drawing And Performance
+## 21. Drawing And Performance
 
 Canvas rendering draws:
 
@@ -714,7 +763,7 @@ Debug/performance:
 - `toggleDebugOverlay()`
 - Performance overlay shows FPS, update/render time, visual/logical ants, ants drawn, render cap, selected/used mode, LOD, full/light/skipped AI counts, draw counts by mode, dot batch count, builder stats, and graph stats.
 
-## 21. Error Handling
+## 22. Error Handling
 
 Global error handling records runtime errors and exposes them through the error modal.
 
@@ -724,7 +773,7 @@ Behavior:
 - Excessive repeated errors can pause the game loop to avoid browser lockups.
 - Missing toast area falls back to console output.
 
-## 22. Removed Or Deferred Systems
+## 23. Removed Or Deferred Systems
 
 ### Mushroom / Leaf System
 
@@ -766,7 +815,7 @@ Old removed/deprecated concepts:
 - Golden boost tap bonus
 - Golden boost `x10` golden chance
 
-## 23. Current Known Issues And TODO
+## 24. Current Known Issues And TODO
 
 ### Render Cap Still Affects Some Non-Builder Simulation
 
@@ -838,7 +887,16 @@ Needs real-play balance checks:
 
 Fermenter ants affect population and ferment speed but are not visualized as individual ants. This is currently intentional, but can be revisited.
 
-## 24. Update Discipline
+### Large Food Carry Event MVP Limitations
+
+The large food carry event is intentionally minimal and needs real-play balance and polish checks:
+
+- Reward (`300 + 50 * min(worker, 40)` food) and the 60-120s low-probability spawn cadence are untuned guesses.
+- One event at a time, food-only reward, idle-only worker participation, and no research node are deliberate MVP scope, not final design.
+- The event is runtime-only: it is not saved and is dropped on reload, so an in-progress carry is lost on refresh.
+- Worker escort is presentation only; the food is moved by `updateLargeFood`, so escort visuals and food motion can desync slightly at very high `timeScale`.
+
+## 25. Update Discipline
 
 When changing the game:
 
