@@ -1,6 +1,6 @@
 # Ant Colony V23 Current System Overview
 
-Last updated: 2026-06-01 (7)
+Last updated: 2026-06-01 (8)
 Target file: `index.html`
 
 This document is the current implementation overview for the single-file ant clicker game. When gameplay, UI, save data, AI behavior, or public deployment assumptions change, update this file together with `DEVELOPMENT_LOG.md`.
@@ -614,7 +614,8 @@ Soldier surface sortie (Phase 7B-2):
 
 - During the attack phase, soldier ants sortie from the entrance onto the surface as a display layer (`S.raidSoldiers`, independent from `S.ants`, runtime-only, not saved).
 - Rendered soldier count is `clamp(G.ants.soldier, 0, RAID_SURFACE_SOLDIER_RENDER_MAX=24)` — a visual representation only. Logical combat power is still `G.ants.soldier` / `getColonyCombatPower()`.
-- Each surface soldier seeks the nearest living enemy (`findNearestLivingRaidEnemy`), advances toward it, and slows to "engage" within `RAID_SURFACE_SOLDIER_ENGAGE_RADIUS`. If its target dies or disappears it re-targets; if no enemies remain it returns to / idles near the entrance. Phases: `emerge -> advance -> engage -> return -> idle`. Movement is straight-line (no pathfinding).
+- Each surface soldier has a `preferSide` (alternating left/right by slot index) and seeks the nearest living enemy on that side first (`findNearestLivingRaidEnemy(x,y,side,ex)`), falling back to the nearest living enemy anywhere if its side is empty. This makes soldiers split to both sides when enemies attack from both. It advances toward the target and slows to "engage" within `RAID_SURFACE_SOLDIER_ENGAGE_RADIUS`. If its target dies or disappears it re-targets; if no enemies remain it returns to / idles near the entrance. Phases: `emerge -> advance -> engage -> return -> idle`. Movement is straight-line (no pathfinding).
+- Surface soldiers are drawn in the soldier blue (`#3b82f6`) to match the soldier identity. During the raid `attack`/`result` phases, the underground `S.ants` soldiers are excluded from the ant draw (the surface soldiers represent them), so there is no duplicate blue cluster at the entrance. The `S.ants` soldier defend/guard logic itself is unchanged; only their rendering is suppressed during the raid.
 - Enemies carry a unique `id` (for targeting). Soldiers are spawned in `beginRaidAttack()` via `ensureRaidSoldiers()`, updated by `updateRaidSoldiers()`, drawn by `drawRaidSoldiers()`, and cleared/faded on `result`/`none` via `clearRaidSoldiers()`.
 - Important: surface soldiers do NOT deal damage yet. `damageRaidEnemy()` is still not connected to normal play, enemy HP does not drop during normal raids, and the outcome is still decided by `computeRaidOutcome()` inside `resolveRaid()` regardless of soldier/enemy positions.
 
