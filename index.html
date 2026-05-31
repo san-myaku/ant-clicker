@@ -6952,6 +6952,7 @@ function expandMap(forcedType, isEmergency) {
     const needFirstBarracks = hasBarracksBlueprint() && !S.hasBarracks;
     if(text === 'main-shaft') return 100;
     if(needFirstBarracks && n && n.type === 'soldier') return 95;
+    if(text === 'ferment:reserved') return 92;  // 予約済み発酵室は兵舎に次ぐ高優先
     if(text.indexOf('forceShaft') === 0) return 90;
     if(text.indexOf('force:') === 0) return 82;
     if(text.indexOf('expand:') === 0) return 74;
@@ -6966,6 +6967,7 @@ function expandMap(forcedType, isEmergency) {
     const needFirstBarracks = hasBarracksBlueprint() && !S.hasBarracks;
     if(text === 'main-shaft') return 4;
     if(needFirstBarracks && n && n.type === 'soldier') return 5;
+    if(text === 'ferment:reserved') return 3;
     if(text.indexOf('forceShaft') === 0) return 3;
     if(text.indexOf('force:') === 0) return 3;
     if(n && n.type === 'ferment') return 2;
@@ -7012,19 +7014,43 @@ function expandMap(forcedType, isEmergency) {
       const needFirstBarracks = (hasBarracksBlueprint() && !S.hasBarracks);
 
       // 発酵室の建設予約がある場合：兵舎の次の高優先で処理する
-      // 食料は購入時点で払い済み。forceExpandRoom が成功したらカウントを減らす。
+      // ポイント: pending は「部屋配置完了」ではなく「掘削完了（edgeFrac>=1 or visible化）」
+      //           まで維持する。こうすることで毎フレーム高優先で掘削が選ばれる。
       if((G.fermentRoomPending || 0) > 0 && isFermentRoomUnlocked()) {
-        const builtNow = getFermentRoomNodeCount(true);
-        if(builtNow < FERMENT_ROOM_MAX) {
+        // Step1: 既に配置済み・未完成の発酵室エッジがあるか探す
+        let pendingFermentEid = null;
+        for(let _fi = 0; _fi < S.full.edges.length; _fi++) {
+          if((S.edgeFrac[_fi] || 0) >= 1) continue;
+          const _fe = S.full.edges[_fi];
+          const _fuv = S.nodeVis[_fe.u], _fvv = S.nodeVis[_fe.v];
+          if(_fuv === _fvv) continue;
+          const _fhiddenIdx = _fuv ? _fe.v : _fe.u;
+          const _fhidden = S.full.nodes[_fhiddenIdx];
+          if(!_fhidden || _fhidden.type !== 'ferment') continue;
+          if(isNodeAboveGround(_fhidden)) continue;
+          if(isDigTargetReservable(_fi, _fhiddenIdx, 'ferment:reserved')) {
+            pendingFermentEid = { eid: _fi, to: _fhiddenIdx, dir: _fuv ? 1 : -1 };
+            break;
+          }
+        }
+        if(pendingFermentEid) {
+          // 未完成エッジが存在 → 高優先で返す（pending は維持）
+          return decorateDigTarget({ ...pendingFermentEid, score: 9800, reason: 'ferment:reserved' });
+        }
+        // Step2: 未完成エッジなし
+        // 可視済み（完成）発酵室数が予約数以上なら予約達成とみなして消す
+        const visibleFermentCount = getFermentRoomNodeCount(false);
+        const totalFermentBuilt = getFermentRoomNodeCount(true);
+        if(totalFermentBuilt >= FERMENT_ROOM_MAX || visibleFermentCount >= (G.fermentRoomPending || 0)) {
+          G.fermentRoomPending = 0;
+        } else {
+          // まだ部屋を配置できていない → 新規配置を試みる
           const feid = forceExpandRoom('ferment');
           if(feid != null) {
-            G.fermentRoomPending = Math.max(0, (G.fermentRoomPending || 0) - 1);
+            // 配置成功。pending は維持したまま（次フレームでStep1が拾う）
             return decorateDigTarget({ eid: feid, to: S.full.edges[feid].v, dir: 1, score: 9800, reason: 'ferment:reserved' });
           }
-          // 今フレームは配置できなかった（まだ密集）→ 次フレームで再挑戦
-        } else {
-          // すでに上限に達しているなら予約を消す（過剰予約の安全ガード）
-          G.fermentRoomPending = 0;
+          // 配置失敗 → 次フレームで再挑戦（pending 維持）
         }
       }
 
