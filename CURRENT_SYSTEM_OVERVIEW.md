@@ -1,6 +1,6 @@
 # Ant Colony V23 Current System Overview
 
-Last updated: 2026-06-01 (5)
+Last updated: 2026-06-01 (6)
 Target file: `index.html`
 
 This document is the current implementation overview for the single-file ant clicker game. When gameplay, UI, save data, AI behavior, or public deployment assumptions change, update this file together with `DEVELOPMENT_LOG.md`.
@@ -606,7 +606,15 @@ Raid enemy HP (Phase 7B-1):
 - `damageRaidEnemy(en, amount)` reduces HP; at 0 the enemy becomes `dead` / `phase="dead"`, stops moving, and fades out. This helper exists for the future Phase 7B-2 soldier attacks and is NOT yet connected to normal play (only `window.__damageRaidEnemies()` debug uses it).
 - Important: HP is currently visual / future-connection only. It does NOT affect the raid outcome. Win/lose is still decided by `computeRaidOutcome()` inside `resolveRaid()` (Phase 7A) regardless of how many enemies are alive or dead.
 
-Soldier surface interception, nearest-target seeking, ranged attacks, all-enemies-dead win, and breach-count loss are NOT implemented yet. These are planned for Phase 7B-2 and later.
+Soldier surface sortie (Phase 7B-2):
+
+- During the attack phase, soldier ants sortie from the entrance onto the surface as a display layer (`S.raidSoldiers`, independent from `S.ants`, runtime-only, not saved).
+- Rendered soldier count is `clamp(G.ants.soldier, 0, RAID_SURFACE_SOLDIER_RENDER_MAX=24)` — a visual representation only. Logical combat power is still `G.ants.soldier` / `getColonyCombatPower()`.
+- Each surface soldier seeks the nearest living enemy (`findNearestLivingRaidEnemy`), advances toward it, and slows to "engage" within `RAID_SURFACE_SOLDIER_ENGAGE_RADIUS`. If its target dies or disappears it re-targets; if no enemies remain it returns to / idles near the entrance. Phases: `emerge -> advance -> engage -> return -> idle`. Movement is straight-line (no pathfinding).
+- Enemies carry a unique `id` (for targeting). Soldiers are spawned in `beginRaidAttack()` via `ensureRaidSoldiers()`, updated by `updateRaidSoldiers()`, drawn by `drawRaidSoldiers()`, and cleared/faded on `result`/`none` via `clearRaidSoldiers()`.
+- Important: surface soldiers do NOT deal damage yet. `damageRaidEnemy()` is still not connected to normal play, enemy HP does not drop during normal raids, and the outcome is still decided by `computeRaidOutcome()` inside `resolveRaid()` regardless of soldier/enemy positions.
+
+Soldier-to-enemy attack/damage (Phase 7B-3) and all-enemies-dead win / breach-count loss (Phase 7B-4) are NOT implemented yet.
 
 Debug raid trigger (test only, not exposed in normal UI):
 

@@ -1,5 +1,52 @@
 # Development Log
 
+## 2026-06-01 Phase 7B-2 兵隊アリの地表出撃＋敵への接近
+
+目的:
+
+- 攻撃フェーズ中に兵隊アリを巣入口から地表へ出撃させ、最寄りの生存敵へ接近・追尾する「戦っているように見える」表示演出を追加する。
+- この段階ではダメージ・敵HP減少・勝敗判定は変更しない（攻撃判定は Phase 7B-3、勝敗反映は 7B-4）。
+
+追加した主な状態:
+
+- `S.raidSoldiers`: 地表レイドの兵隊アリ配列（**`S.ants` とは完全に独立**・ランタイム専用・非保存）。各要素は `x,y,vx,vy,sp,fade,phase,targetEnemyId,homeX,homeY,slotIndex,wobble,rot,dead`。
+- レイド敵に一意 `id`（`_raidEnemyIdSeq` 採番）を追加。兵隊の追尾ターゲット参照用。
+
+追加した主な定数（dp使用のため dp 定義後に配置）:
+
+- `RAID_SURFACE_SOLDIER_RENDER_MAX=24` / `RAID_SURFACE_SOLDIER_SPEED=dp(110)` / `RAID_SURFACE_SOLDIER_ENGAGE_RADIUS=dp(18)` / `RAID_SURFACE_SOLDIER_SEPARATION=dp(8)` / `RAID_SURFACE_SOLDIER_RETURN_RADIUS=dp(22)`
+
+追加した主な関数:
+
+- `getRaidSurfaceSoldierRenderCount()`: 表示兵隊数 = `clamp(G.ants.soldier, 0, 24)`。**論理戦力（G.ants.soldier / getColonyCombatPower）とは分離**。
+- `ensureRaidSoldiers()` / `clearRaidSoldiers()`: 攻撃開始時に入口付近へ生成、終了時に後始末。
+- `findNearestLivingRaidEnemy(x,y)` / `getRaidEnemyById(id)`: ターゲット探索。
+- `moveToward(obj,tx,ty,speed,dt)`: 直線移動＋向き更新（経路探索なし）。
+- `updateRaidSoldiers(dt)`: フェーズ機械 emerge→advance→engage→return→idle。ターゲットが死亡/消失したら再探索、生存敵が無ければ入口へ戻る。兵隊同士の重なりを軽く緩和。
+- `drawRaidSoldiers(ctx)`: 黒〜濃茶の兵隊アリを地表敵より少し大きめに描画（大顎シルエット）。
+
+結線:
+
+- `beginRaidAttack()` で `spawnEnemies()` 直後に `ensureRaidSoldiers()`。
+- 攻撃フェーズ更新で `updateRaidSoldiers(dt)`、結果フェーズで兵隊をフェードアウト、通常復帰/兵隊0での強制終了で `clearRaidSoldiers()`。
+- render の敵描画直後に `drawRaidSoldiers(ctx)`。`shiftWorldX()` で兵隊座標も補正。
+- デバッグ: `window.__debugRaidSoldiers()`（論理/表示兵隊数・生存敵数・フェーズ内訳）。
+
+実装中に見つけて直したバグ:
+
+- Phase 7B-2 定数を `dp()` 定義前の位置に置いてしまい、起動時に `ReferenceError: Cannot access 'dp' before initialization`（Temporal Dead Zone）。dp 定義後（移動定数付近）へ移動して解消。
+
+勝敗・ダメージは未変更:
+
+- 兵隊は敵にダメージを与えない。`damageRaidEnemy()` は通常更新ループに未接続。`computeRaidOutcome()` / `resolveRaid()` / `getColonyCombatPower()` / `getEnemyPower()` / `getRaidWinProb()` は無変更。勝敗は依然 `resolveRaid()` 時の `computeRaidOutcome()` で確定。
+
+検証:
+
+- inline JS `node --check`（OK）、`git diff --check`（クリーン）、`computeRaidOutcome`/`resolveRaid` 無変更・`S.ants` ではなく `S.raidSoldiers` 使用を確認。
+- ヘッドレスChrome/CDP: 兵隊10体出撃（=min(soldier,24)）、`S.ants` と別配列、最寄り敵へ advance/engage、2秒交戦後も敵 totalHp=totalMax（兵隊はダメージなし）、敵半数撃破で兵隊は死亡敵を指さず生存敵へ再ターゲット、敵全滅で全兵隊 return/idle、その状態でも従来通り resolve（raidTotal +1・結果モーダル）、通常復帰で兵隊クリア、大物運搬に副作用なし、コンソールエラー0 を確認。
+
+Phase 7B-3（未実装）: 兵隊→敵の攻撃判定・ダメージ接続。Phase 7B-4: 敵全滅勝利/突破敗北の勝敗反映。
+
 ## 2026-06-01 Phase 7B-1 レイド敵HPとHPバー
 
 目的:
