@@ -1,6 +1,6 @@
 # Ant Colony V23 Current System Overview
 
-Last updated: 2026-06-01 (9)
+Last updated: 2026-06-01 (10)
 Target file: `index.html`
 
 This document is the current implementation overview for the single-file ant clicker game. When gameplay, UI, save data, AI behavior, or public deployment assumptions change, update this file together with `DEVELOPMENT_LOG.md`.
@@ -620,6 +620,7 @@ Surface combat and outcome (Phase 7B-3/4):
 
 - Surface soldiers attack: when within `RAID_SURFACE_SOLDIER_ATTACK_RANGE` of their target and off cooldown (`RAID_SURFACE_SOLDIER_ATTACK_COOLDOWN`), they call `damageRaidEnemy()` for `getRaidSurfaceSoldierDamage()` (= `RAID_SURFACE_SOLDIER_DAMAGE_BASE * getSoldierPowerMul(G.sLv)`, which already includes the jaw2x x2). On a kill the soldier re-targets.
 - Enemy death: HP 0 -> `dead`, stops, fades out, excluded from targeting and from the living count.
+- Engagement slowdown (standoff): while soldiers are engaging an enemy (within engage radius), the enemy's forward advance is slowed (`holdFactor = max(RAID_ENEMY_ENGAGED_MIN_FACTOR 0.1, 1 - engagedBy * RAID_ENEMY_ENGAGED_SLOW_PER 0.6)`). One soldier roughly halves its speed, two or more nearly hold it in place, creating a battle line. Enemies that are not engaged still advance at full speed and can slip through to breach.
 - Enemy breach: when an enemy gets close enough to the entrance it is marked `breached` once and counted; breached enemies sink in and fade, and are excluded from combat.
 - The attack phase no longer ends at a fixed 6 s. It runs until the battle is decided (all enemies killed/breached, i.e. living count 0; or breaches reach the loss threshold) or a `RAID_ATTACK_MAX_SEC` (16 s) safety cap, then waits `RAID_FINISH_DELAY` (0.6 s) before resolving.
 - Outcome: `computeRaidOutcomeFromSurfaceCombat()` returns win if all enemies were killed (or none living and none breached), loss if breached enemies reach `getRaidBreachLoseThreshold(total)` (= `ceil(total * RAID_BREACH_LOSE_RATIO 0.30)`, min 1), otherwise a time judgement (win if breach ratio < 0.30 and kill ratio >= 0.50). It is converted to the existing out format by `buildRaidOutcomeFromSurfaceResult()` (food/cookie reward on win with a small all-killed bonus; worker loss and food/egg multipliers scaled by breach ratio on loss), so `resolveRaid()` applies rewards/damage exactly once via its existing path.
