@@ -154,6 +154,8 @@
     }
     .res-lbl { font-size: 9px; color: #94a3b8; text-transform: uppercase; }
     .res-val { font-family: monospace; font-size: 14px; font-weight: 700; color: #fff; }
+    #btn-color-mode { opacity: 0.45; }
+    #btn-color-mode.color-mode-on { opacity: 1; border-color: #7c3aed; box-shadow: 0 0 6px rgba(124,58,237,0.5); }
     .txt-green { color: #4ade80; } .txt-gold { color: #fcd34d; } .txt-blue { color: #60a5fa; }
 
     #control-panel {
@@ -1849,6 +1851,7 @@
           <button class="res-box" id="btn-save-import" style="cursor:pointer; border-color:#334155; font-size:9px; color:#64748b;" title="セーブデータを読み込み" data-menu-label="ロード" aria-label="ロード">📥</button>
           <button class="res-box" id="btn-diary" style="cursor:pointer; border-color:#8b5cf6;" title="女王の日記" data-menu-label="日記" aria-label="女王の日記">👑</button>
           <button class="res-box" id="btn-goals" style="cursor:pointer; border-color:#22c55e;" title="コロニーの目標" data-menu-label="目標" aria-label="コロニーの目標">🗺️</button>
+          <button class="res-box" id="btn-color-mode" style="cursor:pointer; border-color:#7c3aed;" title="カラーモード切替" data-menu-label="カラー" aria-label="カラーモード">🎨</button>
           <button class="res-box" id="btn-fit" style="cursor:pointer; border-color:#22c55e;" title="全体表示" data-menu-label="全体表示" aria-label="全体表示">🧭</button>
           <button class="res-box" id="btn-err" style="cursor:pointer; border-color:#ef4444;" title="エラー詳細" data-menu-label="エラー" aria-label="エラー詳細">⚠</button>
         </div>
@@ -1936,11 +1939,7 @@
               <div class="tab-sec-title">部屋アップグレード</div>
               <div id="dock-rooms-grid" class="dock-grid dock-grid-tab"></div>
             </div>
-            <div class="tab-card">
-              <div class="tab-sec-title">施設プレビュー</div>
-              <div id="tab-rooms-slot"></div>
-              <div class="future-room-note">🧪 発酵室は研究「発酵室解放」の後に建設できます。</div>
-            </div>
+
             <div class="tab-card" id="ferment-room-panel">
               <div class="tab-sec-title">発酵室ライン</div>
               <div class="ferment-room-summary" id="ferment-room-summary">研究で発酵枝を進めると詳細が表示されます。</div>
@@ -2094,6 +2093,15 @@
                 <span class="dock-badge new" data-badge="new">NEW</span>
                 <span class="dock-badge lock" data-badge="lock">🔒</span>
               </button>
+              <button class="dock-item" type="button" id="btn-build-cookieroom" data-upkey="cookieroom_build">
+                <div class="dock-icon">🍪</div>
+                <div class="dock-meta">
+                  <div class="dock-name">クッキー室建設</div>
+                  <div class="dock-cost">🍪 <span id="c-build-cookieroom">30</span></div>
+                </div>
+                <span class="dock-badge new" data-badge="new">NEW</span>
+                <span class="dock-badge lock" data-badge="lock">🔒</span>
+              </button>
               <button class="dock-item" type="button" id="btn-up-soldier" data-upkey="soldier">
                 <div class="dock-icon">🛡️</div>
                 <div class="dock-meta">
@@ -2162,19 +2170,6 @@
               </div>
             </button>
             <div class="ant-count" id="c-fermenter">0</div>
-          </div>
-        </div>
-        <div class="unlock-preview" id="unlock-preview">
-          <div class="unlock-preview-title">未解放プレビュー</div>
-          <div class="unlock-preview-grid">
-            <button type="button" class="unlock-preview-item is-locked" id="hint-cookieroom">
-              <span class="name">🍪 クッキー室</span>
-              <span class="state" id="hint-cookieroom-state">建築Lv3で解放</span>
-            </button>
-            <button type="button" class="unlock-preview-item is-locked" id="hint-expedition">
-              <span class="name">🧭 遠征</span>
-              <span class="state" id="hint-expedition-state">将来解放</span>
-            </button>
           </div>
         </div>
         </div>
@@ -2343,12 +2338,16 @@
   const WASTE_ROOM_MAX = 1;           // 自動建築の最大数
   // クッキーの部屋
   const COOKIE_ROOM_UNLOCK_LV = 3;    // 解禁に必要な建築Lv
-  const COOKIE_ROOM_MAX = 3;          // 自動建築の最大数
+  const COOKIE_ROOM_MAX = 3;          // 自動建築の最大数（参照があるため残す）
   const COOKIE_ROOM_MUL_PER_ROOM = 1.5; // 1部屋あたりのクッキー収集倍率
+  const COOKIE_ROOM_COST_BASE = 30;    // クッキー室初期コスト（🍪）
+  const COOKIE_ROOM_COST_GROWTH = 2.5; // クッキー室コスト倍率
   const RESEARCH_UNLOCK_FOOD = 10000;
   const FERMENT_ROOM_UNLOCK_NODE = 'ferment_unlock';
   const FERMENT_ROOM_COST = 2000;
-  const FERMENT_ROOM_MAX = 2;
+  const FERMENT_ROOM_MAX = 2;          // 参照があるため残す
+  const FERMENT_ROOM_COST_GROWTH = 2.0; // 発酵室コスト倍率
+  const BARRACKS_COST_GROWTH = 2.5;    // 兵舎コスト倍率
   const FERMENT_BASE_FOOD_COST = 100;
   const FERMENT_REDUCED_FOOD_COST = 90;
   const FERMENT_BASE_TIME = 45;
@@ -3020,6 +3019,23 @@ function getWasteHaulAmount(){
 
 function isFermentRoomUnlocked(){
   return hasResearchNode(FERMENT_ROOM_UNLOCK_NODE);
+}
+
+function isCookieRoomUnlocked() {
+  return (G.bLv || 0) >= COOKIE_ROOM_UNLOCK_LV;
+}
+
+function getFermentRoomCost() {
+  const n = getFermentRoomNodeCount(true) + (G.fermentRoomPending || 0);
+  return Math.round(FERMENT_ROOM_COST * Math.pow(FERMENT_ROOM_COST_GROWTH, n));
+}
+function getCookieRoomCost() {
+  const n = (S.cookieRoomCount || 0) + (G.cookieRoomPending || 0);
+  return Math.round(COOKIE_ROOM_COST_BASE * Math.pow(COOKIE_ROOM_COST_GROWTH, n));
+}
+function getBarracksCost() {
+  const n = (S.barracksCount || 0) + (G.barracksPending || 0);
+  return Math.round(MAJOR_BARRACKS_COST * Math.pow(BARRACKS_COST_GROWTH, n));
 }
 
 function getFermentRecipe(){
@@ -4103,7 +4119,13 @@ function ensureRestSlots(n){
       }
       if(!ok) continue;
 
+      const p0 = { x: parent.x, y: parent.y };
+      const p3 = { x: nx, y: ny };
       const nid = S.full.nodes.length;
+      const seed = hashNums([p0.x, p0.y, p3.x, p3.y, parent.id, nid, 1]);
+      const ctrl = makeCurvyBezierControls(p0, p3, { curviness: edgeCurviness(parent, {type:'shaft',main:true}), seed });
+      if(edgeIntersectsExisting({ p0, p1: ctrl.p1, p2: ctrl.p2, p3 }, tipId, nid)) continue;
+
       const newNode = {
         id:nid, x:nx, y:ny, r:roomSize, type:'shaft', main:true, invEgg:0, invGoldenEgg:0, invFood:0, invCookie:0,
         // 追加在庫（卵→幼虫→成虫の拡張用）
@@ -4119,10 +4141,6 @@ function ensureRestSlots(n){
       S.nodeVis[nid] = false;
 
       const eid = S.full.edges.length;
-      const p0 = { x: parent.x, y: parent.y };
-      const p3 = { x: nx, y: ny };
-      const seed = hashNums([p0.x, p0.y, p3.x, p3.y, parent.id, nid, 1]);
-      const ctrl = makeCurvyBezierControls(p0, p3, { curviness: edgeCurviness(parent, newNode), seed });
       S.full.edges.push({
         id: eid, u: tipId, v: nid,
         p0,
@@ -4561,6 +4579,8 @@ function ensureRestSlots(n){
     fermenterFirstHired: false,
     _fermentCookieMade: false,
     fermentRoomPending: 0,   // 発酵室の「建設予約」数。食料支払い済み・建設待ち。
+    cookieRoomPending: 0,   // クッキー室の「建設予約」数
+    barracksPending: 0,     // 兵舎の「建設予約」数
 
     get tot() { return this.ants.worker + this.ants.nurse + this.ants.builder + this.ants.soldier + (this.ants.fermenter || 0); },
     // MAJOR_UPGRADE: 深度解放の段数を返す（depth3はdepth2前提）
@@ -4657,6 +4677,7 @@ function ensureRestSlots(n){
         S.wasteCount = wasteCount;
         S.hasWasteRoom = wasteCount > 0;
         S.cookieRoomCount = cookieRoomCount;
+        S.barracksCount = soldierRooms;
         S.cookieRoomMul = Math.pow(COOKIE_ROOM_MUL_PER_ROOM, cookieRoomCount); // クッキー室による倍率
         S.fermentCount = fermentCount;
         S.restLimit = Math.max(0, Math.ceil(roomTotal * REST_MAX_RATIO));
@@ -4702,7 +4723,9 @@ function ensureRestSlots(n){
         fermentFirstCompleted: !!this.fermentFirstCompleted,
         fermenterFirstHired: !!this.fermenterFirstHired,
         fermentCookieMade: !!this._fermentCookieMade,
-        fermentRoomPending: Math.max(0, Math.floor(this.fermentRoomPending || 0))
+        fermentRoomPending: Math.max(0, Math.floor(this.fermentRoomPending || 0)),
+        cookieRoomPending: Math.max(0, Math.floor(this.cookieRoomPending || 0)),
+        barracksPending: Math.max(0, Math.floor(this.barracksPending || 0))
       };
     },
 
@@ -4801,6 +4824,8 @@ function ensureRestSlots(n){
         this.fermenterFirstHired = !!d.fermenterFirstHired;
         this._fermentCookieMade = !!d.fermentCookieMade;
         this.fermentRoomPending = Math.max(0, Math.floor(+d.fermentRoomPending || 0));
+        this.cookieRoomPending = Math.max(0, Math.floor(+d.cookieRoomPending || 0));
+        this.barracksPending = Math.max(0, Math.floor(+d.barracksPending || 0));
         if(d.research && typeof d.research === 'object') {
           this.research = d.research;
         } else {
@@ -5779,10 +5804,8 @@ function expandMap(forcedType, isEmergency) {
       if(forcedType === 'rest' && (S.restCount || 0) >= restLimit) forcedType = 'shaft';
       const wasteCount = (typeof S.wasteCount === 'number') ? S.wasteCount : 0;
       if(forcedType === 'waste' && (!G.unlockWasteRoom || wasteCount >= WASTE_ROOM_MAX)) forcedType = 'shaft';
-      const crCount = (typeof S.cookieRoomCount === 'number') ? S.cookieRoomCount : 0;
-      if(forcedType === 'cookieroom' && crCount >= COOKIE_ROOM_MAX) forcedType = 'shaft';
-      const frCount = getFermentRoomNodeCount(true);
-      if(forcedType === 'ferment' && (!isFermentRoomUnlocked() || frCount >= FERMENT_ROOM_MAX)) forcedType = 'shaft';
+      if(forcedType === 'cookieroom' && (G.cookieRoomPending || 0) <= 0) forcedType = 'shaft';
+      if(forcedType === 'ferment' && !isFermentRoomUnlocked()) forcedType = 'shaft';
       const degSlack = (isEmergency && forcedType && forcedType !== 'shaft') ? 1 : 0;
       const maxDegFor = (t) => (t === 'shaft' ? (MAX_DEG_SHAFT + degSlack) : MAX_DEG_ROOM);
       const isRoomType = (t) => (t !== 'shaft' && t !== 'entrance');
@@ -6245,6 +6268,15 @@ function expandMap(forcedType, isEmergency) {
             }
             if (!ok) continue;
 
+            if (!branchMode) {
+              const preP0 = { x: parent.x, y: parent.y };
+              const preP3 = { x: nx, y: ny };
+              const preNid = S.full.nodes.length;
+              const preSeed = hashNums([preP0.x, preP0.y, preP3.x, preP3.y, pid, preNid, 4]);
+              const preCtrl = makeCurvyBezierControls(preP0, preP3, { curviness: edgeCurviness(parent, {type}), seed: preSeed });
+              if(edgeIntersectsExisting({ p0: preP0, p1: preCtrl.p1, p2: preCtrl.p2, p3: preP3 }, pid, preNid)) continue;
+            }
+
             let originNode = parent;
             if (branchMode && branchBase) {
               const midId = splitEdgeAt(branchBase.eid, branchBase.t);
@@ -6318,13 +6350,10 @@ function expandMap(forcedType, isEmergency) {
         if(!G.unlockWasteRoom || wasteCount >= WASTE_ROOM_MAX) return null;
       }
       if(roomType === 'cookieroom') {
-        const crCount = (typeof S.cookieRoomCount === 'number') ? S.cookieRoomCount : 0;
-        const builderLv = clamp(Math.floor(G.bLv || 0), 0, BUILDER_LV_MAX);
-        if(builderLv < COOKIE_ROOM_UNLOCK_LV || crCount >= COOKIE_ROOM_MAX) return null;
+        if(!isCookieRoomUnlocked()) return null;
       }
       if(roomType === 'ferment') {
-        const frCount = getFermentRoomNodeCount(true);
-        if(!isFermentRoomUnlocked() || frCount >= FERMENT_ROOM_MAX) return null;
+        if(!isFermentRoomUnlocked()) return null;
       }
       const W = S.full.w;
       const minSoil = S.full.sy + dp(40);
@@ -6395,6 +6424,13 @@ function expandMap(forcedType, isEmergency) {
             if (d < minD) { ok=false; break; }
           }
           if(!ok) continue;
+
+          const preP0f = { x: parent.x, y: parent.y };
+          const preP3f = { x: nx, y: ny };
+          const preNidf = S.full.nodes.length;
+          const preSeedf = hashNums([preP0f.x, preP0f.y, preP3f.x, preP3f.y, parent.id, preNidf, 5]);
+          const preCtrlf = makeCurvyBezierControls(preP0f, preP3f, { curviness: edgeCurviness(parent, {type:roomType}), seed: preSeedf });
+          if(edgeIntersectsExisting({ p0: preP0f, p1: preCtrlf.p1, p2: preCtrlf.p2, p3: preP3f }, parent.id, preNidf)) continue;
 
           const nid = S.full.nodes.length;
           const newNode = {
@@ -7080,15 +7116,71 @@ function expandMap(forcedType, isEmergency) {
           }
           // B) 予約が残っていれば新しい発酵室を配置する
           if((G.fermentRoomPending || 0) > 0) {
-            if(fermentPlaced >= FERMENT_ROOM_MAX) {
-              G.fermentRoomPending = 0; // これ以上建てられない → 予約を破棄（安全ガード）
-            } else {
-              const feid = forceExpandRoom('ferment');
-              if(feid != null) {
-                G.fermentRoomPending = Math.max(0, (G.fermentRoomPending || 0) - 1); // 配置できたら予約を1消費
-                return decorateDigTarget({ eid: feid, to: S.full.edges[feid].v, dir: 1, score: 9800, reason: 'ferment:reserved' });
-              }
-              // 配置失敗（密集）→ 次フレームで再挑戦（pending 維持）
+            const feid = forceExpandRoom('ferment');
+            if(feid != null) {
+              G.fermentRoomPending = Math.max(0, (G.fermentRoomPending || 0) - 1);
+              return decorateDigTarget({ eid: feid, to: S.full.edges[feid].v, dir: 1, score: 9800, reason: 'ferment:reserved' });
+            }
+            // 配置失敗（密集）→ 次フレームで再挑戦（pending 維持）
+          }
+        }
+      }
+
+      // クッキー室の建設予約処理（発酵室と同構造）
+      if(isCookieRoomUnlocked()) {
+        const cookiePlaced = (S.cookieRoomCount || 0);
+        const cookieVisible = S.full ? S.full.nodes.filter((n,i)=>S.nodeVis[i]&&n.type==='cookieroom').length : 0;
+        const hasUnbuiltCookie = cookiePlaced > cookieVisible;
+        if((G.cookieRoomPending || 0) > 0 || hasUnbuiltCookie) {
+          if(hasUnbuiltCookie) {
+            for(let _ci = 0; _ci < S.full.edges.length; _ci++) {
+              if((S.edgeFrac[_ci] || 0) >= 1) continue;
+              const _ce = S.full.edges[_ci];
+              const _cuv = S.nodeVis[_ce.u], _cvv = S.nodeVis[_ce.v];
+              if(_cuv === _cvv) continue;
+              const _chiIdx = _cuv ? _ce.v : _ce.u;
+              const _chi = S.full.nodes[_chiIdx];
+              if(!_chi || _chi.type !== 'cookieroom') continue;
+              if(isNodeAboveGround(_chi)) continue;
+              if(!isDigTargetReservable(_ci, _chiIdx, 'cookieroom:reserved')) continue;
+              return decorateDigTarget({ eid: _ci, to: _chiIdx, dir: _cuv ? 1 : -1, score: 9800, reason: 'cookieroom:reserved' });
+            }
+          }
+          if((G.cookieRoomPending || 0) > 0) {
+            const ceid = forceExpandRoom('cookieroom');
+            if(ceid != null) {
+              G.cookieRoomPending = Math.max(0, (G.cookieRoomPending || 0) - 1);
+              return decorateDigTarget({ eid: ceid, to: S.full.edges[ceid].v, dir: 1, score: 9800, reason: 'cookieroom:reserved' });
+            }
+          }
+        }
+      }
+
+      // 兵舎の建設予約処理
+      {
+        const barPlaced = (S.barracksCount || 0);
+        const barVisible = S.full ? S.full.nodes.filter((n,i)=>S.nodeVis[i]&&n.type==='soldier').length : 0;
+        const hasUnbuiltBar = barPlaced > barVisible;
+        if((G.barracksPending || 0) > 0 || hasUnbuiltBar) {
+          if(hasUnbuiltBar) {
+            for(let _bi = 0; _bi < S.full.edges.length; _bi++) {
+              if((S.edgeFrac[_bi] || 0) >= 1) continue;
+              const _be2 = S.full.edges[_bi];
+              const _buv = S.nodeVis[_be2.u], _bvv = S.nodeVis[_be2.v];
+              if(_buv === _bvv) continue;
+              const _bhiIdx = _buv ? _be2.v : _be2.u;
+              const _bhi = S.full.nodes[_bhiIdx];
+              if(!_bhi || _bhi.type !== 'soldier') continue;
+              if(isNodeAboveGround(_bhi)) continue;
+              if(!isDigTargetReservable(_bi, _bhiIdx, 'barracks:reserved')) continue;
+              return decorateDigTarget({ eid: _bi, to: _bhiIdx, dir: _buv ? 1 : -1, score: 9800, reason: 'barracks:reserved' });
+            }
+          }
+          if((G.barracksPending || 0) > 0) {
+            const beid = forceExpandRoom('soldier');
+            if(beid != null) {
+              G.barracksPending = Math.max(0, (G.barracksPending || 0) - 1);
+              return decorateDigTarget({ eid: beid, to: S.full.edges[beid].v, dir: 1, score: 9800, reason: 'barracks:reserved' });
             }
           }
         }
@@ -7160,8 +7252,6 @@ function expandMap(forcedType, isEmergency) {
       // ゴミ室（解禁済み & 最大1部屋）
       const wasteCount = (typeof S.wasteCount === 'number') ? S.wasteCount : 0;
       const canAddWaste = (G.unlockWasteRoom && builderLv >= WASTE_ROOM_UNLOCK_LV && wasteCount < WASTE_ROOM_MAX);
-      const cookieRoomCountNow = (typeof S.cookieRoomCount === 'number') ? S.cookieRoomCount : 0;
-      const canAddCookieRoom = (builderLv >= COOKIE_ROOM_UNLOCK_LV && cookieRoomCountNow < COOKIE_ROOM_MAX);
       const popRatio = G.tot / popCap;
       const foodRatio = G.food / foodCap;
       const soldierRatio = needFirstBarracks ? 1 : ((soldierCap > 0) ? (G.ants.soldier / soldierCap) : 0);
@@ -7173,7 +7263,6 @@ function expandMap(forcedType, isEmergency) {
       else if(soldierRatio > 0.70) forcedType = 'soldier';
       else if(builderLv >= 2 && canAddRest) forcedType = 'rest';
       else if(canAddWaste) forcedType = 'waste';
-      else if(canAddCookieRoom) forcedType = 'cookieroom'; // クッキー室
       else forcedType = 'shaft';
 
       const span = bandSpanInfo();
@@ -7187,7 +7276,6 @@ function expandMap(forcedType, isEmergency) {
       if(!hasBarracksBlueprint() && forcedType === 'soldier') forcedType = 'shaft';
       if(forcedType === 'rest' && !canAddRest) forcedType = 'shaft';
       if(forcedType === 'waste' && !canAddWaste) forcedType = 'shaft';
-      if(forcedType === 'cookieroom' && !canAddCookieRoom) forcedType = 'shaft';
 
       // Prefer a matching hidden room (nursery/food) or create one before shafts.
       if(forcedType !== 'shaft') {
@@ -7465,6 +7553,7 @@ function expandMap(forcedType, isEmergency) {
   let _whisperLastType = {};
   let _whisperCurrent = null;
   let _whisperTimer = 0;
+  let _colorMode = true; // カラーモード: ON=色分け+トレイル, OFF=黒アリ
 
   function addQueenWhisper(text, type = 'generic') {
     const now = S.t || 0;
@@ -10263,6 +10352,7 @@ function expandMap(forcedType, isEmergency) {
     c_up_s: document.getElementById('c-up-s'),
     wasteUnlockCost: document.getElementById('c-unlock-waste'), // ゴミ室解禁のコスト表示
     fermentBuildCost: document.getElementById('c-build-ferment'),
+    cookieRoomBuildCost: document.getElementById('c-build-cookieroom'),
 
     desc_b: document.getElementById('desc-b'),
     btn_up_q: document.getElementById('act-up-queen')
@@ -10614,7 +10704,7 @@ function renderResearchNodeCard(def){
       : '甘味濃縮: 未研究';
     fermentPanelUI.summary.innerHTML = `
       <div class="ferment-summary-grid">
-        <div class="ferment-summary-item">発酵室: ${rooms.length}/${FERMENT_ROOM_MAX}室 (建設済み ${totalBuilt}/${FERMENT_ROOM_MAX})</div>
+        <div class="ferment-summary-item">発酵室: ${rooms.length}室稼働 (建設済み ${totalBuilt}室)</div>
         <div class="ferment-summary-item">稼働中: ${active}/${rooms.length}ライン</div>
         <div class="ferment-summary-item">待機中: ${waiting}ライン</div>
         <div class="ferment-summary-item">自動投入: ON (食料が足りると開始)</div>
@@ -10794,7 +10884,15 @@ function syncFermenterUnlockUI() {
       important: true,
       order: 4.2,
       unlocked: () => isFermentRoomUnlocked(),
-      canBuy: () => isFermentRoomUnlocked() && (getFermentRoomNodeCount(true) + (G.fermentRoomPending || 0) < FERMENT_ROOM_MAX) && (G.food >= FERMENT_ROOM_COST)
+      canBuy: () => isFermentRoomUnlocked() && (G.food >= getFermentRoomCost())
+    },
+    {
+      key: 'cookieroom_build',
+      id: 'btn-build-cookieroom',
+      important: true,
+      order: 4.3,
+      unlocked: () => isCookieRoomUnlocked(),
+      canBuy: () => isCookieRoomUnlocked() && (G.cookie >= getCookieRoomCost())
     },
     {
       key: 'soldier',
@@ -10829,7 +10927,7 @@ function syncFermenterUnlockUI() {
       important: true,
       order: 4.5,
       unlocked: () => (G.bLv || 0) >= 3,
-      canBuy: () => !hasBarracksBlueprint() && (G.bLv || 0) >= 3 && (G.cookie >= MAJOR_BARRACKS_COST)
+      canBuy: () => (G.bLv || 0) >= 3 && (G.cookie >= getBarracksCost())
     },
     {
       key: 'major_worker_bigcarry',
@@ -11090,7 +11188,10 @@ function syncFermenterUnlockUI() {
     const discoverMul = (S.cookieRoomMul || 1).toFixed(2);
     const lock = unlocked ? '' : `\n解放条件: 建築Lv${COOKIE_ROOM_UNLOCK_LV}`;
     const state = roomCount > 0 ? `${roomCount}部屋稼働中` : (unlocked ? '解放済み（未建設）' : '未解放');
-    return `クッキー室\n状態: ${state}${lock}\n現在在庫: ${invCookie}\n発見率補正: x${discoverMul}\n保存/加工ボーナス: 納品時20%で+1`;
+    const pending = G.cookieRoomPending || 0;
+    const pendingStr = pending > 0 ? ` (予約中: ${pending})` : '';
+    const nextCost = getCookieRoomCost();
+    return `クッキー室\n状態: ${state}${lock}${pendingStr}\n現在在庫: ${invCookie}\n発見率補正: x${discoverMul}\n保存/加工ボーナス: 納品時20%で+1\n次の建設コスト: 🍪${nextCost}`;
   }
 
   function getFermentRoomTipText() {
@@ -11102,7 +11203,8 @@ function syncFermenterUnlockUI() {
     const pending = G.fermentRoomPending || 0;
     const pendingStr = pending > 0 ? ` (予約中: ${pending})` : '';
     const recipe = getFermentRecipe();
-    return `発酵室建設\n建設数: ${built}/${FERMENT_ROOM_MAX}${pendingStr}\n建設コスト: 🍃 ${FERMENT_ROOM_COST}\nレシピ: 🍃${recipe.foodCost} → ${recipe.timeSec}秒 → 🍪1\n発酵アリ補正: +${bonusPct}%`;
+    const nextCost = getFermentRoomCost();
+    return `発酵室建設\n建設数: ${built}${pendingStr}\n次の建設コスト: 🍃 ${nextCost}\nレシピ: 🍃${recipe.foodCost} → ${recipe.timeSec}秒 → 🍪1\n発酵アリ補正: +${bonusPct}%`;
   }
 
   function formatInlineMul(v) {
@@ -11174,19 +11276,17 @@ function syncFermenterUnlockUI() {
   }
 
   function getBarracksBlueprintInlineEffect() {
-    if(hasBarracksBlueprint()) {
-      return S.hasBarracks ? '入手済み' : '兵舎初建設待ち';
-    }
     if((G.bLv || 0) < 3) return '条件: 建築Lv3';
-    return `🍪${MAJOR_BARRACKS_COST} で入手`;
+    const pending = G.barracksPending || 0;
+    if(pending > 0) return `🔨 建設予約中 (${pending}件)`;
+    return `次の兵舎コスト: 🍪${getBarracksCost()}`;
   }
 
   function getFermentRoomInlineEffect() {
     if(!isFermentRoomUnlocked()) return '要研究: 発酵室解放';
     const built = getFermentRoomNodeCount(true);
     const pending = G.fermentRoomPending || 0;
-    if(pending > 0) return `🔨 建設予約中 (${built + pending}/${FERMENT_ROOM_MAX}室)`;
-    if(built >= FERMENT_ROOM_MAX) return `上限: ${built}/${FERMENT_ROOM_MAX}室`;
+    if(pending > 0) return `🔨 建設予約中 (${built + pending}室)`;
     const recipe = getFermentRecipe();
     return `効果: 🍃${recipe.foodCost}→🍪1`;
   }
@@ -11304,6 +11404,7 @@ function syncFermenterUnlockUI() {
       return `ゴミ室 解禁\nコスト: 🍃 ${WASTE_ROOM_UNLOCK_COST}${lock}\n効果: 入口搬出より近く、清掃運搬量も増える`;
     });
     bindTip(document.getElementById('btn-build-ferment'), () => getFermentRoomTipText());
+    bindTip(document.getElementById('btn-build-cookieroom'), () => getCookieRoomTipText());
 
     bindTip(document.getElementById('btn-up-soldier'), () => {
       const curMul = getSoldierPowerMul(G.sLv);
@@ -11345,10 +11446,6 @@ function syncFermenterUnlockUI() {
       return `大物運搬\n条件: 働き強化Lv${MAJOR_WORKER_BIGCARRY_WLV}（現在Lv${wlv}）${condOk ? ' ✅' : ''}\nコスト: 🍪 ${MAJOR_WORKER_BIGCARRY_COST_COOKIE}\n効果: 地表に大きな餌が定期的に出現し、働きアリが集結して運び食料を得る`;
     });
 
-    bindTip(document.getElementById('hint-cookieroom'), () => getCookieRoomTipText());
-    bindTip(document.getElementById('hint-expedition'), () => getExpeditionTipText());
-    bindTapHint(document.getElementById('hint-cookieroom'), () => getCookieRoomTipText());
-    bindTapHint(document.getElementById('hint-expedition'), () => getExpeditionTipText());
   }
 
   bindAllTips();
@@ -12379,7 +12476,6 @@ function syncFermenterUnlockUI() {
       const bigCarryBtn = document.getElementById('btn-major-worker-bigcarry');
       const d2Done = hasDepth2Unlock();
       const d3Done = hasDepth3Unlock();
-      const barrDone = hasBarracksBlueprint();
       const bigCarryDone = !!(G.major && G.major.workerBigCarry);
       const cd2 = document.getElementById('c-major-depth2');
       const cd3 = document.getElementById('c-major-depth3');
@@ -12387,7 +12483,10 @@ function syncFermenterUnlockUI() {
       const cbig = document.getElementById('c-major-worker-bigcarry');
       if(cd2) cd2.textContent = d2Done ? '解放済' : String(MAJOR_DEPTH2_COST);
       if(cd3) cd3.textContent = d3Done ? '解放済' : String(MAJOR_DEPTH3_COST);
-      if(cbarr) cbarr.textContent = barrDone ? (S.hasBarracks ? '入手済' : '建設待ち') : String(MAJOR_BARRACKS_COST);
+      if(cbarr) {
+        const barPending = G.barracksPending || 0;
+        cbarr.textContent = barPending > 0 ? `予約${barPending}件` : String(getBarracksCost());
+      }
       // 大物運搬は通常購入カードとして解放状態を反映する（🍪はHTML側に既にある）
       if(cbig) cbig.textContent = bigCarryDone ? '解放済' : String(MAJOR_WORKER_BIGCARRY_COST_COOKIE);
       if(d2Btn) { d2Btn.classList.toggle('disabled', true); d2Btn.style.display = 'none'; }
@@ -12395,7 +12494,7 @@ function syncFermenterUnlockUI() {
       // 兵舎設計図は部屋タブの通常購入カードとして表示・購入可否を反映
       if(barrBtn) {
         barrBtn.style.display = '';
-        const canBuyBarr = !barrDone && (G.bLv || 0) >= 3 && (G.cookie >= MAJOR_BARRACKS_COST);
+        const canBuyBarr = (G.bLv || 0) >= 3 && (G.cookie >= getBarracksCost());
         barrBtn.classList.toggle('disabled', !canBuyBarr);
       }
       if(cleanBtn) cleanBtn.style.display = 'none';
@@ -12461,16 +12560,21 @@ function syncFermenterUnlockUI() {
       wasteBtn.classList.toggle('disabled', G.unlockWasteRoom); // 解禁済みのみ操作不可
     }
     const fermentBtn = document.getElementById('btn-build-ferment');
-    const fermentBuilt = getFermentRoomNodeCount(true);
     if(el.fermentBuildCost) {
       if(!isFermentRoomUnlocked()) el.fermentBuildCost.textContent = '要研究';
-      else if(fermentBuilt >= FERMENT_ROOM_MAX) el.fermentBuildCost.textContent = '上限';
-      else el.fermentBuildCost.textContent = String(FERMENT_ROOM_COST);
+      else el.fermentBuildCost.textContent = String(getFermentRoomCost());
     }
     if(fermentBtn) {
       const locked = !isFermentRoomUnlocked();
-      const full = fermentBuilt >= FERMENT_ROOM_MAX;
-      fermentBtn.classList.toggle('disabled', locked || full || (G.food < FERMENT_ROOM_COST));
+      fermentBtn.classList.toggle('disabled', locked || (G.food < getFermentRoomCost()));
+    }
+    if(el.cookieRoomBuildCost) {
+      if(!isCookieRoomUnlocked()) el.cookieRoomBuildCost.textContent = '要建築Lv3';
+      else el.cookieRoomBuildCost.textContent = String(getCookieRoomCost());
+    }
+    const cookieRoomBtn = document.getElementById('btn-build-cookieroom');
+    if(cookieRoomBtn) {
+      cookieRoomBtn.classList.toggle('disabled', !isCookieRoomUnlocked() || (G.cookie < getCookieRoomCost()));
     }
 
     const w0 = (G.ants.worker <= 0);
@@ -12505,18 +12609,6 @@ function syncFermenterUnlockUI() {
     if(sUp) sUp.classList.toggle('disabled', isLocked || (G.sLv >= SOLDIER_LV_MAX) || (G.food < G.getUpCost('soldier')));
 
     setText(el.desc_b, S.builderState);
-    {
-      const ck = document.getElementById('hint-cookieroom');
-      const ckState = document.getElementById('hint-cookieroom-state');
-      const ckUnlocked = G.bLv >= COOKIE_ROOM_UNLOCK_LV;
-      const ckCount = Math.max(0, Math.floor(S.cookieRoomCount || 0));
-      if(ck) {
-        ck.classList.toggle('is-locked', !ckUnlocked);
-        ck.classList.toggle('is-ready', ckUnlocked && ckCount === 0);
-      }
-      if(ckState) ckState.textContent = ckCount > 0 ? `${ckCount}部屋稼働中` : (ckUnlocked ? '解放済み（未建設）' : `建築Lv${COOKIE_ROOM_UNLOCK_LV}で解放`);
-
-    }
     updateResearchUI();
     updateFermentPanelUI();
     updateMobileInlineHints();
@@ -12891,15 +12983,16 @@ function syncFermenterUnlockUI() {
   // 兵舎設計図
   const btnMajorBarracks = document.getElementById('btn-major-barracks');
   if(btnMajorBarracks) btnMajorBarracks.onclick = function() {
-    if(hasBarracksBlueprint()) { toast('兵舎設計図は入手済みです'); return; }
     if((G.bLv || 0) < 3) { toast(`条件未達: 建築Lv3が必要（現在Lv${G.bLv || 0}）`, true); return; }
-    if(G.cookie < MAJOR_BARRACKS_COST) { toast('クッキーが足りません', true); return; }
-    G.cookie -= MAJOR_BARRACKS_COST;
-    if(G.major) G.major.barracks = true;
-    toast('🛡️ 兵舎設計図を入手！建築アリが兵舎を最優先で建設します');
-    addQueenWhisper('兵舎が建てば、巣を守る兵士を育てられるわ', 'barracks_blueprint');
+    const cost = getBarracksCost();
+    if(G.cookie < cost) { toast('クッキーが足りません', true); return; }
+    G.cookie -= cost;
+    if(G.major) G.major.barracks = true; // 後方互換
+    G.barracksPending = (G.barracksPending || 0) + 1;
+    toast('🛡️ 兵舎の建設を予約した。建築アリが場所を探します');
+    addQueenWhisper('兵舎が増えれば、さらに多くの兵士を育てられるわ', 'barracks_build');
     G.recalc();
-    G.save({ showToast: false }); // 購入を即セーブ（リロードで消えないように）
+    G.save({ showToast: false });
     updateUI();
   };
   // 大物運搬の解放onclickは上で定義済み（btn-major-worker-bigcarry）。
@@ -12983,16 +13076,24 @@ function syncFermenterUnlockUI() {
   const btnBuildFerment = document.getElementById('btn-build-ferment');
   if(btnBuildFerment) btnBuildFerment.onclick = function() {
     if(!isFermentRoomUnlocked()) { toast('研究「発酵室解放」が必要です', true); return; }
-    const built = getFermentRoomNodeCount(true);
-    const pending = G.fermentRoomPending || 0;
-    if(built + pending >= FERMENT_ROOM_MAX) { toast(`発酵室は上限です (${FERMENT_ROOM_MAX})`, true); return; }
-    if(G.food < FERMENT_ROOM_COST) { toast(`食料が足りません (必要: ${FERMENT_ROOM_COST})`, true); return; }
-    // 即時配置は行わず「建設予約」を立てる。
-    // 建築アリが次フレーム以降に高優先で発酵室を探して掘り始める。
-    G.food -= FERMENT_ROOM_COST;
-    G.fermentRoomPending = pending + 1;
+    const cost = getFermentRoomCost();
+    if(G.food < cost) { toast(`食料が足りません (必要: ${cost})`, true); return; }
+    G.food -= cost;
+    G.fermentRoomPending = (G.fermentRoomPending || 0) + 1;
     toast('🧪 発酵室の建設を予約した。建築アリが場所を探します');
     addQueenWhisper('発酵室の掘削を始めたのね。甘い香りが広がるわ', 'ferment_build');
+    updateUI();
+  };
+
+  const btnBuildCookieRoom = document.getElementById('btn-build-cookieroom');
+  if(btnBuildCookieRoom) btnBuildCookieRoom.onclick = function() {
+    if(!isCookieRoomUnlocked()) { toast('建築Lv3が必要です', true); return; }
+    const cost = getCookieRoomCost();
+    if(G.cookie < cost) { toast(`クッキーが足りません (必要: ${cost})`, true); return; }
+    G.cookie -= cost;
+    G.cookieRoomPending = (G.cookieRoomPending || 0) + 1;
+    toast('🍪 クッキー室の建設を予約した。建築アリが場所を探します');
+    addQueenWhisper('クッキー室が増えれば、もっと甘いものが集まるわ', 'cookieroom_build');
     updateUI();
   };
 
@@ -13092,6 +13193,16 @@ function syncFermenterUnlockUI() {
   if(mD) mD.querySelector('button').onclick=()=>mD.classList.remove('show');
 
   // ===== Fit to world =====
+  const btnColorMode = document.getElementById('btn-color-mode');
+  if(btnColorMode) {
+    btnColorMode.classList.toggle('color-mode-on', _colorMode);
+    btnColorMode.onclick = () => {
+      _colorMode = !_colorMode;
+      btnColorMode.classList.toggle('color-mode-on', _colorMode);
+      btnColorMode.title = _colorMode ? 'カラーモード: ON' : 'カラーモード: OFF';
+    };
+  }
+
   const btnFit = document.getElementById('btn-fit');
   if(btnFit) btnFit.onclick = () => {
     fitWorldToView(0.95, true);
@@ -13470,6 +13581,7 @@ function syncFermenterUnlockUI() {
   }
 
   function getAntBaseColor(a) {
+    if(!_colorMode) return '#111';
     if(a.golden) return '#f59e0b';
     if(a.role === 'builder') return '#b45309';
     if(a.role === 'nurse') return '#be185d';
@@ -14211,7 +14323,7 @@ function syncFermenterUnlockUI() {
     const tintAlpha = 0.20;
     S.full.nodes.forEach((n,i)=>{
       if(!S.nodeVis[i]) return;
-      const tint = roomTint(n.type);
+      const tint = _colorMode ? roomTint(n.type) : null;
       if(tint){
         ctx.save();
         ctx.globalAlpha = tintAlpha;
@@ -14770,7 +14882,7 @@ function syncFermenterUnlockUI() {
     }
 
     // ===== フェロモントレイル描画 =====
-    if(S.trails.length > 0) {
+    if(_colorMode && S.trails.length > 0) {
       S.trails.forEach(tr => {
         const alpha = Math.min(1, tr.l / TRAIL_LIFE) * 0.28;
         if(alpha < 0.01) return;

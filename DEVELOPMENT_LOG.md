@@ -1,5 +1,50 @@
 # Development Log
 
+## 2026-06-02 カラーモードトグル追加
+
+変更:
+- `_colorMode` フラグ（デフォルト true）を追加。
+- 上部バーに 🎨 ボタンを追加。ON/OFF で以下を切替:
+  - **ON**: アリ種別色分け・部屋tint・フェロモントレイル（従来の見た目）
+  - **OFF**: 全アリ黒・部屋tintなし・トレイルなし
+- `getAntBaseColor` / roomTint 適用箇所 / トレイル描画ブロックを `_colorMode` でゲート。
+- ボタンON時は紫グロー、OFF時は半透明で状態を視覚表示。
+
+## 2026-06-02 特殊部屋の設計図購入システム統一
+
+目的:
+- クッキー室・発酵室・兵舎を「設計図購入→予約→建築アリ優先建設」方式に統一。
+- 上限撤廃。コストがどんどん上がることで自然な制限に。
+
+変更:
+- 定数: `COOKIE_ROOM_COST_BASE=30`, `COOKIE_ROOM_COST_GROWTH=2.5`, `FERMENT_ROOM_COST_GROWTH=2.0`, `BARRACKS_COST_GROWTH=2.5` を追加。
+- `getFermentRoomCost()` / `getCookieRoomCost()` / `getBarracksCost()` をべき乗スケールで追加。
+- `G.cookieRoomPending` / `G.barracksPending` を追加（save/load対応）。
+- `S.barracksCount` を recalc で計算。
+- 建築アリのターゲット選択にクッキー室・兵舎の pending 処理ブロックを追加（発酵室と同構造）。
+- `forceExpandRoom` からクッキー室・発酵室の上限ガードを削除。
+- クッキー室の自動建設ロジック（`canAddCookieRoom`）を削除し予約制に統一。
+- クッキー室購入ボタン `btn-build-cookieroom` を部屋タブに追加。
+- 兵舎ボタンを繰り返し購入対応に変更（`G.major.barracks` は後方互換で維持）。
+- `FERMENT_ROOM_MAX` の上限チェックを全箇所から削除。
+
+## 2026-06-02 施設プレビューセクション削除
+
+- 部屋タブの「施設プレビュー」カードを削除。
+- サイドバーの「未解放プレビュー」（クッキー室・遠征ヒント）を削除。
+- 関連 `bindTip` / `updateUI` ロジックも削除。
+
+## 2026-06-02 トンネル交差防止
+
+目的:
+- 巣の拡張時に既存トンネルと新トンネルが交差するのを防ぐ。
+
+変更:
+- `queueMainShaftEdge`: ベジェ制御点をノード追加前に計算し `edgeIntersectsExisting` でチェック。交差する場合は次の試行へ。
+- `expandMap` 内部ループ（非branchMode）: 同様に事前交差チェックを追加。
+- `forceExpandRoom`: 同様に事前交差チェックを追加。
+- `CURRENT_SYSTEM_OVERVIEW.md` にクッキー室の効果を追記。
+
 ## 2026-06-01 地表戦闘の膠着感: 交戦中の敵を減速
 
 目的:

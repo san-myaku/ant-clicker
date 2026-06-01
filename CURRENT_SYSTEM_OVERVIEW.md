@@ -202,7 +202,7 @@ Room/tunnel node types:
 - `rest`
 - `soldier`
 - `waste`
-- `cookieroom`
+- `cookieroom` — クッキー発見率を部屋数に応じて×1.5^N倍（最大3部屋→×3.375）。ワーカーがクッキー室に納品した際に20%でボーナス+1。建築Lv3で解放。
 - `ferment`
 - `shaft`
 - `entrance`
