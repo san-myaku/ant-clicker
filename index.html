@@ -6480,6 +6480,16 @@ function expandMap(forcedType, isEmergency) {
   const RAID_SURFACE_SOLDIER_SEPARATION = dp(8);     // 兵隊同士の重なり緩和距離
   const RAID_SURFACE_SOLDIER_RETURN_RADIUS = dp(22); // 入口付近とみなす距離（待機へ）
 
+  // ===== Phase 7B-3/4: 地表戦闘（兵隊攻撃・敵死亡・勝敗接続） =====
+  const RAID_SURFACE_SOLDIER_ATTACK_RANGE = dp(22);     // 攻撃が届く距離
+  const RAID_SURFACE_SOLDIER_ATTACK_COOLDOWN = 0.6;     // 攻撃間隔（秒）
+  const RAID_SURFACE_SOLDIER_DAMAGE_BASE = 2;           // 兵隊1撃の基本ダメージ
+  const RAID_SURFACE_SOLDIER_DAMAGE_LV_MUL = 0.12;      // フォールバック用Lv係数
+  const RAID_SURFACE_SOLDIER_HIT_FLASH_TIME = 0.12;     // 被弾閃光の長さ
+  const RAID_BREACH_LOSE_RATIO = 0.30;                  // この割合以上が突破したら敗北
+  const RAID_ATTACK_MAX_SEC = 16;                       // 攻撃フェーズの最大長（戦闘が長引いた時の安全上限）
+  const RAID_FINISH_DELAY = 0.6;                        // 決着が付いてから resolve するまでの見せ時間
+
   // ノード from から to への経路（node列）を BFS で探索。完成した通路（edgeFrac>=0.99）のみ通れる
   function findNodePath(srcNodeId, dstNodeId) {
     if(srcNodeId === dstNodeId) return [srcNodeId];
@@ -9188,16 +9198,33 @@ function expandMap(forcedType, isEmergency) {
   function showRaidResultModal(out) {
     if(!raidResultModal || !raidResultBodyEl || !raidResultTitleEl || !out) return;
     const winProbPct = Math.round(clamp((out.winProb || 0) * 100, 0, 100));
+    // Phase 7B-3/4: 地表戦闘の内訳（撃破/突破/残存/判定理由）
+    let combatLines = '';
+    const sr = out.surfaceResult;
+    if(sr) {
+      const reasonText = {
+        all_killed: '全滅させて防衛成功',
+        no_living: '敵を退けて防衛成功',
+        time_judgement_win: '時間内に押し切って防衛成功',
+        breached: '入口を突破され防衛失敗',
+        time_judgement_loss: '押し込まれて防衛失敗'
+      }[sr.reason] || (out.win ? '防衛成功' : '防衛失敗');
+      combatLines =
+        `撃破: ${sr.killedEnemies}/${sr.totalEnemies}\n` +
+        `突破: ${sr.breachedEnemies}\n` +
+        `残存: ${sr.livingEnemies}\n` +
+        `判定: ${reasonText}\n`;
+    }
     if(out.win) {
       raidResultTitleEl.textContent = '✅ 防衛成功';
       raidResultBodyEl.textContent =
-        `勝率見込み: ${winProbPct}%\n` +
+        combatLines +
         `戦利品: 食料 +${Math.floor(out.rewardFood || 0)} / クッキー +${Math.floor(out.rewardCookie || 0)}\n` +
         `兵隊アリは兵舎へ帰還中`;
     } else {
       raidResultTitleEl.textContent = '❌ 防衛失敗';
       raidResultBodyEl.textContent =
-        `勝率見込み: ${winProbPct}%\n` +
+        combatLines +
         `被害: 働きアリ -${Math.floor(out.loseWorkers || 0)}\n` +
         `兵隊アリは兵舎へ帰還中`;
     }
@@ -9225,17 +9252,19 @@ function expandMap(forcedType, isEmergency) {
     return Math.max(1, Math.floor(base * r));
   }
 
-  // Phase 7B-1: 敵へダメージ（将来の兵隊攻撃から呼ぶ想定。今は通常プレイには未接続）
+  // Phase 7B-1/3: 敵へダメージ。HP0で死亡。突破済み・死亡済みには無効。
   function damageRaidEnemy(en, amount) {
-    if(!en || en.dead) return false;
+    if(!en || en.dead || en.phase === "dead" || en.breached) return false;
     const dmg = Math.max(0, +amount || 0);
     if(dmg <= 0) return false;
     en.hp = Math.max(0, (en.hp || 0) - dmg);
-    en.hitFlash = 0.15;
+    en.hitFlash = RAID_SURFACE_SOLDIER_HIT_FLASH_TIME;
     if(en.hp <= 0) {
+      en.hp = 0;
       en.dead = true;
       en.phase = "dead";
       en.fade = Math.min(en.fade == null ? 1 : en.fade, 1);
+      en.killedBySoldier = true;
       return true;
     }
     return false;
@@ -9312,7 +9341,7 @@ function expandMap(forcedType, isEmergency) {
     if(!S.enemies || !S.enemies.length) return null;
     let best = null, bestD = Infinity;
     for(const en of S.enemies) {
-      if(!en || en.dead || en.phase === "dead") continue;
+      if(!en || en.dead || en.phase === "dead" || en.breached) continue;
       if(side && ex != null) {
         const enSide = (en.x < ex) ? -1 : 1;
         if(enSide !== side) continue;
@@ -9358,6 +9387,7 @@ function expandMap(forcedType, isEmergency) {
         preferSide: (i % 2 === 0) ? -1 : 1, // 左右へ交互に振り分け（両側へ分散）
         wobble: Math.random()*Math.PI*2,
         rot: -Math.PI/2,
+        atkCd: Math.random() * RAID_SURFACE_SOLDIER_ATTACK_COOLDOWN, // 攻撃タイミングをばらす
         dead: false
       });
     }
@@ -9374,15 +9404,18 @@ function expandMap(forcedType, isEmergency) {
     const sy = S.full.sy;
     const total = list.length;
 
+    const soldierDamage = getRaidSurfaceSoldierDamage();
+
     for(const s of list) {
       s.wobble = (s.wobble || 0) + dt * 6;
       if(s.fade < 1) s.fade = Math.min(1, s.fade + dt * 3);
+      if(s.atkCd) s.atkCd = Math.max(0, s.atkCd - dt); // 攻撃クールダウン減衰
 
-      // ターゲット解決（死亡/消失なら再探索）
+      // ターゲット解決（死亡/突破/消失なら再探索）
       let target = null;
       if(s.targetEnemyId != null) {
         const en = getRaidEnemyById(s.targetEnemyId);
-        if(en && !en.dead && en.phase !== "dead") target = en;
+        if(en && !en.dead && en.phase !== "dead" && !en.breached) target = en;
         else s.targetEnemyId = null;
       }
       if(!target) {
@@ -9411,8 +9444,17 @@ function expandMap(forcedType, isEmergency) {
           s.phase = "advance";
           moveToward(s, tx, ty, s.sp, dt);
         } else {
-          s.phase = "engage"; // 近距離は減速して張り付く（攻撃判定は7B-3）
-          moveToward(s, tx, ty, s.sp * 0.55, dt);
+          s.phase = "engage"; // 近距離は敵に張り付いて追従
+          moveToward(s, tx, ty, s.sp * 0.9, dt);
+        }
+        // Phase 7B-3: 射程内＆クールダウン明けで攻撃 → 敵HP減少、撃破で再ターゲット
+        if(dToTarget <= RAID_SURFACE_SOLDIER_ATTACK_RANGE && (s.atkCd || 0) <= 0) {
+          const killed = damageRaidEnemy(target, soldierDamage);
+          s.atkCd = RAID_SURFACE_SOLDIER_ATTACK_COOLDOWN;
+          if(killed) {
+            S.raidVis.killedEnemies = (S.raidVis.killedEnemies || 0) + 1;
+            s.targetEnemyId = null;
+          }
         }
       } else {
         // 生存敵なし → 入口付近へ戻る/待機
@@ -9498,6 +9540,94 @@ function expandMap(forcedType, isEmergency) {
     return clamp(p, 0, 1);
   }
 
+  // ===== Phase 7B-3/4: 地表戦闘の集計・勝敗 =====
+
+  // 兵隊1撃のダメージ。getSoldierPowerMul は jaw2x(×2) を内包しているので二重掛けしない。
+  function getRaidSurfaceSoldierDamage() {
+    const lvMul = (typeof getSoldierPowerMul === "function")
+      ? getSoldierPowerMul(G.sLv || 0)
+      : (1 + (G.sLv || 0) * RAID_SURFACE_SOLDIER_DAMAGE_LV_MUL) * (hasSoldierJaw2x() ? 2 : 1);
+    return RAID_SURFACE_SOLDIER_DAMAGE_BASE * lvMul;
+  }
+
+  // まだ戦っている敵（死亡でも突破でもない）
+  function getLivingRaidEnemyCount() {
+    if(!S.enemies) return 0;
+    let c = 0;
+    for(const en of S.enemies) { if(en && !en.dead && !en.breached && en.phase !== "dead") c++; }
+    return c;
+  }
+  function countKilledRaidEnemies() {
+    if(!S.enemies) return 0;
+    let c = 0;
+    for(const en of S.enemies) { if(en && (en.dead || en.killedBySoldier)) c++; }
+    return c;
+  }
+  function countBreachedRaidEnemies() {
+    if(!S.enemies) return 0;
+    let c = 0;
+    for(const en of S.enemies) { if(en && en.breached) c++; }
+    return c;
+  }
+
+  // 突破による敗北しきい値（敵数の30%以上、最低1）
+  function getRaidBreachLoseThreshold(totalEnemies) {
+    return Math.max(1, Math.ceil((totalEnemies || 1) * RAID_BREACH_LOSE_RATIO));
+  }
+
+  // 地表戦闘の結果から既存形式の out を作る（報酬・被害は既存ロジックを大きく逸脱させない）
+  function buildRaidOutcomeFromSurfaceResult(result) {
+    const enemyPower = getEnemyPower();
+    const colonyPower = getColonyCombatPower();
+    const winProb = getRaidWinProb(colonyPower, enemyPower); // 表示・比較用（勝敗そのものには使わない）
+    if(result.win) {
+      const clearBonus = result.reason === "all_killed" ? 1.15 : 1.0;
+      const rewardFood = Math.floor((RAID_CFG.rewardFoodBase + enemyPower * RAID_CFG.rewardFoodPerEnemy) * clearBonus);
+      const rewardCookie = Math.floor(RAID_CFG.rewardCookieMin + Math.random() * (RAID_CFG.rewardCookieMax - RAID_CFG.rewardCookieMin + 1));
+      return { win: true, rewardFood, rewardCookie, loseWorkers: 0, foodMul: 1, eggMul: 1, winProb, surfaceResult: result };
+    }
+    const breachRatio = result.totalEnemies > 0 ? result.breachedEnemies / result.totalEnemies : 1;
+    const loseWorkers = Math.floor((G.ants.worker || 0) * clamp(0.08 + breachRatio * 0.20, 0.08, 0.35));
+    return {
+      win: false,
+      rewardFood: 0, rewardCookie: 0,
+      loseWorkers,
+      foodMul: clamp(0.85 - breachRatio * 0.25, 0.55, 0.85),
+      eggMul: clamp(0.90 - breachRatio * 0.25, 0.55, 0.90),
+      winProb,
+      surfaceResult: result
+    };
+  }
+
+  // 地表戦闘の結果から勝敗を判定（resolveRaid から呼ぶ）。作れない場合は null（→ フォールバック）。
+  function computeRaidOutcomeFromSurfaceCombat() {
+    if(!S.enemies || !Array.isArray(S.enemies) || S.enemies.length <= 0) return null;
+    const totalEnemies = S.raidVis.totalEnemies || S.enemies.length || 0;
+    const killedEnemies = countKilledRaidEnemies();
+    const breachedEnemies = countBreachedRaidEnemies();
+    const livingEnemies = getLivingRaidEnemyCount();
+    // 集計をランタイムにも反映（デバッグ/モーダル用）
+    S.raidVis.killedEnemies = killedEnemies;
+    S.raidVis.breachedEnemies = breachedEnemies;
+    const breachLoseThreshold = getRaidBreachLoseThreshold(totalEnemies);
+    let win, reason;
+    if(totalEnemies > 0 && killedEnemies >= totalEnemies) {
+      win = true; reason = "all_killed";
+    } else if(breachedEnemies >= breachLoseThreshold) {
+      win = false; reason = "breached";
+    } else if(livingEnemies <= 0 && breachedEnemies <= 0) {
+      win = true; reason = "no_living";
+    } else {
+      // 攻撃時間終了時点の判定：突破が少なく撃破が多ければ勝利
+      const killRatio = totalEnemies > 0 ? killedEnemies / totalEnemies : 0;
+      const breachRatio = totalEnemies > 0 ? breachedEnemies / totalEnemies : 0;
+      win = breachRatio < RAID_BREACH_LOSE_RATIO && killRatio >= 0.50;
+      reason = win ? "time_judgement_win" : "time_judgement_loss";
+    }
+    return buildRaidOutcomeFromSurfaceResult({ win, reason, totalEnemies, killedEnemies, breachedEnemies, livingEnemies });
+  }
+
+  // フォールバック用の確率式（Phase 7A以前の方式）。削除せず残す。
   function computeRaidOutcome() {
     const enemyPower = getEnemyPower();
     const colonyPower = getColonyCombatPower();
@@ -9518,7 +9648,12 @@ function expandMap(forcedType, isEmergency) {
     S.raidVis.state = "attack";
     S.raidVis.timer = 0;
     spawnEnemies();
-    ensureRaidSoldiers(); // Phase 7B-2: 地表兵隊アリを出撃（表示演出）
+    ensureRaidSoldiers(); // Phase 7B-2: 地表兵隊アリを出撃
+    // Phase 7B-3/4: 地表戦闘の集計を初期化
+    S.raidVis.totalEnemies = S.enemies.length;
+    S.raidVis.killedEnemies = 0;
+    S.raidVis.breachedEnemies = 0;
+    S.raidVis.finishDelay = null;
     shake(dp(6), 0.4);
 
     // Phase 7A: 勝敗はここ（攻撃開始時）では確定しない。
@@ -9530,12 +9665,12 @@ function expandMap(forcedType, isEmergency) {
   }
 
   function resolveRaid() {
-    // Phase 7A: 勝敗は戦闘終了（この resolveRaid）時点で確定する。
-    // 通常は _pendingOutcome が無いので、ここで computeRaidOutcome() を呼んで確定する。
-    // 互換: 何らかの古い途中状態で _pendingOutcome が残っていれば、それを尊重して壊さない。
-    const out = S.raidVis._pendingOutcome || computeRaidOutcome();
+    // Phase 7B-3/4: 通常レイドは地表戦闘の結果で勝敗を決める。
+    // 安全のため、地表結果を作れない場合（敵なし/壊れ/旧途中状態）は従来式へフォールバック。
+    const surfaceOut = computeRaidOutcomeFromSurfaceCombat();
+    const out = surfaceOut || S.raidVis._pendingOutcome || computeRaidOutcome();
     if(!out) return;
-    const modalOut = { win: !!out.win, rewardFood: 0, rewardCookie: 0, loseWorkers: 0, winProb: out.winProb || 0 };
+    const modalOut = { win: !!out.win, rewardFood: 0, rewardCookie: 0, loseWorkers: 0, winProb: out.winProb || 0, surfaceResult: out.surfaceResult || null };
 
     // 改善: レイド勝敗カウント
     if(!G.raidTotal) G.raidTotal = 0;
@@ -12028,6 +12163,22 @@ function syncFermenterUnlockUI() {
     };
   };
 
+  // デバッグ：地表戦闘の状態確認（Phase 7B-3/4）
+  window.__debugRaidCombat = function() {
+    return {
+      state: S.raidVis && S.raidVis.state,
+      timer: S.raidVis && S.raidVis.timer,
+      finishDelay: S.raidVis && S.raidVis.finishDelay,
+      totalEnemies: S.raidVis && S.raidVis.totalEnemies,
+      killedEnemies: typeof countKilledRaidEnemies === "function" ? countKilledRaidEnemies() : null,
+      breachedEnemies: typeof countBreachedRaidEnemies === "function" ? countBreachedRaidEnemies() : null,
+      livingEnemies: typeof getLivingRaidEnemyCount === "function" ? getLivingRaidEnemyCount() : null,
+      breachThreshold: typeof getRaidBreachLoseThreshold === "function" ? getRaidBreachLoseThreshold(S.raidVis && S.raidVis.totalEnemies) : null,
+      soldiers: S.raidSoldiers ? S.raidSoldiers.length : 0,
+      soldierDamage: typeof getRaidSurfaceSoldierDamage === "function" ? getRaidSurfaceSoldierDamage() : null
+    };
+  };
+
   window.addEventListener('keydown', (e)=>{
     if(e.key !== 'r' && e.key !== 'R') return;
     if(e.repeat) return;
@@ -13203,27 +13354,46 @@ function syncFermenterUnlockUI() {
             en.fade = clamp(en.fade, 0, 1);
             return;
           }
-          if(en.phase === "approach") {
+          // Phase 7B-4: 突破済みの敵は入口へ潜り込みながらフェード（戦闘対象外）
+          if(en.breached) {
+            en.y += dp(40) * dt;
+            en.x += (ex - en.x) * dt * 6;
+            en.fade -= dt * 1.2;
+            en.fade = clamp(en.fade, 0, 1);
+            return;
+          }
+          if(en.phase === "approach" || en.phase === "breach") {
             const dx = en.targetX - en.x;
             en.x += Math.sign(dx) * en.sp * dt;
             en.y = sy + Math.sin(en.t*12) * dp(2);
-            if(Math.abs(dx) < dp(12)) {
+            // 入口に十分近づいたら「突破」確定（1体につき1回だけ計上）
+            if(Math.abs(en.x - ex) < dp(12)) {
               en.phase = "breach";
+              en.breached = true;
+              en.breachCounted = true;
+              S.raidVis.breachedEnemies = (S.raidVis.breachedEnemies || 0) + 1;
               shake(dp(4), 0.18);
             }
-          } else if(en.phase === "breach") {
-            en.y += dp(40) * dt;
-            en.x += (ex - en.x) * dt * 6;
-            en.fade -= dt * 0.7;
           }
           en.fade = clamp(en.fade, 0, 1);
         });
 
-        // Phase 7B-2: 地表兵隊アリの出撃・追尾（演出のみ。ダメージ/勝敗には未接続）
+        // Phase 7B-3: 地表兵隊アリの出撃・追尾・攻撃（敵HP減少・撃破）
         updateRaidSoldiers(dt);
 
-        if(S.raidVis.timer >= 6.0) {
-          resolveRaid();
+        // Phase 7B-4: 終了判定。決着（全滅 or 突破しきい値）or 上限時間で、少し見せてから resolve。
+        const livingNow = getLivingRaidEnemyCount();
+        const breachedNow = S.raidVis.breachedEnemies || 0;
+        const breachThreshold = getRaidBreachLoseThreshold(S.raidVis.totalEnemies || S.enemies.length || 1);
+        const decided = (livingNow <= 0) || (breachedNow >= breachThreshold) || (S.raidVis.timer >= RAID_ATTACK_MAX_SEC);
+        if(decided && S.raidVis.finishDelay == null) {
+          S.raidVis.finishDelay = RAID_FINISH_DELAY;
+        }
+        if(S.raidVis.finishDelay != null) {
+          S.raidVis.finishDelay -= dt;
+          if(S.raidVis.finishDelay <= 0) {
+            resolveRaid();
+          }
         }
       } else if(S.raidVis.state === "result") {
         S.raidVis.timer += dt;

@@ -1,6 +1,6 @@
 # Ant Colony V23 Current System Overview
 
-Last updated: 2026-06-01 (8)
+Last updated: 2026-06-01 (9)
 Target file: `index.html`
 
 This document is the current implementation overview for the single-file ant clicker game. When gameplay, UI, save data, AI behavior, or public deployment assumptions change, update this file together with `DEVELOPMENT_LOG.md`.
@@ -601,14 +601,13 @@ Raid outcome timing (Phase 7A):
 
 - The win/lose outcome is decided at the END of combat, when `resolveRaid()` runs, not when the attack starts.
 - `beginRaidAttack()` only sets up the attack phase (close result modal, `state="attack"`, reset timer, spawn enemies, screen shake, alert UI). It does NOT call `computeRaidOutcome()` and clears any stale `S.raidVis._pendingOutcome`.
-- `resolveRaid()` calls `computeRaidOutcome()` itself (`const out = S.raidVis._pendingOutcome || computeRaidOutcome()`), then applies rewards/damage, updates `G.raidWins`/`G.raidTotal`, and shows the result modal. The `_pendingOutcome` fallback is only a compatibility guard for stale in-flight state; new raids resolve fresh.
-- Balance is unchanged: `RAID_CFG`, `getColonyCombatPower()`, `getEnemyPower()`, `getRaidWinProb()`, `computeRaidOutcome()` formula, rewards, and loss amounts are identical to before.
+- `resolveRaid()` decides the outcome as `const out = computeRaidOutcomeFromSurfaceCombat() || S.raidVis._pendingOutcome || computeRaidOutcome()`. After Phase 7B-3/4 the surface-combat result is used for normal raids; `computeRaidOutcome()` remains only as a fallback (no enemies / broken state / stale in-flight). It then applies rewards/damage, updates `G.raidWins`/`G.raidTotal`, and shows the result modal.
+- `computeRaidOutcome()` (the probability formula) is kept unchanged as a fallback. `RAID_CFG`, `getColonyCombatPower()`, `getEnemyPower()`, `getRaidWinProb()` are unchanged.
 Raid enemy HP (Phase 7B-1):
 
 - Each raid enemy spawned by `spawnEnemies()` has `hp`, `maxHp`, `dead`, and `hitFlash` fields. HP is derived from enemy power per head via `getRaidEnemyBaseHp()` / `makeRaidEnemyHp()` (constants `RAID_ENEMY_BASE_HP`, `RAID_ENEMY_HP_PER_POWER`, `RAID_ENEMY_HP_RANDOM_MIN/MAX`; `RAID_CFG` itself is unchanged).
 - A small HP bar is drawn above each living enemy (`drawRaidEnemyHpBar()`), reflecting `hp/maxHp` and the enemy `fade`.
-- `damageRaidEnemy(en, amount)` reduces HP; at 0 the enemy becomes `dead` / `phase="dead"`, stops moving, and fades out. This helper exists for the future Phase 7B-2 soldier attacks and is NOT yet connected to normal play (only `window.__damageRaidEnemies()` debug uses it).
-- Important: HP is currently visual / future-connection only. It does NOT affect the raid outcome. Win/lose is still decided by `computeRaidOutcome()` inside `resolveRaid()` (Phase 7A) regardless of how many enemies are alive or dead.
+- `damageRaidEnemy(en, amount)` reduces HP; at 0 the enemy becomes `dead` / `phase="dead"` / `killedBySoldier=true`, stops moving, and fades out. As of Phase 7B-3 it is connected to normal play (surface soldiers call it).
 
 Soldier surface sortie (Phase 7B-2):
 
@@ -617,9 +616,17 @@ Soldier surface sortie (Phase 7B-2):
 - Each surface soldier has a `preferSide` (alternating left/right by slot index) and seeks the nearest living enemy on that side first (`findNearestLivingRaidEnemy(x,y,side,ex)`), falling back to the nearest living enemy anywhere if its side is empty. This makes soldiers split to both sides when enemies attack from both. It advances toward the target and slows to "engage" within `RAID_SURFACE_SOLDIER_ENGAGE_RADIUS`. If its target dies or disappears it re-targets; if no enemies remain it returns to / idles near the entrance. Phases: `emerge -> advance -> engage -> return -> idle`. Movement is straight-line (no pathfinding).
 - Surface soldiers are drawn in the soldier blue (`#3b82f6`) to match the soldier identity. During the raid `attack`/`result` phases, the underground `S.ants` soldiers are excluded from the ant draw (the surface soldiers represent them), so there is no duplicate blue cluster at the entrance. The `S.ants` soldier defend/guard logic itself is unchanged; only their rendering is suppressed during the raid.
 - Enemies carry a unique `id` (for targeting). Soldiers are spawned in `beginRaidAttack()` via `ensureRaidSoldiers()`, updated by `updateRaidSoldiers()`, drawn by `drawRaidSoldiers()`, and cleared/faded on `result`/`none` via `clearRaidSoldiers()`.
-- Important: surface soldiers do NOT deal damage yet. `damageRaidEnemy()` is still not connected to normal play, enemy HP does not drop during normal raids, and the outcome is still decided by `computeRaidOutcome()` inside `resolveRaid()` regardless of soldier/enemy positions.
+Surface combat and outcome (Phase 7B-3/4):
 
-Soldier-to-enemy attack/damage (Phase 7B-3) and all-enemies-dead win / breach-count loss (Phase 7B-4) are NOT implemented yet.
+- Surface soldiers attack: when within `RAID_SURFACE_SOLDIER_ATTACK_RANGE` of their target and off cooldown (`RAID_SURFACE_SOLDIER_ATTACK_COOLDOWN`), they call `damageRaidEnemy()` for `getRaidSurfaceSoldierDamage()` (= `RAID_SURFACE_SOLDIER_DAMAGE_BASE * getSoldierPowerMul(G.sLv)`, which already includes the jaw2x x2). On a kill the soldier re-targets.
+- Enemy death: HP 0 -> `dead`, stops, fades out, excluded from targeting and from the living count.
+- Enemy breach: when an enemy gets close enough to the entrance it is marked `breached` once and counted; breached enemies sink in and fade, and are excluded from combat.
+- The attack phase no longer ends at a fixed 6 s. It runs until the battle is decided (all enemies killed/breached, i.e. living count 0; or breaches reach the loss threshold) or a `RAID_ATTACK_MAX_SEC` (16 s) safety cap, then waits `RAID_FINISH_DELAY` (0.6 s) before resolving.
+- Outcome: `computeRaidOutcomeFromSurfaceCombat()` returns win if all enemies were killed (or none living and none breached), loss if breached enemies reach `getRaidBreachLoseThreshold(total)` (= `ceil(total * RAID_BREACH_LOSE_RATIO 0.30)`, min 1), otherwise a time judgement (win if breach ratio < 0.30 and kill ratio >= 0.50). It is converted to the existing out format by `buildRaidOutcomeFromSurfaceResult()` (food/cookie reward on win with a small all-killed bonus; worker loss and food/egg multipliers scaled by breach ratio on loss), so `resolveRaid()` applies rewards/damage exactly once via its existing path.
+- The result modal shows a surface-combat breakdown (撃破 / 突破 / 残存 / 判定 reason).
+- Counters live on `S.raidVis` (`totalEnemies`, `killedEnemies`, `breachedEnemies`, `finishDelay`). Debug: `window.__debugRaidCombat()`.
+
+NOT implemented: soldier death, per-soldier HP, extra enemy types, defense lines / formations / traps, boss fights, and a full reward-balance redesign.
 
 Debug raid trigger (test only, not exposed in normal UI):
 

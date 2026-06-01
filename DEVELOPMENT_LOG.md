@@ -1,5 +1,38 @@
 # Development Log
 
+## 2026-06-01 Phase 7B-3/4 兵隊攻撃・敵死亡・地表戦闘の勝敗接続
+
+目的:
+
+- 地表レイドを「見た目だけ」から「地表戦闘の結果で勝敗が決まる」状態へ進める。通常レイドの勝敗は原則として地表戦闘結果で決め、作れない場合のみ従来の `computeRaidOutcome()` にフォールバックする。
+
+追加・変更した主な関数:
+
+- `getRaidSurfaceSoldierDamage()`: 兵隊1撃のダメージ。`getSoldierPowerMul(G.sLv)`（jaw2x ×2 を内包）× 基本ダメージ。jaw2x を二重に掛けない。
+- `updateRaidSoldiers(dt)`: 攻撃処理を接続。射程 `RAID_SURFACE_SOLDIER_ATTACK_RANGE` 内かつクールダウン明けで `damageRaidEnemy()` を呼び、撃破で `S.raidVis.killedEnemies++` ＆再ターゲット。engage は敵に張り付いて追従（0.9倍速）。突破済み敵はターゲット対象外。
+- `damageRaidEnemy(en, amount)`: 突破済み・死亡済みガード、HP0で `dead`/`phase="dead"`/`killedBySoldier=true`、hitFlash を定数化。
+- `getLivingRaidEnemyCount()` / `countKilledRaidEnemies()` / `countBreachedRaidEnemies()`: 残存・撃破・突破の集計。
+- `getRaidBreachLoseThreshold(total)`: 敗北しきい値 = `max(1, ceil(total * RAID_BREACH_LOSE_RATIO(0.30)))`。
+- `computeRaidOutcomeFromSurfaceCombat()`: 全滅→勝利(all_killed)、突破しきい値超→敗北(breached)、残存0＆突破0→勝利(no_living)、それ以外は時間判定（突破率<0.30 かつ 撃破率≥0.50 で勝利）。作れない（敵なし等）なら null。
+- `buildRaidOutcomeFromSurfaceResult(result)`: 地表結果を既存形式の out（win/rewardFood/rewardCookie/loseWorkers/foodMul/eggMul/winProb/surfaceResult）に変換。報酬・被害は既存ロジックを大きく逸脱させず、敗北被害は突破率で増減。
+- 敵移動更新: 入口に十分近づいたら `en.breached=true`＋`S.raidVis.breachedEnemies++`（1体1回）。突破済み敵は潜り込みフェードのみで戦闘対象外。
+- 攻撃フェーズ終了判定: 固定6秒をやめ、「全滅 or 突破しきい値到達 or `RAID_ATTACK_MAX_SEC`(16秒)」で決着し、`RAID_FINISH_DELAY`(0.6秒)見せてから `resolveRaid()`。決着が早ければ早期終了する。
+- `beginRaidAttack()`: `totalEnemies`/`killedEnemies`/`breachedEnemies`/`finishDelay` を初期化。
+- `resolveRaid()`: 先頭で `computeRaidOutcomeFromSurfaceCombat()` を優先。`surfaceOut || _pendingOutcome || computeRaidOutcome()`。報酬・被害適用は既存処理を流用（二重適用なし）。
+- `showRaidResultModal()`: 既存本文に「撃破 N/Total・突破 N・残存 N・判定（理由）」を追記。
+- デバッグ: `window.__debugRaidCombat()`。
+
+勝敗:
+
+- 敵全滅で勝利、敵が一定数（30%以上、最低1）突破で敗北。攻撃時間上限到達時は時間判定。`computeRaidOutcome()` は削除せずフォールバック・比較用に残置（定数式の勝敗計算）。
+
+検証:
+
+- inline JS `node --check`（OK）、`git diff --check`（クリーン）、`computeRaidOutcome()` が1個残存・`resolveRaid` が地表結果優先・報酬被害は既存形式へ変換を確認。
+- ヘッドレスChrome/CDP: 組織的戦闘で兵隊が自力で8体撃破（killedEnemies>0）し解決、結果モーダルに撃破/突破/残存/判定を表示。全敵を死亡させると all_killed 勝利＆食料報酬が一度だけ適用。しきい値以上の敵を突破させると breached 敗北＆働きアリ減少が一度だけ適用。予告→攻撃→結果→通常復帰、大物運搬の出現/中断に副作用なし、コンソールエラー0 を確認。
+
+Phase 7B 以降の未対応: 兵隊死亡・兵隊個別HP・敵種追加・防衛ライン/陣形/トラップ・ボス戦・報酬バランス全面再設計は未実装。
+
 ## 2026-06-01 Phase 7B-2 調整: 兵隊の両側分散・青色化・地下兵隊の二重表示解消
 
 ユーザー報告の3点を修正:
