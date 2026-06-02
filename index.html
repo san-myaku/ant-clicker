@@ -433,6 +433,33 @@
       color: #94a3b8;
       line-height: 1.4;
     }
+    .room-pending-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      color: #cbd5e1;
+      padding: 3px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .room-pending-row:last-child { border-bottom: none; }
+    .room-pending-icon { font-size: 14px; flex-shrink: 0; }
+    .room-pending-label { flex: 1; }
+    .room-pending-count {
+      font-size: 9px;
+      background: rgba(124,58,237,0.25);
+      border: 1px solid rgba(124,58,237,0.5);
+      border-radius: 4px;
+      padding: 1px 5px;
+      color: #c4b5fd;
+      white-space: nowrap;
+    }
+    .room-pending-building {
+      font-size: 9px;
+      color: #4ade80;
+      animation: pending-pulse 1.2s ease-in-out infinite;
+    }
+    @keyframes pending-pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
     .ferment-room-summary {
       font-size: 10px;
       color: #cbd5e1;
@@ -713,6 +740,12 @@
       color: rgba(226, 232, 240, 0.62);
       font-size: 8px;
       line-height: 1.15;
+    }
+    .dock-meta .dock-desc {
+      margin-top: 2px;
+      color: rgba(148, 163, 184, 0.55);
+      font-size: 8px;
+      line-height: 1.2;
     }
     .dock-badge {
       position: absolute;
@@ -1117,7 +1150,7 @@
         overflow: visible;
       }
       .dock-grid-tab .dock-item {
-        min-height: 78px;
+        min-height: 88px;
         padding: 5px 4px;
         justify-content: center;
         overflow: hidden;
@@ -1940,6 +1973,11 @@
               <div id="dock-rooms-grid" class="dock-grid dock-grid-tab"></div>
             </div>
 
+            <div class="tab-card" id="room-pending-panel" style="display:none;">
+              <div class="tab-sec-title">建設予約中</div>
+              <div id="room-pending-list" style="display:flex; flex-direction:column; gap:4px;"></div>
+            </div>
+
             <div class="tab-card" id="ferment-room-panel">
               <div class="tab-sec-title">発酵室ライン</div>
               <div class="ferment-room-summary" id="ferment-room-summary">研究で発酵枝を進めると詳細が表示されます。</div>
@@ -2025,6 +2063,7 @@
                 <div class="dock-meta">
                   <div class="dock-name">兵舎設計図</div>
                   <div class="dock-cost">🍪 <span id="c-major-barracks">25</span></div>
+                  <div class="dock-desc">兵士上限+20/室</div>
                 </div>
                 <span class="dock-badge new" data-badge="new">NEW</span>
                 <span class="dock-badge lock" data-badge="lock">🔒</span>
@@ -2080,6 +2119,7 @@
                 <div class="dock-meta">
                   <div class="dock-name">ゴミ室</div>
                   <div class="dock-cost">🍃 <span id="c-unlock-waste">5000</span></div>
+                  <div class="dock-desc">廃棄物を自動処理</div>
                 </div>
                 <span class="dock-badge new" data-badge="new">NEW</span>
                 <span class="dock-badge lock" data-badge="lock">🔒</span>
@@ -2089,6 +2129,7 @@
                 <div class="dock-meta">
                   <div class="dock-name">発酵室建設</div>
                   <div class="dock-cost">🍃 <span id="c-build-ferment">2000</span></div>
+                  <div class="dock-desc">食料→🍪変換 発酵アリ強化</div>
                 </div>
                 <span class="dock-badge new" data-badge="new">NEW</span>
                 <span class="dock-badge lock" data-badge="lock">🔒</span>
@@ -2098,6 +2139,7 @@
                 <div class="dock-meta">
                   <div class="dock-name">クッキー室建設</div>
                   <div class="dock-cost">🍪 <span id="c-build-cookieroom">30</span></div>
+                  <div class="dock-desc">発見率×1.5/室 納品+1(20%)</div>
                 </div>
                 <span class="dock-badge new" data-badge="new">NEW</span>
                 <span class="dock-badge lock" data-badge="lock">🔒</span>
@@ -2373,7 +2415,7 @@
   const GEO_DEPTH_3_NODE = 'geo_depth_3';
   const BARRACKS_BLUEPRINT_NODE = 'military_barracks_blueprint';
   // MAJOR_UPGRADE: 発動メジャー（アクティブ）設定
-  const MAJOR_ACT_COOKIE_CD = 600;   // 日本語: クッキーブーストCD（秒）
+  const MAJOR_ACT_COOKIE_CD = 12000;  // 日本語: クッキーブーストCD（秒）旧600→×20に
   const MAJOR_ACT_COOKIE_WIN = 15;   // 日本語: 出現ウィンドウ（秒）
   const MAJOR_ACT_COOKIE_ACTIVE = 10;// 日本語: 発動時間（秒）
   const MAJOR_ACT_COOKIE_BASE = 0.06;// 日本語: 初期当選率
@@ -8342,9 +8384,26 @@ function expandMap(forcedType, isEmergency) {
     const minX = w * 0.06, maxX = w * 0.94;
     if(x < minX) x = minX;
     if(x > maxX) x = maxX;
-    const required = Math.max(5, Math.min(LARGE_FOOD_REQUIRED_WORKERS, Math.floor((G.ants.worker || 0) * 0.5) || LARGE_FOOD_REQUIRED_WORKERS));
+
+    // 餌のサイズをランダムに決める（ログ一様分布 [0.5, 3.0]）
+    // Math.pow(6, r)/2 → r=0 で 0.5、r=0.5 で 1.22、r=1 で 3.0
+    const sizeFactor = Math.pow(6, Math.random()) / 2;
+
+    // 必要アリ数：サイズに比例、ただし手持ちの50%を上限に
+    const idealRequired = Math.round(LARGE_FOOD_REQUIRED_WORKERS * sizeFactor);
+    const workerCap = Math.max(idealRequired, Math.floor((G.ants.worker || 0) * 0.5) || idealRequired);
+    const required = Math.max(3, Math.min(idealRequired, workerCap));
+
+    // 報酬：サイズに比例
     const rewardWorkers = Math.min(LARGE_FOOD_REWARD_WORKER_CAP, Math.max(0, Math.floor(G.ants.worker || 0)));
-    const rewardFood = Math.floor(LARGE_FOOD_REWARD_BASE + LARGE_FOOD_REWARD_PER_WORKER * rewardWorkers);
+    const rewardFood = Math.floor((LARGE_FOOD_REWARD_BASE + LARGE_FOOD_REWARD_PER_WORKER * rewardWorkers) * sizeFactor);
+
+    // 運搬速度：サイズが大きいほど遅い
+    const carrySpeed = LARGE_FOOD_CARRY_SPEED / sizeFactor;
+
+    // 出現メッセージをサイズで変える
+    const sizeLabel = sizeFactor >= 2.5 ? '超巨大な' : sizeFactor >= 1.5 ? '巨大な' : sizeFactor <= 0.7 ? '小さめの' : '大きな';
+
     S.largeFood = {
       id: Date.now(),
       x, y: S.full.sy,
@@ -8356,7 +8415,9 @@ function expandMap(forcedType, isEmergency) {
       progress: 0,               // 運搬の進捗 0..1
       rewarded: false,
       floatY: 0,           // 運搬中に浮き上がる量（px）。0 = 地面。運搬開始でアニメーション
-      r: LARGE_FOOD_RADIUS,
+      r: LARGE_FOOD_RADIUS * sizeFactor,
+      sizeFactor,
+      carrySpeed,
       seed: Math.random() * Math.PI * 2,
       shape: makeLargeFoodShape(),
       life: LARGE_FOOD_GATHER_TIMEOUT,
@@ -8365,7 +8426,7 @@ function expandMap(forcedType, isEmergency) {
       doneT: 0,
       spawnTime: S.t
     };
-    toast("🌿 地表に大きな餌が出現！働きアリが集まっています");
+    toast(`🌿 地表に${sizeLabel}餌が出現！働きアリ${required}匹が必要`);
     return S.largeFood;
   }
 
@@ -8424,7 +8485,7 @@ function expandMap(forcedType, isEmergency) {
       const ex = ENX();
       const dx = ex - lf.x;
       const dir = Math.sign(dx) || -1;
-      lf.x += dir * LARGE_FOOD_CARRY_SPEED * dt;
+      lf.x += dir * (lf.carrySpeed || LARGE_FOOD_CARRY_SPEED) * dt;
       const total = Math.abs(ex - lf.carryStartX) || 1;
       lf.progress = clamp(1 - Math.abs(ex - lf.x) / total, 0, 1);
       lf.arrivedWorkers = countLargeFoodWorkers().arrived;
@@ -10669,6 +10730,48 @@ function renderResearchNodeCard(def){
     }
   }
 
+  function updateRoomPendingPanel() {
+    const panel = document.getElementById('room-pending-panel');
+    const list  = document.getElementById('room-pending-list');
+    if(!panel || !list) return;
+
+    const ferPending  = G.fermentRoomPending  || 0;
+    const ckPending   = G.cookieRoomPending   || 0;
+    const barPending  = G.barracksPending     || 0;
+
+    // 未掘削（配置済みだが nodeVis=false）の部屋数を数える
+    function unbuiltCount(type) {
+      if(!S.full || !S.nodeVis) return 0;
+      return S.full.nodes.filter((n,i) => n.type === type && !S.nodeVis[i]).length;
+    }
+    const ferBuilding  = unbuiltCount('ferment');
+    const ckBuilding   = unbuiltCount('cookieroom');
+    const barBuilding  = unbuiltCount('soldier');
+
+    const rows = [
+      { icon:'🧪', label:'発酵室',      pending: ferPending,  building: ferBuilding  },
+      { icon:'🍪', label:'クッキー室',  pending: ckPending,   building: ckBuilding   },
+      { icon:'🛡️', label:'兵舎',        pending: barPending,  building: barBuilding  },
+    ].filter(r => r.pending > 0 || r.building > 0);
+
+    panel.style.display = rows.length ? '' : 'none';
+    if(!rows.length) return;
+
+    list.innerHTML = rows.map(r => {
+      const countEl = r.pending > 0
+        ? `<span class="room-pending-count">予約 ${r.pending}</span>`
+        : '';
+      const buildEl = r.building > 0
+        ? `<span class="room-pending-building">⛏️ 掘削中…</span>`
+        : '';
+      return `<div class="room-pending-row">
+        <span class="room-pending-icon">${r.icon}</span>
+        <span class="room-pending-label">${r.label}</span>
+        ${buildEl}${countEl}
+      </div>`;
+    }).join('');
+  }
+
   function updateFermentPanelUI(){
     if(!fermentPanelUI.summary || !fermentPanelUI.lines) return;
     const unlocked = isFermentRoomUnlocked();
@@ -12610,6 +12713,7 @@ function syncFermenterUnlockUI() {
 
     setText(el.desc_b, S.builderState);
     updateResearchUI();
+    updateRoomPendingPanel();
     updateFermentPanelUI();
     updateMobileInlineHints();
     updateUpgradeDock();
@@ -14320,14 +14424,12 @@ function syncFermenterUnlockUI() {
     drawEntranceMound(ctx, view);
 
     ctx.lineCap='round'; ctx.lineJoin='round';
-    const tintAlpha = 0.20;
     S.full.nodes.forEach((n,i)=>{
       if(!S.nodeVis[i]) return;
       const tint = _colorMode ? roomTint(n.type) : null;
       if(tint){
         ctx.save();
-        ctx.globalAlpha = tintAlpha;
-        ctx.fillStyle = tint;
+        ctx.fillStyle = tint; // roomTint の rgba alpha をそのまま使う
         fillBlobPath(ctx, n);
         ctx.restore();
       }
