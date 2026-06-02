@@ -2584,6 +2584,13 @@
   // Phase 7.5A: 戦闘の長さ調整ノブ。敵HP全体の倍率（指数とは独立。上げるほど戦闘が長い）。
   // 指数(=進行感の形)は触らず、ここだけでテンポを調整できる。1.0で素のHP、2.0で約2倍の戦闘時間。
   const RAID_ENEMY_HP_DURATION_MUL = 2.0;
+  // Phase 7.5: 敵HP追従の基準兵隊数。表示上限(RENDER_MAX)とは独立に、論理的な軍の強さで
+  // 敵HPを決めるための分母。これにより表示兵数を増減しても戦闘の長さ・難度が変わらない。
+  const RAID_ENEMY_HP_REF_SOLDIERS = 24;
+  // Phase 7.5: 敵の「描画体数」。難度(総敵HP)は RAID_CFG の体数基準で算出し、これで割って各個体へ
+  // 分配するので、描画体数を増やしても難度・戦闘の長さは不変（兵隊weightの敵版）。乱戦の物量用に多め。
+  const RAID_ENEMY_RENDER_UNIT_POWER = 12;  // enemyPower をこの値で割って描画体数を決める（小さいほど多い）
+  const RAID_ENEMY_RENDER_COUNT_MAX = 80;   // 描画体数の上限（vector負荷は軽いので大きめ）
   // Phase 7B-2 の地表兵隊定数は dp() を使うため、dp 定義後（下部の移動定数付近）でまとめて定義する。
   let _raidEnemyIdSeq = 0; // レイド敵の一意ID採番（dp非依存なのでここで定義）
   // ===== 地下侵略者（害虫）システム =====
@@ -6559,7 +6566,7 @@ function expandMap(forcedType, isEmergency) {
 
   // ===== Phase 7B-2: 兵隊アリの地表出撃（表示演出。dp使用のため dp 定義後に置く） =====
   // 論理戦力は既存の G.ants.soldier / getColonyCombatPower のまま。これは見た目だけの別レイヤー。
-  const RAID_SURFACE_SOLDIER_RENDER_MAX = 24;        // 地表に描く兵隊の最大数（負荷対策）
+  const RAID_SURFACE_SOLDIER_RENDER_MAX = 100;       // 地表に描く兵隊の最大数。vectorは100体超でも+2ms程度なので「見える兵=戦う兵」を大きく取る（Phase 7.5: 演出群衆を廃し実本隊を大量描画）
   const RAID_SURFACE_SOLDIER_SPEED = dp(110);        // 地表兵隊の移動速度
   const RAID_SURFACE_SOLDIER_ENGAGE_RADIUS = dp(18); // この距離まで近づいたら交戦扱い（減速）
   const RAID_SURFACE_SOLDIER_SEPARATION = dp(8);     // 兵隊同士の重なり緩和距離
@@ -9409,11 +9416,11 @@ function expandMap(forcedType, isEmergency) {
   function getRaidEnemyBaseHp(enemyPower, enemyCount) {
     const perEnemyPower = enemyCount > 0 ? enemyPower / enemyCount : enemyPower;
     const base = RAID_ENEMY_BASE_HP + perEnemyPower * RAID_ENEMY_HP_PER_POWER;
-    // Phase 7.5A: プレイヤーの実1撃地表ダメージ(= base × weight × Lv倍率)に敵HPを追従させる。
-    // 兵隊が表示上限24体を超えても瞬殺で戦闘が一瞬で終わらないようにする。指数<1で鈍化。
-    const perHit = (typeof getRaidSurfaceSoldierDamage === "function" ? getRaidSurfaceSoldierDamage() : RAID_SURFACE_SOLDIER_DAMAGE_BASE)
-                 * (typeof getRaidSurfaceSoldierWeight === "function" ? getRaidSurfaceSoldierWeight() : 1);
-    const playerScale = Math.max(1, perHit / RAID_SURFACE_SOLDIER_DAMAGE_BASE); // base(2)比の火力倍率（weight×Lv）
+    // Phase 7.5: 敵HPを「論理的な軍の強さ(兵隊数×Lv倍率)」に追従させる。表示体数(RENDER_MAX)には
+    // 依存させないので、見える兵隊を増やしても瞬殺/戦闘の長さは変わらない。指数<1で鈍化。
+    const lvDmg = (typeof getRaidSurfaceSoldierDamage === "function") ? getRaidSurfaceSoldierDamage() : RAID_SURFACE_SOLDIER_DAMAGE_BASE; // base × Lv倍率
+    const armyStrength = (G.ants.soldier || 0) * lvDmg; // 総火力に比例（描画体数に非依存）
+    const playerScale = Math.max(1, armyStrength / (RAID_ENEMY_HP_REF_SOLDIERS * RAID_SURFACE_SOLDIER_DAMAGE_BASE));
     const hpScale = Math.pow(playerScale, RAID_ENEMY_HP_PLAYER_EXP);
     return Math.max(1, Math.floor(base * hpScale * RAID_ENEMY_HP_DURATION_MUL));
   }
@@ -9446,7 +9453,13 @@ function expandMap(forcedType, isEmergency) {
   function spawnEnemies() {
     S.enemies = [];
     const enemyPower = getEnemyPower();
-    const n = clamp(Math.floor(enemyPower / RAID_CFG.enemyUnitPower), RAID_CFG.enemyCountMin, RAID_CFG.enemyCountMax);
+    // 描画体数（乱戦の物量）。多めに出して2陣営のぶつかり合いを見せる。
+    const n = clamp(Math.floor(enemyPower / RAID_ENEMY_RENDER_UNIT_POWER), RAID_CFG.enemyCountMin, RAID_ENEMY_RENDER_COUNT_MAX);
+    // 難度: 総敵HP予算は旧来の体数基準(RAID_CFG)で算出し、描画体数 n で割って各個体へ分配する。
+    // → 体数を増やしても総HP=難度・戦闘の長さは不変。突破判定は割合(30%)ベースなので体数非依存。
+    const nBudget = clamp(Math.floor(enemyPower / RAID_CFG.enemyUnitPower), RAID_CFG.enemyCountMin, RAID_CFG.enemyCountMax);
+    const totalHpBudget = getRaidEnemyBaseHp(enemyPower, nBudget) * nBudget;
+    const perEnemyHp = Math.max(1, totalHpBudget / Math.max(1, n));
     const sy = S.full.sy;
     const ex = ENX();
 
@@ -9454,7 +9467,8 @@ function expandMap(forcedType, isEmergency) {
       const side = (Math.random()<0.5) ? -1 : 1;
       const x0 = side < 0 ? -dp(30) - Math.random()*dp(80) : (S.full.w + dp(30) + Math.random()*dp(80));
       const speed = dp(90 + Math.random()*60);
-      const hp = makeRaidEnemyHp(enemyPower, n);
+      const hpVar = RAID_ENEMY_HP_RANDOM_MIN + Math.random()*(RAID_ENEMY_HP_RANDOM_MAX - RAID_ENEMY_HP_RANDOM_MIN);
+      const hp = Math.max(1, Math.floor(perEnemyHp * hpVar));
       S.enemies.push({
         id: _raidEnemyIdSeq++, // Phase 7B-2: 兵隊の追尾ターゲット用 一意ID
         x: x0,
@@ -9555,7 +9569,8 @@ function expandMap(forcedType, isEmergency) {
     const ex = ENX();
     const sy = S.full.sy;
     for(let i=0; i<count; i++) {
-      const spread = (i - (count-1)/2) * dp(7);
+      const spacing = Math.min(dp(7), dp(260) / Math.max(1, count)); // 大軍ほど詰めて画面内に収める
+      const spread = (i - (count-1)/2) * spacing;
       const homeX = ex + spread + (Math.random()-0.5)*dp(4);
       S.raidSoldiers.push({
         x: ex + (Math.random()-0.5)*dp(8),
