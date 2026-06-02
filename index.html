@@ -3944,6 +3944,9 @@ function ensureRestSlots(n){
   const dp = (x) => x * (window.devicePixelRatio || 1);
   // 巣（ワールド）の基準横幅（画面幅に依存しない固定値）
   const WORLD_W_BASE = dp(2400);
+  // 地表(sy)より上に確保する空の余白。これだけカメラを上へパンでき、空が広く見える。
+  // 地表・巣の配置(sy)は一切変えないので既存セーブでもそのまま効く。
+  const SKY_HEADROOM = dp(340);
 
   function hasValidBandState(b) {
     if(!b) return false;
@@ -5173,11 +5176,14 @@ window._dbg = {
   }
 
   function getCamBounds(viewW, viewH) {
-    let minX = 0, minY = 0;
+    // 空の余白ぶん上を世界の上端として扱う（地表より上の空を広く見せる・パン/センタリング両対応）
+    const worldTop = -SKY_HEADROOM;
+    const worldH = S.full.h - worldTop; // 巣の高さ + 空の余白
+    let minX = 0, minY = worldTop;
     let maxX = Math.max(0, S.full.w - viewW);
-    let maxY = Math.max(0, S.full.h - viewH);
+    let maxY = Math.max(worldTop, S.full.h - viewH);
     if(viewW > S.full.w) { minX = maxX = (S.full.w - viewW) * 0.5; }
-    if(viewH > S.full.h) { minY = maxY = (S.full.h - viewH) * 0.5; }
+    if(viewH > worldH)   { minY = maxY = worldTop + (worldH - viewH) * 0.5; }
     return { minX, maxX, minY, maxY };
   }
 
@@ -14293,10 +14299,10 @@ function syncFermenterUnlockUI() {
     applyCameraTransform(shakeX, shakeY);
 
     // --- Sky (visible range only) ---
-    const skyTop = Math.max(view.y, 0);
+    const skyTop = Math.max(view.y, -SKY_HEADROOM);
     const skyBottom = Math.min(view.y + view.h, S.full.sy);
     if(skyBottom > skyTop) {
-      const skyGr = ctx.createLinearGradient(0,0,0,S.full.sy);
+      const skyGr = ctx.createLinearGradient(0,-SKY_HEADROOM,0,S.full.sy);
       skyGr.addColorStop(0,c1); skyGr.addColorStop(1,c2);
       ctx.fillStyle = skyGr;
       ctx.fillRect(view.x, skyTop, view.w, skyBottom - skyTop);
@@ -14313,7 +14319,7 @@ function syncFermenterUnlockUI() {
         ctx.globalAlpha = sunAlpha;
         ctx.fillStyle = '#fde047';
         ctx.beginPath();
-        ctx.arc(view.x + view.w * dayProg, S.full.sy * 0.4, dp(20), 0, 6.28);
+        ctx.arc(view.x + view.w * dayProg, -SKY_HEADROOM + (S.full.sy + SKY_HEADROOM) * 0.30, dp(20), 0, 6.28);
         ctx.fill();
         ctx.restore();
       }
@@ -14322,7 +14328,7 @@ function syncFermenterUnlockUI() {
         ctx.globalAlpha = moonAlpha;
         ctx.fillStyle = '#f1f5f9';
         ctx.beginPath();
-        ctx.arc(view.x + view.w * moonProg, S.full.sy * 0.3, dp(15), 0, 6.28);
+        ctx.arc(view.x + view.w * moonProg, -SKY_HEADROOM + (S.full.sy + SKY_HEADROOM) * 0.22, dp(15), 0, 6.28);
         ctx.fill();
         ctx.restore();
       }
