@@ -1,6 +1,6 @@
 # Ant Colony V23 Current System Overview
 
-Last updated: 2026-06-01 (10)
+Last updated: 2026-06-03 (11)
 Target file: `index.html`
 
 This document is the current implementation overview for the single-file ant clicker game. When gameplay, UI, save data, AI behavior, or public deployment assumptions change, update this file together with `DEVELOPMENT_LOG.md`.
@@ -603,22 +603,25 @@ Raid outcome timing (Phase 7A):
 - `beginRaidAttack()` only sets up the attack phase (close result modal, `state="attack"`, reset timer, spawn enemies, screen shake, alert UI). It does NOT call `computeRaidOutcome()` and clears any stale `S.raidVis._pendingOutcome`.
 - `resolveRaid()` decides the outcome as `const out = computeRaidOutcomeFromSurfaceCombat() || S.raidVis._pendingOutcome || computeRaidOutcome()`. After Phase 7B-3/4 the surface-combat result is used for normal raids; `computeRaidOutcome()` remains only as a fallback (no enemies / broken state / stale in-flight). It then applies rewards/damage, updates `G.raidWins`/`G.raidTotal`, and shows the result modal.
 - `computeRaidOutcome()` (the probability formula) is kept unchanged as a fallback. `RAID_CFG`, `getColonyCombatPower()`, `getEnemyPower()`, `getRaidWinProb()` are unchanged.
-Raid enemy HP (Phase 7B-1):
+Raid enemy HP and counts (Phase 7B-1, reworked in Phase 7.5):
 
-- Each raid enemy spawned by `spawnEnemies()` has `hp`, `maxHp`, `dead`, and `hitFlash` fields. HP is derived from enemy power per head via `getRaidEnemyBaseHp()` / `makeRaidEnemyHp()` (constants `RAID_ENEMY_BASE_HP`, `RAID_ENEMY_HP_PER_POWER`, `RAID_ENEMY_HP_RANDOM_MIN/MAX`; `RAID_CFG` itself is unchanged).
+- Each raid enemy spawned by `spawnEnemies()` has `hp`, `maxHp`, `dead`, `hitFlash`, and a unique `id`.
+- Enemy *render count* (bodies drawn, for a two-sided melee) is `clamp(enemyPower / RAID_ENEMY_RENDER_UNIT_POWER (12), enemyCountMin (6), RAID_ENEMY_RENDER_COUNT_MAX (80))` — intentionally many.
+- Enemy *difficulty is decoupled from render count*: a total HP budget is computed on the old count basis (`getRaidEnemyBaseHp(enemyPower, nBudget) * nBudget`, `nBudget = clamp(enemyPower / RAID_CFG.enemyUnitPower (25), 6, RAID_CFG.enemyCountMax (36))`) and split evenly across the rendered bodies. Adding bodies changes the look but not total HP / fight length; breach-loss is ratio-based (30%), so it is body-count agnostic.
+- Per-enemy base HP (`getRaidEnemyBaseHp`) follows the player's *logical* army strength (not the render cap): `(RAID_ENEMY_BASE_HP + perEnemyPower * RAID_ENEMY_HP_PER_POWER) * playerScale^RAID_ENEMY_HP_PLAYER_EXP (0.7) * RAID_ENEMY_HP_DURATION_MUL (2.0)`, where `playerScale = max(1, (G.ants.soldier * getRaidSurfaceSoldierDamage()) / (RAID_ENEMY_HP_REF_SOLDIERS (24) * RAID_SURFACE_SOLDIER_DAMAGE_BASE))`. The `<1` exponent dampens scaling so a bigger army still wins faster; `_DURATION_MUL` tunes fight length; `_REF_SOLDIERS` keeps it independent of how many bodies are drawn. (`makeRaidEnemyHp()` is the legacy per-enemy helper; spawn now inlines budget-based HP with the same `RAID_ENEMY_HP_RANDOM_MIN/MAX` variance. `RAID_CFG` values themselves are unchanged.)
 - A small HP bar is drawn above each living enemy (`drawRaidEnemyHpBar()`), reflecting `hp/maxHp` and the enemy `fade`.
 - `damageRaidEnemy(en, amount)` reduces HP; at 0 the enemy becomes `dead` / `phase="dead"` / `killedBySoldier=true`, stops moving, and fades out. As of Phase 7B-3 it is connected to normal play (surface soldiers call it).
 
 Soldier surface sortie (Phase 7B-2):
 
 - During the attack phase, soldier ants sortie from the entrance onto the surface as a display layer (`S.raidSoldiers`, independent from `S.ants`, runtime-only, not saved).
-- Rendered soldier count is `clamp(G.ants.soldier, 0, RAID_SURFACE_SOLDIER_RENDER_MAX=24)` — a visual representation only. Logical combat power is still `G.ants.soldier` / `getColonyCombatPower()`.
+- Rendered soldier count is `clamp(G.ants.soldier, 0, RAID_SURFACE_SOLDIER_RENDER_MAX=100)`. As of Phase 7.5 the cap was raised 24->100 so the *visible* army IS the *real* fighting army (vector handles 100+ ants cheaply; a cosmetic crowd layer was tried and reverted as "meaningless animation"). Each rendered soldier carries `weight = G.ants.soldier / renderedCount` (`getRaidSurfaceSoldierWeight()`): armies <=100 are shown 1:1 (weight 1), beyond 100 each body represents several. Logical combat power is still `G.ants.soldier` / `getColonyCombatPower()`.
 - Each surface soldier has a `preferSide` (alternating left/right by slot index) and seeks the nearest living enemy on that side first (`findNearestLivingRaidEnemy(x,y,side,ex)`), falling back to the nearest living enemy anywhere if its side is empty. This makes soldiers split to both sides when enemies attack from both. It advances toward the target and slows to "engage" within `RAID_SURFACE_SOLDIER_ENGAGE_RADIUS`. If its target dies or disappears it re-targets; if no enemies remain it returns to / idles near the entrance. Phases: `emerge -> advance -> engage -> return -> idle`. Movement is straight-line (no pathfinding).
 - Surface soldiers are drawn in the soldier blue (`#3b82f6`) to match the soldier identity. During the raid `attack`/`result` phases, the underground `S.ants` soldiers are excluded from the ant draw (the surface soldiers represent them), so there is no duplicate blue cluster at the entrance. The `S.ants` soldier defend/guard logic itself is unchanged; only their rendering is suppressed during the raid.
 - Enemies carry a unique `id` (for targeting). Soldiers are spawned in `beginRaidAttack()` via `ensureRaidSoldiers()`, updated by `updateRaidSoldiers()`, drawn by `drawRaidSoldiers()`, and cleared/faded on `result`/`none` via `clearRaidSoldiers()`.
 Surface combat and outcome (Phase 7B-3/4):
 
-- Surface soldiers attack: when within `RAID_SURFACE_SOLDIER_ATTACK_RANGE` of their target and off cooldown (`RAID_SURFACE_SOLDIER_ATTACK_COOLDOWN`), they call `damageRaidEnemy()` for `getRaidSurfaceSoldierDamage()` (= `RAID_SURFACE_SOLDIER_DAMAGE_BASE * getSoldierPowerMul(G.sLv)`, which already includes the jaw2x x2). On a kill the soldier re-targets.
+- Surface soldiers attack: when within `RAID_SURFACE_SOLDIER_ATTACK_RANGE` of their target and off cooldown (`RAID_SURFACE_SOLDIER_ATTACK_COOLDOWN`), they call `damageRaidEnemy()` for `getRaidSurfaceSoldierDamage() * soldier.weight` (base = `RAID_SURFACE_SOLDIER_DAMAGE_BASE * getSoldierPowerMul(G.sLv)`, already including jaw2x x2; the `weight` factor makes total surface DPS scale linearly with `G.ants.soldier` regardless of the render cap). On a kill the soldier re-targets.
 - Enemy death: HP 0 -> `dead`, stops, fades out, excluded from targeting and from the living count.
 - Engagement slowdown (standoff): while soldiers are engaging an enemy (within engage radius), the enemy's forward advance is slowed (`holdFactor = max(RAID_ENEMY_ENGAGED_MIN_FACTOR 0.1, 1 - engagedBy * RAID_ENEMY_ENGAGED_SLOW_PER 0.6)`). One soldier roughly halves its speed, two or more nearly hold it in place, creating a battle line. Enemies that are not engaged still advance at full speed and can slip through to breach.
 - Enemy breach: when an enemy gets close enough to the entrance it is marked `breached` once and counted; breached enemies sink in and fade, and are excluded from combat.
@@ -641,7 +644,7 @@ A lightweight surface event (MVP). A single large food appears on the surface, i
 State:
 
 - Runtime-only `S.largeFood` (one event at a time) and `S.largeFoodTimer`. Neither is saved or restored.
-- `S.largeFood` fields: `id`, `x`, `y`, `state`, `requiredWorkers`, `assignedWorkers`, `arrivedWorkers`, `rewardFood`, `progress`, `rewarded`, `r`, `seed`, `shape`, `life`, `carryStartX`, `t`, `doneT`, `spawnTime`.
+- `S.largeFood` fields: `id`, `x`, `y`, `state`, `requiredWorkers`, `assignedWorkers`, `arrivedWorkers`, `rewardFood`, `progress`, `rewarded`, `r`, `sizeFactor`, `carrySpeed`, `seed`, `shape`, `life`, `carryStartX`, `t`, `doneT`, `spawnTime`.
 - `state` machine: `waiting -> gathering -> carrying -> done`.
 
 Spawn conditions (`maybeSpawnLargeFood`):
@@ -663,7 +666,7 @@ Gather / carry / complete (`updateLargeFood`, called before `updateAnts`):
 
 Reward:
 
-- Food only. `rewardFood = LARGE_FOOD_REWARD_BASE (300) + 50 * min(G.ants.worker, 40)`.
+- Food only. Each event rolls a random `sizeFactor` (log-uniform ~0.5x-3.0x) that scales required workers, food reward, carry speed, draw radius, and the spawn toast label. `rewardFood = floor((LARGE_FOOD_REWARD_BASE + LARGE_FOOD_REWARD_PER_WORKER * rewardWorkers) * sizeFactor)`; required workers scale with size (capped near half the current workers); larger food is carried more slowly (`carrySpeed = LARGE_FOOD_CARRY_SPEED / sizeFactor`).
 
 Rendering (`drawLargeFood`, before the raid-enemy draw):
 
@@ -793,6 +796,12 @@ Canvas rendering draws:
 - Raid enemies
 - Underground invaders
 - Effects and trails
+
+Sky and camera headroom:
+
+- The sky is a vertical gradient (season / day-night colors) drawn from `-SKY_HEADROOM` (dp(340) above the surface) down to `S.full.sy`. `SKY_HEADROOM` adds open-sky space above the colony so the above-ground reads as sky, not a thin strip.
+- `getCamBounds()` treats the world top as `-SKY_HEADROOM` (not 0), so the camera can pan up into the sky and the default/centered view shows it. `S.full.sy` and the nest layout are unchanged, so existing saves get the wider sky too.
+- Sun and moon are positioned within the expanded sky band.
 
 Render modes:
 
