@@ -2577,6 +2577,13 @@
   const RAID_ENEMY_HP_PER_POWER = 0.08; // 1体あたり敵パワーに対するHP係数
   const RAID_ENEMY_HP_RANDOM_MIN = 0.85; // HPの個体差（下限）
   const RAID_ENEMY_HP_RANDOM_MAX = 1.15; // HPの個体差（上限）
+  // Phase 7.5A: 代表ユニット化で兵隊の地表火力が頭数ぶんに跳ね上がり、敵が瞬殺される問題への対処。
+  // 敵HPをプレイヤーの実1撃ダメージに追従させ「戦闘が数秒続く」ようにする。ただし指数<1で
+  // 鈍化させ、兵隊/Lv増強は依然有利（敵HPの伸びより火力の伸びが速い）に保つ。0で従来挙動。
+  const RAID_ENEMY_HP_PLAYER_EXP = 0.7;
+  // Phase 7.5A: 戦闘の長さ調整ノブ。敵HP全体の倍率（指数とは独立。上げるほど戦闘が長い）。
+  // 指数(=進行感の形)は触らず、ここだけでテンポを調整できる。1.0で素のHP、2.0で約2倍の戦闘時間。
+  const RAID_ENEMY_HP_DURATION_MUL = 2.0;
   // Phase 7B-2 の地表兵隊定数は dp() を使うため、dp 定義後（下部の移動定数付近）でまとめて定義する。
   let _raidEnemyIdSeq = 0; // レイド敵の一意ID採番（dp非依存なのでここで定義）
   // ===== 地下侵略者（害虫）システム =====
@@ -9361,7 +9368,14 @@ function expandMap(forcedType, isEmergency) {
         breached: '入口を突破され防衛失敗',
         time_judgement_loss: '押し込まれて防衛失敗'
       }[sr.reason] || (out.win ? '防衛成功' : '防衛失敗');
+      // Phase 7.5A: 兵隊が表示上限(24体)を超えている場合、論理頭数と代表倍率を見せる
+      // （増やした兵隊がちゃんと戦力に反映されていることをプレイヤーに伝える）
+      const repW = typeof getRaidSurfaceSoldierWeight === "function" ? getRaidSurfaceSoldierWeight() : 1;
+      const repLine = repW > 1.01
+        ? `兵隊: ${Math.floor(G.ants.soldier || 0)}匹 → 代表${getRaidSurfaceSoldierRenderCount()}体（1体=${repW.toFixed(1)}匹ぶん）\n`
+        : '';
       combatLines =
+        repLine +
         `撃破: ${sr.killedEnemies}/${sr.totalEnemies}\n` +
         `突破: ${sr.breachedEnemies}\n` +
         `残存: ${sr.livingEnemies}\n` +
@@ -9394,7 +9408,14 @@ function expandMap(forcedType, isEmergency) {
   // Phase 7B-1: 敵1体あたりの基準HP（敵パワーを頭数で割って反映）
   function getRaidEnemyBaseHp(enemyPower, enemyCount) {
     const perEnemyPower = enemyCount > 0 ? enemyPower / enemyCount : enemyPower;
-    return Math.max(1, Math.floor(RAID_ENEMY_BASE_HP + perEnemyPower * RAID_ENEMY_HP_PER_POWER));
+    const base = RAID_ENEMY_BASE_HP + perEnemyPower * RAID_ENEMY_HP_PER_POWER;
+    // Phase 7.5A: プレイヤーの実1撃地表ダメージ(= base × weight × Lv倍率)に敵HPを追従させる。
+    // 兵隊が表示上限24体を超えても瞬殺で戦闘が一瞬で終わらないようにする。指数<1で鈍化。
+    const perHit = (typeof getRaidSurfaceSoldierDamage === "function" ? getRaidSurfaceSoldierDamage() : RAID_SURFACE_SOLDIER_DAMAGE_BASE)
+                 * (typeof getRaidSurfaceSoldierWeight === "function" ? getRaidSurfaceSoldierWeight() : 1);
+    const playerScale = Math.max(1, perHit / RAID_SURFACE_SOLDIER_DAMAGE_BASE); // base(2)比の火力倍率（weight×Lv）
+    const hpScale = Math.pow(playerScale, RAID_ENEMY_HP_PLAYER_EXP);
+    return Math.max(1, Math.floor(base * hpScale * RAID_ENEMY_HP_DURATION_MUL));
   }
 
   // Phase 7B-1: 個体差込みの敵HP
@@ -9481,6 +9502,16 @@ function expandMap(forcedType, isEmergency) {
     return clamp(Math.floor(G.ants.soldier || 0), 0, RAID_SURFACE_SOLDIER_RENDER_MAX);
   }
 
+  // Phase 7.5A: 代表ユニット倍率。表示は最大24体に制限されるため、兵隊が25匹以上
+  // いても地表DPSが頭打ちにならないよう、表示兵隊1体に「論理兵隊 / 表示兵隊」匹ぶん
+  // の戦力(weight)を持たせる。例: soldier=120, 表示=24 → weight=5。
+  // 総地表DPS = 表示体数 × 1撃 × weight ÷ CD = soldier × 1撃 ÷ CD（頭数に線形比例）。
+  function getRaidSurfaceSoldierWeight() {
+    const rendered = getRaidSurfaceSoldierRenderCount();
+    const logical = Math.max(0, Math.floor(G.ants.soldier || 0));
+    return rendered > 0 ? logical / rendered : 1;
+  }
+
   function getRaidEnemyById(id) {
     if(id == null || !S.enemies) return null;
     for(const en of S.enemies) { if(en && en.id === id) return en; }
@@ -9520,6 +9551,7 @@ function expandMap(forcedType, isEmergency) {
     const count = getRaidSurfaceSoldierRenderCount();
     S.raidSoldiers = [];
     if(count <= 0 || !S.full) return;
+    const weight = getRaidSurfaceSoldierWeight(); // Phase 7.5A: 表示1体あたりの論理兵隊数
     const ex = ENX();
     const sy = S.full.sy;
     for(let i=0; i<count; i++) {
@@ -9540,6 +9572,7 @@ function expandMap(forcedType, isEmergency) {
         wobble: Math.random()*Math.PI*2,
         rot: -Math.PI/2,
         atkCd: Math.random() * RAID_SURFACE_SOLDIER_ATTACK_COOLDOWN, // 攻撃タイミングをばらす
+        weight, // Phase 7.5A: 代表倍率（この表示兵隊が何匹ぶんの戦力か）
         dead: false
       });
     }
@@ -9605,7 +9638,8 @@ function expandMap(forcedType, isEmergency) {
         }
         // Phase 7B-3: 射程内＆クールダウン明けで攻撃 → 敵HP減少、撃破で再ターゲット
         if(dToTarget <= RAID_SURFACE_SOLDIER_ATTACK_RANGE && (s.atkCd || 0) <= 0) {
-          const killed = damageRaidEnemy(target, soldierDamage);
+          // Phase 7.5A: 1撃に代表倍率を乗算。表示24体のままでも論理兵隊数ぶんの地表DPSになる。
+          const killed = damageRaidEnemy(target, soldierDamage * (s.weight || 1));
           s.atkCd = RAID_SURFACE_SOLDIER_ATTACK_COOLDOWN;
           if(killed) {
             S.raidVis.killedEnemies = (S.raidVis.killedEnemies || 0) + 1;
@@ -12364,6 +12398,7 @@ function syncFermenterUnlockUI() {
     return {
       logicalSoldiers: G.ants.soldier || 0,
       renderedSoldiers: S.raidSoldiers ? S.raidSoldiers.length : 0,
+      repWeight: typeof getRaidSurfaceSoldierWeight === "function" ? +getRaidSurfaceSoldierWeight().toFixed(2) : 1,
       livingEnemies: (S.enemies || []).filter(en => en && !en.dead && en.phase !== "dead").length,
       phases: (S.raidSoldiers || []).reduce((acc, s) => { acc[s.phase] = (acc[s.phase]||0)+1; return acc; }, {})
     };
@@ -12381,7 +12416,18 @@ function syncFermenterUnlockUI() {
       livingEnemies: typeof getLivingRaidEnemyCount === "function" ? getLivingRaidEnemyCount() : null,
       breachThreshold: typeof getRaidBreachLoseThreshold === "function" ? getRaidBreachLoseThreshold(S.raidVis && S.raidVis.totalEnemies) : null,
       soldiers: S.raidSoldiers ? S.raidSoldiers.length : 0,
-      soldierDamage: typeof getRaidSurfaceSoldierDamage === "function" ? getRaidSurfaceSoldierDamage() : null
+      soldierDamage: typeof getRaidSurfaceSoldierDamage === "function" ? getRaidSurfaceSoldierDamage() : null,
+      repWeight: typeof getRaidSurfaceSoldierWeight === "function" ? +getRaidSurfaceSoldierWeight().toFixed(2) : 1,
+      // 推定総地表DPS = 表示体数 × 1撃 × 代表倍率 ÷ 攻撃間隔
+      estSurfaceDps: (typeof getRaidSurfaceSoldierDamage === "function" && S.raidSoldiers && S.raidSoldiers.length)
+        ? +((S.raidSoldiers.length * getRaidSurfaceSoldierDamage() * (typeof getRaidSurfaceSoldierWeight === "function" ? getRaidSurfaceSoldierWeight() : 1)) / RAID_SURFACE_SOLDIER_ATTACK_COOLDOWN).toFixed(1)
+        : null,
+      // Phase 7.5A: 敵HPのプレイヤー火力追従が効いているかの確認用
+      enemyCount: (S.enemies || []).length,
+      enemyAvgMaxHp: (S.enemies && S.enemies.length) ? +((S.enemies.reduce((s,e)=>s+((e&&e.maxHp)||0),0)) / S.enemies.length).toFixed(1) : null,
+      estHitsToKillAvg: (S.enemies && S.enemies.length && typeof getRaidSurfaceSoldierDamage === "function")
+        ? +(((S.enemies.reduce((s,e)=>s+((e&&e.maxHp)||0),0)) / S.enemies.length) / (getRaidSurfaceSoldierDamage() * (typeof getRaidSurfaceSoldierWeight === "function" ? getRaidSurfaceSoldierWeight() : 1))).toFixed(2)
+        : null
     };
   };
 
