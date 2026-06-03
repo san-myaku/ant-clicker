@@ -6572,7 +6572,8 @@ function expandMap(forcedType, isEmergency) {
 
   // ===== Phase 7B-2: 兵隊アリの地表出撃（表示演出。dp使用のため dp 定義後に置く） =====
   // 論理戦力は既存の G.ants.soldier / getColonyCombatPower のまま。これは見た目だけの別レイヤー。
-  const RAID_SURFACE_SOLDIER_RENDER_MAX = 100;       // 地表に描く兵隊の最大数。vectorは100体超でも+2ms程度なので「見える兵=戦う兵」を大きく取る（Phase 7.5: 演出群衆を廃し実本隊を大量描画）
+  const RAID_SURFACE_SOLDIER_RENDER_MAX = 300;       // 地表に描く兵隊の最大数。押し合い/索敵を空間グリッドでO(n)化したので大軍を全員描ける（Phase 7.5: 見える兵=戦う本物の兵）
+  const RAID_SURFACE_SOLDIER_LOD_COUNT = 120;        // この数を超えたら兵隊を胴+頭の2バッチ(fill 2回)で描画。普段は詳細vector、超大軍だけ軽量バッチ（端末性能で調整可）
   const RAID_SURFACE_SOLDIER_SPEED = dp(110);        // 地表兵隊の移動速度
   const RAID_SURFACE_SOLDIER_ENGAGE_RADIUS = dp(18); // この距離まで近づいたら交戦扱い（減速）
   const RAID_SURFACE_SOLDIER_SEPARATION = dp(8);     // 兵隊同士の重なり緩和距離
@@ -9686,18 +9687,40 @@ function expandMap(forcedType, isEmergency) {
       if(s.y < sy - dp(20)) s.y = sy - dp(20);
     }
 
-    // 兵隊同士の重なりを軽く緩和（最大24体なので O(n^2) でも軽量）
-    for(let i=0; i<list.length; i++) {
-      const a = list[i];
-      for(let j=i+1; j<list.length; j++) {
-        const b = list[j];
-        const dx = b.x - a.x, dy = b.y - a.y;
-        const d = Math.hypot(dx, dy);
-        if(d > 0 && d < RAID_SURFACE_SOLDIER_SEPARATION) {
-          const push = (RAID_SURFACE_SOLDIER_SEPARATION - d) * 0.5;
-          const nx = dx / d, ny = dy / d;
-          a.x -= nx * push; a.y -= ny * push;
-          b.x += nx * push; b.y += ny * push;
+    // 兵隊同士の重なり緩和。空間グリッドで O(n) 化（大軍でも軽い）。
+    // セル=分離距離なので、同セル＋周囲8セルだけ調べれば衝突しうる相手を網羅できる。
+    {
+      const sep = RAID_SURFACE_SOLDIER_SEPARATION;
+      const cell = Math.max(1, sep);
+      const grid = new Map();
+      for(let i=0; i<list.length; i++) {
+        const a = list[i];
+        const k = Math.floor(a.x / cell) + ',' + Math.floor(a.y / cell);
+        let bucket = grid.get(k);
+        if(!bucket) { bucket = []; grid.set(k, bucket); }
+        bucket.push(i);
+      }
+      for(let i=0; i<list.length; i++) {
+        const a = list[i];
+        const cx = Math.floor(a.x / cell), cy = Math.floor(a.y / cell);
+        for(let gx=cx-1; gx<=cx+1; gx++) {
+          for(let gy=cy-1; gy<=cy+1; gy++) {
+            const bucket = grid.get(gx + ',' + gy);
+            if(!bucket) continue;
+            for(let bi=0; bi<bucket.length; bi++) {
+              const j = bucket[bi];
+              if(j <= i) continue; // 各ペアを1回だけ処理
+              const b = list[j];
+              const dx = b.x - a.x, dy = b.y - a.y;
+              const d = Math.hypot(dx, dy);
+              if(d > 0 && d < sep) {
+                const push = (sep - d) * 0.5;
+                const nx = dx / d, ny = dy / d;
+                a.x -= nx * push; a.y -= ny * push;
+                b.x += nx * push; b.y += ny * push;
+              }
+            }
+          }
         }
       }
     }
@@ -9707,6 +9730,22 @@ function expandMap(forcedType, isEmergency) {
   function drawRaidSoldiers(ctx) {
     const list = S.raidSoldiers;
     if(!list || !list.length) return;
+    // LOD: 大軍は1体ずつの save/rotate/5描画をやめ、胴+頭の2バッチ(fill 2回)でまとめて描く。
+    // 向きは頭の位置オフセットで表現するので、ドットより「アリの群れ」に見える。
+    if(list.length > RAID_SURFACE_SOLDIER_LOD_COUNT) {
+      const rBody = dp(3.7), rHead = dp(2.3), hd = dp(4.2);
+      ctx.save();
+      ctx.fillStyle = '#3b82f6';
+      ctx.beginPath();
+      for(const s of list){ if((s.fade==null?1:s.fade) <= 0) continue; ctx.moveTo(s.x + rBody, s.y); ctx.arc(s.x, s.y, rBody, 0, 6.28); }
+      ctx.fill();
+      ctx.fillStyle = '#1d4ed8';
+      ctx.beginPath();
+      for(const s of list){ if((s.fade==null?1:s.fade) <= 0) continue; const c=Math.cos(s.rot||0), sn=Math.sin(s.rot||0), hx=s.x+c*hd, hy=s.y+sn*hd; ctx.moveTo(hx + rHead, hy); ctx.arc(hx, hy, rHead, 0, 6.28); }
+      ctx.fill();
+      ctx.restore();
+      return;
+    }
     for(const s of list) {
       const a = clamp(s.fade == null ? 1 : s.fade, 0, 1);
       if(a <= 0) continue;
