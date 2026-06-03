@@ -1,6 +1,6 @@
 # Ant Colony V23 Current System Overview
 
-Last updated: 2026-06-03 (11)
+Last updated: 2026-06-03 (12)
 Target file: `index.html`
 
 This document is the current implementation overview for the single-file ant clicker game. When gameplay, UI, save data, AI behavior, or public deployment assumptions change, update this file together with `DEVELOPMENT_LOG.md`.
@@ -44,7 +44,7 @@ Important fields:
 - `research`
 - `fermentFirstStarted`, `fermentFirstCompleted`, `fermenterFirstHired`
 - `_fermentCookieMade`
-- `fermentRoomPending`
+- `fermentRoomPending`, `cookieRoomPending`, `barracksPending` (special-room build reservations; all saved)
 
 Current ant roles in `G.ants`:
 
@@ -158,7 +158,7 @@ Upgrade cards are grouped into the current tab area.
 Tab grouping:
 
 - **Ants tab**: Queen level, Worker upgrade, Nurse level, Builder level, Soldier level, Golden Finger, Big carry
-- **Rooms tab**: Waste room unlock, Ferment room build, Barracks blueprint
+- **Rooms tab**: Waste room unlock, Ferment room build, Cookie room build, Barracks blueprint
 - **Common (always visible)**: Queen level up button
 
 Important upgrades/actions:
@@ -170,9 +170,12 @@ Important upgrades/actions:
 - Soldier level
 - Waste room unlock
 - Ferment room build
+- Cookie room build (Rooms tab; blueprint -> pending -> build, power-scaling cookie cost; see section 15)
 - Golden Finger
 - Big carry (large food carry unlock; requires worker Lv 5 + cookie 5; gates `maybeSpawnLargeFood`)
-- Barracks blueprint (moved back from research to the Rooms tab dock; requires builder Lv 3 + cookie 25; sets `G.major.barracks` and saves immediately, then builder AI prioritizes the first barracks)
+- Barracks blueprint (moved back from research to the Rooms tab dock; requires builder Lv 3; first cost cookie 25 then power-scaling via `getBarracksCost()`; repeat purchase adds `G.barracksPending`. First purchase sets `G.major.barracks` and saves immediately, then builder AI prioritizes the first barracks. See section 16.)
+
+Cookie rooms, ferment rooms, and barracks now share one unified blueprint flow: press the Rooms tab button -> cost is deducted -> a `*Pending` reservation is incremented (saved) -> builder AI places and digs the room. Costs scale by a power of the room count, and the old hard caps were removed (the growing cost is the natural limit).
 
 `クッキー出現 x2` and `兵隊攻撃 x2` are no longer normal dock purchases. Their old buttons remain in the DOM for compatibility, but are hidden and redirect to the research tab if triggered directly.
 
@@ -202,7 +205,7 @@ Room/tunnel node types:
 - `rest`
 - `soldier`
 - `waste`
-- `cookieroom` — クッキー発見率を部屋数に応じて×1.5^N倍（最大3部屋→×3.375）。ワーカーがクッキー室に納品した際に20%でボーナス+1。建築Lv3で解放。
+- `cookieroom` — クッキー発見率を部屋数に応じて×1.5^N倍（旧: 最大3部屋で×3.375。設計図統一で部屋数の上限は撤廃され、コスト増が自然な制限に）。ワーカーがクッキー室に納品した際に20%でボーナス+1。建築Lv3で解放。
 - `ferment`
 - `shaft`
 - `entrance`
@@ -219,6 +222,8 @@ Generation guards prevent rooms from being created above the surface:
 - `getUndergroundMinY(x, roomRadius)`
 - `isNodeAboveGround(n)`
 - `isDigTargetAboveGround(digT)`
+
+Tunnel crossing is prevented during generation: `edgeIntersectsExisting(newEdge, skipU, skipV)` tests a candidate tunnel's bezier against existing edges before the node/edge is committed. `queueMainShaftEdge`, the `expandMap` non-branch loop, and `forceExpandRoom` each skip a placement that would cross an existing tunnel.
 
 `S.band` controls the active dig layer. It is saved and restored. If missing or invalid, it is repaired before builder target selection.
 
@@ -513,15 +518,15 @@ Phase 5B migration state:
 Ferment room:
 
 - Unlock: research `ferment_unlock`
-- Build cost: food `2000`
-- Max rooms: `2`
+- Build cost: power-scaling `getFermentRoomCost()` = `FERMENT_ROOM_COST (2000) * FERMENT_ROOM_COST_GROWTH (2.0)^(built + pending)` food. First room 2000, each further room costs more.
+- No hard room cap (unified special-room blueprint system). `FERMENT_ROOM_MAX (2)` is kept only as a legacy reference; the buy check no longer enforces it, so the growing cost is the natural limit.
 - Build action: player presses the button → food is deducted → `G.fermentRoomPending` increments (reservation). The pending count is saved and survives reload.
 - `getDigTarget()` ferment reservation logic (A/B):
   - A) If any placed-but-undug ferment edge exists, dig it at high priority (score 9800, just below first barracks) regardless of pending.
   - B) If `pending > 0` and no undug ferment edge exists, call `forceExpandRoom('ferment')` to place a new room; on success decrement pending by 1.
   - `pending` therefore only counts ferment rooms not yet placed, so a 2nd reservation still builds even when one ferment room already exists.
 - `forceExpandRoom` uses multiple shaft parents and progressive collision-distance relaxation (`collFactor` 1.0 → 0.72 → 0.5) so dense colonies (40+ rooms) can still place the room.
-- `G.fermentRoomPending`: saved integer. canBuy check uses `built + pending < FERMENT_ROOM_MAX`.
+- `G.fermentRoomPending`: saved integer. `canBuy` is just `isFermentRoomUnlocked() && food >= getFermentRoomCost()` (no max-count gate).
 
 Base recipe:
 
@@ -565,8 +570,8 @@ Cookie sources:
 Cookie room:
 
 - Unlock condition: builder level `3`
-- Max automatic rooms: `3`
-- Each room contributes to `S.cookieRoomMul`
+- Built via the unified blueprint flow (Rooms tab `クッキー室建設` button → `G.cookieRoomPending` reservation → builder AI places and digs it), NOT auto-built; the old `canAddCookieRoom` auto-build was removed. No hard room cap; cost is power-scaling `getCookieRoomCost()` = `COOKIE_ROOM_COST_BASE (30 cookie) * COOKIE_ROOM_COST_GROWTH (2.5)^(built + pending)`.
+- Each room contributes to `S.cookieRoomMul` = `COOKIE_ROOM_MUL_PER_ROOM (1.5)^cookieRoomCount` (no longer capped at 3 rooms).
 - Workers prefer delivering cookies to cookie rooms, then queen room, then food rooms.
 - Delivery to a cookie room stores `invCookie` and has a bonus chance to add an extra cookie.
 - Current drawing uses normal room slots with gold cookie dots. Old large cookie background and `+N` overlay drawing were removed.
@@ -578,12 +583,12 @@ Soldier unlock requires:
 - Barracks blueprint
 - First barracks room actually built
 
-Barracks blueprint:
+Barracks blueprint / barracks rooms:
 
-- Cost: cookie `25`
-- Requires builder level `3`
-- After purchase, the card stays visible as a construction-pending status until the first barracks exists.
-- Builder AI prioritizes first barracks construction after blueprint purchase.
+- Repeat purchase via the unified blueprint flow: cost is power-scaling `getBarracksCost()` = `MAJOR_BARRACKS_COST (25 cookie) * BARRACKS_COST_GROWTH (2.5)^(built + pending)`. The first purchase still sets `G.major.barracks` (kept for compatibility); each purchase adds a `G.barracksPending` reservation.
+- Requires builder level `3`.
+- Builder AI places/digs barracks rooms from the pending count (same pattern as cookie/ferment). `S.barracksCount` is recomputed from built soldier rooms; each barracks raises the soldier population cap (+20/room).
+- Builder AI prioritizes first barracks construction after the blueprint is first purchased.
 
 Soldiers:
 
@@ -819,6 +824,12 @@ Render settings:
 - LOD toggle
 - Larva wiggle toggle
 - Display cap selector
+
+Color mode (`_colorMode`, default on; toggled by the 🎨 top-bar button):
+
+- ON: ant role color-coding, room tints, and pheromone trails (the normal look).
+- OFF: all ants drawn black, no room tints, no trails — a cleaner / low-distraction view.
+- Gated in `getAntBaseColor`, the room-tint apply path, and the trail-draw block. The button shows a purple glow when on and is semi-transparent when off. `_colorMode` is a runtime toggle (not saved).
 
 Debug/performance:
 
