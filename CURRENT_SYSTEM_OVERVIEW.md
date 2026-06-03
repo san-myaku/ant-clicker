@@ -1,6 +1,6 @@
 # Ant Colony V23 Current System Overview
 
-Last updated: 2026-06-03 (13)
+Last updated: 2026-06-03 (14)
 Target file: `index.html`
 
 This document is the current implementation overview for the single-file ant clicker game. When gameplay, UI, save data, AI behavior, or public deployment assumptions change, update this file together with `DEVELOPMENT_LOG.md`.
@@ -216,6 +216,8 @@ Room generation is handled mainly by:
 - `forceExpandRoom()`
 - `ensureBandReady()`
 - `maybeShiftBand()`
+
+Parent selection spreads new rooms to avoid clustering at one origin: `expandMap`'s `weightShaft` favors shafts with fewer existing children (`degScore`) and downweights pure center bias, and a room can also branch off another room (`PARENT_ROOM_PROB` ≈ 0.5) for a more tree-like nest. `forceExpandRoom` tries the least-connected shaft first instead of always the main-shaft tip (`S.mainTipId`). The depth/band system still controls which layer is dug.
 
 Generation guards prevent rooms from being created above the surface:
 
