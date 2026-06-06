@@ -1,5 +1,212 @@
 # Development Log
 
+## 2026-06-06 Camera pan/zoom cache reuse
+
+Purpose:
+- Remove drag and mouse-wheel zoom stutter on the previously attached heavy save.
+
+Findings:
+- The earlier static soil/fog cache used the exact camera position and zoom in its cache key. Dragging or wheel zooming changed the key every frame, so the heavy nest/fog layers could be rebuilt during camera interaction.
+
+Changes:
+- Added camera interaction marking from `panByScreen()` and `zoomAtScreen()`.
+- Increased the static/fog cache to an overscanned screen cache so moderate panning can reuse existing cached pixels.
+- During camera interaction, `drawCachedStaticNestLayer()` and `drawCachedFogLayer()` transform the existing cache to the current camera instead of rebuilding it.
+- If the current view remains covered and the zoom ratio is close enough, the transformed cache can stay in use after the interaction window.
+- Added a cheap soil fallback for exposed edges while dragging beyond cache coverage.
+- Staggered soil and fog rebuilds so they do not both rebuild in the same render frame when an exact rebuild is required.
+
+Verification:
+- Extracted inline JavaScript from `index.html` and ran `node --check` successfully.
+- `git diff --check` passed with only LF/CRLF warnings.
+- Headless Playwright loaded the heavy attached save with no console/page errors.
+- With the heavy save, drag sample: roughly `renderAvg 7.3ms`, `renderMax 9.2ms`, cache builds stayed at 1.
+- With the heavy save, wheel sample: roughly `renderAvg 8.2ms`, `renderMax 14.8ms`, cache builds stayed at 1.
+
+## 2026-06-06 Large-save nest rendering cache and dynamic action actor cap
+
+Purpose:
+- Reproduce the attached heavy exported save and reduce the cost of very large visible nests.
+
+Findings:
+- The attached save is not primarily a 10,000-ant case. It loads into a very large visible nest: about 203 nodes, 208 edges, 194 visible rooms, 193 completed visible edges, and more than 12,000 larvae.
+- The dominant cost was repeated Canvas work for static nest visuals: soil/tunnel cutouts, fog radial gradients, room inventory/waste dots, and then 1000 `S.ants` action actors.
+
+Changes:
+- Added screen-space caching for the static underground soil/tunnel layer via `S._soilLayerCvs`.
+- Added screen-space caching for fog-of-war via `S._fogCvs`.
+- Added `getNestVisualSignature()` / `getNestScreenCacheKey()` so these caches rebuild when camera, screen size, visible nodes, edge progress, or soil colors change.
+- Kept dynamic room contents, ants, queen, enemies, trails, and effects outside the cache.
+- Added dynamic action-actor caps: medium large nests cap representative `S.ants` at 650; very large / larva-heavy nests cap at 420. The visual crowd remains handled by `S.antCrowd`.
+- Preserved important action actors preferentially when trimming `S.ants`: golden/panic, cargo, large food, waste/feed, builder work, and invader-response actors are removed last.
+
+Verification:
+- Extracted inline JavaScript from `index.html` and ran `node --check` successfully.
+- `git diff --check` passed with only LF/CRLF warnings.
+- Headless Playwright loaded the attached base64 save through `localStorage['antSimV23_0']` with no console/page errors.
+- Before the cache/cap pass on the attached save: roughly `fps 19`, `updateMs 17.8`, `renderMs 47.3`, `actionActors 1000`.
+- After the cache/cap pass on the attached save: roughly `fps 29`, `updateMs 7.0`, `renderMs 9.9`, `actionActors 420`, `modeUsed crowdSprite`.
+
+## 2026-06-05 1万匹向け crowdSprite ant rendering
+
+Purpose:
+- Keep ants ant-shaped instead of dot-shaped at 10,000-class populations while keeping mobile performance in mind.
+
+Changes:
+- Added `crowdSprite` render mode and changed auto LOD so high-count/low-zoom rendering uses crowd sprites instead of `dot`.
+- Updated render caps to `1000 / 3000 / 6000 / 10000`, with default visual cap `10000` and separate action actor cap `ACTION_ANT_CAP = 1000`.
+- Added runtime-only `S.antCrowd`, a typed-array style visual crowd layer generated from `G.ants.*` and capped by `VISUAL_ANT_HARD_CAP = 10000`.
+- Added a pre-rendered Canvas ant atlas with 4 role colors, 32 directions, and 6 walk frames. Frames include body segments, legs, and antennae; leg motion is baked into the walk frames.
+- `S.antCrowd` handles lightweight room wandering and completed-edge travel. Existing `S.ants` action actors remain for cargo, rest, golden/panic, large food, waste/feed jobs, surface gathering, builder work, and invader-response overlays.
+- Updated render settings UI, statistics, perf debug text, and current system overview for crowd counts, culled counts, atlas frame count, and action actor cap.
+
+Verification:
+- Extracted inline JavaScript from `index.html` and ran `node --check` successfully.
+
+## 2026-06-05 Nest cross-section width reduction
+
+Purpose:
+- Make the nest cross-section less horizontally wide by reducing world width to 3/4 of the previous value.
+
+Changes:
+- Changed `WORLD_W_BASE` from `dp(2400)` to `dp(1800)`.
+- Added saved-world X migration in `deserializeWorld()` so old saves wider than the new base are compressed around the world center.
+- The migration scales room node X positions and tunnel Bezier control-point X positions; Y positions, room state, inventory, and progression are unchanged.
+- Updated current system overview with the new base width and load migration behavior.
+
+Verification:
+- `node --check` passed for extracted inline JavaScript.
+
+## 2026-06-05 Large food carry bob reduction
+
+Purpose:
+- Reduce the vertical bob while workers carry large food back to the nest.
+
+Changes:
+- Changed carrying-state `drawLargeFood()` bob amplitude from `dp(3.0)` to `dp(1.5)`.
+- Waiting/gathering bob remains `dp(1.2)`.
+- Updated current system overview with the new carry bob amplitude.
+
+Verification:
+- `node --check` passed for extracted inline JavaScript.
+
+## 2026-06-05 Research tree UI first pass
+
+Purpose:
+- Move the Research tab from a simple branch/card list toward a proper research-tree interface.
+
+Changes:
+- Added research overview cards for total progress, affordable research count, open branches, and next candidate.
+- Added branch icons, accent colors, descriptions, progress bars, and ready/done counts.
+- Reworked research nodes with status markers, breakthrough/prerequisite/condition tags, visible node ids, and clearer lock reasons.
+- Added indentation and connector lines for same-branch prerequisites while keeping existing `RESEARCH_NODE_DEFS.prereq` as the source of truth.
+- Updated current system overview with the new UI structure.
+
+Verification:
+- `node --check` passed for extracted inline JavaScript.
+
+## 2026-06-05 ゴミ室連動の清掃研究と働きアリ清掃参加
+
+目的:
+- ゴミ室の効果が分かりづらいため、効果表示を具体化する。
+- ゴミ室解放後に研究できる清掃研究を用意し、働きアリも一部ゴミ掃除に関与できるようにする。
+
+変更:
+- 衛生研究 `hygiene_3` を `お掃除はおまかせ` に変更し、研究条件に `G.unlockWasteRoom` を追加。
+- `お掃除はおまかせ` 研究後、働きアリの `8%`、最大 `8` 匹までが低優先で幼虫室のゴミ清掃へ参加するようにした。
+- 働きアリ清掃は既存の `go_waste_pick` / `go_waste_drop` タスクを使用し、レイド中は割り当てない。
+- ゴミ室カード、モバイルインライン説明、ツールチップ、統計画面に「ゴミ搬入+1」「清掃研究解禁」「働き清掃ON/OFF」を表示。
+- 現行仕様メモに、ゴミ室解放と `お掃除はおまかせ` の関係、働きアリ清掃枠を追記。
+
+検証:
+- `node --check` によるインライン JS 構文チェック OK。
+- `git diff --check` OK。
+
+## 2026-06-03 レイド足止めを近接判定ベースに強化
+
+目的:
+- レイド前線の足止めをさらに強め、敵が兵隊のそばを抜けにくくする。
+- 地上兵隊に HP / 死亡処理があるか確認: 現状は未実装。兵隊は敵から攻撃されず、死亡もしない。
+
+変更:
+- `RAID_SURFACE_SOLDIER_ENGAGE_RADIUS` 24→28、`RAID_SURFACE_SOLDIER_INTERCEPT_RANGE` 36→44 に拡大。
+- `RAID_SURFACE_SOLDIER_BLOCK_RADIUS` を追加。ターゲット状態に関係なく、兵隊の体が近い敵を足止め対象として数える。
+- `refreshRaidEnemyEngagement()` を追加し、兵隊同士の押し合い後の最終位置から `en.engagedBy` を再集計。
+- `RAID_ENEMY_ENGAGED_SLOW_PER` 0.75→0.88、`RAID_ENEMY_ENGAGED_MIN_FACTOR` 0.03→0.01 に変更。
+
+検証:
+- `node` によるインライン JS 構文チェック OK。
+- `git diff --check` OK。
+
+## 2026-06-03 レイド中の女王つぶやきを抑制
+
+目的:
+- レイド中に女王アリの吹き出しが重なって邪魔になるため、レイド中は喋らせない。
+
+変更:
+- `isQueenWhisperSuppressed()` を追加。
+- レイド状態が `countdown` / `attack` / `result` の間は `addQueenWhisper()` を無効化。
+- 同期間中は `updateQueenWhisper()` で既存の吹き出しも即座に消す。
+
+検証:
+- ユーザー指定により未実施。
+
+## 2026-06-03 レイド前線の足止めを強化
+
+目的:
+- 敵スルーはかなり改善したが、前線での足止め感がまだ弱いため、兵隊と接触した敵がより明確に止まるよう調整。
+
+変更:
+- `RAID_SURFACE_SOLDIER_ENGAGE_RADIUS` 18→24、`RAID_SURFACE_SOLDIER_INTERCEPT_RANGE` 30→36 に拡大し、接触/交戦扱いを早めた。
+- `RAID_ENEMY_ENGAGED_SLOW_PER` 0.6→0.75、`RAID_ENEMY_ENGAGED_MIN_FACTOR` 0.1→0.03 に変更し、交戦中の敵の前進をより強く抑える。
+- 攻撃フェーズの更新順を調整し、`updateRaidSoldiers()` を敵移動より先に実行。現在フレームの `engagedBy` をそのまま敵移動へ反映し、足止めが1フレーム遅れないようにした。
+
+検証:
+- `node` によるインライン JS 構文チェック OK。
+- `git diff --check` OK。
+
+## 2026-06-03 設定メニューに統計ボタンを追加
+
+目的:
+- 設定/メニュー内から、現在のコロニー状態をまとめて確認できる統計画面を開けるようにする。
+
+変更:
+- `top-actions` に `btn-stats`（統計）を追加。モバイルでは既存の設定メニュー内へ自動的に移動する。
+- `modal-stats` を追加し、資源・アリ・成長・部屋・防衛・環境/描画の要約を表示。
+- 統計は開いた時点の `G` / `S` / 既存計算関数から生成し、保存データは増やさない。
+
+検証:
+- `node` によるインライン JS 構文チェック OK。
+- `git diff --check` OK。
+
+## 2026-06-03 兵隊アリ雇用コストの伸びを緩和
+
+目的:
+- 兵隊アリの雇用コストが `1.15^兵隊数` で重くなりすぎるため、増加ペースを約半分に緩和。
+
+変更:
+- 共有雇用倍率 `COST_GROWTH=1.15` は育児・建築・発酵アリ用に維持。
+- `ROLE_COST_GROWTH` を追加し、兵隊アリだけ雇用倍率を `1.075` に変更（+15%/匹 → +7.5%/匹）。
+- `G.getCost(role)` は役割別倍率があればそれを使い、なければ従来の共有倍率を使う。
+
+検証:
+- `node` によるインライン JS 構文チェック OK。
+- `git diff --check` OK。
+
+## 2026-06-03 レイド兵隊が手前の敵をすり抜ける問題を修正
+
+目的:
+- 兵隊アリが敵列の手前の敵と接触しても、最初にロックした奥側の敵へ向かい続けてすり抜けて見える問題を修正。
+
+変更:
+- `RAID_SURFACE_SOLDIER_INTERCEPT_RANGE` を追加。
+- `findNearestLivingRaidEnemyInRange()` を追加し、兵隊の近距離に生存敵が入った場合は現在ターゲットより優先して即座にターゲットを切り替えるように変更。
+- 担当サイド分散・通常の最寄りターゲット選択は維持しつつ、実際に接触しそうな敵を優先することで前線で戦う挙動にした。
+
+検証:
+- `node` によるインライン JS 構文チェック OK。
+- `git diff --check` OK。
+
 ## 2026-06-03 巣の拡張: 新しい部屋の起点を分散（1点集中の緩和）
 
 目的:

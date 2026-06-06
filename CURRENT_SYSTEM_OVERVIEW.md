@@ -1,6 +1,6 @@
 # Ant Colony V23 Current System Overview
 
-Last updated: 2026-06-03 (14)
+Last updated: 2026-06-06 (22)
 Target file: `index.html`
 
 This document is the current implementation overview for the single-file ant clicker game. When gameplay, UI, save data, AI behavior, or public deployment assumptions change, update this file together with `DEVELOPMENT_LOG.md`.
@@ -91,7 +91,9 @@ Important fields:
 - `sy`: surface baseline Y
 - `eid`: entrance node ID
 - `qid`: queen room node ID
-- `w`, `h`: world size
+- `w`, `h`: world size. Current base width is `WORLD_W_BASE = dp(1800)`, reduced from the older `dp(2400)`.
+
+When loading a saved world wider than the current base width, `deserializeWorld()` compresses all node X positions and edge control-point X positions toward the world center. This applies the narrower cross-section to existing saves as well as new games.
 
 ## 3. Save And Load
 
@@ -146,10 +148,16 @@ On desktop, the right panel keeps its fixed side layout, but the top HUD is visu
 
 - Food, cookie, and population are the primary resource boxes.
 - Eggs, larvae, rate, rest rooms, season, and depth are secondary compact chips.
-- The gear menu is available on desktop and contains save, export, load, diary, goals, overview, and error details.
+- The gear menu is available on desktop and contains save, export, load, diary, goals, stats, overview, and error details.
 - The desktop growth-factor line uses compact chips while preserving the same underlying support/penalty/blocker conditions.
 
 Top/right HUD resource boxes stay visible from the start. Discovery and unlocks change values and related gameplay, but they no longer remove cookie, larvae, rate, rest, season, or depth boxes from the layout.
+
+Stats modal:
+
+- `btn-stats` opens `modal-stats`.
+- The modal is read-only and generated on open from current `G` / `S` state and existing helper calculations; it does not add save data.
+- Sections summarize resources, ant roles, growth multipliers, rooms/pending rooms, raid defense, and environment/render/build status.
 
 ## 5. Upgrade Dock
 
@@ -240,42 +248,65 @@ There are two different ant count concepts:
 
 `fermenter` exists in population and effects, but is not drawn as an individual ant and is not included in `ANT_ROLES`.
 
+Hiring costs use `BASE_COSTS[role] * growth^currentRoleCount`, floored. Default hiring growth is `COST_GROWTH = 1.15`; role-specific overrides live in `ROLE_COST_GROWTH`. Soldier ants currently use `ROLE_COST_GROWTH.soldier = 1.075` so only soldier hiring scales at +7.5% per existing soldier, while nurse/builder/fermenter hiring keeps the shared +15% growth.
+
 Render settings:
 
-- `RENDER_CAP_OPTIONS = [160, 300, 600, 1000]`
-- Default cap is `160`
+- `RENDER_CAP_OPTIONS = [1000, 3000, 6000, 10000]`
+- Default cap is `10000`
+- `VISUAL_ANT_HARD_CAP = 10000`
+- `ACTION_ANT_CAP = 1000`
+- `ACTION_ANT_MEDIUM_COLONY_CAP = 650`
+- `ACTION_ANT_LARGE_COLONY_CAP = 420`
 - Saved render settings in `localStorage` override the default
-- Render modes are `auto`, `vector`, `sprite`, and `dot`.
+- Render modes are `auto`, `vector`, `sprite`, `crowdSprite`, and internal fallback `dot`.
 - Auto LOD currently selects:
-  - `dot` for at least 500 visible ants or camera zoom below 0.62
-  - `sprite` for at least 180 visible ants or camera zoom below 0.88
+  - `crowdSprite` for at least 180 logical ants or camera zoom below 0.88
+  - `sprite` for at least 80 logical ants
   - `vector` for close/low-count views
+
+Crowd rendering:
+
+- `S.antCrowd` is a runtime-only visual crowd layer generated from `G.ants.*`.
+- Up to 10,000 logical ants can be represented as individual ant-shaped sprites, not dots.
+- `crowdSprite` uses a pre-rendered Canvas atlas: 4 role colors, 32 directions, 6 walk frames.
+- The atlas frames include abdomen, thorax, head, legs, and antennae. Leg motion is baked into walk frames and offset by each ant's `gaitPhase`.
+- `S.antCrowd` uses typed-array style fields (`x`, `y`, `rot`, `role`, `gaitPhase`, `speed`, `routeKind`, `nodeId`, `edgeId`, `t`) and is not saved.
+- `S.antCrowd` handles lightweight room wandering and completed-edge travel only. It does not run cargo, construction, feeding, waste, combat, or reward logic.
+- Important action ants from `S.ants` (cargo, golden, panic, rest, large food, waste/feed jobs, surface gathering, builder work, invader-response soldiers) are drawn on top of the crowd and subtracted from crowd role counts to avoid duplicate bodies where possible.
+- During raid attack/result phases, underground soldier crowd/actors are hidden; `S.raidSoldiers` remains the surface raid representation.
 
 Current state:
 
 - Builder construction progress has been separated from visible builder count.
-- `S.buildAssignments` computes construction work from `G.ants.builder`, so render cap no longer directly controls builder dig progress.
+- `S.buildAssignments` computes construction work from `G.ants.builder`, so visual display cap no longer directly controls builder dig progress.
 - Visible builder ants remain in `S.ants` as representative animation.
-- Other per-frame task roles still use `S.ants` more directly. Nurse/worker/soldier task throughput can still be affected by render cap in some cases.
+- Other per-frame task roles still use `S.ants` more directly, but `S.ants` is now capped separately by `getActionAntCap()` rather than the 10,000 visual display cap.
+- `getActionAntCap()` lowers the representative action-actor cap on very large nests: medium colonies can cap at 650 and large/very-larva-heavy colonies can cap at 420. This keeps heavy saves from updating 1000 action actors while `S.antCrowd` preserves the visual population.
 - Numeric systems that directly use `G.ants.*`, such as base food production and egg/larva progression, are less affected.
 - Ant path heading uses forward/backward samples on the current tunnel curve so endpoint/junction frames keep the travel direction instead of snapping to 0 degrees.
 - Phase 4 Perf-1 keeps `S.ants` but lightens it:
-  - dot-mode rendering is batched by visual group
+  - high-count visual ants move to `S.antCrowd` / `crowdSprite`
+  - dot-mode rendering remains only as an internal fallback
   - low-priority idle/rest/wander AI updates are throttled
   - transport, construction, combat, cargo, raid, invader-response, and golden ants remain full-update
 
 Future phases should continue separating non-builder simulation work from visual representative ants.
 
-## 8. Phase 4 Perf-1 Rendering And AI Throttling
+## 8. Phase 4 Perf-1 Rendering, Crowd Sprites, And AI Throttling
 
-Perf-1 is a conservative lightweight pass on the existing Canvas 2D and `S.ants` architecture.
+Perf-1 started as a conservative lightweight pass on the existing Canvas 2D and `S.ants` architecture. The current high-count path adds `S.antCrowd` so visual scale can reach 10,000 bodies without turning ants into dots.
 
 Rendering:
 
-- `drawAntDotsBatched()` is used for `dot` mode.
-- Dot rendering groups ants by base color and draws grouped paths for normal role colors, carry markers, golden glow, and panic rings.
+- `drawAntCrowd()` is used for `crowdSprite` mode.
+- `ensureCrowdAntAtlas()` builds the role/direction/walk-frame atlas at the current DPR and rebuilds it after resize.
+- `drawAntDotsBatched()` still exists for internal `dot` fallback, but auto LOD no longer selects it.
+- Dot rendering groups ants by base color and draws grouped paths for normal role colors, carry markers, golden glow, and panic rings when forced.
 - Sprite and vector modes remain individual ant renderers.
-- Perf counters track `drawDot`, `drawSprite`, `drawVector`, and `drawBatches`.
+- The static underground soil/tunnel layer is cached in `S._soilLayerCvs` and rebuilt only when camera/screen/world visibility signatures change.
+- The fog-of-war layer is cached in `S._fogCvs` with the same screen/world signature approach. This avoids redoing hundreds of radial gradients every frame on large visible nests.
+- Perf counters track `drawCrowd`, `visibleCrowd`, `culledCrowd`, `crowdAtlasFrames`, `drawDot`, `drawSprite`, `drawVector`, and `drawBatches`.
 
 AI update throttling:
 
@@ -287,7 +318,7 @@ AI update throttling:
 
 Perf debug:
 
-- The debug overlay reports FPS, update/render time, visual ants, logical population, render cap, selected/used render mode, LOD usage, full/light/skipped AI counts, draw counts by mode, draw batch count, and builder real/visible/work/target stats.
+- The debug overlay reports FPS, update/render time, action actors, logical population, render cap, crowd count, visible/culled crowd count, atlas frame count, selected/used render mode, LOD usage, full/light/skipped AI counts, draw counts by mode, draw batch count, and builder real/visible/work/target stats.
 
 ## 9. Builder Ants
 
@@ -413,7 +444,9 @@ Waste:
 - Nurses can clean waste even without a waste room.
 - Without waste room: waste is carried to the entrance and discarded.
 - With waste room: waste is carried to the nearest waste room with larger haul amounts.
+- Waste room unlock also unlocks the `hygiene_3` / `お掃除はおまかせ` research condition.
 - `hygiene_3` improves cleaner thresholds, cleaner share, and haul amount.
+- After `hygiene_3`, some workers also join low-priority waste cleanup: `8%` of workers, capped at `8` simultaneous worker cleaners.
 
 Important functions:
 
@@ -422,6 +455,8 @@ Important functions:
 - `getWasteUrgentThreshold()`
 - `getWasteHaulPerTrip()`
 - `getWasteHaulAmount()`
+- `hasWorkerWasteCleanup()`
+- `getWorkerWasteCleanerJobFraction()`
 - `getWasteDropDestinationId()`
 - `getWasteHaulAmountForDestination()`
 - `tryStartWasteCleanup()`
@@ -455,6 +490,13 @@ Research unlocks when food reaches `10,000`.
 
 Research state lives in `G.research`.
 
+Research UI:
+
+- The Research tab shows overview cards for total progress, currently affordable research, and next candidate.
+- Each branch renders as a lane with icon, accent color, branch description, progress bar, and ready/done counts.
+- Nodes render with status marks, breakthrough tags, prerequisite tags, condition tags, cost, node id, and action state.
+- Same-branch prerequisites are visualized with indentation and connector lines; progression data still comes from `RESEARCH_NODE_DEFS.prereq`.
+
 Current branches:
 
 - Gather
@@ -473,7 +515,7 @@ Current implemented nodes:
 - `brood_2`: Larva feeding improvement
 - `hygiene_1`: Hygiene basics
 - `hygiene_2`: Cleaning efficiency I
-- `hygiene_3`: Better cleaning
+- `hygiene_3`: `お掃除はおまかせ` / requires waste room unlock; improves cleaning and lets some workers help with waste cleanup
 - `ferment_unlock`: Ferment room unlock
 - `ferment_1`: Ferment speed I
 - `ferment_2`: Sweet concentration
@@ -569,6 +611,18 @@ Cookie sources:
 - Cookie rooms support cookie storage/bonus
 - Cookie boost lucky target system
 
+Worker cookie chance:
+
+- Worker cookie acquisition is rolled when a worker returns from surface gathering and switches from `surf` to `ret`.
+- Base chance is `0.005` (`0.5%`) per returning worker.
+- Effective chance is `clamp((0.005 * workerCookieMul + globalCookieAdd) * cookieFind2x * activeCookieBoost * cookieRoomMul, 0, 1)`.
+- `workerCookieMul` comes from worker level (`G.getWorkerCookieMul()`).
+- `globalCookieAdd` comes from the active golden/global buff (`getGlobalCookieAdd()`).
+- `cookieFind2x` is `2` after research node `cookie_find_2x`, otherwise `1`.
+- `activeCookieBoost` is `100` while the cookie boost active major is active, otherwise `1`.
+- `cookieRoomMul` is `S.cookieRoomMul`, currently `1.5 ^ cookieRoomCount`.
+- If the worker delivers to a cookie room, delivery storage uses `invCookie` and separately has a `20%` chance to add one extra cookie.
+
 Cookie room:
 
 - Unlock condition: builder level `3`
@@ -624,21 +678,21 @@ Soldier surface sortie (Phase 7B-2):
 - During the attack phase, soldier ants sortie from the entrance onto the surface as a display layer (`S.raidSoldiers`, independent from `S.ants`, runtime-only, not saved).
 - Rendered soldier count is `clamp(G.ants.soldier, 0, RAID_SURFACE_SOLDIER_RENDER_MAX=300)` — the *visible* army IS the *real* fighting army (a cosmetic crowd layer was tried and reverted as "meaningless animation"). Each rendered soldier carries `weight = G.ants.soldier / renderedCount` (`getRaidSurfaceSoldierWeight()`): armies <=300 are shown 1:1 (weight 1), beyond that each body represents several (weight is a safety net for extreme late-game counts). Logical combat power is still `G.ants.soldier` / `getColonyCombatPower()`.
 - Scaling to large counts: soldier-soldier separation in `updateRaidSoldiers` uses a spatial grid (cell = separation distance; check own + 8 neighbor cells) so it is O(n), not O(n^2). Enemy targeting stays linear since enemies are capped (<=80). Rendering uses an LOD: above `RAID_SURFACE_SOLDIER_LOD_COUNT` (120), soldiers are drawn as two batched fills (body + head, oriented by the head offset) instead of per-ant detailed vector, so hundreds of soldiers cost ~0 extra render. (Measured: 300 soldiers ≈ +3ms update, ~0ms render; the dominant render cost is the nest itself, not the raid.)
-- Each surface soldier has a `preferSide` (alternating left/right by slot index) and seeks the nearest living enemy on that side first (`findNearestLivingRaidEnemy(x,y,side,ex)`), falling back to the nearest living enemy anywhere if its side is empty. This makes soldiers split to both sides when enemies attack from both. It advances toward the target and slows to "engage" within `RAID_SURFACE_SOLDIER_ENGAGE_RADIUS`. If its target dies or disappears it re-targets; if no enemies remain it returns to / idles near the entrance. Phases: `emerge -> advance -> engage -> return -> idle`. Movement is straight-line (no pathfinding).
+- Each surface soldier has a `preferSide` (alternating left/right by slot index) and seeks the nearest living enemy on that side first (`findNearestLivingRaidEnemy(x,y,side,ex)`), falling back to the nearest living enemy anywhere if its side is empty. This makes soldiers split to both sides when enemies attack from both. It also checks `findNearestLivingRaidEnemyInRange()` each update; if a living enemy enters `RAID_SURFACE_SOLDIER_INTERCEPT_RANGE` (44px), that nearby enemy overrides the locked target so soldiers fight the front/contact enemy instead of walking through it toward a previously chosen rear target. It advances toward the target and slows to "engage" within `RAID_SURFACE_SOLDIER_ENGAGE_RADIUS` (28px). If its target dies or disappears it re-targets; if no enemies remain it returns to / idles near the entrance. Phases: `emerge -> advance -> engage -> return -> idle`. Movement is straight-line (no pathfinding).
 - Surface soldiers are drawn in the soldier blue (`#3b82f6`) to match the soldier identity. During the raid `attack`/`result` phases, the underground `S.ants` soldiers are excluded from the ant draw (the surface soldiers represent them), so there is no duplicate blue cluster at the entrance. The `S.ants` soldier defend/guard logic itself is unchanged; only their rendering is suppressed during the raid.
 - Enemies carry a unique `id` (for targeting). Soldiers are spawned in `beginRaidAttack()` via `ensureRaidSoldiers()`, updated by `updateRaidSoldiers()`, drawn by `drawRaidSoldiers()`, and cleared/faded on `result`/`none` via `clearRaidSoldiers()`.
 Surface combat and outcome (Phase 7B-3/4):
 
 - Surface soldiers attack: when within `RAID_SURFACE_SOLDIER_ATTACK_RANGE` of their target and off cooldown (`RAID_SURFACE_SOLDIER_ATTACK_COOLDOWN`), they call `damageRaidEnemy()` for `getRaidSurfaceSoldierDamage() * soldier.weight` (base = `RAID_SURFACE_SOLDIER_DAMAGE_BASE * getSoldierPowerMul(G.sLv)`, already including jaw2x x2; the `weight` factor makes total surface DPS scale linearly with `G.ants.soldier` regardless of the render cap). On a kill the soldier re-targets.
 - Enemy death: HP 0 -> `dead`, stops, fades out, excluded from targeting and from the living count.
-- Engagement slowdown (standoff): while soldiers are engaging an enemy (within engage radius), the enemy's forward advance is slowed (`holdFactor = max(RAID_ENEMY_ENGAGED_MIN_FACTOR 0.1, 1 - engagedBy * RAID_ENEMY_ENGAGED_SLOW_PER 0.6)`). One soldier roughly halves its speed, two or more nearly hold it in place, creating a battle line. Enemies that are not engaged still advance at full speed and can slip through to breach.
+- Engagement slowdown (standoff): `updateRaidSoldiers()` runs before enemy movement during the attack phase, so the current frame's `engagedBy` count immediately affects enemy movement. After soldier movement and separation, `refreshRaidEnemyEngagement()` recomputes `engagedBy` from physical proximity: each soldier near a living enemy within `RAID_SURFACE_SOLDIER_BLOCK_RADIUS` (30px) contributes one body-blocking count, even if that enemy is not the soldier's locked target. Enemy forward advance is slowed with `holdFactor = max(RAID_ENEMY_ENGAGED_MIN_FACTOR 0.01, 1 - engagedBy * RAID_ENEMY_ENGAGED_SLOW_PER 0.88)`. One nearby soldier nearly stops the enemy; two or more pin it at the minimum crawl speed. Enemies that are not body-blocked still advance at full speed and can slip through to breach.
 - Enemy breach: when an enemy gets close enough to the entrance it is marked `breached` once and counted; breached enemies sink in and fade, and are excluded from combat.
 - The attack phase no longer ends at a fixed 6 s. It runs until the battle is decided (all enemies killed/breached, i.e. living count 0; or breaches reach the loss threshold) or a `RAID_ATTACK_MAX_SEC` (16 s) safety cap, then waits `RAID_FINISH_DELAY` (0.6 s) before resolving.
 - Outcome: `computeRaidOutcomeFromSurfaceCombat()` returns win if all enemies were killed (or none living and none breached), loss if breached enemies reach `getRaidBreachLoseThreshold(total)` (= `ceil(total * RAID_BREACH_LOSE_RATIO 0.30)`, min 1), otherwise a time judgement (win if breach ratio < 0.30 and kill ratio >= 0.50). It is converted to the existing out format by `buildRaidOutcomeFromSurfaceResult()` (food/cookie reward on win with a small all-killed bonus; worker loss and food/egg multipliers scaled by breach ratio on loss), so `resolveRaid()` applies rewards/damage exactly once via its existing path.
 - The result modal shows a surface-combat breakdown (撃破 / 突破 / 残存 / 判定 reason).
 - Counters live on `S.raidVis` (`totalEnemies`, `killedEnemies`, `breachedEnemies`, `finishDelay`). Debug: `window.__debugRaidCombat()`.
 
-NOT implemented: soldier death, per-soldier HP, extra enemy types, defense lines / formations / traps, boss fights, and a full reward-balance redesign.
+NOT implemented: soldier death, per-soldier HP, enemy attacks against soldiers, extra enemy types, defense lines / formations / traps, boss fights, and a full reward-balance redesign.
 
 Debug raid trigger (test only, not exposed in normal UI):
 
@@ -678,6 +732,7 @@ Reward:
 
 Rendering (`drawLargeFood`, before the raid-enemy draw):
 
+- Carrying bob amplitude is intentionally subtle: `dp(1.5)` while carrying, `dp(1.2)` while waiting/gathering.
 - Irregular green polygon with a shadow on the same surface line as workers, plus an `arrived/required` (e.g. `3/5`) or `搬送中` label. Workers draw on top, so they appear to gather around and escort it.
 - `shiftWorldX(dx)` also offsets `S.largeFood.x` so the event stays aligned when the world shifts.
 
@@ -713,6 +768,20 @@ Major lucky targets:
 - `S.majorLuckyTargets`
 - Cookie boost target appears around the surface and can trigger `S.majorActives.cookie`.
 - On mobile, the sweet-fragrance countdown text is hidden and the icon-only target is used.
+
+Cookie x100 boost (`S.majorActives.cookie`):
+
+- Runtime state machine is `hunting -> available -> active -> cooldown`.
+- While `hunting`, it rolls once every `MAJOR_ACT_ROLL_INTERVAL = 3` seconds.
+- First roll chance is `MAJOR_ACT_COOKIE_BASE = 0.06` (`6%`).
+- Each miss adds `MAJOR_ACT_COOKIE_INC = 0.015` (`+1.5%`) pity.
+- Roll chance is capped at `MAJOR_ACT_COOKIE_MAX = 0.30` (`30%`).
+- When a roll succeeds, a sugar/cookie lucky target becomes `available` for `MAJOR_ACT_COOKIE_WIN = 15` seconds.
+- Tapping the target activates the boost for `MAJOR_ACT_COOKIE_ACTIVE = 10` seconds.
+- While active, worker cookie chance uses `MAJOR_ACT_COOKIE_MUL = 100`.
+- After activation, or after missing the available target, cooldown is `MAJOR_ACT_COOKIE_CD = 12000` seconds (`3h 20m`).
+- Expected time from entering `hunting` until target appearance is about `23` seconds.
+- Probability of seeing the target within the first `15` seconds of hunting is about `37.7%`.
 
 ## 19. Offline Progression
 
@@ -772,6 +841,7 @@ Diary and queen whispers:
 - `G.queenLog`
 - `addQueenWhisper()`
 - Whisper bubble position is screen-clamped so it stays visible on mobile and desktop.
+- Queen whispers are suppressed during raid `countdown`, `attack`, and `result` states; new whispers are ignored and any visible whisper is cleared.
 
 Notifications:
 
@@ -816,9 +886,22 @@ Render modes:
 - `auto`
 - `vector`
 - `sprite`
-- `dot`
+- `crowdSprite`
+- `dot` (internal fallback, not selected by normal auto LOD)
 
-Dot mode uses grouped path rendering via `drawAntDotsBatched()` to reduce Canvas API calls at large visible ant counts.
+Crowd sprite mode uses a pre-rendered ant atlas and `S.antCrowd` typed-array style state so large populations remain ant-shaped instead of falling back to dots. Dot mode still exists as a grouped-path fallback via `drawAntDotsBatched()`.
+
+Large-nest static layer caching:
+
+- `drawCachedStaticNestLayer()` renders underground soil, tunnel stamps, room cutouts, cave fill, and static background details into `S._soilLayerCvs`.
+- `drawCachedFogLayer()` renders fog-of-war into `S._fogCvs`.
+- Both caches use camera/screen/world signatures (`getNestScreenCacheKey()` / `getNestVisualSignature()`) and are reused while the camera and visible nest geometry are stable.
+- The cache canvas is larger than the visible screen (`NEST_LAYER_CACHE_PAD_RATIO`, min/max pad) so normal panning can be served from cached pixels.
+- `panByScreen()` and `zoomAtScreen()` call `markCameraInteraction()`. During this short interaction window, stale static/fog caches are transformed to the current camera instead of being rebuilt.
+- If the current view is still covered and the zoom ratio is close enough, `canKeepTransformedNestLayerCache()` keeps using the transformed cache even after the interaction window, avoiding a post-drag rebuild hitch.
+- If the camera moves beyond cache coverage during interaction, `drawCheapSoilFallback()` fills exposed soil cheaply until a full static cache rebuild is needed.
+- Soil/fog cache rebuilds are staggered with `noteNestLayerRebuildThisFrame()` so they do not both rebuild in the same render frame when possible.
+- Room inventory, larvae, waste dots, ants, queen, large food, enemies, trails, and effects remain dynamic and are drawn on top.
 
 Render settings:
 
@@ -826,7 +909,7 @@ Render settings:
 - Render settings modal
 - LOD toggle
 - Larva wiggle toggle
-- Display cap selector
+- Display cap selector (`1000 / 3000 / 6000 / 10000`)
 
 Color mode (`_colorMode`, default on; toggled by the 🎨 top-bar button):
 
@@ -840,7 +923,7 @@ Debug/performance:
 - `buildPerfDebugText()`
 - `updateDebugOverlay()`
 - `toggleDebugOverlay()`
-- Performance overlay shows FPS, update/render time, visual/logical ants, ants drawn, render cap, selected/used mode, LOD, full/light/skipped AI counts, draw counts by mode, dot batch count, builder stats, and graph stats.
+- Performance overlay shows FPS, update/render time, action actors/logical ants, ants drawn, render cap, crowd count, visible/culled crowd count, atlas frame count, selected/used mode, LOD, full/light/skipped AI counts, draw counts by mode, dot batch count, builder stats, and graph stats.
 
 ## 22. Error Handling
 
@@ -896,9 +979,9 @@ Old removed/deprecated concepts:
 
 ## 24. Current Known Issues And TODO
 
-### Render Cap Still Affects Some Non-Builder Simulation
+### Non-Builder Task Throughput Still Uses Representative Actors
 
-Builder construction progress has been moved to `G.ants.builder` based work slots. Phase 4 also throttles low-priority visible-ant AI. However, `S.ants` is still both a visual list and an action list for several non-builder tasks. If render cap reduces the number of visible ants, some nurse/worker/soldier task throughput may still change.
+Builder construction progress has been moved to `G.ants.builder` based work slots, and high-count visuals now use `S.antCrowd` instead of making `S.ants` scale to 10,000. However, `S.ants` is still both a representative actor list and an action list for several non-builder tasks. Some nurse/worker/soldier transport/task throughput can still be tied to the dynamic `getActionAntCap()` representative actors.
 
 Recommended fix:
 
@@ -908,13 +991,13 @@ Recommended fix:
 
 ### Perf-1 Is Not A Full Scheduler
 
-Phase 4 batches dot rendering and throttles low-priority AI, but it does not introduce workers, typed arrays, flow fields, or a separate logical task scheduler for every role.
+Phase 4 now has typed-array style crowd visuals and throttles low-priority AI, but it does not introduce web workers, flow fields, or a separate logical task scheduler for every role.
 
 Remaining limitations:
 
-- Sprite/vector drawing still renders individuals.
+- Sprite/vector drawing still renders individual action actors.
 - Moving/transport/combat ants intentionally keep full updates for correctness.
-- Nurse/worker/soldier task throughput can still be tied to visible representative ants.
+- On very large nests, representative action actors can be capped at 420, while `S.antCrowd` preserves visual population. This is a performance tradeoff until non-builder task throughput is fully separated from representatives.
 
 ### Builder Target Parallelism
 
@@ -928,12 +1011,11 @@ Remaining limitations:
 
 ### Cookie Boost UI
 
-Cookie boost runtime exists, but normal dock button UI is incomplete/no-op.
+Cookie boost runtime exists as a lucky-target flow, not as a normal dock purchase/action.
 
-Decision needed:
-
-- Restore an explicit UI, or
-- Remove the remaining unused UI plumbing if the lucky-target-only flow is preferred.
+- The dock/status button is informational. It reports whether the boost is hunting, available, active, or cooling down.
+- It does not directly activate the boost.
+- Actual activation requires tapping the on-screen sugar/cookie lucky target while `S.majorActives.cookie.state === 'available'`.
 
 ### Phase 5B Major Migration Status
 

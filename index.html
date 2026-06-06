@@ -303,11 +303,43 @@
       opacity: 0.58;
       filter: grayscale(0.4);
     }
-    .research-panel { border-color: rgba(71, 85, 105, 0.6); }
+    .research-panel { border-color: rgba(71, 85, 105, 0.6); overflow: hidden; }
     .research-lead {
       font-size: 12px;
       color: #cbd5e1;
       margin-bottom: 8px;
+    }
+    .research-overview {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .research-overview-card {
+      border: 1px solid rgba(71, 85, 105, 0.62);
+      border-radius: 8px;
+      background: rgba(9, 15, 24, 0.72);
+      padding: 7px;
+      min-width: 0;
+    }
+    .research-overview-label {
+      font-size: 9px;
+      color: #94a3b8;
+      line-height: 1.2;
+    }
+    .research-overview-value {
+      margin-top: 3px;
+      font-size: 13px;
+      font-weight: 800;
+      color: #e5e7eb;
+      line-height: 1.25;
+    }
+    .research-overview-sub {
+      margin-top: 2px;
+      font-size: 9px;
+      color: #94a3b8;
+      line-height: 1.3;
+      overflow-wrap: anywhere;
     }
     .research-lock {
       margin-bottom: 8px;
@@ -322,12 +354,13 @@
     .research-branch-list {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
     }
     .research-branch {
       border: 1px solid rgba(71, 85, 105, 0.62);
+      border-left: 3px solid var(--branch-color, #38bdf8);
       border-radius: 8px;
-      background: rgba(9, 15, 24, 0.78);
+      background: rgba(9, 15, 24, 0.64);
       padding: 8px;
     }
     .research-branch.is-locked {
@@ -341,28 +374,106 @@
       gap: 8px;
       margin-bottom: 6px;
     }
+    .research-branch-title {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .research-branch-icon {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: color-mix(in srgb, var(--branch-color, #38bdf8) 18%, rgba(15, 23, 42, 0.82));
+      border: 1px solid color-mix(in srgb, var(--branch-color, #38bdf8) 45%, rgba(71, 85, 105, 0.7));
+      flex: 0 0 auto;
+      font-size: 12px;
+    }
     .research-branch-name {
       font-size: 11px;
       font-weight: 700;
       color: #e2e8f0;
     }
+    .research-branch-desc {
+      margin-top: 1px;
+      font-size: 9px;
+      line-height: 1.3;
+      color: #94a3b8;
+    }
     .research-branch-state {
       font-size: 9px;
       color: #94a3b8;
+      white-space: nowrap;
+      text-align: right;
+    }
+    .research-branch-progress {
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(71, 85, 105, 0.54);
+      overflow: hidden;
+      margin-bottom: 7px;
+    }
+    .research-branch-progress-fill {
+      display: block;
+      height: 100%;
+      width: 0;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--branch-color, #38bdf8), #facc15);
     }
     .research-node-list {
+      position: relative;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 7px;
+      padding-left: 16px;
+    }
+    .research-node-list::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--branch-color, #38bdf8), rgba(71, 85, 105, 0.1));
     }
     .research-node-card {
+      position: relative;
       border: 1px solid rgba(71, 85, 105, 0.62);
       border-radius: 8px;
       padding: 8px;
-      background: linear-gradient(180deg, rgba(14, 28, 22, 0.95), rgba(9, 15, 24, 0.95));
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
+      margin-left: calc(var(--depth, 0) * 10px);
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(9, 15, 24, 0.96));
+      display: grid;
+      grid-template-columns: 18px minmax(0, 1fr);
+      gap: 8px;
+      min-width: 0;
+    }
+    .research-node-card::before {
+      content: "";
+      position: absolute;
+      left: -14px;
+      top: 17px;
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--branch-color, #38bdf8);
+      box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.96);
+    }
+    .research-node-card.has-prereq::after {
+      content: "";
+      position: absolute;
+      left: -10px;
+      top: -8px;
+      width: 10px;
+      height: 25px;
+      border-left: 1px solid color-mix(in srgb, var(--branch-color, #38bdf8) 52%, rgba(71, 85, 105, 0.8));
+      border-bottom: 1px solid color-mix(in srgb, var(--branch-color, #38bdf8) 52%, rgba(71, 85, 105, 0.8));
+      border-bottom-left-radius: 6px;
     }
     .research-node-card.is-locked { filter: grayscale(0.95); opacity: 0.66; }
     .research-node-card.is-ready {
@@ -378,10 +489,44 @@
       background: linear-gradient(180deg, rgba(41, 24, 10, 0.96), rgba(17, 24, 39, 0.96));
       box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.28);
     }
+    .research-node-mark {
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15, 23, 42, 0.94);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      color: #cbd5e1;
+      font-size: 10px;
+      font-weight: 800;
+    }
+    .research-node-card.is-ready .research-node-mark {
+      color: #86efac;
+      border-color: rgba(16, 185, 129, 0.65);
+    }
+    .research-node-card.is-done .research-node-mark {
+      color: #93c5fd;
+      border-color: rgba(59, 130, 246, 0.72);
+    }
+    .research-node-body {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .research-node-top {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 8px;
+    }
     .research-node-name {
       font-size: 11px;
       font-weight: 700;
       color: #f1f5f9;
+      overflow-wrap: anywhere;
     }
     .research-node-desc {
       font-size: 10px;
@@ -395,6 +540,24 @@
       gap: 8px;
       font-size: 9px;
       color: #94a3b8;
+    }
+    .research-node-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .research-node-tag {
+      border: 1px solid rgba(71, 85, 105, 0.56);
+      border-radius: 999px;
+      padding: 2px 6px;
+      color: #cbd5e1;
+      background: rgba(15, 23, 42, 0.74);
+      font-size: 9px;
+      line-height: 1.2;
+    }
+    .research-node-tag.is-breakthrough {
+      border-color: rgba(245, 158, 11, 0.55);
+      color: #fbbf24;
     }
     .research-node-cost {
       color: #fcd34d;
@@ -432,6 +595,11 @@
       font-size: 10px;
       color: #94a3b8;
       line-height: 1.4;
+    }
+    @media (max-width: 520px) {
+      .research-overview { grid-template-columns: 1fr; }
+      .research-branch-head { align-items: flex-start; }
+      .research-node-card { margin-left: calc(var(--depth, 0) * 6px); }
     }
     .room-pending-row {
       display: flex;
@@ -1725,6 +1893,13 @@
     }
     .modal-btn { background: #475569; color: white; padding: 8px 16px; border: none; border-radius: 6px; margin-top: 15px; cursor: pointer; }
     .modal-box.render-modal { text-align: left; }
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+    .stats-section { background: rgba(0,0,0,0.28); border: 1px solid rgba(148,163,184,0.18); border-radius: 8px; padding: 9px; }
+    .stats-section-title { font-size: 11px; font-weight: 700; color: #fcd34d; margin-bottom: 6px; }
+    .stats-line { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; line-height: 1.55; color: #cbd5e1; }
+    .stats-line span:first-child { color: #94a3b8; }
+    .stats-line span:last-child { color: #e5e7eb; text-align: right; }
+    @media (max-width: 520px) { .stats-grid { grid-template-columns: 1fr; } }
     .render-row {
       display: flex; align-items: center; justify-content: space-between;
       gap: 12px; margin: 10px 0;
@@ -1884,6 +2059,7 @@
           <button class="res-box" id="btn-save-import" style="cursor:pointer; border-color:#334155; font-size:9px; color:#64748b;" title="セーブデータを読み込み" data-menu-label="ロード" aria-label="ロード">📥</button>
           <button class="res-box" id="btn-diary" style="cursor:pointer; border-color:#8b5cf6;" title="女王の日記" data-menu-label="日記" aria-label="女王の日記">👑</button>
           <button class="res-box" id="btn-goals" style="cursor:pointer; border-color:#22c55e;" title="コロニーの目標" data-menu-label="目標" aria-label="コロニーの目標">🗺️</button>
+          <button class="res-box" id="btn-stats" style="cursor:pointer; border-color:#38bdf8;" title="コロニー統計" data-menu-label="統計" aria-label="コロニー統計">📊</button>
           <button class="res-box" id="btn-color-mode" style="cursor:pointer; border-color:#7c3aed;" title="カラーモード切替" data-menu-label="カラー" aria-label="カラーモード">🎨</button>
           <button class="res-box" id="btn-fit" style="cursor:pointer; border-color:#22c55e;" title="全体表示" data-menu-label="全体表示" aria-label="全体表示">🧭</button>
           <button class="res-box" id="btn-err" style="cursor:pointer; border-color:#ef4444;" title="エラー詳細" data-menu-label="エラー" aria-label="エラー詳細">⚠</button>
@@ -1990,6 +2166,7 @@
               <div class="tab-sec-title">研究センター</div>
               <div class="research-lead" id="research-lead">研究は巣全体のルールを書き換える上位システムです。</div>
               <div class="research-lock" id="research-lock-note">🔒 研究未解放: 食料を10,000まで蓄えると解放されます。</div>
+              <div class="research-overview" id="research-overview"></div>
               <div class="research-branch-list" id="research-branch-list"></div>
               <div class="research-note">突破ノードは研究枝の進行を大きく変えます。</div>
             </div>
@@ -2071,7 +2248,7 @@
               <button class="dock-item tier-major" type="button" id="btn-major-worker-clean" data-upkey="major-worker-clean" hidden aria-hidden="true">
                 <div class="dock-icon">🧹</div>
                 <div class="dock-meta">
-                  <div class="dock-name">お掃除上手</div>
+                  <div class="dock-name">お掃除はおまかせ</div>
                   <div class="dock-cost">🍪 <span id="c-major-worker-clean">20</span></div>
                 </div>
                 <span class="dock-badge new" data-badge="new">NEW</span>
@@ -2119,7 +2296,7 @@
                 <div class="dock-meta">
                   <div class="dock-name">ゴミ室</div>
                   <div class="dock-cost">🍃 <span id="c-unlock-waste">5000</span></div>
-                  <div class="dock-desc">廃棄物を自動処理</div>
+                  <div class="dock-desc">ゴミ搬入+1 / 清掃研究解禁</div>
                 </div>
                 <span class="dock-badge new" data-badge="new">NEW</span>
                 <span class="dock-badge lock" data-badge="lock">🔒</span>
@@ -2283,6 +2460,15 @@
   </div>
 </div>
 
+<div id="modal-stats" class="modal-overlay">
+  <div class="modal-box" style="max-width:560px; text-align:left;">
+    <div style="font-size:18px; font-weight:bold; color:#fcd34d; margin-bottom:4px;">📊 コロニー統計</div>
+    <div style="font-size:11px; color:#64748b; margin-bottom:8px;">現在の巣・成長・防衛の状態</div>
+    <div id="stats-body" class="stats-grid"></div>
+    <button class="modal-btn" id="btn-stats-close">閉じる</button>
+  </div>
+</div>
+
 <div id="modal-diary" class="modal-overlay">
     <div class="modal-box">
         <div style="font-size:18px; font-weight:bold; color:#fcd34d; margin-bottom:10px;">👑 女王の日記</div>
@@ -2300,7 +2486,7 @@
             <option value="auto">auto</option>
             <option value="vector">vector</option>
             <option value="sprite">sprite</option>
-            <option value="dot">dot</option>
+            <option value="crowdSprite">crowdSprite</option>
           </select>
         </div>
         <div class="render-row">
@@ -2320,10 +2506,10 @@
         <div class="render-row">
           <label for="render-cap">表示上限</label>
           <select id="render-cap">
-            <option value="160">160</option>
-            <option value="300">300</option>
-            <option value="600">600</option>
             <option value="1000">1000</option>
+            <option value="3000">3000</option>
+            <option value="6000">6000</option>
+            <option value="10000">10000</option>
           </select>
         </div>
         <div class="render-hint">設定は自動保存されます</div>
@@ -2356,10 +2542,22 @@
   const SAVE_KEY_OLD = "antSimV22_2";
   const AUTO_SAVE_INTERVAL_MS = 5 * 60 * 1000;
   const RENDER_SETTINGS_KEY = "ant_render_settings_v1";
-  const RENDER_MODE_OPTIONS = ['auto','vector','sprite','dot'];
-  const RENDER_CAP_OPTIONS = [160, 300, 600, 1000];
+  const RENDER_MODE_OPTIONS = ['auto','vector','sprite','crowdSprite','dot'];
+  const RENDER_CAP_OPTIONS = [1000, 3000, 6000, 10000];
+  const VISUAL_ANT_HARD_CAP = 10000;
+  const ACTION_ANT_CAP = 1000;
+  const ACTION_ANT_MEDIUM_COLONY_CAP = 650;
+  const ACTION_ANT_LARGE_COLONY_CAP = 420;
+  const NEST_LAYER_CACHE_PAD_RATIO = 0.42;
+  const NEST_LAYER_CACHE_PAD_MIN = 240;
+  const NEST_LAYER_CACHE_PAD_MAX = 520;
+  const CAMERA_INTERACTION_CACHE_HOLD_MS = 650;
+  const CROWD_ANT_DIRECTIONS = 32;
+  const CROWD_ANT_FRAMES = 6;
+  const CROWD_ROUTE_ROOM = 0;
+  const CROWD_ROUTE_EDGE = 1;
   // 描画設定（幼虫うねうねON/OFFを追加）
-  const DEFAULT_RENDER_SETTINGS = { mode:'auto', lod:true, cap:160, larvaWiggle:true };
+  const DEFAULT_RENDER_SETTINGS = { mode:'auto', lod:true, cap:VISUAL_ANT_HARD_CAP, larvaWiggle:true };
   const VERSION_STR = "V23.0 Season & Invaders";
   document.title = `Ant Colony - ${VERSION_STR}`;
   const versionTagEl = document.getElementById('version-tag');
@@ -2385,6 +2583,7 @@
   const COOKIE_ROOM_COST_BASE = 30;    // クッキー室初期コスト（🍪）
   const COOKIE_ROOM_COST_GROWTH = 2.5; // クッキー室コスト倍率
   const RESEARCH_UNLOCK_FOOD = 10000;
+  const HYGIENE_WORKER_CLEAN_NODE = 'hygiene_3';
   const FERMENT_ROOM_UNLOCK_NODE = 'ferment_unlock';
   const FERMENT_ROOM_COST = 2000;
   const FERMENT_ROOM_MAX = 2;          // 参照があるため残す
@@ -2434,12 +2633,15 @@
   const WASTE_PICK_CLEAN = 1;
   const WASTE_URGENT_CLEAN = 2;
   const WASTE_JOB_CLEAN = 0.18;
+  const WASTE_WORKER_JOB_FRACTION = 0.08;
+  const WASTE_WORKER_JOB_MAX = 8;
   const MAJOR_WORKER_BIGCARRY_WLV = 5;        // 大物運搬解放に必要な働きアリ強化Lv
   const MAJOR_WORKER_BIGCARRY_COST_COOKIE = 5; // 大物運搬解放コスト（クッキー）
 
-  // 育児アリ・建築アリ・兵隊アリの「1匹目」の食料コスト。2匹目以降は COST_GROWTH 倍ずつ増えていく
+  // 育児アリ・建築アリ・兵隊アリの「1匹目」の食料コスト。2匹目以降は雇用倍率ぶん増えていく
   const BASE_COSTS = { nurse: 50, builder: 100, soldier: 1000, fermenter: 800 };
   const COST_GROWTH = 1.15;
+  const ROLE_COST_GROWTH = { soldier: 1.075 };
   const SOLDIER_CAP_PER_ROOM = 20;
   const ROLE_LV_MAX = 20;
   const WORKER_LV_MAX = ROLE_LV_MAX;
@@ -2801,13 +3003,13 @@ function makeDefaultResearchState(){
 }
 
 const RESEARCH_BRANCH_DEFS = [
-  { id: 'gather', label: '採集枝' },
-  { id: 'brood', label: '育児枝' },
-  { id: 'hygiene', label: '衛生枝' },
-  { id: 'ferment', label: '発酵枝' },
-  { id: 'geology', label: '地質枝' },
-  { id: 'defense', label: '防衛枝' },
-  { id: 'expedition', label: '遠征枝' }
+  { id: 'gather', label: '採集枝', icon: '🌿', accent: '#22c55e', desc: '食料と地表探索' },
+  { id: 'brood', label: '育児枝', icon: '🥚', accent: '#f472b6', desc: '卵・幼虫の成長' },
+  { id: 'hygiene', label: '衛生枝', icon: '🧹', accent: '#38bdf8', desc: 'ゴミと清掃分担' },
+  { id: 'ferment', label: '発酵枝', icon: '🧪', accent: '#a78bfa', desc: '食料からクッキーへ' },
+  { id: 'geology', label: '地質枝', icon: '⛏️', accent: '#f59e0b', desc: '深度と拡張範囲' },
+  { id: 'defense', label: '防衛枝', icon: '⚔️', accent: '#60a5fa', desc: '襲撃への備え' },
+  { id: 'expedition', label: '遠征枝', icon: '🧭', accent: '#14b8a6', desc: '将来の外探索' }
 ];
 
   const RESEARCH_NODE_DEFS = [
@@ -2817,7 +3019,7 @@ const RESEARCH_BRANCH_DEFS = [
   { id: 'brood_2', branch: 'brood', name: '幼虫給餌改善', desc: '幼虫→成虫速度 +8%', costCookie: 2, costFood: 0, prereq: ['brood_1'], breakthrough: false },
   { id: 'hygiene_1', branch: 'hygiene', name: '衛生基礎', desc: 'ゴミ発生量 -10%', costCookie: 1, costFood: 0, prereq: [], breakthrough: false },
   { id: 'hygiene_2', branch: 'hygiene', name: '清掃効率I', desc: '清掃効率 +20%', costCookie: 2, costFood: 0, prereq: ['hygiene_1'], breakthrough: false },
-  { id: 'hygiene_3', branch: 'hygiene', name: 'お掃除上手', desc: '働きアリがゴミを早めに見つけ、より多く運べるようになる。幼虫室の成長阻害を抑える。', costCookie: 6, costFood: 0, prereq: ['hygiene_2'], breakthrough: false },
+  { id: HYGIENE_WORKER_CLEAN_NODE, branch: 'hygiene', name: 'お掃除はおまかせ', desc: 'ゴミ室の運用を整え、働きアリの一部も低優先でゴミ掃除に参加する。清掃判断と運搬量も改善。', costCookie: 6, costFood: 0, prereq: ['hygiene_2'], breakthrough: false },
   { id: 'ferment_unlock', branch: 'ferment', name: '発酵室解放', desc: '発酵室を建設可能にする突破研究', costCookie: 30, costFood: 4000, prereq: [], breakthrough: true },
   { id: 'ferment_1', branch: 'ferment', name: '発酵短縮I', desc: '発酵時間 45秒 → 38秒', costCookie: 4, costFood: 0, prereq: ['ferment_unlock'], breakthrough: false },
   { id: 'ferment_2', branch: 'ferment', name: '甘味濃縮', desc: '発酵完了時 10%でクッキー+1', costCookie: 6, costFood: 0, prereq: ['ferment_1'], breakthrough: false },
@@ -2929,6 +3131,9 @@ function isResearchNodeConditionMet(def){
   if(def.id === FERMENT_WORKER_UNLOCK_NODE) {
     return getFermentRoomNodeCount(false) >= FERMENT_WORKER_ROOM_REQ;
   }
+  if(def.id === HYGIENE_WORKER_CLEAN_NODE) {
+    return !!G.unlockWasteRoom;
+  }
   if(def.id === COOKIE_FIND_2X_NODE) {
     return !!(G.major && G.major.cookie2x) || !!G.cookieDiscovered || (G.cookie || 0) > 0;
   }
@@ -2952,6 +3157,9 @@ function getResearchNodeConditionText(def){
   if(def.id === FERMENT_WORKER_UNLOCK_NODE) {
     const visible = getFermentRoomNodeCount(false);
     return `条件: 巣内に出現済みの発酵室 ${visible}/${FERMENT_WORKER_ROOM_REQ}`;
+  }
+  if(def.id === HYGIENE_WORKER_CLEAN_NODE) {
+    return isResearchNodeConditionMet(def) ? '条件: ゴミ室解放済み' : '条件: ゴミ室を解放する';
   }
   if(def.id === COOKIE_FIND_2X_NODE) {
     return isResearchNodeConditionMet(def) ? '条件: クッキー発見済み' : '条件: クッキーを発見する';
@@ -3007,6 +3215,9 @@ function buyResearchNode(nodeId){
     toast('🧪 発酵アリが雇用可能になった');
     addQueenWhisper('発酵室の専任が生まれたわ。香りの流れが変わるはず', 'ferment_worker_unlock');
   }
+  if(def.id === HYGIENE_WORKER_CLEAN_NODE) {
+    addQueenWhisper('働きアリにも掃除の手順を覚えさせたわ。育児室の汚れに気づきやすくなるはず', 'worker_waste_clean');
+  }
   if(def.id === GEO_DEPTH_2_NODE) {
     addQueenWhisper('新しい層への道が開いたわ。何が待っているかしら', 'depth2_unlock');
   }
@@ -3043,7 +3254,7 @@ function getWasteGenerationMul(){
 }
 
 function hasHygieneAdvancedClean(){
-  return hasResearchNode('hygiene_3');
+  return hasResearchNode(HYGIENE_WORKER_CLEAN_NODE);
 }
 
 function getWasteCleanerJobFraction(){
@@ -3051,6 +3262,14 @@ function getWasteCleanerJobFraction(){
   if(hasResearchNode('hygiene_2')) fraction *= 1.20;
   if(hasHygieneAdvancedClean()) fraction = Math.max(fraction, WASTE_JOB_CLEAN);
   return fraction;
+}
+
+function hasWorkerWasteCleanup(){
+  return hasResearchNode(HYGIENE_WORKER_CLEAN_NODE);
+}
+
+function getWorkerWasteCleanerJobFraction(){
+  return hasWorkerWasteCleanup() ? WASTE_WORKER_JOB_FRACTION : 0;
 }
 
 function getWastePickThreshold(){
@@ -3942,8 +4161,8 @@ function ensureRestSlots(n){
   }
   // Retina など高解像度画面でも同じ見た目の太さ・大きさにする係数
   const dp = (x) => x * (window.devicePixelRatio || 1);
-  // 巣（ワールド）の基準横幅（画面幅に依存しない固定値）
-  const WORLD_W_BASE = dp(2400);
+  // 巣（ワールド）の基準横幅（画面幅に依存しない固定値）。旧 dp(2400) の 3/4。
+  const WORLD_W_BASE = dp(1800);
   // 地表(sy)より上に確保する空の余白。これだけカメラを上へパンでき、空が広く見える。
   // 地表・巣の配置(sy)は一切変えないので既存セーブでもそのまま効く。
   const SKY_HEADROOM = dp(340);
@@ -4653,7 +4872,8 @@ function ensureRestSlots(n){
       const base = BASE_COSTS[role];
       if(base == null) return 999999999;
       const count = Math.max(0, Math.floor(this.ants[role] || 0));
-      return Math.floor(base * Math.pow(COST_GROWTH, count));
+      const growth = ROLE_COST_GROWTH[role] || COST_GROWTH;
+      return Math.floor(base * Math.pow(growth, count));
     },
 
     getUpCost(role) {
@@ -4919,16 +5139,18 @@ function ensureRestSlots(n){
     t: 0, time: 8,
     timeScale: 1,
     lastAutoSaveAt: Date.now(),
-    renderSettings: { mode: DEFAULT_RENDER_SETTINGS.mode, lod: DEFAULT_RENDER_SETTINGS.lod, cap: DEFAULT_RENDER_SETTINGS.cap },
+    renderSettings: { mode: DEFAULT_RENDER_SETTINGS.mode, lod: DEFAULT_RENDER_SETTINGS.lod, cap: DEFAULT_RENDER_SETTINGS.cap, larvaWiggle: DEFAULT_RENDER_SETTINGS.larvaWiggle },
     perf: {
       fps: 0, dt: 0, updateMs: 0, renderMs: 0,
       antsDrawn: 0, lodUsed: false, modeUsed: 'vector',
       aiFull: 0, aiLight: 0, aiSkipped: 0,
-      drawDot: 0, drawSprite: 0, drawVector: 0, drawBatches: 0
+      drawDot: 0, drawSprite: 0, drawVector: 0, drawBatches: 0,
+      drawCrowd: 0, visibleCrowd: 0, culledCrowd: 0, crowdAtlasFrames: 0
     },
     full: null, nodeVis: [], edgeFrac: [],
     frameCount: 0,
     ants: [], effects: [], dust: [], trails: [],
+    antCrowd: null, antCrowdAtlas: null,
     enemies: [],
     raidSoldiers: [],    // Phase 7B-2: 地表レイドの兵隊アリ（表示演出用・ランタイム専用・非保存）
     invaders: [],        // 地下侵略者（害虫）
@@ -5034,12 +5256,22 @@ function ensureRestSlots(n){
     deserializeWorld(savedWorld) {
       if(!savedWorld || !savedWorld.nodes || !savedWorld.edges) return false;
 
-      // ワールド幅は保存値を優先。なければ固定幅を使い、画面幅には追従させない。
-      let worldW = (savedWorld.w && savedWorld.w > 0) ? savedWorld.w : WORLD_W_BASE;
+      // 旧セーブの広い巣は、新しい基準幅へ中心基準で圧縮する。
+      // これにより既存プレイでも「断面図の横幅 3/4」が即反映される。
+      const savedWorldW = (savedWorld.w && savedWorld.w > 0) ? +savedWorld.w : WORLD_W_BASE;
+      let worldW = savedWorldW;
+      const shrinkWorldX = savedWorldW > WORLD_W_BASE * 1.05;
+      const worldXScale = shrinkWorldX ? (WORLD_W_BASE / savedWorldW) : 1;
+      if(shrinkWorldX) worldW = WORLD_W_BASE;
+      const migrateWorldX = (x) => {
+        const vx = Number.isFinite(+x) ? +x : savedWorldW * 0.5;
+        if(!shrinkWorldX) return vx;
+        return ((vx - savedWorldW * 0.5) * worldXScale) + worldW * 0.5;
+      };
 
       const nodes = savedWorld.nodes.map((n, idx) => ({
         id: idx,
-        x: n.x, y: n.y,
+        x: migrateWorldX(n.x), y: n.y,
         r: n.r,
         type: n.type === 'mushroom' ? 'food' : n.type,
         main: !!n.main,
@@ -5069,10 +5301,10 @@ function ensureRestSlots(n){
       const edges = savedWorld.edges.map((e, i) => ({
         id: i,
         u: e.u, v: e.v,
-        p0: { x: e.p0.x, y: e.p0.y },
-        p1: { x: e.p1.x, y: e.p1.y },
-        p2: { x: e.p2.x, y: e.p2.y },
-        p3: { x: e.p3.x, y: e.p3.y },
+        p0: { x: migrateWorldX(e.p0.x), y: e.p0.y },
+        p1: { x: migrateWorldX(e.p1.x), y: e.p1.y },
+        p2: { x: migrateWorldX(e.p2.x), y: e.p2.y },
+        p3: { x: migrateWorldX(e.p3.x), y: e.p3.y },
         kind: e.kind || null
       }));
 
@@ -5215,7 +5447,17 @@ window._dbg = {
     );
   }
 
+  function markCameraInteraction(ms = CAMERA_INTERACTION_CACHE_HOLD_MS) {
+    if(!S.cam) return;
+    S.cam.interactUntil = performance.now() + ms;
+  }
+
+  function isCameraInteracting() {
+    return !!(S.cam && S.cam.interactUntil && performance.now() < S.cam.interactUntil);
+  }
+
   function panByScreen(dx, dy) {
+    markCameraInteraction();
     const inv = 1 / S.cam.scale;
     S.cam.x -= dx * inv;
     S.cam.y -= dy * inv;
@@ -5225,6 +5467,7 @@ window._dbg = {
   }
 
   function zoomAtScreen(sx, sy, nextScale) {
+    markCameraInteraction();
     const targetScale = clamp(nextScale, S.cam.minScale, S.cam.maxScale);
     const before = screenToWorld(sx, sy);
     S.cam.scale = targetScale;
@@ -6574,12 +6817,14 @@ function expandMap(forcedType, isEmergency) {
   const RAID_SURFACE_SOLDIER_RENDER_MAX = 300;       // 地表に描く兵隊の最大数。押し合い/索敵を空間グリッドでO(n)化したので大軍を全員描ける（Phase 7.5: 見える兵=戦う本物の兵）
   const RAID_SURFACE_SOLDIER_LOD_COUNT = 120;        // この数を超えたら兵隊を胴+頭の2バッチ(fill 2回)で描画。普段は詳細vector、超大軍だけ軽量バッチ（端末性能で調整可）
   const RAID_SURFACE_SOLDIER_SPEED = dp(110);        // 地表兵隊の移動速度
-  const RAID_SURFACE_SOLDIER_ENGAGE_RADIUS = dp(18); // この距離まで近づいたら交戦扱い（減速）
+  const RAID_SURFACE_SOLDIER_ENGAGE_RADIUS = dp(28); // この距離まで近づいたら交戦扱い（減速）
   const RAID_SURFACE_SOLDIER_SEPARATION = dp(8);     // 兵隊同士の重なり緩和距離
   const RAID_SURFACE_SOLDIER_RETURN_RADIUS = dp(22); // 入口付近とみなす距離（待機へ）
 
   // ===== Phase 7B-3/4: 地表戦闘（兵隊攻撃・敵死亡・勝敗接続） =====
   const RAID_SURFACE_SOLDIER_ATTACK_RANGE = dp(22);     // 攻撃が届く距離
+  const RAID_SURFACE_SOLDIER_INTERCEPT_RANGE = dp(44);  // 近くの敵を優先して、手前の敵をすり抜けない
+  const RAID_SURFACE_SOLDIER_BLOCK_RADIUS = dp(30);     // 体が近い兵隊はターゲット外の敵も足止めする
   const RAID_SURFACE_SOLDIER_ATTACK_COOLDOWN = 0.6;     // 攻撃間隔（秒）
   const RAID_SURFACE_SOLDIER_DAMAGE_BASE = 2;           // 兵隊1撃の基本ダメージ
   const RAID_SURFACE_SOLDIER_DAMAGE_LV_MUL = 0.12;      // フォールバック用Lv係数
@@ -6587,8 +6832,8 @@ function expandMap(forcedType, isEmergency) {
   const RAID_BREACH_LOSE_RATIO = 0.30;                  // この割合以上が突破したら敗北
   const RAID_ATTACK_MAX_SEC = 16;                       // 攻撃フェーズの最大長（戦闘が長引いた時の安全上限）
   const RAID_FINISH_DELAY = 0.6;                        // 決着が付いてから resolve するまでの見せ時間
-  const RAID_ENEMY_ENGAGED_SLOW_PER = 0.6;              // 交戦中の兵隊1体あたり敵の前進が鈍る量（膠着感）
-  const RAID_ENEMY_ENGAGED_MIN_FACTOR = 0.1;            // 交戦されても最低この割合は前進（完全停止はしない）
+  const RAID_ENEMY_ENGAGED_SLOW_PER = 0.88;             // 交戦中の兵隊1体あたり敵の前進が鈍る量（膠着感）
+  const RAID_ENEMY_ENGAGED_MIN_FACTOR = 0.01;           // 交戦されても最低この割合は前進（完全停止はしない）
 
   // ノード from から to への経路（node列）を BFS で探索。完成した通路（edgeFrac>=0.99）のみ通れる
   function findNodePath(srcNodeId, dstNodeId) {
@@ -7534,7 +7779,7 @@ function expandMap(forcedType, isEmergency) {
       workSlots,
       assignedSlots,
       targetCount: Object.keys(st.targets).length,
-      renderCap: getRenderCap()
+      renderCap: getActionAntCap()
     };
     return st;
   }
@@ -7617,7 +7862,13 @@ function expandMap(forcedType, isEmergency) {
   let _whisperTimer = 0;
   let _colorMode = true; // カラーモード: ON=色分け+トレイル, OFF=黒アリ
 
+  function isQueenWhisperSuppressed() {
+    const raidState = S.raidVis && S.raidVis.state;
+    return raidState === 'countdown' || raidState === 'attack' || raidState === 'result';
+  }
+
   function addQueenWhisper(text, type = 'generic') {
+    if(isQueenWhisperSuppressed()) return;
     const now = S.t || 0;
     if(type !== 'generic' && _whisperLastType[type] && (now - _whisperLastType[type]) < WHISPER_COOLDOWN) return;
     _whisperLastType[type] = now;
@@ -7629,6 +7880,12 @@ function expandMap(forcedType, isEmergency) {
   }
 
   function updateQueenWhisper(dt) {
+    if(isQueenWhisperSuppressed()) {
+      _whisperCurrent = null;
+      _whisperTimer = 0;
+      S._whisperCheck = 0;
+      return;
+    }
     if(_whisperTimer > 0) {
       _whisperTimer -= dt;
       if(_whisperTimer <= 0) { _whisperCurrent = null; _whisperTimer = 0; }
@@ -8236,10 +8493,26 @@ function expandMap(forcedType, isEmergency) {
     return DEFAULT_RENDER_SETTINGS.cap;
   }
 
+  function getActionAntCap() {
+    let cap = ACTION_ANT_CAP;
+    if(S.full && S.full.nodes) {
+      const nodeCount = S.full.nodes.length;
+      const visibleNodeCount = S.nodeVis ? S.nodeVis.reduce((sum, v) => sum + (v ? 1 : 0), 0) : nodeCount;
+      const logicalCount = Math.max(0, Math.floor(G.tot || 0));
+      const larvaeCount = Math.max(0, Math.floor(G.larvae || 0));
+      if(nodeCount > 160 || visibleNodeCount > 140 || larvaeCount > 8000 || logicalCount > 3000) {
+        cap = Math.min(cap, ACTION_ANT_LARGE_COLONY_CAP);
+      } else if(nodeCount > 110 || visibleNodeCount > 100 || logicalCount > 800) {
+        cap = Math.min(cap, ACTION_ANT_MEDIUM_COLONY_CAP);
+      }
+    }
+    return Math.min(cap, getRenderCap());
+  }
+
   const ANT_ROLES = ['worker','nurse','builder','soldier'];
 
   function getVisualAntTargets() {
-    const cap = getRenderCap();
+    const cap = getActionAntCap();
     const actual = {
       worker: Math.max(0, G.ants.worker || 0),
       nurse: Math.max(0, G.ants.nurse || 0),
@@ -8305,19 +8578,34 @@ function expandMap(forcedType, isEmergency) {
     return best;
   }
 
+  function isProtectedActionAntActor(a) {
+    if(!a) return false;
+    const task = a.task || 'idle';
+    if(a.golden || a.panic) return true;
+    if(a.cargo || a.carryType || a.wasteCarry || a.foodCarry) return true;
+    if(task === 'go_large_food' || task === 'large_food_wait' || task === 'large_food_carry') return true;
+    if(task === 'go_waste_pick' || task === 'go_waste_drop') return true;
+    if(task === 'go_feed_pick' || task === 'go_feed_drop') return true;
+    if(a.role === 'builder' && task !== 'idle' && task !== 'wander') return true;
+    if(a.role === 'soldier' && (S.invaders && S.invaders.length) && task !== 'idle') return true;
+    return false;
+  }
+
   function removeAntByRole(role, avoidGolden=true) {
     if(!S.ants || !S.ants.length) return false;
     let idx = -1;
-    if(avoidGolden && role === 'worker') {
+    const passes = [
+      a => a.role === role && (!avoidGolden || !a.golden) && !isProtectedActionAntActor(a),
+      a => a.role === role && !isProtectedActionAntActor(a),
+      a => a.role === role && (!avoidGolden || !a.golden),
+      a => a.role === role
+    ];
+    for(const pass of passes) {
       for(let i=S.ants.length-1; i>=0; i--) {
         const a = S.ants[i];
-        if(a.role === role && !a.golden) { idx = i; break; }
+        if(pass(a)) { idx = i; break; }
       }
-    }
-    if(idx === -1) {
-      for(let i=S.ants.length-1; i>=0; i--) {
-        if(S.ants[i].role === role) { idx = i; break; }
-      }
+      if(idx !== -1) break;
     }
     if(idx === -1) return false;
     S.ants.splice(idx, 1);
@@ -8571,7 +8859,7 @@ function expandMap(forcedType, isEmergency) {
     const floatOff = lf.floatY || 0;
     // 運搬中は揺れを大きくして「みんなで頑張ってる」感を出す
     const carrying = (lf.state === 'carrying');
-    const bobAmp  = carrying ? dp(3.0) : dp(1.2);
+    const bobAmp  = carrying ? dp(1.5) : dp(1.2);
     const bobFreq = carrying ? 5.5 : 3;
     const bob = Math.sin(S.t * bobFreq + (lf.seed || 0)) * bobAmp;
     // 浮き上がり量を加算（地面より上に持ち上がる）
@@ -8667,6 +8955,7 @@ function expandMap(forcedType, isEmergency) {
   function updateAnts(dt) {
     S.frameCount = (S.frameCount || 0) + 1;
     syncAntVisuals();
+    updateAntCrowd(dt);
     updateBuilderLogic(dt);
     if(S.perf) {
       S.perf.aiFull = 0;
@@ -8701,6 +8990,16 @@ function expandMap(forcedType, isEmergency) {
       for(const b of S.ants) {
         if(b.role !== 'nurse') continue;
         if(b.task === 'go_waste_pick' || b.task === 'go_waste_drop') wasteCleaningNow++;
+      }
+    }
+    const workerWasteCleanerMax = (!raidActive && hasWorkerWasteCleanup() && G.ants.worker > 0)
+      ? Math.min(WASTE_WORKER_JOB_MAX, Math.max(1, Math.floor(G.ants.worker * getWorkerWasteCleanerJobFraction())))
+      : 0;
+    let workerWasteCleaningNow = 0;
+    if(workerWasteCleanerMax > 0) {
+      for(const b of S.ants) {
+        if(b.role !== 'worker') continue;
+        if(b.task === 'go_waste_pick' || b.task === 'go_waste_drop') workerWasteCleaningNow++;
       }
     }
     let nurseFeedingNow = 0;
@@ -8911,6 +9210,16 @@ function expandMap(forcedType, isEmergency) {
             return;
           }
           if(restTarget > 0 && restingNow < restTarget && tryStartRest(a, restRooms)) { restingNow++; return; }
+
+          // 研究後: 働きアリの一部も低優先で幼虫室のゴミを運ぶ。
+          if(workerWasteCleaningNow < workerWasteCleanerMax) {
+            const cache = getRoomCache();
+            const wasteJob = cache.larvaRoomIds.length > 0 ? findNearestWasteSourceInfo(a.node, cache.larvaRoomIds) : null;
+            if(wasteJob && tryStartWasteCleanup(a, wasteJob)) {
+              workerWasteCleaningNow++;
+              return;
+            }
+          }
 
           // 低優先：通常の採餌行動
           if(!raidActive && Math.random()<0.02) {
@@ -9556,6 +9865,20 @@ function expandMap(forcedType, isEmergency) {
     return best;
   }
 
+  // 現在ターゲットよりも、実際に接触しそうな敵を優先するための近距離探索。
+  function findNearestLivingRaidEnemyInRange(x, y, range) {
+    if(!S.enemies || !S.enemies.length) return null;
+    const r2 = range * range;
+    let best = null, bestD = r2;
+    for(const en of S.enemies) {
+      if(!en || en.dead || en.phase === "dead" || en.breached) continue;
+      const dx = en.x - x, dy = en.y - y;
+      const d2 = dx*dx + dy*dy;
+      if(d2 <= bestD) { bestD = d2; best = en; }
+    }
+    return best;
+  }
+
   // 直線移動（経路探索なし）。進行方向に向きも更新。
   function moveToward(obj, tx, ty, speed, dt) {
     const dx = tx - obj.x, dy = ty - obj.y;
@@ -9603,6 +9926,16 @@ function expandMap(forcedType, isEmergency) {
     S.raidSoldiers = [];
   }
 
+  function refreshRaidEnemyEngagement(list) {
+    if(S.enemies) { for(const en of S.enemies) { if(en) en.engagedBy = 0; } }
+    if(!list || !list.length || !S.enemies || !S.enemies.length) return;
+    for(const s of list) {
+      if(!s || (s.fade != null && s.fade <= 0)) continue;
+      const en = findNearestLivingRaidEnemyInRange(s.x, s.y, RAID_SURFACE_SOLDIER_BLOCK_RADIUS);
+      if(en) en.engagedBy = (en.engagedBy || 0) + 1;
+    }
+  }
+
   // 地表兵隊アリの更新（攻撃フェーズ中に呼ぶ）
   function updateRaidSoldiers(dt) {
     const list = S.raidSoldiers;
@@ -9612,7 +9945,7 @@ function expandMap(forcedType, isEmergency) {
 
     const soldierDamage = getRaidSurfaceSoldierDamage();
 
-    // Phase 7B-4: 交戦カウントをリセット（このフレームの engage で再集計し、敵の前進を鈍らせる）
+    // Phase 7B-4: 交戦カウントをリセット（最後に物理距離で再集計し、敵の前進を鈍らせる）
     if(S.enemies) { for(const en of S.enemies) { if(en) en.engagedBy = 0; } }
 
     for(const s of list) {
@@ -9634,6 +9967,11 @@ function expandMap(forcedType, isEmergency) {
         let near = findNearestLivingRaidEnemy(s.x, s.y, s.preferSide, exNow);
         if(!near) near = findNearestLivingRaidEnemy(s.x, s.y);
         if(near) { target = near; s.targetEnemyId = near.id; }
+      }
+      const blocker = findNearestLivingRaidEnemyInRange(s.x, s.y, RAID_SURFACE_SOLDIER_INTERCEPT_RANGE);
+      if(blocker && (!target || blocker.id !== target.id)) {
+        target = blocker;
+        s.targetEnemyId = blocker.id;
       }
 
       // emerge: 入口から地表へ出る
@@ -9723,6 +10061,8 @@ function expandMap(forcedType, isEmergency) {
         }
       }
     }
+    // ターゲット状態だけに頼らず、兵隊の体が近い敵を足止め対象として数える。
+    refreshRaidEnemyEngagement(list);
   }
 
   // 地表兵隊アリの描画（render から。ワールド座標）
@@ -10562,7 +10902,10 @@ function expandMap(forcedType, isEmergency) {
     S.renderSettings = normalizeRenderSettings(next);
     if(save) saveRenderSettings();
     syncRenderSettingsUI();
-    if(S.full) syncAntVisuals();
+    if(S.full) {
+      syncAntVisuals();
+      syncAntCrowd();
+    }
     updateDebugOverlay(true);
   }
 
@@ -10727,6 +11070,7 @@ function expandMap(forcedType, isEmergency) {
   const researchUI = {
     lead: document.getElementById('research-lead'),
     lock: document.getElementById('research-lock-note'),
+    overview: document.getElementById('research-overview'),
     branchList: document.getElementById('research-branch-list')
   };
 
@@ -10734,6 +11078,38 @@ function expandMap(forcedType, isEmergency) {
     summary: document.getElementById('ferment-room-summary'),
     lines: document.getElementById('ferment-room-lines')
   };
+
+  function getResearchBranchDef(branchId){
+    return RESEARCH_BRANCH_DEFS.find(b => b.id === branchId) || { id: branchId, label: branchId, icon: '•', accent: '#38bdf8', desc: '' };
+  }
+
+  function getResearchBranchNodes(branchId){
+    return RESEARCH_NODE_DEFS.filter(def => def.branch === branchId);
+  }
+
+  function getResearchNodeName(nodeId){
+    const def = getResearchNodeDef(nodeId);
+    return def ? def.name : nodeId;
+  }
+
+  function getResearchNodeDepth(def, seen){
+    if(!def || !Array.isArray(def.prereq) || def.prereq.length <= 0) return 0;
+    const guard = seen || {};
+    if(guard[def.id]) return 0;
+    guard[def.id] = true;
+    let depth = 0;
+    for(const pre of def.prereq) {
+      const preDef = getResearchNodeDef(pre);
+      if(!preDef || preDef.branch !== def.branch) continue;
+      depth = Math.max(depth, 1 + getResearchNodeDepth(preDef, Object.assign({}, guard)));
+    }
+    return Math.min(depth, 3);
+  }
+
+  function getResearchPrereqText(def){
+    if(!def || !Array.isArray(def.prereq) || def.prereq.length <= 0) return '';
+    return def.prereq.map(getResearchNodeName).join(' / ');
+  }
 
   function formatResearchCost(def){
     const parts = [];
@@ -10748,31 +11124,134 @@ function expandMap(forcedType, isEmergency) {
     return 'ロック中';
   }
 
-function renderResearchNodeCard(def){
-  const status = getResearchStatus(def);
-  const canResearch = (status === 'ready') && canAffordResearch(def);
-  const condText = getResearchNodeConditionText(def);
-  const condMet = isResearchNodeConditionMet(def);
-  const classes = ['research-node-card'];
-  if(def.breakthrough) classes.push('is-breakthrough');
-  if(status === 'done') classes.push('is-done');
-  else if(status === 'ready') classes.push('is-ready');
-  else classes.push('is-locked');
+  function getResearchNodeReason(def, status, canResearch){
+    if(!def) return '';
+    if(status === 'done') return '完了済み';
+    if(!isResearchSystemUnlocked()) return '研究センター未解放';
+    if(!isResearchBranchUnlocked(def.branch)) return '枝ロック中';
+    if(Array.isArray(def.prereq)) {
+      const missing = def.prereq.filter(pre => !hasResearchNode(pre)).map(getResearchNodeName);
+      if(missing.length > 0) return `前提: ${missing.join(' / ')}`;
+    }
+    const condText = getResearchNodeConditionText(def);
+    if(condText && !isResearchNodeConditionMet(def)) return condText;
+    if(status === 'ready' && !canResearch) return `必要: ${formatResearchCost(def)}`;
+    if(status === 'ready' && canResearch) return '実行可能';
+    return condText || '';
+  }
+
+  function getResearchStatusMark(status, canResearch){
+    if(status === 'done') return '✓';
+    if(status === 'ready') return canResearch ? '!' : '…';
+    return '•';
+  }
+
+  function renderResearchNodeCard(def){
+    const status = getResearchStatus(def);
+    const canResearch = (status === 'ready') && canAffordResearch(def);
+    const prereqText = getResearchPrereqText(def);
+    const condText = getResearchNodeConditionText(def);
+    const condMet = !condText || isResearchNodeConditionMet(def);
+    const reason = getResearchNodeReason(def, status, canResearch);
+    const depth = getResearchNodeDepth(def);
+    const classes = ['research-node-card'];
+    if(def.breakthrough) classes.push('is-breakthrough');
+    if(Array.isArray(def.prereq) && def.prereq.length > 0) classes.push('has-prereq');
+    if(status === 'done') classes.push('is-done');
+    else if(status === 'ready') classes.push('is-ready');
+    else classes.push('is-locked');
+    const tags = [];
+    if(def.breakthrough) tags.push('<span class="research-node-tag is-breakthrough">突破</span>');
+    if(prereqText) tags.push(`<span class="research-node-tag">前提 ${prereqText}</span>`);
+    if(condText) tags.push(`<span class="research-node-tag">${condMet ? '条件OK' : '条件待ち'}</span>`);
     const btnLabel = (status === 'done') ? '研究済み' : (status === 'locked' ? 'ロック中' : (canResearch ? '研究する' : '資源不足'));
     const btnClass = 'research-node-action' + ((status === 'ready' && canResearch) ? '' : ' disabled');
+    const reqMet = status === 'done' || (status === 'ready' && canResearch);
     return `
-      <article class="${classes.join(' ')}">
-        <div class="research-node-name">${def.name}</div>
-        <div class="research-node-desc">${def.desc}</div>
-        <div class="research-node-meta">
-          <span class="research-node-cost">${formatResearchCost(def)}</span>
-          <span class="research-node-status">${getResearchStatusLabel(status)}</span>
+      <article class="${classes.join(' ')}" style="--depth:${depth}">
+        <div class="research-node-mark">${getResearchStatusMark(status, canResearch)}</div>
+        <div class="research-node-body">
+          <div class="research-node-top">
+            <div class="research-node-name">${def.name}</div>
+            <span class="research-node-status">${getResearchStatusLabel(status)}</span>
+          </div>
+          <div class="research-node-desc">${def.desc}</div>
+          ${tags.length ? `<div class="research-node-tags">${tags.join('')}</div>` : ''}
+          <div class="research-node-meta">
+            <span class="research-node-cost">${formatResearchCost(def)}</span>
+            <span>${def.id}</span>
+          </div>
+          ${reason ? `<div class="research-node-req${reqMet ? ' is-met' : ''}">${reason}</div>` : ''}
+          <button type="button" class="${btnClass}" data-research-buy="${def.id}">${btnLabel}</button>
         </div>
-        ${condText ? `<div class="research-node-req${condMet ? ' is-met' : ''}">${condText}</div>` : ''}
-        <button type="button" class="${btnClass}" data-research-buy="${def.id}">${btnLabel}</button>
       </article>
     `;
-}
+  }
+
+  function renderResearchOverview(rs){
+    const total = RESEARCH_NODE_DEFS.length;
+    const done = RESEARCH_NODE_DEFS.reduce((acc, def) => acc + (hasResearchNode(def.id) ? 1 : 0), 0);
+    const readyNodes = RESEARCH_NODE_DEFS.filter(def => getResearchStatus(def) === 'ready');
+    const affordableNodes = readyNodes.filter(canAffordResearch);
+    const progressPct = total > 0 ? Math.round((done / total) * 100) : 0;
+    const openBranches = rs.unlocked
+      ? RESEARCH_BRANCH_DEFS.reduce((acc, branch) => acc + (isResearchBranchUnlocked(branch.id) ? 1 : 0), 0)
+      : 0;
+    const next = affordableNodes[0] || readyNodes[0] || null;
+    const nextText = !rs.unlocked
+      ? `食料 ${fmtCount(G.food)}/${fmtCount(RESEARCH_UNLOCK_FOOD)}`
+      : (next ? next.name : '前提条件を進行中');
+    const nextSub = next
+      ? (affordableNodes[0] ? `${getResearchBranchDef(next.branch).label} / 研究可能` : `${getResearchBranchDef(next.branch).label} / ${formatResearchCost(next)}`)
+      : (rs.unlocked ? '解放済みノードを増やす' : '研究センター待ち');
+    return `
+      <div class="research-overview-card">
+        <div class="research-overview-label">全体進行</div>
+        <div class="research-overview-value">${done}/${total}</div>
+        <div class="research-overview-sub">${progressPct}% 完了</div>
+      </div>
+      <div class="research-overview-card">
+        <div class="research-overview-label">研究可能</div>
+        <div class="research-overview-value">${affordableNodes.length}/${readyNodes.length}</div>
+        <div class="research-overview-sub">枝 ${openBranches}/${RESEARCH_BRANCH_DEFS.length}</div>
+      </div>
+      <div class="research-overview-card">
+        <div class="research-overview-label">次候補</div>
+        <div class="research-overview-value">${nextText}</div>
+        <div class="research-overview-sub">${nextSub}</div>
+      </div>
+    `;
+  }
+
+  function renderResearchBranch(branch, rs){
+    const nodes = getResearchBranchNodes(branch.id);
+    const branchOpen = rs.unlocked && isResearchBranchUnlocked(branch.id);
+    const doneCount = nodes.reduce((acc, def) => acc + (hasResearchNode(def.id) ? 1 : 0), 0);
+    const readyCount = nodes.reduce((acc, def) => acc + (getResearchStatus(def) === 'ready' ? 1 : 0), 0);
+    const pct = nodes.length > 0 ? Math.round((doneCount / nodes.length) * 100) : 0;
+    const branchState = !rs.unlocked
+      ? '研究未解放'
+      : (!isResearchBranchUnlocked(branch.id) ? 'ロック中' : (nodes.length > 0 ? `${doneCount}/${nodes.length} 研究済み / ${readyCount} 可` : '準備中'));
+    const body = nodes.length <= 0
+      ? '<div class="research-note">この枝は今後の拡張で解放されます。</div>'
+      : `<div class="research-node-list">${nodes.map(renderResearchNodeCard).join('')}</div>`;
+    return `
+      <section class="research-branch${branchOpen ? '' : ' is-locked'}" style="--branch-color:${branch.accent || '#38bdf8'}">
+        <div class="research-branch-head">
+          <div class="research-branch-title">
+            <span class="research-branch-icon">${branch.icon || '•'}</span>
+            <span>
+              <span class="research-branch-name">${branch.label}</span>
+              <div class="research-branch-desc">${branch.desc || ''}</div>
+            </span>
+          </div>
+          <span class="research-branch-state">${branchState}</span>
+        </div>
+        <div class="research-branch-progress"><span class="research-branch-progress-fill" style="width:${pct}%"></span></div>
+        ${body}
+      </section>
+    `;
+  }
 
   function updateResearchUI(){
     const rs = ensureResearchState();
@@ -10788,32 +11267,15 @@ function renderResearchNodeCard(def){
         researchUI.lock.textContent = `🔒 研究未解放: 食料を10,000まで蓄えると解放されます（あと ${remain}）。`;
       }
     }
+    if(researchUI.overview) {
+      const overviewHtml = renderResearchOverview(rs);
+      if(researchUI.overview.innerHTML !== overviewHtml) {
+        researchUI.overview.innerHTML = overviewHtml;
+      }
+    }
     if(!researchUI.branchList) return;
 
-    const sections = [];
-    for(const branch of RESEARCH_BRANCH_DEFS) {
-      const nodes = RESEARCH_NODE_DEFS.filter(def => def.branch === branch.id);
-      const branchOpen = rs.unlocked && isResearchBranchUnlocked(branch.id);
-      const doneCount = nodes.reduce((acc, def) => acc + (hasResearchNode(def.id) ? 1 : 0), 0);
-      const branchState = !rs.unlocked
-        ? '研究未解放'
-        : (!isResearchBranchUnlocked(branch.id) ? 'ロック中' : (nodes.length > 0 ? `${doneCount}/${nodes.length} 研究済み` : '準備中'));
-      let body = '';
-      if(nodes.length <= 0) {
-        body = '<div class="research-note">この枝は今後の拡張で解放されます。</div>';
-      } else {
-        body = `<div class="research-node-list">${nodes.map(renderResearchNodeCard).join('')}</div>`;
-      }
-      sections.push(`
-        <section class="research-branch${branchOpen ? '' : ' is-locked'}">
-          <div class="research-branch-head">
-            <span class="research-branch-name">${branch.label}</span>
-            <span class="research-branch-state">${branchState}</span>
-          </div>
-          ${body}
-        </section>
-      `);
-    }
+    const sections = RESEARCH_BRANCH_DEFS.map(branch => renderResearchBranch(branch, rs));
     // innerHTML の不要な置き換えを防ぐ。
     // updateResearchUI は毎フレーム呼ばれるが、内容が同じなら DOM を触らない。
     // これにより「タップ中に innerHTML が置き換わってクリックが失われる」問題も軽減する。
@@ -11495,7 +11957,7 @@ function syncFermenterUnlockUI() {
     setDockInlineEffect('btn-up-nurse', getNurseInlineEffect());
     setDockInlineEffect('btn-up-builder', getBuilderInlineEffect());
     setDockInlineEffect('btn-up-soldier', getSoldierInlineEffect());
-    setDockInlineEffect('btn-unlock-waste', G.unlockWasteRoom ? '解禁済み' : `解放: ゴミ室建設`);
+    setDockInlineEffect('btn-unlock-waste', G.unlockWasteRoom ? '解禁済み: ゴミ搬入+1 / 清掃研究' : `解放: ゴミ搬入+1 / 清掃研究`);
     setDockInlineEffect('btn-build-ferment', getFermentRoomInlineEffect());
     {
       const lv = getGoldenFingerLevel();
@@ -11595,9 +12057,10 @@ function syncFermenterUnlockUI() {
 
     // ゴミ室解禁のツールチップ
     bindTip(document.getElementById('btn-unlock-waste'), () => {
-      if(G.unlockWasteRoom) return 'ゴミ室は解禁済み';
+      const body = '効果: 育児アリが入口ではなくゴミ室へ運ぶ\n運搬: ゴミ室へ搬入すると1回のゴミ運搬量 +1\n研究: 「お掃除はおまかせ」が研究可能になる';
+      if(G.unlockWasteRoom) return `ゴミ室は解禁済み\n${body}`;
       const lock = (G.bLv >= WASTE_ROOM_UNLOCK_LV) ? '' : `\n※建築Lv${WASTE_ROOM_UNLOCK_LV}で解禁`;
-      return `ゴミ室 解禁\nコスト: 🍃 ${WASTE_ROOM_UNLOCK_COST}${lock}\n効果: 入口搬出より近く、清掃運搬量も増える`;
+      return `ゴミ室 解禁\nコスト: 🍃 ${WASTE_ROOM_UNLOCK_COST}${lock}\n${body}`;
     });
     bindTip(document.getElementById('btn-build-ferment'), () => getFermentRoomTipText());
     bindTip(document.getElementById('btn-build-cookieroom'), () => getCookieRoomTipText());
@@ -12278,6 +12741,7 @@ function syncFermenterUnlockUI() {
     const antsDrawn = (typeof perf.antsDrawn === 'number') ? perf.antsDrawn : (S.ants ? S.ants.length : 0);
     const logicalPop = Math.max(0, Math.floor(G.tot || 0));
     const cap = getRenderCap();
+    const actorCap = getActionAntCap();
     const camScale = (S.cam && typeof S.cam.scale === 'number') ? S.cam.scale.toFixed(2) : '1.00';
     const dpr = (window.devicePixelRatio || 1).toFixed(2);
     const modeSetting = (S.renderSettings && S.renderSettings.mode) ? S.renderSettings.mode : 'auto';
@@ -12288,9 +12752,10 @@ function syncFermenterUnlockUI() {
 
     return (
       `fps:${fps} dt:${dtMs}ms upd:${updateMs}ms ren:${renderMs}ms\n` +
-      `ants visual:${S.ants.length} logical:${logicalPop} draw:${antsDrawn} cap:${cap}\n` +
+      `ants actors:${S.ants.length}/${actorCap} logical:${logicalPop} draw:${antsDrawn} cap:${cap}\n` +
+      `crowd:${S.antCrowd ? S.antCrowd.count : 0} visible:${perf.visibleCrowd || 0} culled:${perf.culledCrowd || 0} atlas:${perf.crowdAtlasFrames || 0}\n` +
       `ai full:${perf.aiFull || 0} light:${perf.aiLight || 0} skipped:${perf.aiSkipped || 0}\n` +
-      `draw dot:${perf.drawDot || 0} sprite:${perf.drawSprite || 0} vector:${perf.drawVector || 0} batches:${perf.drawBatches || 0}\n` +
+      `draw crowd:${perf.drawCrowd || 0} dot:${perf.drawDot || 0} sprite:${perf.drawSprite || 0} vector:${perf.drawVector || 0} batches:${perf.drawBatches || 0}\n` +
       `builder real:${bStats.realBuilders} visible:${bStats.visibleBuilders} work:${bStats.assignedSlots}/${bStats.workSlots} targets:${bStats.targetCount} cap:${bStats.renderCap}\n` +
       `cam:${camScale} dpr:${dpr} mode:${modeSetting}->${modeUsed} lod:${lod}/${lodUsed}\n` +
       `nodes:${nodes} edges:${edges} loops≈${loops}\n` +
@@ -13364,6 +13829,167 @@ function syncFermenterUnlockUI() {
   const btnSave = document.getElementById('btn-save');
   if(btnSave) btnSave.onclick = () => G.save();
 
+  // ===== Stats =====
+  const modalStats = document.getElementById('modal-stats');
+  const btnStats = document.getElementById('btn-stats');
+  const btnStatsClose = document.getElementById('btn-stats-close');
+  const statsBody = document.getElementById('stats-body');
+
+  function fmtStatNum(v, digits = 0) {
+    const n = Number(v);
+    if(!Number.isFinite(n)) return '-';
+    if(digits > 0 && Math.abs(n) < 1000) return n.toFixed(digits);
+    return fmtCount(n);
+  }
+
+  function fmtStatMul(v) {
+    const n = Number(v);
+    return Number.isFinite(n) ? `x${n.toFixed(2)}` : '-';
+  }
+
+  function fmtStatPct(v) {
+    const n = Number(v);
+    return Number.isFinite(n) ? `${Math.round(n * 100)}%` : '-';
+  }
+
+  function addStatsSection(title, rows) {
+    if(!statsBody) return;
+    const section = document.createElement('div');
+    section.className = 'stats-section';
+    const head = document.createElement('div');
+    head.className = 'stats-section-title';
+    head.textContent = title;
+    section.appendChild(head);
+    for(const row of rows) {
+      const line = document.createElement('div');
+      line.className = 'stats-line';
+      const k = document.createElement('span');
+      const v = document.createElement('span');
+      k.textContent = row[0];
+      v.textContent = row[1];
+      line.appendChild(k);
+      line.appendChild(v);
+      section.appendChild(line);
+    }
+    statsBody.appendChild(section);
+  }
+
+  function buildStatsModal() {
+    if(!statsBody) return;
+    G.recalc();
+    statsBody.textContent = '';
+
+    const ants = G.ants || {};
+    const foodPerSec = (ants.worker || 0) * 0.1 * G.getWorkerProdMul() * getGatherResearchMul()
+      * (S.restMul || 1) * getGlobalFoodMul() * (1 + (G.legacyBonus || 0)) * getSeasonFoodMul();
+    const eggMul = (1 + ((ants.nurse || 0) * 0.5)) * getNurseHatchMul(G.nLv) * getBroodEggMul();
+
+    const nurseryIds = getNurseryIds();
+    const larvaRoomIds = getLarvaGrowthRoomIds(nurseryIds);
+    let larvaTotal = 0, larvaFoodTotal = 0, larvaWasteTotal = 0;
+    for(const id of larvaRoomIds) {
+      const n = S.full && S.full.nodes ? S.full.nodes[id] : null;
+      if(!n) continue;
+      larvaTotal += Math.max(0, Math.floor(n.invLarva || 0));
+      larvaFoodTotal += Math.max(0, Math.floor(n.invLarvaFood || 0));
+      larvaWasteTotal += Math.max(0, +n.invWaste || 0);
+    }
+    const larvaNeed = larvaTotal * LARVA_FOOD_NEED;
+    const foodRatio = (larvaNeed > 0) ? clamp(larvaFoodTotal / larvaNeed, 0, 1) : 1;
+    const foodCoef = LARVA_FOOD_BASE + (1 - LARVA_FOOD_BASE) * foodRatio;
+    const wasteRatio = (larvaTotal > 0) ? (larvaWasteTotal / (larvaTotal * WASTE_FULL_PER_LARVA)) : 0;
+    const wasteCoef = 1 - WASTE_SLOW_MAX * clamp(wasteRatio, 0, 1);
+    const larvaMul = larvaTotal > 0
+      ? foodCoef * wasteCoef * getNurseHatchMul(G.nLv) * getNurseLarvaAdultCountMul() * getBroodLarvaMul()
+      : 0;
+
+    const visibleNodes = (S.full && S.full.nodes && S.nodeVis)
+      ? S.full.nodes.reduce((sum, _, i) => sum + (S.nodeVis[i] ? 1 : 0), 0)
+      : 0;
+    const builderStats = (typeof getBuilderDebugStats === 'function') ? getBuilderDebugStats() : {};
+    const enemyPower = (typeof getEnemyPower === 'function') ? getEnemyPower() : 0;
+    const colonyPower = (typeof getColonyCombatPower === 'function') ? getColonyCombatPower() : 0;
+    const winProb = (typeof getRaidWinProb === 'function') ? getRaidWinProb(colonyPower, enemyPower) : 0;
+    const soldierDps = (typeof getRaidSurfaceSoldierDamage === 'function')
+      ? ((ants.soldier || 0) * getRaidSurfaceSoldierDamage()) / RAID_SURFACE_SOLDIER_ATTACK_COOLDOWN
+      : 0;
+    const renderSettings = S.renderSettings || DEFAULT_RENDER_SETTINGS;
+    const season = getCurrentSeason();
+    const weather = getCurrentWeatherEffect();
+
+    addStatsSection('資源', [
+      ['食料', `${fmtStatNum(G.food)}/${fmtStatNum(G.caps.food)}`],
+      ['クッキー', fmtStatNum(G.cookie)],
+      ['卵', `${fmtStatNum(G.eggs)}/${fmtStatNum(G.caps.egg)}`],
+      ['幼虫', fmtStatNum(G.larvae || 0)],
+      ['食料生産', `+${fmtStatNum(foodPerSec, 2)}/s`]
+    ]);
+
+    addStatsSection('アリ', [
+      ['総数', `${fmtStatNum(G.tot)}/${fmtStatNum(G.caps.pop)}`],
+      ['働き', fmtStatNum(ants.worker)],
+      ['育児', fmtStatNum(ants.nurse)],
+      ['建築', fmtStatNum(ants.builder)],
+      ['兵隊', `${fmtStatNum(ants.soldier)}/${fmtStatNum(G.caps.soldier)}`],
+      ['発酵', fmtStatNum(ants.fermenter || 0)],
+      ['黄金', fmtStatNum(G.goldenCount || 0)]
+    ]);
+
+    addStatsSection('成長', [
+      ['卵→幼虫', fmtStatMul(eggMul)],
+      ['幼虫→成虫', larvaTotal > 0 ? fmtStatMul(larvaMul) : '-'],
+      ['給餌係数', fmtStatMul(foodCoef)],
+      ['ゴミ係数', fmtStatMul(wasteCoef)],
+      ['自動産卵', `Lv.${G.qLv}`],
+      ['速度', `x${S.timeScale || 1}`]
+    ]);
+
+    addStatsSection('部屋', [
+      ['部屋数', fmtStatNum(S.roomTotal || 0)],
+      ['可視ノード', fmtStatNum(visibleNodes)],
+      ['休憩室', `${fmtStatNum(S.restCount || 0)}/${fmtStatNum(S.restLimit || 0)}`],
+      ['兵舎', `${fmtStatNum(S.barracksCount || 0)} (+${fmtStatNum(G.barracksPending || 0)})`],
+      ['発酵室', `${fmtStatNum(S.fermentCount || 0)} (+${fmtStatNum(G.fermentRoomPending || 0)})`],
+      ['クッキー室', `${fmtStatNum(S.cookieRoomCount || 0)} (+${fmtStatNum(G.cookieRoomPending || 0)})`],
+      ['ゴミ室', `${fmtStatNum(S.wasteCount || 0)} / ${G.unlockWasteRoom ? '解放済み' : '未解放'}`],
+      ['ゴミ室効果', (S.wasteCount || 0) > 0 ? '搬入先 / 運搬+1' : (G.unlockWasteRoom ? '建設待ち' : '-')],
+      ['働き清掃', hasWorkerWasteCleanup() ? `ON (${Math.round(WASTE_WORKER_JOB_FRACTION * 100)}% / 最大${WASTE_WORKER_JOB_MAX})` : '研究前']
+    ]);
+
+    addStatsSection('防衛', [
+      ['防衛力', fmtStatNum(colonyPower)],
+      ['敵パワー', fmtStatNum(enemyPower)],
+      ['勝率目安', fmtStatPct(winProb)],
+      ['兵隊DPS', fmtStatNum(soldierDps, 1)],
+      ['次の兵隊', `🍃 ${fmtStatNum(G.getCost('soldier'))}`],
+      ['レイド', `${fmtStatNum(G.raidWins || 0)}勝 / ${fmtStatNum(G.raidTotal || 0)}戦`]
+    ]);
+
+    addStatsSection('環境/描画', [
+      ['季節', season ? season.label : '-'],
+      ['天気', weather ? weather.label : '-'],
+      ['食料倍率', fmtStatMul(getSeasonFoodMul())],
+      ['描画モード', renderSettings.mode || 'auto'],
+      ['描画上限', fmtStatNum(getRenderCap())],
+      ['群れ表示', fmtStatNum(S.antCrowd ? S.antCrowd.count : 0)],
+      ['演出アリ', fmtStatNum(S.ants ? S.ants.length : 0)],
+      ['建築枠', `${fmtStatNum(builderStats.assignedSlots || 0)}/${fmtStatNum(builderStats.workSlots || 0)}`]
+    ]);
+  }
+
+  function openStatsModal() {
+    buildStatsModal();
+    if(modalStats) modalStats.classList.add('show');
+  }
+
+  function closeStatsModal() {
+    if(modalStats) modalStats.classList.remove('show');
+  }
+
+  if(btnStats) btnStats.addEventListener('click', openStatsModal);
+  if(btnStatsClose) btnStatsClose.addEventListener('click', closeStatsModal);
+  if(modalStats) modalStats.addEventListener('click', (e)=>{ if(e.target === modalStats) closeStatsModal(); });
+
   // ===== Diary =====
   const mD = document.getElementById('modal-diary');
   const btnDiary = document.getElementById('btn-diary');
@@ -13670,6 +14296,9 @@ function syncFermenterUnlockUI() {
 
         const ex = ENX();
         const sy = S.full.sy;
+        // 先に兵隊を更新して、このフレームの engagedBy を敵の前進に反映する。
+        // これにより接触した敵の足止めが1フレーム遅れずに効く。
+        updateRaidSoldiers(dt);
         S.enemies.forEach(en => {
           en.t += dt;
           // Phase 7B-1: ヒット閃光の減衰（全敵共通）
@@ -13708,9 +14337,6 @@ function syncFermenterUnlockUI() {
           }
           en.fade = clamp(en.fade, 0, 1);
         });
-
-        // Phase 7B-3: 地表兵隊アリの出撃・追尾・攻撃（敵HP減少・撃破）
-        updateRaidSoldiers(dt);
 
         // Phase 7B-4: 終了判定。決着（全滅 or 突破しきい値）or 上限時間で、少し見せてから resolve。
         const livingNow = getLivingRaidEnemyCount();
@@ -13777,10 +14403,10 @@ function syncFermenterUnlockUI() {
     let lodUsed = false;
     if(mode === 'auto') {
       if(settings.lod) {
-        const count = (S.ants && S.ants.length) ? S.ants.length : 0;
+        const count = Math.max(0, Math.floor(G.tot || 0));
         const zoom = (S.cam && typeof S.cam.scale === 'number') ? S.cam.scale : 1;
-        if(count >= 500 || zoom < 0.62) { mode = 'dot'; lodUsed = true; }
-        else if(count >= 180 || zoom < 0.88) { mode = 'sprite'; lodUsed = true; }
+        if(count >= 180 || zoom < 0.88) { mode = 'crowdSprite'; lodUsed = true; }
+        else if(count >= 80) { mode = 'sprite'; lodUsed = true; }
         else mode = 'vector';
       } else {
         mode = 'vector';
@@ -13930,6 +14556,494 @@ function syncFermenterUnlockUI() {
     if(carry === 'cookie'){ctx.fillStyle='#fcd34d'; ctx.beginPath(); ctx.arc(dp(6),0,dp(2.1),0,6.28); ctx.fill();}
     if(carry === 'soil'){ctx.fillStyle='#5b2a0f'; ctx.beginPath(); ctx.arc(dp(5.6),0,dp(1.5),0,6.28); ctx.fill();}
     ctx.restore();
+  }
+
+  function createAntCrowdBuffers(capacity) {
+    const cap = Math.max(0, Math.floor(capacity || 0));
+    return {
+      count: 0,
+      capacity: cap,
+      signature: '',
+      mapSignature: '',
+      roleCounts: [0, 0, 0, 0],
+      x: new Float32Array(cap),
+      y: new Float32Array(cap),
+      rot: new Float32Array(cap),
+      role: new Uint8Array(cap),
+      gaitPhase: new Float32Array(cap),
+      speed: new Float32Array(cap),
+      routeKind: new Uint8Array(cap),
+      nodeId: new Int32Array(cap),
+      edgeId: new Int32Array(cap),
+      t: new Float32Array(cap),
+      dir: new Int8Array(cap),
+      roomRadius: new Float32Array(cap),
+      roomAngle: new Float32Array(cap),
+      nextSwitchAt: new Float32Array(cap)
+    };
+  }
+
+  function ensureAntCrowdCapacity(capacity) {
+    const need = Math.max(0, Math.floor(capacity || 0));
+    if(!S.antCrowd) {
+      S.antCrowd = createAntCrowdBuffers(need);
+      return S.antCrowd;
+    }
+    if(S.antCrowd.capacity >= need) return S.antCrowd;
+    const old = S.antCrowd;
+    const next = createAntCrowdBuffers(Math.max(need, Math.ceil(old.capacity * 1.5), 256));
+    const copyCount = Math.min(old.count, next.capacity);
+    next.count = copyCount;
+    next.signature = old.signature || '';
+    next.mapSignature = old.mapSignature || '';
+    next.roleCounts = old.roleCounts ? old.roleCounts.slice() : [0, 0, 0, 0];
+    next.x.set(old.x.subarray(0, copyCount));
+    next.y.set(old.y.subarray(0, copyCount));
+    next.rot.set(old.rot.subarray(0, copyCount));
+    next.role.set(old.role.subarray(0, copyCount));
+    next.gaitPhase.set(old.gaitPhase.subarray(0, copyCount));
+    next.speed.set(old.speed.subarray(0, copyCount));
+    next.routeKind.set(old.routeKind.subarray(0, copyCount));
+    next.nodeId.set(old.nodeId.subarray(0, copyCount));
+    next.edgeId.set(old.edgeId.subarray(0, copyCount));
+    next.t.set(old.t.subarray(0, copyCount));
+    next.dir.set(old.dir.subarray(0, copyCount));
+    next.roomRadius.set(old.roomRadius.subarray(0, copyCount));
+    next.roomAngle.set(old.roomAngle.subarray(0, copyCount));
+    next.nextSwitchAt.set(old.nextSwitchAt.subarray(0, copyCount));
+    S.antCrowd = next;
+    return S.antCrowd;
+  }
+
+  function pickCrowdArray(arr, fallback) {
+    if(arr && arr.length) return arr[(Math.random() * arr.length) | 0];
+    return fallback;
+  }
+
+  function getCrowdPools() {
+    const pools = {
+      all: [], queen: [], food: [], nursery: [], soldier: [], shaft: [], entrance: [], work: [], edges: []
+    };
+    if(!S.full || !S.full.nodes) return pools;
+    for(let i=0; i<S.full.nodes.length; i++) {
+      if(!S.nodeVis[i]) continue;
+      const n = S.full.nodes[i];
+      if(!n) continue;
+      pools.all.push(i);
+      if(n.type === 'queen') pools.queen.push(i);
+      else if(n.type === 'food' || n.type === 'cookieroom') pools.food.push(i);
+      else if(n.type === 'nursery') pools.nursery.push(i);
+      else if(n.type === 'soldier') pools.soldier.push(i);
+      else if(n.type === 'shaft') pools.shaft.push(i);
+      else if(n.type === 'entrance') pools.entrance.push(i);
+      if(n.type !== 'entrance') pools.work.push(i);
+    }
+    if(S.full.edges) {
+      for(let eid=0; eid<S.full.edges.length; eid++) {
+        const e = S.full.edges[eid];
+        if(!e || !S.nodeVis[e.u] || !S.nodeVis[e.v]) continue;
+        if((S.edgeFrac[eid] || 0) < 1) continue;
+        pools.edges.push(eid);
+      }
+    }
+    return pools;
+  }
+
+  function pickCrowdNodeForRole(roleIdx, pools) {
+    const fallback = pickCrowdArray(pools.all, S.full ? S.full.qid : 0);
+    if(roleIdx === 1) return pickCrowdArray(pools.nursery, pickCrowdArray(pools.queen, fallback));
+    if(roleIdx === 2) return pickCrowdArray(pools.shaft, pickCrowdArray(pools.work, fallback));
+    if(roleIdx === 3) return pickCrowdArray(pools.soldier, pickCrowdArray(pools.entrance, fallback));
+    return pickCrowdArray(pools.food, pickCrowdArray(pools.work, fallback));
+  }
+
+  function placeCrowdAntInNode(crowd, idx, nodeId) {
+    const n = S.full && S.full.nodes ? S.full.nodes[nodeId] : null;
+    if(!n) return;
+    const slotPool = n.slots || [];
+    if(slotPool.length && Math.random() < 0.45) {
+      const s = slotPool[(Math.random() * slotPool.length) | 0];
+      crowd.x[idx] = s.x + (Math.random() - 0.5) * dp(4);
+      crowd.y[idx] = s.y + (Math.random() - 0.5) * dp(3);
+    } else {
+      const sx = (n.blobScaleX != null) ? n.blobScaleX : 1;
+      const sy = (n.blobScaleY != null) ? n.blobScaleY : 0.78;
+      const ang = Math.random() * Math.PI * 2;
+      const rr = Math.sqrt(Math.random()) * Math.min(n.r * 0.68, dp(26));
+      crowd.x[idx] = n.x + Math.cos(ang) * rr * sx;
+      crowd.y[idx] = n.y + Math.sin(ang) * rr * sy;
+    }
+    crowd.nodeId[idx] = nodeId;
+    crowd.routeKind[idx] = CROWD_ROUTE_ROOM;
+    crowd.edgeId[idx] = -1;
+  }
+
+  function initCrowdAnt(crowd, idx, roleIdx, pools) {
+    crowd.role[idx] = roleIdx;
+    crowd.gaitPhase[idx] = Math.random() * Math.PI * 2;
+    crowd.speed[idx] = dp(22 + Math.random() * 26);
+    crowd.roomRadius[idx] = dp(5 + Math.random() * 16);
+    crowd.roomAngle[idx] = Math.random() * Math.PI * 2;
+    crowd.nextSwitchAt[idx] = S.t + 0.6 + Math.random() * 4.2;
+    crowd.rot[idx] = Math.random() * Math.PI * 2;
+    placeCrowdAntInNode(crowd, idx, pickCrowdNodeForRole(roleIdx, pools));
+  }
+
+  function isUndergroundSoldierHiddenForRaid() {
+    return !!(S.raidVis && (S.raidVis.state === 'attack' || S.raidVis.state === 'result'));
+  }
+
+  function shouldDrawActionAntOverlayInCrowd(a) {
+    if(!a) return false;
+    const task = a.task || 'idle';
+    if(isProtectedActionAntActor(a)) return true;
+    if(task === 'rest' || task === 'go_rest') return true;
+    if(task === 'go_out' || task === 'surf' || task === 'ret' || task === 'go_in') return true;
+    return false;
+  }
+
+  function getCrowdOverlayRoleCounts(hideSoldiers) {
+    const counts = { worker:0, nurse:0, builder:0, soldier:0 };
+    if(!S.ants) return counts;
+    for(const a of S.ants) {
+      if(!shouldDrawActionAntOverlayInCrowd(a)) continue;
+      if(hideSoldiers && a.role === 'soldier') continue;
+      if(counts[a.role] != null) counts[a.role]++;
+    }
+    return counts;
+  }
+
+  function allocateCrowdRoleTargets(remaining, capacity) {
+    const targets = { worker:0, nurse:0, builder:0, soldier:0 };
+    const total = ANT_ROLES.reduce((sum, r) => sum + Math.max(0, remaining[r] || 0), 0);
+    const cap = Math.max(0, Math.floor(capacity || 0));
+    if(total <= 0 || cap <= 0) return targets;
+    if(total <= cap) {
+      for(const r of ANT_ROLES) targets[r] = Math.max(0, remaining[r] || 0);
+      return targets;
+    }
+    const active = ANT_ROLES.filter(r => (remaining[r] || 0) > 0);
+    for(const r of active) targets[r] = 1;
+    let rest = cap - active.length;
+    if(rest <= 0) return targets;
+    const weightSum = active.reduce((sum, r) => sum + Math.max(0, (remaining[r] || 0) - 1), 0);
+    if(weightSum <= 0) return targets;
+    const fracs = [];
+    let used = 0;
+    for(const r of active) {
+      const raw = Math.max(0, (remaining[r] || 0) - 1) * rest / weightSum;
+      const floor = Math.floor(raw);
+      targets[r] += floor;
+      used += floor;
+      fracs.push({ r, frac: raw - floor });
+    }
+    let leftover = rest - used;
+    fracs.sort((a,b)=>b.frac-a.frac);
+    for(let i=0; i<leftover; i++) targets[fracs[i % fracs.length].r]++;
+    return targets;
+  }
+
+  function getCrowdTargetCounts() {
+    const hideSoldiers = isUndergroundSoldierHiddenForRaid();
+    const actual = {
+      worker: Math.max(0, Math.floor(G.ants.worker || 0)),
+      nurse: Math.max(0, Math.floor(G.ants.nurse || 0)),
+      builder: Math.max(0, Math.floor(G.ants.builder || 0)),
+      soldier: hideSoldiers ? 0 : Math.max(0, Math.floor(G.ants.soldier || 0))
+    };
+    const overlay = getCrowdOverlayRoleCounts(hideSoldiers);
+    const remaining = {};
+    let overlayTotal = 0;
+    for(const r of ANT_ROLES) {
+      const o = Math.min(actual[r] || 0, overlay[r] || 0);
+      overlayTotal += o;
+      remaining[r] = Math.max(0, (actual[r] || 0) - o);
+    }
+    const cap = Math.max(0, Math.min(getRenderCap(), VISUAL_ANT_HARD_CAP) - overlayTotal);
+    return allocateCrowdRoleTargets(remaining, cap);
+  }
+
+  function copyCrowdAnt(crowd, dst, src) {
+    if(dst === src) return;
+    crowd.x[dst] = crowd.x[src];
+    crowd.y[dst] = crowd.y[src];
+    crowd.rot[dst] = crowd.rot[src];
+    crowd.role[dst] = crowd.role[src];
+    crowd.gaitPhase[dst] = crowd.gaitPhase[src];
+    crowd.speed[dst] = crowd.speed[src];
+    crowd.routeKind[dst] = crowd.routeKind[src];
+    crowd.nodeId[dst] = crowd.nodeId[src];
+    crowd.edgeId[dst] = crowd.edgeId[src];
+    crowd.t[dst] = crowd.t[src];
+    crowd.dir[dst] = crowd.dir[src];
+    crowd.roomRadius[dst] = crowd.roomRadius[src];
+    crowd.roomAngle[dst] = crowd.roomAngle[src];
+    crowd.nextSwitchAt[dst] = crowd.nextSwitchAt[src];
+  }
+
+  function removeCrowdAntAt(crowd, idx) {
+    const last = crowd.count - 1;
+    if(idx < 0 || idx > last) return false;
+    const removedRole = crowd.role[idx] | 0;
+    if(crowd.roleCounts && crowd.roleCounts[removedRole] > 0) crowd.roleCounts[removedRole]--;
+    if(idx !== last) copyCrowdAnt(crowd, idx, last);
+    crowd.count = last;
+    return true;
+  }
+
+  function findLastCrowdRoleIndex(crowd, roleIdx) {
+    for(let i=crowd.count-1; i>=0; i--) {
+      if((crowd.role[i] | 0) === roleIdx) return i;
+    }
+    return -1;
+  }
+
+  function syncAntCrowd() {
+    if(!S.full) {
+      if(S.antCrowd) S.antCrowd.count = 0;
+      return;
+    }
+    const targets = getCrowdTargetCounts();
+    const total = ANT_ROLES.reduce((sum, r) => sum + (targets[r] || 0), 0);
+    const pools = getCrowdPools();
+    const targetSignature = [targets.worker, targets.nurse, targets.builder, targets.soldier].join(':');
+    const mapSignature = [pools.all.length, pools.edges.length, S.full.nodes.length, S.full.edges.length].join(':');
+    const crowd = ensureAntCrowdCapacity(total);
+    if(crowd.signature === targetSignature && crowd.mapSignature === mapSignature && crowd.count === total) return;
+
+    if(crowd.mapSignature !== mapSignature) {
+      crowd.count = 0;
+      crowd.roleCounts = [0, 0, 0, 0];
+    } else if(!crowd.roleCounts) {
+      crowd.roleCounts = [0, 0, 0, 0];
+      for(let i=0; i<crowd.count; i++) {
+        const r = crowd.role[i] | 0;
+        if(crowd.roleCounts[r] != null) crowd.roleCounts[r]++;
+      }
+    }
+
+    for(let roleIdx=0; roleIdx<ANT_ROLES.length; roleIdx++) {
+      const role = ANT_ROLES[roleIdx];
+      const want = Math.max(0, Math.floor(targets[role] || 0));
+      while((crowd.roleCounts[roleIdx] || 0) > want) {
+        const idx = findLastCrowdRoleIndex(crowd, roleIdx);
+        if(idx < 0) break;
+        removeCrowdAntAt(crowd, idx);
+      }
+    }
+
+    ensureAntCrowdCapacity(total);
+    const nextCrowd = S.antCrowd;
+    for(let roleIdx=0; roleIdx<ANT_ROLES.length; roleIdx++) {
+      const role = ANT_ROLES[roleIdx];
+      const want = Math.max(0, Math.floor(targets[role] || 0));
+      while((nextCrowd.roleCounts[roleIdx] || 0) < want && nextCrowd.count < nextCrowd.capacity) {
+        initCrowdAnt(nextCrowd, nextCrowd.count, roleIdx, pools);
+        nextCrowd.count++;
+        nextCrowd.roleCounts[roleIdx] = (nextCrowd.roleCounts[roleIdx] || 0) + 1;
+      }
+    }
+    nextCrowd.signature = targetSignature;
+    nextCrowd.mapSignature = mapSignature;
+  }
+
+  function getCrowdEdgeLen(e) {
+    if(!e) return dp(80);
+    if(Number.isFinite(e._crowdLen) && e._crowdLen > 0) return e._crowdLen;
+    let len = 0;
+    let prev = cubic(e.p0, e.p1, e.p2, e.p3, 0);
+    for(let i=1; i<=8; i++) {
+      const p = cubic(e.p0, e.p1, e.p2, e.p3, i / 8);
+      len += Math.hypot(p.x - prev.x, p.y - prev.y);
+      prev = p;
+    }
+    e._crowdLen = Math.max(dp(20), len);
+    return e._crowdLen;
+  }
+
+  function startCrowdEdge(crowd, idx, nodeId) {
+    if(!S.full || !S.full.byNode || !S.full.byNode[nodeId]) return false;
+    const connected = S.full.byNode[nodeId];
+    if(!connected.length) return false;
+    for(let tries=0; tries<5; tries++) {
+      const eid = connected[(Math.random() * connected.length) | 0];
+      const e = S.full.edges[eid];
+      if(!e || (S.edgeFrac[eid] || 0) < 1) continue;
+      if(!S.nodeVis[e.u] || !S.nodeVis[e.v]) continue;
+      const forward = e.u === nodeId;
+      if(!forward && e.v !== nodeId) continue;
+      crowd.routeKind[idx] = CROWD_ROUTE_EDGE;
+      crowd.edgeId[idx] = eid;
+      crowd.dir[idx] = forward ? 1 : -1;
+      crowd.t[idx] = forward ? 0 : 1;
+      return true;
+    }
+    return false;
+  }
+
+  function updateAntCrowd(dt) {
+    syncAntCrowd();
+    const crowd = S.antCrowd;
+    if(!S.full || !crowd || crowd.count <= 0) return;
+    const stepDt = Math.min(Math.max(0, dt || 0), 0.05);
+    const nodes = S.full.nodes;
+    const edges = S.full.edges;
+    for(let i=0; i<crowd.count; i++) {
+      crowd.gaitPhase[i] += stepDt * (3.4 + crowd.speed[i] / Math.max(1, dp(24)));
+      if(crowd.routeKind[i] === CROWD_ROUTE_EDGE) {
+        const eid = crowd.edgeId[i];
+        const e = edges[eid];
+        if(!e || !S.nodeVis[e.u] || !S.nodeVis[e.v]) {
+          const pools = getCrowdPools();
+          initCrowdAnt(crowd, i, crowd.role[i], pools);
+          continue;
+        }
+        const len = getCrowdEdgeLen(e);
+        const dir = crowd.dir[i] >= 0 ? 1 : -1;
+        let tt = crowd.t[i] + dir * (crowd.speed[i] / len) * stepDt;
+        if(tt <= 0 || tt >= 1) {
+          tt = clamp(tt, 0, 1);
+          const nodeId = dir > 0 ? e.v : e.u;
+          placeCrowdAntInNode(crowd, i, nodeId);
+          crowd.nextSwitchAt[i] = S.t + 0.5 + Math.random() * 3.4;
+          continue;
+        }
+        crowd.t[i] = tt;
+        const p = cubic(e.p0, e.p1, e.p2, e.p3, tt);
+        const t0 = clamp(tt - 0.025 * dir, 0, 1);
+        const t1 = clamp(tt + 0.025 * dir, 0, 1);
+        const p0 = cubic(e.p0, e.p1, e.p2, e.p3, t0);
+        const p1 = cubic(e.p0, e.p1, e.p2, e.p3, t1);
+        crowd.x[i] = p.x;
+        crowd.y[i] = p.y;
+        crowd.rot[i] = Math.atan2(p1.y - p0.y, p1.x - p0.x);
+      } else {
+        let nodeId = crowd.nodeId[i];
+        let n = nodes[nodeId];
+        if(!n || !S.nodeVis[nodeId]) {
+          const pools = getCrowdPools();
+          initCrowdAnt(crowd, i, crowd.role[i], pools);
+          continue;
+        }
+        if(S.t >= crowd.nextSwitchAt[i] && Math.random() < 0.42 && startCrowdEdge(crowd, i, nodeId)) {
+          crowd.nextSwitchAt[i] = S.t + 1.2 + Math.random() * 3.5;
+          continue;
+        }
+        if(S.t >= crowd.nextSwitchAt[i]) crowd.nextSwitchAt[i] = S.t + 1.0 + Math.random() * 4.0;
+        const sx = (n.blobScaleX != null) ? n.blobScaleX : 1;
+        const sy = (n.blobScaleY != null) ? n.blobScaleY : 0.78;
+        const oldX = crowd.x[i], oldY = crowd.y[i];
+        const ang = crowd.roomAngle[i] + crowd.gaitPhase[i] * 0.22;
+        const radius = Math.min(crowd.roomRadius[i], n.r * 0.72);
+        const wob = Math.sin(crowd.gaitPhase[i] * 0.7 + i) * dp(1.2);
+        crowd.x[i] = n.x + Math.cos(ang) * (radius + wob) * sx;
+        crowd.y[i] = n.y + Math.sin(ang) * (radius * 0.62 + wob * 0.35) * sy;
+        const dx = crowd.x[i] - oldX, dy = crowd.y[i] - oldY;
+        if(Math.abs(dx) + Math.abs(dy) > 0.05) crowd.rot[i] = Math.atan2(dy, dx);
+      }
+    }
+  }
+
+  function crowdRoleColor(roleIdx) {
+    if(roleIdx === 1) return '#be185d';
+    if(roleIdx === 2) return '#b45309';
+    if(roleIdx === 3) return '#3b82f6';
+    return '#111111';
+  }
+
+  function drawCrowdAntAtlasFrame(g, roleIdx, frameIdx, dirIdx, frameW, frameH) {
+    const cx = dirIdx * frameW + frameW * 0.5;
+    const cy = (roleIdx * CROWD_ANT_FRAMES + frameIdx) * frameH + frameH * 0.5;
+    const s = frameW / 28;
+    const walk = (frameIdx / CROWD_ANT_FRAMES) * Math.PI * 2;
+    const sway = Math.sin(walk) * s * 1.35;
+    const body = crowdRoleColor(roleIdx);
+    g.save();
+    g.translate(cx, cy);
+    g.rotate((dirIdx / CROWD_ANT_DIRECTIONS) * Math.PI * 2);
+    g.lineCap = 'round';
+    g.lineJoin = 'round';
+    g.strokeStyle = 'rgba(15,23,42,0.78)';
+    g.lineWidth = Math.max(1, s * 0.9);
+    const leg = (x0,y0,x1,y1,x2,y2,sw) => {
+      g.beginPath();
+      g.moveTo(x0*s, y0*s);
+      g.lineTo((x1*s) + sw, y1*s);
+      g.lineTo((x2*s) + sw*1.35, y2*s);
+      g.stroke();
+    };
+    leg(-2.0,-1.4,-5.0,-4.0,-8.0,-4.7,-sway);
+    leg(-0.4,-0.7,-2.8,-4.2,-5.8,-5.4,sway*0.55);
+    leg( 1.4,-1.0, 4.2,-3.8, 7.0,-4.6,sway);
+    leg(-2.0, 1.4,-5.0, 4.0,-8.0, 4.7,sway);
+    leg(-0.4, 0.7,-2.8, 4.2,-5.8, 5.4,-sway*0.55);
+    leg( 1.4, 1.0, 4.2, 3.8, 7.0, 4.6,-sway);
+
+    g.fillStyle = body;
+    g.beginPath(); g.ellipse(-5*s, 0, 4.2*s, 3.0*s, 0, 0, Math.PI * 2); g.fill();
+    g.beginPath(); g.ellipse(0, 0, 2.6*s, 2.5*s, 0, 0, Math.PI * 2); g.fill();
+    g.beginPath(); g.ellipse(4.1*s, 0, 2.4*s, 2.25*s, 0, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = 'rgba(15,23,42,0.78)';
+    g.lineWidth = Math.max(1, s * 0.8);
+    const antSw = Math.sin(walk + 0.8) * s * 0.55;
+    g.beginPath(); g.moveTo(5.7*s, -0.45*s); g.quadraticCurveTo(7.6*s + antSw, -2.2*s, 9.6*s, -3.3*s); g.stroke();
+    g.beginPath(); g.moveTo(5.7*s,  0.45*s); g.quadraticCurveTo(7.6*s + antSw,  2.2*s, 9.6*s,  3.3*s); g.stroke();
+    g.restore();
+  }
+
+  function ensureCrowdAntAtlas() {
+    const dpr = window.devicePixelRatio || 1;
+    if(S.antCrowdAtlas && S.antCrowdAtlas.dpr === dpr) return S.antCrowdAtlas;
+    const frameW = Math.max(18, Math.ceil(dp(28)));
+    const frameH = Math.max(14, Math.ceil(dp(22)));
+    const atlas = document.createElement('canvas');
+    atlas.width = frameW * CROWD_ANT_DIRECTIONS;
+    atlas.height = frameH * CROWD_ANT_FRAMES * ANT_ROLES.length;
+    const g = atlas.getContext('2d');
+    g.clearRect(0, 0, atlas.width, atlas.height);
+    for(let roleIdx=0; roleIdx<ANT_ROLES.length; roleIdx++) {
+      for(let frameIdx=0; frameIdx<CROWD_ANT_FRAMES; frameIdx++) {
+        for(let dirIdx=0; dirIdx<CROWD_ANT_DIRECTIONS; dirIdx++) {
+          drawCrowdAntAtlasFrame(g, roleIdx, frameIdx, dirIdx, frameW, frameH);
+        }
+      }
+    }
+    S.antCrowdAtlas = {
+      canvas: atlas,
+      dpr,
+      frameW,
+      frameH,
+      frames: CROWD_ANT_FRAMES * CROWD_ANT_DIRECTIONS * ANT_ROLES.length
+    };
+    return S.antCrowdAtlas;
+  }
+
+  function drawAntCrowd(ctx, view, hideSoldiers) {
+    const crowd = S.antCrowd;
+    if(!crowd || crowd.count <= 0) return { drawn: 0, culled: 0, total: 0, atlasFrames: 0 };
+    const atlas = ensureCrowdAntAtlas();
+    const fw = atlas.frameW, fh = atlas.frameH;
+    const pad = Math.max(fw, fh);
+    const minX = view.x - pad, maxX = view.x + view.w + pad;
+    const minY = view.y - pad, maxY = view.y + view.h + pad;
+    let drawn = 0, culled = 0;
+    const tau = Math.PI * 2;
+    for(let i=0; i<crowd.count; i++) {
+      const roleIdxRaw = crowd.role[i] | 0;
+      if(hideSoldiers && roleIdxRaw === 3) { culled++; continue; }
+      const x = crowd.x[i], y = crowd.y[i];
+      if(x < minX || x > maxX || y < minY || y > maxY) { culled++; continue; }
+      const roleIdx = _colorMode ? roleIdxRaw : 0;
+      const rot = ((crowd.rot[i] % tau) + tau) % tau;
+      const dirIdx = Math.round(rot / tau * CROWD_ANT_DIRECTIONS) % CROWD_ANT_DIRECTIONS;
+      const phase = ((crowd.gaitPhase[i] % tau) + tau) % tau;
+      const frameIdx = Math.floor(phase / tau * CROWD_ANT_FRAMES) % CROWD_ANT_FRAMES;
+      const sx = dirIdx * fw;
+      const sy = (roleIdx * CROWD_ANT_FRAMES + frameIdx) * fh;
+      ctx.drawImage(atlas.canvas, sx, sy, fw, fh, x - fw * 0.5, y - fh * 0.5, fw, fh);
+      drawn++;
+    }
+    return { drawn, culled, total: crowd.count, atlasFrames: atlas.frames };
   }
 
   // ===== 幼虫うねうね描画（Part8） =====
@@ -14308,6 +15422,406 @@ function syncFermenterUnlockUI() {
     ctx.restore();
   }
 
+  function getNestVisualSignature() {
+    if(!S.full) return 'none';
+    const nodes = S.full.nodes || [];
+    const edges = S.full.edges || [];
+    let visibleNodes = 0;
+    let visibleEdges = 0;
+    let nodeHash = 2166136261;
+    let edgeHash = 2166136261;
+    for(let i=0; i<nodes.length; i++) {
+      if(!S.nodeVis[i]) continue;
+      const n = nodes[i];
+      visibleNodes++;
+      nodeHash = Math.imul(nodeHash ^ (i + 1), 16777619) >>> 0;
+      nodeHash = Math.imul(nodeHash ^ Math.round((n.x || 0) * 10), 16777619) >>> 0;
+      nodeHash = Math.imul(nodeHash ^ Math.round((n.y || 0) * 10), 16777619) >>> 0;
+      nodeHash = Math.imul(nodeHash ^ Math.round((n.r || 0) * 10), 16777619) >>> 0;
+    }
+    for(let i=0; i<edges.length; i++) {
+      const f = clamp(S.edgeFrac[i] || 0, 0, 1);
+      if(f <= 0) continue;
+      const e = edges[i];
+      visibleEdges++;
+      const endpointVis = ((S.nodeVis[e.u] ? 1 : 0) | (S.nodeVis[e.v] ? 2 : 0));
+      edgeHash = Math.imul(edgeHash ^ (i + 1), 16777619) >>> 0;
+      edgeHash = Math.imul(edgeHash ^ Math.round(f * 1000), 16777619) >>> 0;
+      edgeHash = Math.imul(edgeHash ^ endpointVis, 16777619) >>> 0;
+    }
+    const q = nodes[S.full.qid] || nodes[0] || {};
+    return [
+      nodes.length,
+      edges.length,
+      visibleNodes,
+      visibleEdges,
+      nodeHash,
+      edgeHash,
+      Math.round((S.full.sy || 0) * 10),
+      Math.round((q.x || 0) * 10),
+      Math.round((q.y || 0) * 10),
+      S.colors.soil.join(',')
+    ].join(':');
+  }
+
+  function getNestScreenCacheKey(view, soilTop, soilBottom, suffix) {
+    return [
+      suffix,
+      canvas.width,
+      canvas.height,
+      Math.round(S.cam.x * 100),
+      Math.round(S.cam.y * 100),
+      Math.round(S.cam.scale * 1000),
+      Math.round(view.x * 100),
+      Math.round(view.y * 100),
+      Math.round(view.w * 100),
+      Math.round(view.h * 100),
+      Math.round(soilTop * 100),
+      Math.round(soilBottom * 100),
+      getNestVisualSignature()
+    ].join('|');
+  }
+
+  function getNestLayerCachePadPx() {
+    const longest = Math.max(canvas.width || 0, canvas.height || 0);
+    const minPad = dp(NEST_LAYER_CACHE_PAD_MIN);
+    const maxPad = dp(NEST_LAYER_CACHE_PAD_MAX);
+    return Math.round(clamp(longest * NEST_LAYER_CACHE_PAD_RATIO, minPad, maxPad));
+  }
+
+  function getNestLayerBuildView(padPx) {
+    const scale = Math.max(0.001, S.cam.scale || 1);
+    return {
+      x: S.cam.x - padPx / scale,
+      y: S.cam.y - padPx / scale,
+      w: (canvas.width + padPx * 2) / scale,
+      h: (canvas.height + padPx * 2) / scale
+    };
+  }
+
+  function getNestLayerSoilRange(cacheView) {
+    const top = Math.max(cacheView.y, S.full.sy);
+    return { top, bottom: cacheView.y + cacheView.h };
+  }
+
+  function isNestLayerCacheCoveringView(meta) {
+    if(!meta) return false;
+    const view = getViewRect();
+    const tol = dp(10) / Math.max(0.001, S.cam.scale || 1);
+    return (
+      view.x >= meta.viewX - tol &&
+      view.y >= meta.viewY - tol &&
+      view.x + view.w <= meta.viewX + meta.viewW + tol &&
+      view.y + view.h <= meta.viewY + meta.viewH + tol
+    );
+  }
+
+  function shouldDeferNestLayerCacheRebuild(meta) {
+    if(!meta || !isCameraInteracting()) return false;
+    return true;
+  }
+
+  function canKeepTransformedNestLayerCache(meta) {
+    if(!meta || !isNestLayerCacheCoveringView(meta)) return false;
+    const ratio = Math.max(0.001, S.cam.scale || 1) / Math.max(0.001, meta.scale || 1);
+    return ratio >= 0.76 && ratio <= 1.32;
+  }
+
+  function drawTransformedNestLayerCache(cvs, meta, shakeX, shakeY) {
+    if(!cvs || !meta) return false;
+    const ratio = Math.max(0.001, S.cam.scale || 1) / Math.max(0.001, meta.scale || 1);
+    const dx = (meta.viewX - S.cam.x) * S.cam.scale + shakeX;
+    const dy = (meta.viewY - S.cam.y) * S.cam.scale + shakeY;
+    ctx.save();
+    ctx.setTransform(ratio, 0, 0, ratio, dx, dy);
+    ctx.drawImage(cvs, 0, 0);
+    ctx.restore();
+    applyCameraTransform(shakeX, shakeY);
+    return true;
+  }
+
+  function didNestLayerRebuildThisFrame() {
+    return S._nestLayerRebuildFrame === (S.frameCount || 0);
+  }
+
+  function noteNestLayerRebuildThisFrame() {
+    S._nestLayerRebuildFrame = S.frameCount || 0;
+  }
+
+  function drawCheapSoilFallback(view, soilTop, soilBottom) {
+    if(soilBottom <= soilTop) return;
+    const soilH = soilBottom - soilTop;
+    const soilGr = ctx.createLinearGradient(0, S.full.sy, 0, S.full.h);
+    soilGr.addColorStop(0,   S.colors.soil[0]);
+    soilGr.addColorStop(0.3, S.colors.soil[1]);
+    soilGr.addColorStop(0.6, '#4a3228');
+    soilGr.addColorStop(1,   '#2d1b0e');
+    ctx.fillStyle = soilGr;
+    ctx.fillRect(view.x, soilTop, view.w, soilH);
+    if(S.soilPattern) {
+      ctx.save();
+      ctx.globalAlpha = 0.18;
+      ctx.fillStyle = S.soilPattern;
+      ctx.fillRect(view.x, soilTop, view.w, soilH);
+      ctx.restore();
+    }
+  }
+
+  function drawStaticNestSoilLayer(g, view, soilTop, soilBottom) {
+    const soilH = soilBottom - soilTop;
+    const cavGr = g.createLinearGradient(0, soilTop, 0, soilBottom);
+    cavGr.addColorStop(0, 'rgb(190, 165, 145)');
+    cavGr.addColorStop(1, 'rgb(145, 120, 105)');
+    g.fillStyle = cavGr;
+    g.fillRect(view.x, soilTop, view.w, soilH);
+
+    const soilGr = g.createLinearGradient(0, S.full.sy, 0, S.full.h);
+    soilGr.addColorStop(0,   S.colors.soil[0]);
+    soilGr.addColorStop(0.3, S.colors.soil[1]);
+    soilGr.addColorStop(0.6, '#4a3228');
+    soilGr.addColorStop(1,   '#2d1b0e');
+    g.fillStyle = soilGr;
+    g.fillRect(view.x, soilTop, view.w, soilH);
+
+    const depthGr = g.createLinearGradient(0, soilTop, 0, soilBottom);
+    depthGr.addColorStop(0, 'rgba(0,0,0,0)');
+    depthGr.addColorStop(1, 'rgba(0,0,0,0.04)');
+    g.fillStyle = depthGr;
+    g.fillRect(view.x, soilTop, view.w, soilH);
+
+    if(S.soilPattern) {
+      g.save();
+      g.globalAlpha = 0.28;
+      g.fillStyle = S.soilPattern;
+      g.fillRect(view.x, soilTop, view.w, soilH);
+      g.restore();
+    }
+
+    drawBackgroundDetails(g, view, soilTop, soilBottom);
+
+    const stampPad = dp(60);
+    const nodePad = dp(90);
+    g.save();
+    g.beginPath();
+    g.rect(view.x, soilTop, view.w, soilH);
+    g.clip();
+    g.globalCompositeOperation = 'destination-out';
+    g.fillStyle = '#000';
+    S.full.edges.forEach((e,i)=>{
+      if(!shouldDrawEdgeProgress(i)) return;
+      const f = S.edgeFrac[i];
+      if(!e.stamps) buildEdgeStamps(e, S.full.nodes);
+      const stamps = e.stamps;
+      if(!stamps || stamps.length===0) return;
+      const count = Math.max(1, Math.floor(stamps.length * f));
+      drawStamps(g, stamps, count, 1, view, soilTop, soilBottom, stampPad);
+    });
+    S.full.nodes.forEach((n,i)=>{
+      if(!S.nodeVis[i]) return;
+      if(n.x < view.x - nodePad || n.x > view.x + view.w + nodePad) return;
+      if(n.y < soilTop - nodePad || n.y > soilBottom + nodePad) return;
+      fillBlobPath(g, n);
+    });
+    g.restore();
+
+    g.save();
+    g.beginPath();
+    g.rect(view.x, soilTop, view.w, soilH);
+    g.clip();
+    g.fillStyle = cavGr;
+    S.full.edges.forEach((e,i)=>{
+      if(!shouldDrawEdgeProgress(i)) return;
+      const f = S.edgeFrac[i];
+      if(!e.stamps) buildEdgeStamps(e, S.full.nodes);
+      const stamps = e.stamps;
+      if(!stamps || stamps.length===0) return;
+      const count = Math.max(1, Math.floor(stamps.length * f));
+      drawStamps(g, stamps, count, 1, view, soilTop, soilBottom, stampPad);
+    });
+    S.full.nodes.forEach((n,i)=>{
+      if(!S.nodeVis[i]) return;
+      if(n.x < view.x - nodePad || n.x > view.x + view.w + nodePad) return;
+      if(n.y < soilTop - nodePad || n.y > soilBottom + nodePad) return;
+      fillBlobPath(g, n);
+    });
+    g.restore();
+
+    g.save();
+    g.beginPath();
+    g.rect(view.x, soilTop, view.w, soilH);
+    g.clip();
+    g.globalAlpha = 0.18;
+    g.fillStyle = 'rgba(0,0,0,0.35)';
+    S.full.edges.forEach((e,i)=>{
+      if(!shouldDrawEdgeProgress(i)) return;
+      const f = S.edgeFrac[i];
+      if(!e.stamps) buildEdgeStamps(e, S.full.nodes);
+      const stamps = e.stamps;
+      if(!stamps || stamps.length===0) return;
+      const count = Math.max(1, Math.floor(stamps.length * f));
+      drawStamps(g, stamps, count, 0.7, view, soilTop, soilBottom, stampPad);
+    });
+    g.strokeStyle = 'rgba(0,0,0,0.35)';
+    g.lineWidth = dp(2.2);
+    S.full.nodes.forEach((n,i)=>{
+      if(!S.nodeVis[i]) return;
+      if(n.x < view.x - nodePad || n.x > view.x + view.w + nodePad) return;
+      if(n.y < soilTop - nodePad || n.y > soilBottom + nodePad) return;
+      strokeBlobPath(g, n);
+    });
+    g.restore();
+  }
+
+  function drawCachedStaticNestLayer(view, soilTop, soilBottom, shakeX, shakeY) {
+    if(soilBottom <= soilTop) return;
+    const cw = canvas.width, ch = canvas.height;
+    const padPx = getNestLayerCachePadPx();
+    const cacheW = cw + padPx * 2;
+    const cacheH = ch + padPx * 2;
+    const cacheView = getNestLayerBuildView(padPx);
+    const soilRange = getNestLayerSoilRange(cacheView);
+    const key = getNestScreenCacheKey(cacheView, soilRange.top, soilRange.bottom, 'soil');
+    if(!S._soilLayerCvs || S._soilLayerCvs.width !== cacheW || S._soilLayerCvs.height !== cacheH) {
+      S._soilLayerCvs = document.createElement('canvas');
+      S._soilLayerCvs.width = cacheW;
+      S._soilLayerCvs.height = cacheH;
+      S._soilLayerCtx = S._soilLayerCvs.getContext('2d');
+      S._soilLayerKey = '';
+      S._soilLayerMeta = null;
+    }
+    if(S._soilLayerKey !== key) {
+      if(shouldDeferNestLayerCacheRebuild(S._soilLayerMeta) || canKeepTransformedNestLayerCache(S._soilLayerMeta)) {
+        if(!isNestLayerCacheCoveringView(S._soilLayerMeta)) drawCheapSoilFallback(view, soilTop, soilBottom);
+        drawTransformedNestLayerCache(S._soilLayerCvs, S._soilLayerMeta, shakeX, shakeY);
+        return;
+      }
+      const g = S._soilLayerCtx;
+      g.setTransform(1, 0, 0, 1, 0, 0);
+      g.clearRect(0, 0, cacheW, cacheH);
+      g.setTransform(S.cam.scale, 0, 0, S.cam.scale, -cacheView.x * S.cam.scale, -cacheView.y * S.cam.scale);
+      drawStaticNestSoilLayer(g, cacheView, soilRange.top, soilRange.bottom);
+      g.setTransform(1, 0, 0, 1, 0, 0);
+      S._soilLayerKey = key;
+      S._soilLayerMeta = {
+        key,
+        viewX: cacheView.x,
+        viewY: cacheView.y,
+        viewW: cacheView.w,
+        viewH: cacheView.h,
+        scale: S.cam.scale,
+        builtAt: performance.now()
+      };
+      noteNestLayerRebuildThisFrame();
+    }
+    drawTransformedNestLayerCache(S._soilLayerCvs, S._soilLayerMeta, shakeX, shakeY);
+  }
+
+  function drawCachedFogLayer(view, soilTop, soilBottom, shakeX, shakeY) {
+    if(soilBottom <= soilTop) return;
+    const cw = canvas.width, ch = canvas.height;
+    const padPx = getNestLayerCachePadPx();
+    const cacheW = cw + padPx * 2;
+    const cacheH = ch + padPx * 2;
+    const cacheView = getNestLayerBuildView(padPx);
+    const soilRange = getNestLayerSoilRange(cacheView);
+    const key = getNestScreenCacheKey(cacheView, soilRange.top, soilRange.bottom, 'fog');
+    if(!S._fogCvs || S._fogCvs.width !== cacheW || S._fogCvs.height !== cacheH) {
+      S._fogCvs = document.createElement('canvas');
+      S._fogCvs.width = cacheW;
+      S._fogCvs.height = cacheH;
+      S._fogCtx = S._fogCvs.getContext('2d');
+      S._fogKey = '';
+      S._fogMeta = null;
+    }
+    if(S._fogKey !== key) {
+      if(shouldDeferNestLayerCacheRebuild(S._fogMeta) || canKeepTransformedNestLayerCache(S._fogMeta)) {
+        drawTransformedNestLayerCache(S._fogCvs, S._fogMeta, shakeX, shakeY);
+        return;
+      }
+      if(S._fogMeta && didNestLayerRebuildThisFrame()) {
+        drawTransformedNestLayerCache(S._fogCvs, S._fogMeta, shakeX, shakeY);
+        return;
+      }
+      const fc = S._fogCtx;
+      fc.setTransform(1, 0, 0, 1, 0, 0);
+      fc.globalCompositeOperation = 'source-over';
+      fc.clearRect(0, 0, cacheW, cacheH);
+
+      const sc = S.cam.scale;
+      const toSX = (wx) => (wx - cacheView.x) * sc;
+      const toSY = (wy) => (wy - cacheView.y) * sc;
+      const toSR = (wr) => wr * sc;
+      const sBot = Math.min(cacheH, toSY(soilRange.bottom));
+      const surfOffset = dp(28);
+      const fogTopOk = toSY(S.full.sy + surfOffset) < sBot;
+      if(fogTopOk) {
+        fc.fillStyle = 'rgba(0,0,0,0.78)';
+        fc.beginPath();
+        const step = Math.max(4, Math.round(cacheW / 80));
+        for(let sx = 0; sx <= cacheW; sx += step) {
+          const wx = cacheView.x + sx / sc;
+          const wy = surfaceY(wx) + surfOffset;
+          const sy = toSY(wy);
+          if(sx === 0) fc.moveTo(sx, sy);
+          else fc.lineTo(sx, sy);
+        }
+        fc.lineTo(cacheW, sBot);
+        fc.lineTo(0, sBot);
+        fc.closePath();
+        fc.fill();
+
+        fc.globalCompositeOperation = 'destination-out';
+        const fogPad = dp(110);
+        S.full.nodes.forEach((n, i) => {
+          if(!S.nodeVis[i]) return;
+          const vr = n.r + fogPad;
+          const sx = toSX(n.x), sy = toSY(n.y), sr = toSR(vr);
+          if(sx + sr < 0 || sx - sr > cacheW || sy + sr < 0 || sy - sr > cacheH) return;
+          const ir = toSR(n.r * 0.3);
+          const grd = fc.createRadialGradient(sx, sy, ir, sx, sy, sr);
+          grd.addColorStop(0,   'rgba(0,0,0,1)');
+          grd.addColorStop(0.5, 'rgba(0,0,0,1)');
+          grd.addColorStop(1,   'rgba(0,0,0,0)');
+          fc.fillStyle = grd;
+          fc.beginPath(); fc.arc(sx, sy, sr, 0, 6.28); fc.fill();
+        });
+
+        S.full.edges.forEach((e, i) => {
+          const f = S.edgeFrac[i] || 0;
+          if(f <= 0 || !e.stamps) return;
+          const cnt = Math.max(1, Math.floor(e.stamps.length * f));
+          for(let k = 0; k < cnt; k += 3) {
+            const st = e.stamps[k];
+            if(!st) continue;
+            const er = st.r + fogPad * 0.55;
+            const sx = toSX(st.x), sy = toSY(st.y), sr = toSR(er);
+            if(sx + sr < 0 || sx - sr > cacheW || sy + sr < 0 || sy - sr > cacheH) return;
+            const ir = toSR(st.r * 0.1);
+            const grd = fc.createRadialGradient(sx, sy, ir, sx, sy, sr);
+            grd.addColorStop(0,   'rgba(0,0,0,1)');
+            grd.addColorStop(0.55,'rgba(0,0,0,1)');
+            grd.addColorStop(1,   'rgba(0,0,0,0)');
+            fc.fillStyle = grd;
+            fc.beginPath(); fc.arc(sx, sy, sr, 0, 6.28); fc.fill();
+          }
+        });
+        fc.globalCompositeOperation = 'source-over';
+      }
+      S._fogKey = key;
+      S._fogMeta = {
+        key,
+        viewX: cacheView.x,
+        viewY: cacheView.y,
+        viewW: cacheView.w,
+        viewH: cacheView.h,
+        scale: S.cam.scale,
+        builtAt: performance.now()
+      };
+      noteNestLayerRebuildThisFrame();
+    }
+    drawTransformedNestLayerCache(S._fogCvs, S._fogMeta, shakeX, shakeY);
+  }
+
   // 巣・アリ・地表・エフェクトをキャンバスに描画（world 座標のまま描く）
   function render() {
     if(!S.full) { if(S.perf) S.perf.antsDrawn = 0; return; }
@@ -14407,130 +15921,45 @@ function syncFermenterUnlockUI() {
     const soilTop = Math.max(view.y, S.full.sy);
     const soilBottom = view.y + view.h;
     if(soilBottom > soilTop) {
-      const soilH = soilBottom - soilTop;
-
-      // B. 空洞ベース：通路/部屋で土を削ったあとに見える「空洞の色」。
-      // 空が透けないように不透明で、土の空洞っぽい暖色にしている。
-      const cavGr = ctx.createLinearGradient(0, soilTop, 0, soilBottom);
-      cavGr.addColorStop(0, 'rgb(190, 165, 145)');
-      cavGr.addColorStop(1, 'rgb(145, 120, 105)');
-      ctx.fillStyle = cavGr;
-      ctx.fillRect(view.x, soilTop, view.w, soilH);
-
-      // C. 土レイヤー（グラデ + 深度シェード + パターン）。
-      // 直後の destination-out で削り取られ、空洞ベースが露出する。
-      const soilGr = ctx.createLinearGradient(0, S.full.sy, 0, S.full.h);
-      soilGr.addColorStop(0,   S.colors.soil[0]);
-      soilGr.addColorStop(0.3, S.colors.soil[1]);
-      soilGr.addColorStop(0.6, '#4a3228');
-      soilGr.addColorStop(1,   '#2d1b0e');
-      ctx.fillStyle = soilGr;
-      ctx.fillRect(view.x, soilTop, view.w, soilH);
-
-      // 深度シェード：深いほど少し暗くするが、空洞が暗すぎない程度に抑える。
-      const depthGr = ctx.createLinearGradient(0, soilTop, 0, soilBottom);
-      depthGr.addColorStop(0, 'rgba(0,0,0,0)');
-      depthGr.addColorStop(1, 'rgba(0,0,0,0.04)');
-      ctx.fillStyle = depthGr;
-      ctx.fillRect(view.x, soilTop, view.w, soilH);
-
-      if(S.soilPattern) {
-        ctx.save();
-        ctx.globalAlpha = 0.28;
-        ctx.fillStyle = S.soilPattern;
-        ctx.fillRect(view.x, soilTop, view.w, soilH);
-        ctx.restore();
-      }
-
-      // 背景ディテール（小石・根・埋蔵物）
-      drawBackgroundDetails(ctx, view, soilTop, soilBottom);
-
-      // D. 土レイヤーだけを削って通路/部屋の「穴」を作る。
-      // destination-out は現在の土レイヤーを消し、下の空洞ベースを見せる。
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(view.x, soilTop, view.w, soilH);
-      ctx.clip();
-      ctx.globalCompositeOperation = 'destination-out';
-      ctx.fillStyle = '#000';
-      const stampPad = dp(60);
-
-      S.full.edges.forEach((e,i)=>{
-        if(!shouldDrawEdgeProgress(i)) return;
-        const f = S.edgeFrac[i];
-        if(!e.stamps) buildEdgeStamps(e, S.full.nodes);
-        const stamps = e.stamps;
-        if(!stamps || stamps.length===0) return;
-        const count = Math.max(1, Math.floor(stamps.length * f));
-        drawStamps(ctx, stamps, count, 1, view, soilTop, soilBottom, stampPad);
-      });
-
-      const nodePad = dp(90);
-      S.full.nodes.forEach((n,i)=>{
-        if(!S.nodeVis[i]) return;
-        if(n.x < view.x - nodePad || n.x > view.x + view.w + nodePad) return;
-        if(n.y < soilTop - nodePad || n.y > soilBottom + nodePad) return;
-        fillBlobPath(ctx, n);
-      });
-      // E. 合成モードを source-over に戻す
-      ctx.restore();
-
-      // 削った形状を空洞グラデで塗り直し、穴が黒く潰れないようにする。
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(view.x, soilTop, view.w, soilH);
-      ctx.clip();
-      ctx.fillStyle = cavGr;
-      S.full.edges.forEach((e,i)=>{
-        if(!shouldDrawEdgeProgress(i)) return;
-        const f = S.edgeFrac[i];
-        if(!e.stamps) buildEdgeStamps(e, S.full.nodes);
-        const stamps = e.stamps;
-        if(!stamps || stamps.length===0) return;
-        const count = Math.max(1, Math.floor(stamps.length * f));
-        drawStamps(ctx, stamps, count, 1, view, soilTop, soilBottom, stampPad);
-      });
-      S.full.nodes.forEach((n,i)=>{
-        if(!S.nodeVis[i]) return;
-        if(n.x < view.x - nodePad || n.x > view.x + view.w + nodePad) return;
-        if(n.y < soilTop - nodePad || n.y > soilBottom + nodePad) return;
-        fillBlobPath(ctx, n);
-      });
-      ctx.restore();
-
-      // 3) 縁の落ち込み（擬似インナーシャドウ）
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(view.x, soilTop, view.w, soilH);
-      ctx.clip();
-      ctx.globalAlpha = 0.18;
-      ctx.fillStyle = 'rgba(0,0,0,0.35)';
-      S.full.edges.forEach((e,i)=>{
-        if(!shouldDrawEdgeProgress(i)) return;
-        const f = S.edgeFrac[i];
-        if(!e.stamps) buildEdgeStamps(e, S.full.nodes);
-        const stamps = e.stamps;
-        if(!stamps || stamps.length===0) return;
-        const count = Math.max(1, Math.floor(stamps.length * f));
-        drawStamps(ctx, stamps, count, 0.7, view, soilTop, soilBottom, stampPad);
-      });
-      ctx.strokeStyle = 'rgba(0,0,0,0.35)';
-      ctx.lineWidth = dp(2.2);
-      S.full.nodes.forEach((n,i)=>{
-        if(!S.nodeVis[i]) return;
-        if(n.x < view.x - nodePad || n.x > view.x + view.w + nodePad) return;
-        if(n.y < soilTop - nodePad || n.y > soilBottom + nodePad) return;
-        strokeBlobPath(ctx, n);
-      });
-      ctx.restore();
+      drawCachedStaticNestLayer(view, soilTop, soilBottom, shakeX, shakeY);
     }
 
     drawSurfaceBand(ctx, view);
     drawEntranceMound(ctx, view);
 
     ctx.lineCap='round'; ctx.lineJoin='round';
+    const renderZoom = (S.cam && typeof S.cam.scale === 'number') ? S.cam.scale : 1;
+    const largeColonyVisual = (S.full.nodes.length > 120 || antRender.mode === 'crowdSprite');
+    const roomCullPadBase = dp(96);
+    const getRoomSlotDrawCap = (n) => {
+      let cap = 60;
+      if(largeColonyVisual) cap = Math.min(cap, 36);
+      if(renderZoom < 0.88) cap = Math.min(cap, 28);
+      if(renderZoom < 0.62) cap = Math.min(cap, 18);
+      if(renderZoom < 0.42) cap = Math.min(cap, 10);
+      if(n.type === 'food' || n.type === 'cookieroom') {
+        if(largeColonyVisual) cap = Math.min(cap, 20);
+        if(renderZoom < 0.62) cap = Math.min(cap, 12);
+        if(renderZoom < 0.42) cap = Math.min(cap, 7);
+      } else if(n.type === 'nursery') {
+        if(antRender.mode === 'crowdSprite') cap = Math.min(cap, 32);
+        if(renderZoom < 0.62) cap = Math.min(cap, 18);
+      }
+      return Math.max(0, Math.floor(cap));
+    };
+    const getWasteVisualCap = (baseCap) => {
+      let cap = Math.max(0, Math.floor(baseCap || WASTE_DOT_MAX));
+      if(largeColonyVisual) cap = Math.min(cap, 28);
+      if(renderZoom < 0.88) cap = Math.min(cap, 22);
+      if(renderZoom < 0.62) cap = Math.min(cap, 14);
+      if(renderZoom < 0.42) cap = Math.min(cap, 8);
+      return cap;
+    };
     S.full.nodes.forEach((n,i)=>{
       if(!S.nodeVis[i]) return;
+      const cullPad = Math.max(roomCullPadBase, (n.r || 0) * 1.8);
+      if(n.x < view.x - cullPad || n.x > view.x + view.w + cullPad) return;
+      if(n.y < view.y - cullPad || n.y > view.y + view.h + cullPad) return;
       const tint = _colorMode ? roomTint(n.type) : null;
       if(tint){
         ctx.save();
@@ -14552,9 +15981,9 @@ function syncFermenterUnlockUI() {
       const invCookie = Math.max(0, Math.floor(n.invCookie || 0));
       const invCookieDraw = (n.type === 'cookieroom') ? invCookie : 0;
       const waste = Math.max(0, +n.invWaste || 0);
-      const maxSlotsDraw = Math.min(n.slots.length, 60); // 描画上限（負荷対策）
+      const maxSlotsDraw = Math.min(n.slots.length, getRoomSlotDrawCap(n)); // 描画上限（負荷対策）
       const totalDraw = Math.min(maxSlotsDraw, invLarva + invEgg + invFood + invCookieDraw);
-      const lightLarva = (antRender.mode === 'dot'); // 軽量モードは簡易描画
+      const lightLarva = (antRender.mode === 'dot' || antRender.mode === 'crowdSprite' || renderZoom < 0.88); // 軽量モードは簡易描画
       const drawLarvaWaste = isLarvaRoom && waste > 0 && n.slots && n.slots.length;
       if(totalDraw > 0 || drawLarvaWaste || (n.type === 'waste' && n.slots && n.slots.length)) {
         ctx.save();
@@ -14597,7 +16026,7 @@ function syncFermenterUnlockUI() {
         // 幼虫室のゴミ描画（軽量・控えめ）
         if(drawLarvaWaste) {
           const lodOn = !!(S.renderSettings && S.renderSettings.lod);
-          const dotCap = lodOn ? Math.floor(WASTE_DOT_MAX * 0.6) : Math.floor(WASTE_DOT_MAX * 0.4);
+          const dotCap = getWasteVisualCap(lodOn ? Math.floor(WASTE_DOT_MAX * 0.6) : Math.floor(WASTE_DOT_MAX * 0.4));
           const dotCount = Math.min(
             n.slots.length,
             Math.floor(WASTE_DOT_BASE * 0.6 + waste * (WASTE_DOT_PER_UNIT * 0.4)),
@@ -14667,7 +16096,7 @@ function syncFermenterUnlockUI() {
         // ゴミ室のゴミ描画（軽量・点数上限あり）
         if(n.type === 'waste' && n.slots && n.slots.length) {
           const lodOn = !!(S.renderSettings && S.renderSettings.lod);
-          const dotCap = lodOn ? WASTE_DOT_MAX : Math.floor(WASTE_DOT_MAX * 0.6);
+          const dotCap = getWasteVisualCap(lodOn ? WASTE_DOT_MAX : Math.floor(WASTE_DOT_MAX * 0.6));
           const dotCount = Math.min(n.slots.length, Math.floor(WASTE_DOT_BASE + waste * WASTE_DOT_PER_UNIT), dotCap);
           if(dotCount > 0) {
             for(let k=0; k<dotCount; k++) {
@@ -14714,96 +16143,8 @@ function syncFermenterUnlockUI() {
     });
 
     // ===== フォグオブウォー（未掘削エリアを暗闇で覆う） =====
-    // オフスクリーンキャンバス＋スクリーン座標の手動変換で描画。
-    // destination-out は重複しても安全（穴が広がるだけ）。
     if(soilBottom > soilTop) {
-      const cw = canvas.width, ch = canvas.height;
-      if(!S._fogCvs || S._fogCvs.width !== cw || S._fogCvs.height !== ch) {
-        S._fogCvs = document.createElement('canvas');
-        S._fogCvs.width = cw; S._fogCvs.height = ch;
-        S._fogCtx = S._fogCvs.getContext('2d');
-      }
-      const fc = S._fogCtx;
-      fc.setTransform(1, 0, 0, 1, 0, 0);
-      fc.clearRect(0, 0, cw, ch);
-
-      // ワールド→スクリーン座標変換（カメラ変換を手動計算）
-      const sc = S.cam.scale;
-      const toSX = (wx) => (wx - S.cam.x) * sc;
-      const toSY = (wy) => (wy - S.cam.y) * sc;
-      const toSR = (wr) => wr * sc;
-
-      const sBot = Math.min(ch, toSY(soilBottom));
-      const surfOffset = dp(28); // 地表バンドの下端分だけ下にずらす
-      // 地表のうねりに沿った上端パスで霧を描く
-      const fogTopOk = toSY(S.full.sy + surfOffset) < sBot;
-      if(fogTopOk) {
-        fc.fillStyle = 'rgba(0,0,0,0.78)';
-        fc.beginPath();
-        // 左端 → 地表に沿って右端へ
-        const step = Math.max(4, Math.round(cw / 80)); // スクリーン上で ~80 分割
-        for(let sx = 0; sx <= cw; sx += step) {
-          const wx = S.cam.x + sx / sc; // スクリーンX → ワールドX
-          const wy = surfaceY(wx) + surfOffset; // 地表Y + オフセット
-          const sy = toSY(wy);
-          if(sx === 0) fc.moveTo(sx, sy);
-          else fc.lineTo(sx, sy);
-        }
-        // 右下 → 左下 → 閉じる
-        fc.lineTo(cw, sBot);
-        fc.lineTo(0, sBot);
-        fc.closePath();
-        fc.fill();
-
-        // destination-out で掘削済みエリアを透明に抜く
-        fc.globalCompositeOperation = 'destination-out';
-        const fogPad = dp(110);
-
-        // ノード周辺
-        S.full.nodes.forEach((n, i) => {
-          if(!S.nodeVis[i]) return;
-          const vr = n.r + fogPad;
-          const sx = toSX(n.x), sy = toSY(n.y), sr = toSR(vr);
-          if(sx + sr < 0 || sx - sr > cw || sy + sr < 0 || sy - sr > ch) return;
-          const ir = toSR(n.r * 0.3);
-          const grd = fc.createRadialGradient(sx, sy, ir, sx, sy, sr);
-          grd.addColorStop(0,   'rgba(0,0,0,1)');
-          grd.addColorStop(0.5, 'rgba(0,0,0,1)');
-          grd.addColorStop(1,   'rgba(0,0,0,0)');
-          fc.fillStyle = grd;
-          fc.beginPath(); fc.arc(sx, sy, sr, 0, 6.28); fc.fill();
-        });
-
-        // 掘削済みエッジ（通路）スタンプ周辺
-        S.full.edges.forEach((e, i) => {
-          const f = S.edgeFrac[i] || 0;
-          if(f <= 0 || !e.stamps) return;
-          const cnt = Math.max(1, Math.floor(e.stamps.length * f));
-          for(let k = 0; k < cnt; k += 3) {
-            const st = e.stamps[k];
-            if(!st) continue;
-            const er = st.r + fogPad * 0.55;
-            const sx = toSX(st.x), sy = toSY(st.y), sr = toSR(er);
-            if(sx + sr < 0 || sx - sr > cw || sy + sr < 0 || sy - sr > ch) return;
-            const ir = toSR(st.r * 0.1);
-            const grd = fc.createRadialGradient(sx, sy, ir, sx, sy, sr);
-            grd.addColorStop(0,   'rgba(0,0,0,1)');
-            grd.addColorStop(0.55,'rgba(0,0,0,1)');
-            grd.addColorStop(1,   'rgba(0,0,0,0)');
-            fc.fillStyle = grd;
-            fc.beginPath(); fc.arc(sx, sy, sr, 0, 6.28); fc.fill();
-          }
-        });
-
-        fc.globalCompositeOperation = 'source-over';
-      }
-
-      // 霧キャンバスをメインに1:1で合成
-      ctx.save();
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.drawImage(S._fogCvs, 0, 0);
-      ctx.restore();
-      applyCameraTransform(shakeX, shakeY);
+      drawCachedFogLayer(view, soilTop, soilBottom, shakeX, shakeY);
     }
 
     // ===== 掘削中のエッジを光らせる =====
@@ -14917,15 +16258,32 @@ function syncFermenterUnlockUI() {
       S.perf.drawSprite = 0;
       S.perf.drawVector = 0;
       S.perf.drawBatches = 0;
+      S.perf.drawCrowd = 0;
+      S.perf.visibleCrowd = 0;
+      S.perf.culledCrowd = 0;
+      S.perf.crowdAtlasFrames = 0;
     }
     let antsDrawn = 0;
     // Phase 7B-2: レイド攻撃/結果フェーズ中は地下の兵隊アリを描画しない。
     // 兵隊は地表の S.raidSoldiers が代表として戦うため、入口での二重表示（青い兵隊）を避ける。
-    const hideUndergroundSoldiers = (S.raidVis.state === 'attack' || S.raidVis.state === 'result');
-    const drawAnts = hideUndergroundSoldiers ? S.ants.filter(a => a.role !== 'soldier') : S.ants;
+    const hideUndergroundSoldiers = isUndergroundSoldierHiddenForRaid();
+    const baseDrawAnts = hideUndergroundSoldiers ? S.ants.filter(a => a.role !== 'soldier') : S.ants;
+    if(antRender.mode === 'crowdSprite') {
+      const crowdStats = drawAntCrowd(ctx, view, hideUndergroundSoldiers);
+      antsDrawn += crowdStats.drawn;
+      if(S.perf) {
+        S.perf.drawCrowd = crowdStats.drawn;
+        S.perf.visibleCrowd = crowdStats.total;
+        S.perf.culledCrowd = crowdStats.culled;
+        S.perf.crowdAtlasFrames = crowdStats.atlasFrames;
+      }
+    }
+    const drawAnts = (antRender.mode === 'crowdSprite')
+      ? baseDrawAnts.filter(shouldDrawActionAntOverlayInCrowd)
+      : baseDrawAnts;
     if(antRender.mode === 'dot') {
       const batchStats = drawAntDotsBatched(drawAnts);
-      antsDrawn = batchStats.drawn;
+      antsDrawn += batchStats.drawn;
       if(S.perf) {
         S.perf.drawDot = antsDrawn;
         S.perf.drawBatches = batchStats.batches;
@@ -15297,6 +16655,9 @@ function syncFermenterUnlockUI() {
     });
     rebuildAllEdgeStamps();
     if(S.ants) S.ants.forEach(a => { a.x += dx; if(a.tx != null) a.tx += dx; });
+    if(S.antCrowd && S.antCrowd.count > 0) {
+      for(let i=0; i<S.antCrowd.count; i++) S.antCrowd.x[i] += dx;
+    }
     if(S.dust) S.dust.forEach(d => { d.x += dx; });
     if(S.trails) S.trails.forEach(tr => { tr.x += dx; });
     if(S.effects) S.effects.forEach(e => { e.x += dx; });
@@ -15328,6 +16689,7 @@ function syncFermenterUnlockUI() {
     }
 
     canvas.width = newW; canvas.height = newH;
+    S.antCrowdAtlas = null;
 
     if(S.full) {
       updateCameraLimits();
@@ -15382,6 +16744,7 @@ function syncFermenterUnlockUI() {
 
     S.ants = [];
     syncAntVisuals();
+    syncAntCrowd();
 
     if(pendingOfflineSec > 60) {
       calcOffline(pendingOfflineSec);
