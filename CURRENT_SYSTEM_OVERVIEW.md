@@ -248,7 +248,7 @@ There are two different ant count concepts:
 
 `fermenter` exists in population and effects, but is not drawn as an individual ant and is not included in `ANT_ROLES`.
 
-Hiring costs use `BASE_COSTS[role] * growth^currentRoleCount`, floored. Default hiring growth is `COST_GROWTH = 1.15`; role-specific overrides live in `ROLE_COST_GROWTH`. Soldier ants currently use `ROLE_COST_GROWTH.soldier = 1.075` so only soldier hiring scales at +7.5% per existing soldier, while nurse/builder/fermenter hiring keeps the shared +15% growth.
+Hiring costs use `BASE_COSTS[role] * growth^currentRoleCount`, floored. Default hiring growth is `COST_GROWTH = 1.15`; role-specific overrides live in `ROLE_COST_GROWTH`. Soldier ants currently use a base cost of `500` food and `ROLE_COST_GROWTH.soldier = 1.075` so only soldier hiring scales at +7.5% per existing soldier, while nurse/builder/fermenter hiring keeps the shared +15% growth.
 
 Render settings:
 
@@ -773,15 +773,15 @@ Cookie x100 boost (`S.majorActives.cookie`):
 
 - Runtime state machine is `hunting -> available -> active -> cooldown`.
 - While `hunting`, it rolls once every `MAJOR_ACT_ROLL_INTERVAL = 3` seconds.
-- First roll chance is `MAJOR_ACT_COOKIE_BASE = 0.06` (`6%`).
-- Each miss adds `MAJOR_ACT_COOKIE_INC = 0.015` (`+1.5%`) pity.
-- Roll chance is capped at `MAJOR_ACT_COOKIE_MAX = 0.30` (`30%`).
+- First roll chance is `MAJOR_ACT_COOKIE_BASE = 0.006` (`0.6%`).
+- Each miss adds `MAJOR_ACT_COOKIE_INC = 0.0015` (`+0.15%`) pity.
+- Roll chance is capped at `MAJOR_ACT_COOKIE_MAX = 0.03` (`3%`).
 - When a roll succeeds, a sugar/cookie lucky target becomes `available` for `MAJOR_ACT_COOKIE_WIN = 15` seconds.
 - Tapping the target activates the boost for `MAJOR_ACT_COOKIE_ACTIVE = 10` seconds.
 - While active, worker cookie chance uses `MAJOR_ACT_COOKIE_MUL = 100`.
 - After activation, or after missing the available target, cooldown is `MAJOR_ACT_COOKIE_CD = 12000` seconds (`3h 20m`).
-- Expected time from entering `hunting` until target appearance is about `23` seconds.
-- Probability of seeing the target within the first `15` seconds of hunting is about `37.7%`.
+- Expected time from entering `hunting` until target appearance is about `119` seconds.
+- Probability of seeing the target within the first `15` seconds of hunting is about `4.4%`.
 
 ## 19. Offline Progression
 

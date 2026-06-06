@@ -1,5 +1,39 @@
 # Development Log
 
+## 2026-06-06 Halve soldier hiring cost
+
+Purpose:
+- Make soldier ants easier to hire by halving their food cost curve.
+
+Changes:
+- Changed `BASE_COSTS.soldier` from `1000` to `500`.
+- Updated the initial soldier button fallback text from `🍃 1000` to `🍃 500`.
+- Kept the soldier-specific growth rate at `ROLE_COST_GROWTH.soldier = 1.075`, so every soldier hire cost is approximately half of the previous value.
+- Updated `CURRENT_SYSTEM_OVERVIEW.md` to document the new soldier base cost.
+
+Verification:
+- Inline JavaScript syntax check passed with `new Function(...)`.
+- `git diff --check` passed with only LF/CRLF warnings.
+- Static grep confirmed the active soldier base cost and initial UI fallback text now use `500`.
+
+## 2026-06-06 Reduce cookie x100 target appearance rate
+
+Purpose:
+- Make the cookie x100 lucky target much rarer while keeping the boost strength and cooldown unchanged.
+
+Changes:
+- Reduced the cookie x100 target roll chances to one tenth of the previous values:
+  - `MAJOR_ACT_COOKIE_BASE`: `0.06 -> 0.006`
+  - `MAJOR_ACT_COOKIE_INC`: `0.015 -> 0.0015`
+  - `MAJOR_ACT_COOKIE_MAX`: `0.30 -> 0.03`
+- Kept `MAJOR_ACT_COOKIE_MUL = 100`, active duration, target window, roll interval, and cooldown unchanged.
+- Updated `CURRENT_SYSTEM_OVERVIEW.md` expected timing notes: expected hunting time is now about 119 seconds and first-15-second appearance chance is about 4.4%.
+
+Verification:
+- Inline JavaScript syntax check passed with `new Function(...)`.
+- `git diff --check` passed with only LF/CRLF warnings.
+- Static grep confirmed the active constants and overview notes use the new one-tenth probabilities.
+
 ## 2026-06-06 Ground surface soldiers and stronger raid stalling
 
 Purpose:

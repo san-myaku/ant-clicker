@@ -2373,7 +2373,7 @@
             <button class="btn ant-buy" id="act-soldier">
               <div>
                 <span class="btn-tit">兵隊アリ</span>
-                <span class="btn-sub txt-green" id="cost-soldier">🍃 1000</span>
+                <span class="btn-sub txt-green" id="cost-soldier">🍃 500</span>
                 <div class="btn-sub" id="desc-soldier-lock" style="margin-top:2px;">兵舎設計図が必要</div>
               </div>
             </button>
@@ -2617,9 +2617,9 @@
   const MAJOR_ACT_COOKIE_CD = 12000;  // 日本語: クッキーブーストCD（秒）旧600→×20に
   const MAJOR_ACT_COOKIE_WIN = 15;   // 日本語: 出現ウィンドウ（秒）
   const MAJOR_ACT_COOKIE_ACTIVE = 10;// 日本語: 発動時間（秒）
-  const MAJOR_ACT_COOKIE_BASE = 0.06;// 日本語: 初期当選率
-  const MAJOR_ACT_COOKIE_INC = 0.015;// 日本語: 外れ時の上昇
-  const MAJOR_ACT_COOKIE_MAX = 0.30; // 日本語: 上限
+  const MAJOR_ACT_COOKIE_BASE = 0.006;// 日本語: 初期当選率
+  const MAJOR_ACT_COOKIE_INC = 0.0015;// 日本語: 外れ時の上昇
+  const MAJOR_ACT_COOKIE_MAX = 0.03; // 日本語: 上限
   const MAJOR_ACT_ROLL_INTERVAL = 3; // 日本語: 抽選間隔（秒）
   const MAJOR_ACT_COOKIE_MUL = 100;  // 日本語: クッキー出現率倍率
   const MAJOR_ACT_LUCKY_MARGIN = 34;             // ラッキー対象の画面端マージン（CSS px）
@@ -2639,7 +2639,7 @@
   const MAJOR_WORKER_BIGCARRY_COST_COOKIE = 5; // 大物運搬解放コスト（クッキー）
 
   // 育児アリ・建築アリ・兵隊アリの「1匹目」の食料コスト。2匹目以降は雇用倍率ぶん増えていく
-  const BASE_COSTS = { nurse: 50, builder: 100, soldier: 1000, fermenter: 800 };
+  const BASE_COSTS = { nurse: 50, builder: 100, soldier: 500, fermenter: 800 };
   const COST_GROWTH = 1.15;
   const ROLE_COST_GROWTH = { soldier: 1.075 };
   const SOLDIER_CAP_PER_ROOM = 20;
