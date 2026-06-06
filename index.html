@@ -6817,22 +6817,23 @@ function expandMap(forcedType, isEmergency) {
   const RAID_SURFACE_SOLDIER_RENDER_MAX = 300;       // 地表に描く兵隊の最大数。押し合い/索敵を空間グリッドでO(n)化したので大軍を全員描ける（Phase 7.5: 見える兵=戦う本物の兵）
   const RAID_SURFACE_SOLDIER_LOD_COUNT = 120;        // この数を超えたら兵隊を胴+頭の2バッチ(fill 2回)で描画。普段は詳細vector、超大軍だけ軽量バッチ（端末性能で調整可）
   const RAID_SURFACE_SOLDIER_SPEED = dp(110);        // 地表兵隊の移動速度
-  const RAID_SURFACE_SOLDIER_ENGAGE_RADIUS = dp(28); // この距離まで近づいたら交戦扱い（減速）
+  const RAID_SURFACE_SOLDIER_ENGAGE_RADIUS = dp(30); // この距離まで近づいたら交戦扱い（減速）
   const RAID_SURFACE_SOLDIER_SEPARATION = dp(8);     // 兵隊同士の重なり緩和距離
   const RAID_SURFACE_SOLDIER_RETURN_RADIUS = dp(22); // 入口付近とみなす距離（待機へ）
+  const RAID_SURFACE_SOLDIER_GROUND_BOB = dp(1.6);   // 地表歩行時の小さな上下動
+  const RAID_SURFACE_SOLDIER_GROUND_CLAMP = dp(3);   // 地表ラインから上下に離れすぎない制限
 
   // ===== Phase 7B-3/4: 地表戦闘（兵隊攻撃・敵死亡・勝敗接続） =====
   const RAID_SURFACE_SOLDIER_ATTACK_RANGE = dp(22);     // 攻撃が届く距離
-  const RAID_SURFACE_SOLDIER_INTERCEPT_RANGE = dp(44);  // 近くの敵を優先して、手前の敵をすり抜けない
-  const RAID_SURFACE_SOLDIER_BLOCK_RADIUS = dp(30);     // 体が近い兵隊はターゲット外の敵も足止めする
+  const RAID_SURFACE_SOLDIER_INTERCEPT_RANGE = dp(52);  // 近くの敵を優先して、手前の敵をすり抜けない
+  const RAID_SURFACE_SOLDIER_BLOCK_RADIUS = dp(36);     // 体が近い兵隊はターゲット外の敵も足止めする
   const RAID_SURFACE_SOLDIER_ATTACK_COOLDOWN = 0.6;     // 攻撃間隔（秒）
   const RAID_SURFACE_SOLDIER_DAMAGE_BASE = 2;           // 兵隊1撃の基本ダメージ
   const RAID_SURFACE_SOLDIER_DAMAGE_LV_MUL = 0.12;      // フォールバック用Lv係数
   const RAID_SURFACE_SOLDIER_HIT_FLASH_TIME = 0.12;     // 被弾閃光の長さ
   const RAID_BREACH_LOSE_RATIO = 0.30;                  // この割合以上が突破したら敗北
-  const RAID_ATTACK_MAX_SEC = 16;                       // 攻撃フェーズの最大長（戦闘が長引いた時の安全上限）
   const RAID_FINISH_DELAY = 0.6;                        // 決着が付いてから resolve するまでの見せ時間
-  const RAID_ENEMY_ENGAGED_SLOW_PER = 0.88;             // 交戦中の兵隊1体あたり敵の前進が鈍る量（膠着感）
+  const RAID_ENEMY_ENGAGED_SLOW_PER = 0.94;             // 交戦中の兵隊1体あたり敵の前進が鈍る量（膠着感）
   const RAID_ENEMY_ENGAGED_MIN_FACTOR = 0.01;           // 交戦されても最低この割合は前進（完全停止はしない）
 
   // ノード from から to への経路（node列）を BFS で探索。完成した通路（edgeFrac>=0.99）のみ通れる
@@ -9686,9 +9687,8 @@ function expandMap(forcedType, isEmergency) {
       const reasonText = {
         all_killed: '全滅させて防衛成功',
         no_living: '敵を退けて防衛成功',
-        time_judgement_win: '時間内に押し切って防衛成功',
-        breached: '入口を突破され防衛失敗',
-        time_judgement_loss: '押し込まれて防衛失敗'
+        minor_breach_win: '一部突破されたが防衛成功',
+        breached: '入口を突破され防衛失敗'
       }[sr.reason] || (out.win ? '防衛成功' : '防衛失敗');
       // Phase 7.5A: 兵隊が表示上限(24体)を超えている場合、論理頭数と代表倍率を見せる
       // （増やした兵隊がちゃんと戦力に反映されていることをプレイヤーに伝える）
@@ -9889,6 +9889,19 @@ function expandMap(forcedType, isEmergency) {
     if(d > 0.001) obj.rot = Math.atan2(dy, dx);
   }
 
+  function getRaidSurfaceSoldierGroundY(s) {
+    if(!S.full) return 0;
+    const phase = ((s && s.wobble) || 0) * 1.35 + ((s && s.slotIndex) || 0) * 0.73;
+    return S.full.sy + Math.sin(phase) * RAID_SURFACE_SOLDIER_GROUND_BOB;
+  }
+
+  function clampRaidSurfaceSoldierToGround(s) {
+    if(!S.full || !s) return;
+    const sy = S.full.sy;
+    if(s.y > sy + RAID_SURFACE_SOLDIER_GROUND_CLAMP) s.y = sy + RAID_SURFACE_SOLDIER_GROUND_CLAMP;
+    if(s.y < sy - RAID_SURFACE_SOLDIER_GROUND_CLAMP) s.y = sy - RAID_SURFACE_SOLDIER_GROUND_CLAMP;
+  }
+
   // 攻撃フェーズ開始時に兵隊アリを入口付近へ生成
   function ensureRaidSoldiers() {
     const count = getRaidSurfaceSoldierRenderCount();
@@ -9910,7 +9923,7 @@ function expandMap(forcedType, isEmergency) {
         phase: "emerge",          // emerge | advance | engage | return | idle
         targetEnemyId: null,
         homeX,
-        homeY: sy - dp(6),
+        homeY: sy,
         slotIndex: i,
         preferSide: (i % 2 === 0) ? -1 : 1, // 左右へ交互に振り分け（両側へ分散）
         wobble: Math.random()*Math.PI*2,
@@ -9940,7 +9953,6 @@ function expandMap(forcedType, isEmergency) {
   function updateRaidSoldiers(dt) {
     const list = S.raidSoldiers;
     if(!list || !list.length || !S.full) return;
-    const sy = S.full.sy;
     const total = list.length;
 
     const soldierDamage = getRaidSurfaceSoldierDamage();
@@ -9952,6 +9964,7 @@ function expandMap(forcedType, isEmergency) {
       s.wobble = (s.wobble || 0) + dt * 6;
       if(s.fade < 1) s.fade = Math.min(1, s.fade + dt * 3);
       if(s.atkCd) s.atkCd = Math.max(0, s.atkCd - dt); // 攻撃クールダウン減衰
+      const groundY = getRaidSurfaceSoldierGroundY(s);
 
       // ターゲット解決（死亡/突破/消失なら再探索）
       let target = null;
@@ -9976,8 +9989,8 @@ function expandMap(forcedType, isEmergency) {
 
       // emerge: 入口から地表へ出る
       if(s.phase === "emerge") {
-        moveToward(s, s.homeX, s.homeY, s.sp * 0.8, dt);
-        if(Math.hypot(s.x - s.homeX, s.y - s.homeY) < dp(6)) {
+        moveToward(s, s.homeX, groundY, s.sp * 0.8, dt);
+        if(Math.hypot(s.x - s.homeX, s.y - groundY) < dp(6)) {
           s.phase = target ? "advance" : "idle";
         }
       } else if(target) {
@@ -9985,7 +9998,7 @@ function expandMap(forcedType, isEmergency) {
         const angle = (s.slotIndex / Math.max(1, total)) * Math.PI*2 + Math.sin(s.wobble) * 0.2;
         const orbitR = dp(10) + (s.slotIndex % 3) * dp(3);
         const tx = target.x + Math.cos(angle) * orbitR;
-        const ty = target.y + Math.sin(angle) * orbitR * 0.6;
+        const ty = groundY + Math.sin(angle) * dp(1.2);
         const dToTarget = Math.hypot(target.x - s.x, target.y - s.y);
         if(dToTarget > RAID_SURFACE_SOLDIER_ENGAGE_RADIUS) {
           s.phase = "advance";
@@ -10007,21 +10020,20 @@ function expandMap(forcedType, isEmergency) {
         }
       } else {
         // 生存敵なし → 入口付近へ戻る/待機
-        const dHome = Math.hypot(s.homeX - s.x, s.homeY - s.y);
+        const dHome = Math.hypot(s.homeX - s.x, groundY - s.y);
         if(dHome > RAID_SURFACE_SOLDIER_RETURN_RADIUS) {
           s.phase = "return";
-          moveToward(s, s.homeX, s.homeY, s.sp, dt);
+          moveToward(s, s.homeX, groundY, s.sp, dt);
         } else {
           s.phase = "idle";
           const wx = s.homeX + Math.sin(s.wobble + s.slotIndex) * dp(3);
-          const wy = s.homeY + Math.cos(s.wobble*0.7 + s.slotIndex) * dp(1.5);
+          const wy = groundY + Math.cos(s.wobble*0.7 + s.slotIndex) * dp(0.8);
           moveToward(s, wx, wy, s.sp * 0.4, dt);
         }
       }
 
       // 地表ラインの近くに保つ（潜りすぎ/浮きすぎ防止）
-      if(s.y > sy + dp(2)) s.y = sy + dp(2);
-      if(s.y < sy - dp(20)) s.y = sy - dp(20);
+      clampRaidSurfaceSoldierToGround(s);
     }
 
     // 兵隊同士の重なり緩和。空間グリッドで O(n) 化（大軍でも軽い）。
@@ -10061,6 +10073,7 @@ function expandMap(forcedType, isEmergency) {
         }
       }
     }
+    for(const s of list) clampRaidSurfaceSoldierToGround(s);
     // ターゲット状態だけに頼らず、兵隊の体が近い敵を足止め対象として数える。
     refreshRaidEnemyEngagement(list);
   }
@@ -10188,7 +10201,7 @@ function expandMap(forcedType, isEmergency) {
     };
   }
 
-  // 地表戦闘の結果から勝敗を判定（resolveRaid から呼ぶ）。作れない場合は null（→ フォールバック）。
+  // 地表戦闘の結果から勝敗を判定（resolveRaid から呼ぶ）。未決着なら null。
   function computeRaidOutcomeFromSurfaceCombat() {
     if(!S.enemies || !Array.isArray(S.enemies) || S.enemies.length <= 0) return null;
     const totalEnemies = S.raidVis.totalEnemies || S.enemies.length || 0;
@@ -10204,14 +10217,10 @@ function expandMap(forcedType, isEmergency) {
       win = true; reason = "all_killed";
     } else if(breachedEnemies >= breachLoseThreshold) {
       win = false; reason = "breached";
-    } else if(livingEnemies <= 0 && breachedEnemies <= 0) {
-      win = true; reason = "no_living";
+    } else if(livingEnemies <= 0) {
+      win = true; reason = breachedEnemies > 0 ? "minor_breach_win" : "no_living";
     } else {
-      // 攻撃時間終了時点の判定：突破が少なく撃破が多ければ勝利
-      const killRatio = totalEnemies > 0 ? killedEnemies / totalEnemies : 0;
-      const breachRatio = totalEnemies > 0 ? breachedEnemies / totalEnemies : 0;
-      win = breachRatio < RAID_BREACH_LOSE_RATIO && killRatio >= 0.50;
-      reason = win ? "time_judgement_win" : "time_judgement_loss";
+      return null;
     }
     return buildRaidOutcomeFromSurfaceResult({ win, reason, totalEnemies, killedEnemies, breachedEnemies, livingEnemies });
   }
@@ -10257,6 +10266,7 @@ function expandMap(forcedType, isEmergency) {
     // Phase 7B-3/4: 通常レイドは地表戦闘の結果で勝敗を決める。
     // 安全のため、地表結果を作れない場合（敵なし/壊れ/旧途中状態）は従来式へフォールバック。
     const surfaceOut = computeRaidOutcomeFromSurfaceCombat();
+    if(!surfaceOut && S.raidVis && S.raidVis.state === "attack" && S.enemies && S.enemies.length) return;
     const out = surfaceOut || S.raidVis._pendingOutcome || computeRaidOutcome();
     if(!out) return;
     const modalOut = { win: !!out.win, rewardFood: 0, rewardCookie: 0, loseWorkers: 0, winProb: out.winProb || 0, surfaceResult: out.surfaceResult || null };
@@ -14338,11 +14348,11 @@ function syncFermenterUnlockUI() {
           en.fade = clamp(en.fade, 0, 1);
         });
 
-        // Phase 7B-4: 終了判定。決着（全滅 or 突破しきい値）or 上限時間で、少し見せてから resolve。
+        // Phase 7B-4: 終了判定。時間上限はなく、全敵処理 or 突破しきい値で決着する。
         const livingNow = getLivingRaidEnemyCount();
         const breachedNow = S.raidVis.breachedEnemies || 0;
         const breachThreshold = getRaidBreachLoseThreshold(S.raidVis.totalEnemies || S.enemies.length || 1);
-        const decided = (livingNow <= 0) || (breachedNow >= breachThreshold) || (S.raidVis.timer >= RAID_ATTACK_MAX_SEC);
+        const decided = (livingNow <= 0) || (breachedNow >= breachThreshold);
         if(decided && S.raidVis.finishDelay == null) {
           S.raidVis.finishDelay = RAID_FINISH_DELAY;
         }

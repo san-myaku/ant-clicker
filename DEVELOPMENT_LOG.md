@@ -1,5 +1,42 @@
 # Development Log
 
+## 2026-06-06 Ground surface soldiers and stronger raid stalling
+
+Purpose:
+- Make surface soldier ants look like they are walking on the same ground line as raid enemies.
+- Strengthen the feeling that soldiers physically hold back attacking enemies.
+
+Changes:
+- Added `getRaidSurfaceSoldierGroundY()` and `clampRaidSurfaceSoldierToGround()` so `S.raidSoldiers` stay near `S.full.sy` with only a small walk bob.
+- Changed surface soldier home/return/engage movement to use the ground line instead of hovering above the surface or orbiting with a large vertical offset.
+- Re-clamps soldiers after separation so crowd pushback cannot lift them far off the ground.
+- Increased engagement/intercept ranges: engage `28 -> 30`, intercept `44 -> 52`, block radius `30 -> 36`.
+- Increased enemy slowdown per blocking soldier: `RAID_ENEMY_ENGAGED_SLOW_PER 0.88 -> 0.94`, keeping the minimum crawl factor at `0.01`.
+
+Verification:
+- Inline JavaScript syntax check passed with `new Function(...)`.
+- `git diff --check` passed with only LF/CRLF warnings.
+- Static grep confirmed the active constants and ground-clamp helpers are present in `index.html` and reflected in `CURRENT_SYSTEM_OVERVIEW.md`.
+- Runtime visual playback was not completed in this pass because the in-app browser setup was already failing in this environment during the previous verification attempt.
+
+## 2026-06-06 Remove raid attack time limit
+
+Purpose:
+- Make raids resolve by the actual battle state instead of a time limit.
+
+Changes:
+- Removed `RAID_ATTACK_MAX_SEC` from the raid attack-phase end condition.
+- The attack phase now continues until either all enemies are resolved or breached enemies reach the loss threshold.
+- Changed `computeRaidOutcomeFromSurfaceCombat()` so unresolved battles return `null` instead of applying a time judgement.
+- Added a guard in `resolveRaid()` so an unresolved active surface battle cannot fall back to the old probability outcome.
+- Added `minor_breach_win` result text for wins where a few enemies breached but stayed below the loss threshold.
+
+Verification:
+- Inline JavaScript syntax check passed with `new Function(...)`.
+- `git diff --check` passed with only LF/CRLF warnings.
+- Static grep confirmed the active `index.html` / overview no longer reference `RAID_ATTACK_MAX_SEC`, `time_judgement`, or time-limit result text.
+- In-app browser verification was attempted twice, but the browser Node kernel exited during setup in this environment, so runtime raid playback was not completed in this pass.
+
 ## 2026-06-06 Camera pan/zoom cache reuse
 
 Purpose:
