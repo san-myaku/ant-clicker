@@ -2672,11 +2672,18 @@
   const REST_WORKER_FRACTION = 0.10;
   const REST_STAY_TIME = 8;
   const REST_SLOTS_PER_ROOM = 6;
-  const WORKER_ROOM_WANDER_MIN = 0.20;
-  const WORKER_ROOM_WANDER_MAX = 0.80;
+  const WORKER_ROOM_WANDER_MIN = 0.80;
+  const WORKER_ROOM_WANDER_MAX = 1.80;
   const WORKER_ROOM_WANDER_PROB = 1.00;
-  const NURSE_ROOM_WANDER_MIN = 0.25;
-  const NURSE_ROOM_WANDER_MAX = 0.90;
+  const NURSE_ROOM_WANDER_MIN = 1.20;
+  const NURSE_ROOM_WANDER_MAX = 2.80;
+  const NURSE_ROOM_WANDER_SPEED_MUL = 0.16;
+  const NURSE_ROOM_WANDER_TARGET_MIN = 2.20;
+  const NURSE_ROOM_WANDER_TARGET_MAX = 4.20;
+  const WORKER_ROOM_WANDER_SPEED_MUL = 0.24;
+  const WORKER_ROOM_WANDER_TARGET_MIN = 1.40;
+  const WORKER_ROOM_WANDER_TARGET_MAX = 2.80;
+  const ROOM_EXIT_SPEED_MUL = 0.32;
   const DIG_PICK_TIME_BASE = 0.8;
   const DIG_FRAC_PER_CHUNK = 0.02;
   const CARRY_SPEED_MUL = 0.85;
@@ -3331,12 +3338,16 @@ function getFermenterBonusRate(){
 }
 
 function getFermentRoomNodeCount(includeHidden = true){
+  return getRoomNodeCountByType('ferment', includeHidden);
+}
+
+function getRoomNodeCountByType(type, includeHidden = true){
   if(!S.full || !S.full.nodes) return 0;
   let count = 0;
   for(let i=0; i<S.full.nodes.length; i++) {
     if(!includeHidden && !S.nodeVis[i]) continue;
     const n = S.full.nodes[i];
-    if(n && n.type === 'ferment') count++;
+    if(n && n.type === type) count++;
   }
   return count;
 }
@@ -6662,6 +6673,9 @@ function expandMap(forcedType, isEmergency) {
       if(roomType === 'ferment') {
         if(!isFermentRoomUnlocked()) return null;
       }
+      if(roomType === 'soldier') {
+        if(!hasBarracksBlueprint()) return null;
+      }
       const W = S.full.w;
       const minSoil = S.full.sy + dp(40);
       const widen = dp(260);
@@ -6782,6 +6796,7 @@ function expandMap(forcedType, isEmergency) {
       role, task:'idle', stateT:0,
       node: S.full.qid, eid:-1, t:0.5, x:q.x, y:q.y,
       path:[], pIdx:0, anim:Math.random()*10,
+      _laneOffset: (Math.random() - 0.5) * dp(7.2),
       sp: 1, cargo:null, goldenCargo:false,
       golden: (role === 'worker' && shouldSpawnGoldenWorker()),
       restNode: null, restSlot: -1, restStay: 0
@@ -6945,15 +6960,37 @@ function expandMap(forcedType, isEmergency) {
     if(!a.path||a.pIdx>=a.path.length){ a.phase='done'; return; }
     const s = a.path[a.pIdx];
     const e = S.full.edges[s.eid];
-    if(a.phase!=='walk') { a.t=(s.dir===1?0:1); a.phase='walk'; a.eid=s.eid; }
-
-    const dx = e.p3.x - e.p0.x;
-    const dy = e.p3.y - e.p0.y;
-    const len = Math.max(1, Math.hypot(dx, dy));
     const restMul = (S.restMul || 1);
     const raidActive = (S.raidVis && (S.raidVis.state === "countdown" || S.raidVis.state === "attack"));
     const roleMul = (a.role === 'soldier' && raidActive) ? 1.6 : 1;
     const extraMul = (typeof speedMul === 'number') ? speedMul : 1;
+
+    if(a.phase !== 'walk') {
+      const curNode = S.full.nodes[a.node];
+      if(curNode && Number.isFinite(a.x) && Number.isFinite(a.y)) {
+        const ndx = curNode.x - a.x;
+        const ndy = curNode.y - a.y;
+        const nd = Math.hypot(ndx, ndy);
+        if(nd > dp(1.6)) {
+          const stepToNode = Math.min(nd, ANT_SPEED * restMul * roleMul * extraMul * ROOM_EXIT_SPEED_MUL * dt);
+          a.x += (ndx / nd) * stepToNode;
+          a.y += (ndy / nd) * stepToNode;
+          a.rot = Math.atan2(ndy, ndx);
+          a.phase = 'room_exit';
+          a.eid = -1;
+          return;
+        }
+        a.x = curNode.x;
+        a.y = curNode.y;
+      }
+      a.t=(s.dir===1?0:1);
+      a.phase='walk';
+      a.eid=s.eid;
+    }
+
+    const dx = e.p3.x - e.p0.x;
+    const dy = e.p3.y - e.p0.y;
+    const len = Math.max(1, Math.hypot(dx, dy));
     a.t += s.dir * (ANT_SPEED * restMul * roleMul * extraMul / len) * dt;
     const p = cubic(e.p0,e.p1,e.p2,e.p3, clamp(a.t,0,1));
     a.x=p.x; a.y=p.y;
@@ -6996,6 +7033,7 @@ function expandMap(forcedType, isEmergency) {
 
   function moveOnEdge(a, eid, targetT, dt, speedMul, edgeDir) {
     const e = S.full.edges[eid];
+    a.eid = eid;
     const dx = e.p3.x - e.p0.x;
     const dy = e.p3.y - e.p0.y;
     const len = Math.max(1, Math.hypot(dx, dy));
@@ -7117,11 +7155,12 @@ function expandMap(forcedType, isEmergency) {
     a.stT = (a.stT || 0) - dt;
     const distToTarget = (a.wtx != null && a.wty != null) ? Math.hypot(a.wtx - a.x, a.wty - a.y) : Infinity;
     if(a.wtx == null || a.wty == null || a.stT <= 0 || distToTarget < dp(2)) {
-      a.stT = 0.2 + Math.random()*0.6;
+      const targetDelay = getRoomWanderTargetDelay(a);
+      a.stT = targetDelay.min + Math.random() * Math.max(0, targetDelay.max - targetDelay.min);
       let tx, ty;
       if(a.wUseSlots && n.slots && n.slots.length) {
         const s = n.slots[Math.floor(Math.random()*n.slots.length)];
-        const jig = dp(4);
+        const jig = (a.role === 'nurse') ? dp(2.4) : dp(4);
         tx = s.x + (Math.random()-0.5)*jig;
         ty = s.y + (Math.random()-0.5)*jig;
       } else {
@@ -7142,7 +7181,7 @@ function expandMap(forcedType, isEmergency) {
     const dy = a.wty - a.y;
     const dist = Math.hypot(dx, dy);
     if(dist > 0.5) {
-      const step = Math.min(dist, ANT_WANDER_STEP_SPEED * dt);
+      const step = Math.min(dist, getRoomWanderStepSpeed(a, roomWander) * dt);
       a.x += (dx / dist) * step;
       a.y += (dy / dist) * step;
       a.rot = Math.atan2(dy, dx);
@@ -7155,6 +7194,37 @@ function expandMap(forcedType, isEmergency) {
       a.x = n.x + Math.cos(ang) * n.r;
       a.y = n.y + Math.sin(ang) * n.r;
     }
+  }
+
+  function getRoomWanderStepSpeed(a, roomWander) {
+    if(!roomWander) return ANT_WANDER_STEP_SPEED;
+    if(a && a.role === 'nurse') return ANT_WANDER_STEP_SPEED * NURSE_ROOM_WANDER_SPEED_MUL;
+    if(a && a.role === 'worker') return ANT_WANDER_STEP_SPEED * WORKER_ROOM_WANDER_SPEED_MUL;
+    return ANT_WANDER_STEP_SPEED * 0.55;
+  }
+
+  function getRoomWanderTargetDelay(a) {
+    if(a && a.role === 'nurse') return { min: NURSE_ROOM_WANDER_TARGET_MIN, max: NURSE_ROOM_WANDER_TARGET_MAX };
+    if(a && a.role === 'worker') return { min: WORKER_ROOM_WANDER_TARGET_MIN, max: WORKER_ROOM_WANDER_TARGET_MAX };
+    return { min: 0.5, max: 1.3 };
+  }
+
+  function startNurseIdleRoomWander(a, roomId) {
+    if(!a || roomId == null || !S.full || !S.full.nodes[roomId]) return false;
+    if(a.node !== roomId) {
+      const p = getPath(a.node, roomId);
+      if(p) {
+        a.idleWanderRoomId = roomId;
+        a.path = p;
+        a.pIdx = 0;
+        a.phase = 'path';
+        a.task = 'go_room_wander';
+        return true;
+      }
+      return false;
+    }
+    a.idleWanderRoomId = null;
+    return startRoomWander(a, roomId, NURSE_ROOM_WANDER_MIN, NURSE_ROOM_WANDER_MAX, true);
   }
 
   // 清掃運搬の状態をクリア
@@ -7334,7 +7404,9 @@ function expandMap(forcedType, isEmergency) {
     const needFirstBarracks = hasBarracksBlueprint() && !S.hasBarracks;
     if(text === 'main-shaft') return 100;
     if(needFirstBarracks && n && n.type === 'soldier') return 95;
-    if(text === 'ferment:reserved') return 92;  // 予約済み発酵室は兵舎に次ぐ高優先
+    if(text === 'barracks:reserved') return 93;
+    if(text === 'ferment:reserved') return 92;  // 予約済み特殊部屋は通常拡張より優先
+    if(text === 'cookieroom:reserved') return 91;
     if(text.indexOf('forceShaft') === 0) return 90;
     if(text.indexOf('force:') === 0) return 82;
     if(text.indexOf('expand:') === 0) return 74;
@@ -7349,7 +7421,9 @@ function expandMap(forcedType, isEmergency) {
     const needFirstBarracks = hasBarracksBlueprint() && !S.hasBarracks;
     if(text === 'main-shaft') return 4;
     if(needFirstBarracks && n && n.type === 'soldier') return 5;
+    if(text === 'barracks:reserved') return 3;
     if(text === 'ferment:reserved') return 3;
+    if(text === 'cookieroom:reserved') return 3;
     if(text.indexOf('forceShaft') === 0) return 3;
     if(text.indexOf('force:') === 0) return 3;
     if(n && n.type === 'ferment') return 2;
@@ -7436,8 +7510,8 @@ function expandMap(forcedType, isEmergency) {
 
       // クッキー室の建設予約処理（発酵室と同構造）
       if(isCookieRoomUnlocked()) {
-        const cookiePlaced = (S.cookieRoomCount || 0);
-        const cookieVisible = S.full ? S.full.nodes.filter((n,i)=>S.nodeVis[i]&&n.type==='cookieroom').length : 0;
+        const cookiePlaced = getRoomNodeCountByType('cookieroom', true);
+        const cookieVisible = getRoomNodeCountByType('cookieroom', false);
         const hasUnbuiltCookie = cookiePlaced > cookieVisible;
         if((G.cookieRoomPending || 0) > 0 || hasUnbuiltCookie) {
           if(hasUnbuiltCookie) {
@@ -7465,9 +7539,9 @@ function expandMap(forcedType, isEmergency) {
       }
 
       // 兵舎の建設予約処理
-      {
-        const barPlaced = (S.barracksCount || 0);
-        const barVisible = S.full ? S.full.nodes.filter((n,i)=>S.nodeVis[i]&&n.type==='soldier').length : 0;
+      if(hasBarracksBlueprint()) {
+        const barPlaced = getRoomNodeCountByType('soldier', true);
+        const barVisible = getRoomNodeCountByType('soldier', false);
         const hasUnbuiltBar = barPlaced > barVisible;
         if((G.barracksPending || 0) > 0 || hasUnbuiltBar) {
           if(hasUnbuiltBar) {
@@ -8587,6 +8661,8 @@ function expandMap(forcedType, isEmergency) {
     if(task === 'go_large_food' || task === 'large_food_wait' || task === 'large_food_carry') return true;
     if(task === 'go_waste_pick' || task === 'go_waste_drop') return true;
     if(task === 'go_feed_pick' || task === 'go_feed_drop') return true;
+    if(task === 'go_room_wander') return true;
+    if(task === 'wander' && (a.wNode != null || a.wUseSlots || a.wT != null)) return true;
     if(a.role === 'builder' && task !== 'idle' && task !== 'wander') return true;
     if(a.role === 'soldier' && (S.invaders && S.invaders.length) && task !== 'idle') return true;
     return false;
@@ -9478,8 +9554,16 @@ function expandMap(forcedType, isEmergency) {
           if(!idleRoom || idleRoom.type === 'shaft' || idleRoom.type === 'entrance') {
             idleRoomId = nurseryIds.length ? nurseryIds[0] : S.full.qid;
           }
-          if(!startRoomWander(a, idleRoomId, NURSE_ROOM_WANDER_MIN, NURSE_ROOM_WANDER_MAX, true)) wander(a);
+          if(!startNurseIdleRoomWander(a, idleRoomId)) wander(a);
           return;
+        }
+        else if(a.task==='go_room_wander') {
+          move(a, dt);
+          if(a.phase === 'done') {
+            const roomId = a.idleWanderRoomId;
+            a.idleWanderRoomId = null;
+            if(!startRoomWander(a, roomId, NURSE_ROOM_WANDER_MIN, NURSE_ROOM_WANDER_MAX, true)) a.task='idle';
+          }
         }
         else if(a.task==='go_q') { move(a,dt); if(a.phase==='done') a.task='idle'; }
         else if(a.task==='go_n') { move(a,dt); if(a.phase==='done') { const dst = S.full.nodes[a.node]; dst.invEgg++; if(a.goldenCargo) dst.invGoldenEgg = Math.max(0, Math.floor(dst.invGoldenEgg || 0)) + 1; a.cargo=null; a.goldenCargo=false; a.task='idle'; } }
@@ -14435,9 +14519,48 @@ function syncFermenterUnlockUI() {
     return '#111';
   }
 
+  function isAntOnEdgeForDraw(a) {
+    if(!a || a.eid == null || a.eid < 0) return false;
+    if(a.phase === 'walk') return true;
+    const task = a.task || '';
+    if((task === 'dig_pick' || task === 'haul_out' || task === 'return_dig') && a.edgeT != null) return true;
+    return false;
+  }
+
+  function getActionAntLaneOffset(a) {
+    if(!a) return 0;
+    if(!Number.isFinite(a._laneOffset)) {
+      const roleSeed = ANT_ROLES.indexOf(a.role);
+      const u = seed01FromIds(Math.floor((a.anim || Math.random()) * 100000), (a.node || 0) + (roleSeed + 2) * 97);
+      a._laneOffset = (u - 0.5) * dp(7.2);
+    }
+    return a._laneOffset || 0;
+  }
+
+  function getEdgeLaneDrawOffset(eid, rot, lane, maxOffset) {
+    if(eid == null || eid < 0 || !S.full || !S.full.edges) return { x:0, y:0 };
+    const e = S.full.edges[eid];
+    if(!e || !S.nodeVis[e.u] || !S.nodeVis[e.v]) return { x:0, y:0 };
+    const f = clamp(S.edgeFrac[eid] || 0, 0, 1);
+    const max = (typeof maxOffset === 'number') ? maxOffset : (f >= 0.99 ? dp(4.4) : dp(2.4));
+    const l = clamp(lane || 0, -max, max);
+    const r = Number.isFinite(rot) ? rot : 0;
+    return {
+      x: Math.cos(r + Math.PI / 2) * l,
+      y: Math.sin(r + Math.PI / 2) * l
+    };
+  }
+
+  function getActionAntDrawPose(a, rot) {
+    if(!isAntOnEdgeForDraw(a)) return { x:a.x, y:a.y };
+    const off = getEdgeLaneDrawOffset(a.eid, rot, getActionAntLaneOffset(a));
+    return { x:a.x + off.x, y:a.y + off.y };
+  }
+
   function drawAntDot(a) {
+    const pose = getActionAntDrawPose(a, a.rot || 0);
     ctx.save();
-    ctx.translate(a.x, a.y);
+    ctx.translate(pose.x, pose.y);
     if(a.golden) {
       const anim = a.anim || 0;
       const pulse = (Math.sin(S.t*4 + anim) + 1) * 0.5;
@@ -14500,7 +14623,8 @@ function syncFermenterUnlockUI() {
     const carryR = dp(1.25);
     for(const a of ants) {
       if(!a) continue;
-      const x = a.x, y = a.y;
+      const pose = getActionAntDrawPose(a, a.rot || 0);
+      const x = pose.x, y = pose.y;
       if(a.golden) {
         goldenGlow.push({ x, y, anim: a.anim || 0 });
       }
@@ -14542,7 +14666,8 @@ function syncFermenterUnlockUI() {
   }
 
   function drawAntSprite(a) {
-    ctx.save(); ctx.translate(a.x, a.y); ctx.rotate(a.rot||0);
+    const pose = getActionAntDrawPose(a, a.rot || 0);
+    ctx.save(); ctx.translate(pose.x, pose.y); ctx.rotate(a.rot||0);
     if(a.golden) {
       const anim = a.anim || 0;
       const pulse = (Math.sin(S.t*4 + anim) + 1) * 0.5;
@@ -14667,17 +14792,23 @@ function syncFermenterUnlockUI() {
     return pickCrowdArray(pools.food, pickCrowdArray(pools.work, fallback));
   }
 
-  function placeCrowdAntInNode(crowd, idx, nodeId) {
+  function placeCrowdAntInNode(crowd, idx, nodeId, keepPosition = false) {
     const n = S.full && S.full.nodes ? S.full.nodes[nodeId] : null;
     if(!n) return;
     const slotPool = n.slots || [];
-    if(slotPool.length && Math.random() < 0.45) {
+    const sx = (n.blobScaleX != null) ? n.blobScaleX : 1;
+    const sy = (n.blobScaleY != null) ? n.blobScaleY : 0.78;
+    if(keepPosition && Number.isFinite(crowd.x[idx]) && Number.isFinite(crowd.y[idx])) {
+      const dx = (crowd.x[idx] - n.x) / Math.max(0.001, sx);
+      const dy = (crowd.y[idx] - n.y) / Math.max(0.001, sy * 0.62);
+      const maxRadius = Math.min(n.r * 0.62, dp(18));
+      crowd.roomRadius[idx] = clamp(Math.hypot(dx, dy), dp(3), maxRadius);
+      crowd.roomAngle[idx] = Math.atan2(dy, dx);
+    } else if(slotPool.length && Math.random() < 0.45) {
       const s = slotPool[(Math.random() * slotPool.length) | 0];
       crowd.x[idx] = s.x + (Math.random() - 0.5) * dp(4);
       crowd.y[idx] = s.y + (Math.random() - 0.5) * dp(3);
     } else {
-      const sx = (n.blobScaleX != null) ? n.blobScaleX : 1;
-      const sy = (n.blobScaleY != null) ? n.blobScaleY : 0.78;
       const ang = Math.random() * Math.PI * 2;
       const rr = Math.sqrt(Math.random()) * Math.min(n.r * 0.68, dp(26));
       crowd.x[idx] = n.x + Math.cos(ang) * rr * sx;
@@ -14691,10 +14822,10 @@ function syncFermenterUnlockUI() {
   function initCrowdAnt(crowd, idx, roleIdx, pools) {
     crowd.role[idx] = roleIdx;
     crowd.gaitPhase[idx] = Math.random() * Math.PI * 2;
-    crowd.speed[idx] = dp(22 + Math.random() * 26);
+    crowd.speed[idx] = dp(12 + Math.random() * 16);
     crowd.roomRadius[idx] = dp(5 + Math.random() * 16);
     crowd.roomAngle[idx] = Math.random() * Math.PI * 2;
-    crowd.nextSwitchAt[idx] = S.t + 0.6 + Math.random() * 4.2;
+    crowd.nextSwitchAt[idx] = S.t + 2.0 + Math.random() * 6.0;
     crowd.rot[idx] = Math.random() * Math.PI * 2;
     placeCrowdAntInNode(crowd, idx, pickCrowdNodeForRole(roleIdx, pools));
   }
@@ -14914,8 +15045,8 @@ function syncFermenterUnlockUI() {
         if(tt <= 0 || tt >= 1) {
           tt = clamp(tt, 0, 1);
           const nodeId = dir > 0 ? e.v : e.u;
-          placeCrowdAntInNode(crowd, i, nodeId);
-          crowd.nextSwitchAt[i] = S.t + 0.5 + Math.random() * 3.4;
+          placeCrowdAntInNode(crowd, i, nodeId, true);
+          crowd.nextSwitchAt[i] = S.t + 2.0 + Math.random() * 5.0;
           continue;
         }
         crowd.t[i] = tt;
@@ -14935,17 +15066,20 @@ function syncFermenterUnlockUI() {
           initCrowdAnt(crowd, i, crowd.role[i], pools);
           continue;
         }
-        if(S.t >= crowd.nextSwitchAt[i] && Math.random() < 0.42 && startCrowdEdge(crowd, i, nodeId)) {
-          crowd.nextSwitchAt[i] = S.t + 1.2 + Math.random() * 3.5;
+        const roleIdx = crowd.role[i] | 0;
+        const leaveChance = (roleIdx === 1) ? 0.06 : 0.14;
+        if(S.t >= crowd.nextSwitchAt[i] && Math.random() < leaveChance && startCrowdEdge(crowd, i, nodeId)) {
+          crowd.nextSwitchAt[i] = S.t + 2.0 + Math.random() * 4.0;
           continue;
         }
-        if(S.t >= crowd.nextSwitchAt[i]) crowd.nextSwitchAt[i] = S.t + 1.0 + Math.random() * 4.0;
+        if(S.t >= crowd.nextSwitchAt[i]) crowd.nextSwitchAt[i] = S.t + 2.0 + Math.random() * 5.0;
         const sx = (n.blobScaleX != null) ? n.blobScaleX : 1;
         const sy = (n.blobScaleY != null) ? n.blobScaleY : 0.78;
         const oldX = crowd.x[i], oldY = crowd.y[i];
-        const ang = crowd.roomAngle[i] + crowd.gaitPhase[i] * 0.22;
+        const roomSpin = (roleIdx === 1) ? 0.035 : 0.055;
+        const ang = crowd.roomAngle[i] + crowd.gaitPhase[i] * roomSpin;
         const radius = Math.min(crowd.roomRadius[i], n.r * 0.72);
-        const wob = Math.sin(crowd.gaitPhase[i] * 0.7 + i) * dp(1.2);
+        const wob = Math.sin(crowd.gaitPhase[i] * 0.42 + i) * dp(0.55);
         crowd.x[i] = n.x + Math.cos(ang) * (radius + wob) * sx;
         crowd.y[i] = n.y + Math.sin(ang) * (radius * 0.62 + wob * 0.35) * sy;
         const dx = crowd.x[i] - oldX, dy = crowd.y[i] - oldY;
@@ -15045,12 +15179,19 @@ function syncFermenterUnlockUI() {
       if(x < minX || x > maxX || y < minY || y > maxY) { culled++; continue; }
       const roleIdx = _colorMode ? roleIdxRaw : 0;
       const rot = ((crowd.rot[i] % tau) + tau) % tau;
+      let drawX = x, drawY = y;
+      if(crowd.routeKind[i] === CROWD_ROUTE_EDGE) {
+        const lane = (seed01FromIds(i + 17, (crowd.edgeId[i] || 0) + 31) - 0.5) * dp(7.0);
+        const off = getEdgeLaneDrawOffset(crowd.edgeId[i], rot, lane, dp(4.2));
+        drawX += off.x;
+        drawY += off.y;
+      }
       const dirIdx = Math.round(rot / tau * CROWD_ANT_DIRECTIONS) % CROWD_ANT_DIRECTIONS;
       const phase = ((crowd.gaitPhase[i] % tau) + tau) % tau;
       const frameIdx = Math.floor(phase / tau * CROWD_ANT_FRAMES) % CROWD_ANT_FRAMES;
       const sx = dirIdx * fw;
       const sy = (roleIdx * CROWD_ANT_FRAMES + frameIdx) * fh;
-      ctx.drawImage(atlas.canvas, sx, sy, fw, fh, x - fw * 0.5, y - fh * 0.5, fw, fh);
+      ctx.drawImage(atlas.canvas, sx, sy, fw, fh, drawX - fw * 0.5, drawY - fh * 0.5, fw, fh);
       drawn++;
     }
     return { drawn, culled, total: crowd.count, atlasFrames: atlas.frames };
@@ -15474,7 +15615,8 @@ function syncFermenterUnlockUI() {
     ].join(':');
   }
 
-  function getNestScreenCacheKey(view, soilTop, soilBottom, suffix) {
+  function getNestScreenCacheKey(view, soilTop, soilBottom, suffix, visualSignature = null) {
+    const visualSig = visualSignature || getNestVisualSignature();
     return [
       suffix,
       canvas.width,
@@ -15488,7 +15630,7 @@ function syncFermenterUnlockUI() {
       Math.round(view.h * 100),
       Math.round(soilTop * 100),
       Math.round(soilBottom * 100),
-      getNestVisualSignature()
+      visualSig
     ].join('|');
   }
 
@@ -15526,13 +15668,15 @@ function syncFermenterUnlockUI() {
     );
   }
 
-  function shouldDeferNestLayerCacheRebuild(meta) {
+  function shouldDeferNestLayerCacheRebuild(meta, visualSignature) {
     if(!meta || !isCameraInteracting()) return false;
+    if(visualSignature && meta.visualSignature !== visualSignature) return false;
     return true;
   }
 
-  function canKeepTransformedNestLayerCache(meta) {
+  function canKeepTransformedNestLayerCache(meta, visualSignature) {
     if(!meta || !isNestLayerCacheCoveringView(meta)) return false;
+    if(visualSignature && meta.visualSignature !== visualSignature) return false;
     const ratio = Math.max(0.001, S.cam.scale || 1) / Math.max(0.001, meta.scale || 1);
     return ratio >= 0.76 && ratio <= 1.32;
   }
@@ -15690,7 +15834,8 @@ function syncFermenterUnlockUI() {
     const cacheH = ch + padPx * 2;
     const cacheView = getNestLayerBuildView(padPx);
     const soilRange = getNestLayerSoilRange(cacheView);
-    const key = getNestScreenCacheKey(cacheView, soilRange.top, soilRange.bottom, 'soil');
+    const visualSignature = getNestVisualSignature();
+    const key = getNestScreenCacheKey(cacheView, soilRange.top, soilRange.bottom, 'soil', visualSignature);
     if(!S._soilLayerCvs || S._soilLayerCvs.width !== cacheW || S._soilLayerCvs.height !== cacheH) {
       S._soilLayerCvs = document.createElement('canvas');
       S._soilLayerCvs.width = cacheW;
@@ -15700,7 +15845,7 @@ function syncFermenterUnlockUI() {
       S._soilLayerMeta = null;
     }
     if(S._soilLayerKey !== key) {
-      if(shouldDeferNestLayerCacheRebuild(S._soilLayerMeta) || canKeepTransformedNestLayerCache(S._soilLayerMeta)) {
+      if(shouldDeferNestLayerCacheRebuild(S._soilLayerMeta, visualSignature) || canKeepTransformedNestLayerCache(S._soilLayerMeta, visualSignature)) {
         if(!isNestLayerCacheCoveringView(S._soilLayerMeta)) drawCheapSoilFallback(view, soilTop, soilBottom);
         drawTransformedNestLayerCache(S._soilLayerCvs, S._soilLayerMeta, shakeX, shakeY);
         return;
@@ -15714,6 +15859,7 @@ function syncFermenterUnlockUI() {
       S._soilLayerKey = key;
       S._soilLayerMeta = {
         key,
+        visualSignature,
         viewX: cacheView.x,
         viewY: cacheView.y,
         viewW: cacheView.w,
@@ -15734,7 +15880,8 @@ function syncFermenterUnlockUI() {
     const cacheH = ch + padPx * 2;
     const cacheView = getNestLayerBuildView(padPx);
     const soilRange = getNestLayerSoilRange(cacheView);
-    const key = getNestScreenCacheKey(cacheView, soilRange.top, soilRange.bottom, 'fog');
+    const visualSignature = getNestVisualSignature();
+    const key = getNestScreenCacheKey(cacheView, soilRange.top, soilRange.bottom, 'fog', visualSignature);
     if(!S._fogCvs || S._fogCvs.width !== cacheW || S._fogCvs.height !== cacheH) {
       S._fogCvs = document.createElement('canvas');
       S._fogCvs.width = cacheW;
@@ -15744,7 +15891,7 @@ function syncFermenterUnlockUI() {
       S._fogMeta = null;
     }
     if(S._fogKey !== key) {
-      if(shouldDeferNestLayerCacheRebuild(S._fogMeta) || canKeepTransformedNestLayerCache(S._fogMeta)) {
+      if(shouldDeferNestLayerCacheRebuild(S._fogMeta, visualSignature) || canKeepTransformedNestLayerCache(S._fogMeta, visualSignature)) {
         drawTransformedNestLayerCache(S._fogCvs, S._fogMeta, shakeX, shakeY);
         return;
       }
@@ -15820,6 +15967,7 @@ function syncFermenterUnlockUI() {
       S._fogKey = key;
       S._fogMeta = {
         key,
+        visualSignature,
         viewX: cacheView.x,
         viewY: cacheView.y,
         viewW: cacheView.w,
@@ -16321,7 +16469,8 @@ function syncFermenterUnlockUI() {
         const lerpSpeed = isResting ? 4 : 14;
         a._drawRot += diff * Math.min(1, lerpSpeed * (S.perf.dt || 0.016));
       }
-      ctx.save(); ctx.translate(a.x,a.y); ctx.rotate(a._drawRot);
+      const pose = getActionAntDrawPose(a, a._drawRot);
+      ctx.save(); ctx.translate(pose.x,pose.y); ctx.rotate(a._drawRot);
       if(isGolden) {
         const pulse = (Math.sin(S.t*4 + a.anim) + 1) * 0.5;
         ctx.fillStyle = `rgba(250, 204, 21, ${0.22 + 0.25*pulse})`;

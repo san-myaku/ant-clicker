@@ -306,6 +306,7 @@ Rendering:
 - Sprite and vector modes remain individual ant renderers.
 - The static underground soil/tunnel layer is cached in `S._soilLayerCvs` and rebuilt only when camera/screen/world visibility signatures change.
 - The fog-of-war layer is cached in `S._fogCvs` with the same screen/world signature approach. This avoids redoing hundreds of radial gradients every frame on large visible nests.
+- Transformed cache reuse is allowed only when the stored `visualSignature` still matches the current visible nest state. Dig progress or newly visible rooms/shafts force a real cache rebuild so tunnels and fog clear immediately.
 - Perf counters track `drawCrowd`, `visibleCrowd`, `culledCrowd`, `crowdAtlasFrames`, `drawDot`, `drawSprite`, `drawVector`, and `drawBatches`.
 
 AI update throttling:
@@ -347,7 +348,8 @@ Target reservation:
   - main shaft
   - first barracks after blueprint
   - forced/priority construction
-  - ferment room can accept modest stacking
+  - reserved barracks, ferment rooms, and cookie rooms can accept modest stacking
+- Reserved special rooms use hidden+visible room-node counts to resume already placed but unfinished rooms after load or assignment rebuild. `G.*Pending` tracks reservations that have not yet been placed.
 - Target cap prevents large builder populations from opening unlimited pending construction edges at once. The current cap is 3 simultaneous construction targets.
 - Active construction highlights and partial unfinished tunnel drawing are also tied to `S.buildAssignments`, so stale visible-builder targets do not appear as extra parallel work.
 
@@ -361,6 +363,12 @@ Visible builder behavior loop:
 - Return to the dig frontier
 
 Visible builders prefer targets from `S.buildAssignments`. If render cap only leaves a few visible builders, they still act as representative animation for the logical construction work.
+
+Tunnel ant rendering:
+
+- Ant pathfinding and task positions stay on the edge centerline, but rendering applies a small per-ant lateral lane offset while an ant is visibly walking on an edge.
+- The lane offset is visual-only and also applies to high-count `S.antCrowd` atlas rendering, preventing crowded tunnels from collapsing into one black/green line.
+- `S.antCrowd` room movement is intentionally slow. When a crowd ant reaches a room from an edge, it keeps its arrival position and transitions into room movement from there instead of teleporting to a random slot.
 
 Builder level affects pick time:
 
@@ -417,7 +425,11 @@ Nurse behavior:
 - Move larvae to larva growth rooms
 - Feed larvae
 - Clean larva-room waste
-- Wait/wander in room slots when idle so they do not visually stack into one ant
+- Wait/wander in room slots when idle so they do not visually stack into one ant.
+- Idle nurse room wandering uses slower nursery-specific movement and longer target holds than worker room wandering.
+- If an idle nurse needs to wait in a nursery/queen room that is not its current node, it first walks there via completed tunnels (`go_room_wander`) and only then starts room-slot wandering. This keeps the visual room position and logical `a.node` aligned.
+- When any action ant starts a tunnel path from a room slot, `move()` first eases the ant back to its current node center before entering the edge. This prevents slot-to-tunnel snaps when workers or nurses leave a room.
+- Timed room-wander action actors are protected during representative actor trimming where possible, so ants do not pop out of rooms just because the visual actor cap is being rebalanced.
 
 Egg and larva systems:
 
@@ -628,6 +640,7 @@ Cookie room:
 - Unlock condition: builder level `3`
 - Built via the unified blueprint flow (Rooms tab `クッキー室建設` button → `G.cookieRoomPending` reservation → builder AI places and digs it), NOT auto-built; the old `canAddCookieRoom` auto-build was removed. No hard room cap; cost is power-scaling `getCookieRoomCost()` = `COOKIE_ROOM_COST_BASE (30 cookie) * COOKIE_ROOM_COST_GROWTH (2.5)^(built + pending)`.
 - Each room contributes to `S.cookieRoomMul` = `COOKIE_ROOM_MUL_PER_ROOM (1.5)^cookieRoomCount` (no longer capped at 3 rooms).
+- If a cookie room has already been placed but is still hidden, builder AI detects it from all room nodes and resumes it with reserved priority.
 - Workers prefer delivering cookies to cookie rooms, then queen room, then food rooms.
 - Delivery to a cookie room stores `invCookie` and has a bonus chance to add an extra cookie.
 - Current drawing uses normal room slots with gold cookie dots. Old large cookie background and `+N` overlay drawing were removed.
@@ -644,6 +657,7 @@ Barracks blueprint / barracks rooms:
 - Repeat purchase via the unified blueprint flow: cost is power-scaling `getBarracksCost()` = `MAJOR_BARRACKS_COST (25 cookie) * BARRACKS_COST_GROWTH (2.5)^(built + pending)`. The first purchase still sets `G.major.barracks` (kept for compatibility); each purchase adds a `G.barracksPending` reservation.
 - Requires builder level `3`.
 - Builder AI places/digs barracks rooms from the pending count (same pattern as cookie/ferment). `S.barracksCount` is recomputed from built soldier rooms; each barracks raises the soldier population cap (+20/room).
+- If a barracks room has already been placed but is still hidden, builder AI detects it from all room nodes and resumes it with reserved priority. This recovery path is gated by the barracks blueprint.
 - Builder AI prioritizes first barracks construction after the blueprint is first purchased.
 
 Soldiers:
@@ -899,6 +913,7 @@ Large-nest static layer caching:
 - The cache canvas is larger than the visible screen (`NEST_LAYER_CACHE_PAD_RATIO`, min/max pad) so normal panning can be served from cached pixels.
 - `panByScreen()` and `zoomAtScreen()` call `markCameraInteraction()`. During this short interaction window, stale static/fog caches are transformed to the current camera instead of being rebuilt.
 - If the current view is still covered and the zoom ratio is close enough, `canKeepTransformedNestLayerCache()` keeps using the transformed cache even after the interaction window, avoiding a post-drag rebuild hitch.
+- That transformed-cache path is camera-only: if `getNestVisualSignature()` changes because `nodeVis`, `edgeFrac`, room/shaft count, or soil colors changed, the old soil/fog cache is not reused.
 - If the camera moves beyond cache coverage during interaction, `drawCheapSoilFallback()` fills exposed soil cheaply until a full static cache rebuild is needed.
 - Soil/fog cache rebuilds are staggered with `noteNestLayerRebuildThisFrame()` so they do not both rebuild in the same render frame when possible.
 - Room inventory, larvae, waste dots, ants, queen, large food, enemies, trails, and effects remain dynamic and are drawn on top.

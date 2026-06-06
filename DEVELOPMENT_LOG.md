@@ -1,5 +1,43 @@
 # Development Log
 
+## 2026-06-06 Review builder AI and room expansion recovery
+
+Purpose:
+- Check builder ant behavior and nest expansion for suspicious edge cases.
+
+Findings:
+- Logical builder work is driven by `G.ants.builder` through `S.buildAssignments`, so visible builder count/render cap is not the construction-speed limiter.
+- Normal nest expansion, `forceExpandRoom()`, and `advanceDigEdge()` still preserve the intended pending-edge and collision-checked placement flow.
+- Cookie room and barracks unfinished-room recovery was inconsistent with ferment rooms: it used visible room counts as the placed count, so already placed but still hidden rooms could lose reserved priority after assignment rebuild/load.
+- The screenshot showed ants and carried items collapsing onto the exact tunnel centerline, making busy routes read like a black/green rope instead of individual ants moving through a tunnel.
+- The static soil/tunnel and fog cache reuse from the large-save performance pass could keep transforming an old cache even after `nodeVis` or `edgeFrac` changed. That made newly built shafts/rooms exist in simulation while the visible tunnel cutout and fog clearing stayed stale.
+- Nurse idle room wandering was too twitchy: slot targets were reselected very frequently, so nurses appeared to dart around inside nursery rooms.
+- When a nurse was assigned to idle-wander in a nursery/queen room different from its logical `a.node`, the visual position could move into that room while `a.node` stayed behind. When the wander ended, the next path update snapped the ant back to the old node, reading as a sudden disappearance.
+- The attached save is a 91-ant `sprite`-mode case, so the remaining fast/popping room ants were mainly normal `S.ants` action actors rather than `S.antCrowd`.
+- Workers and nurses could still snap from a room slot to the tunnel center as soon as a path task started, making room ants appear/disappear.
+
+Changes:
+- Added `getRoomNodeCountByType(type, includeHidden)` and kept `getFermentRoomNodeCount()` as a wrapper.
+- Changed cookie room and barracks recovery checks to compare all placed nodes against visible nodes.
+- Added reserved priority/stacking for `barracks:reserved` and `cookieroom:reserved`, matching the existing ferment-room reservation pattern.
+- Gated barracks recovery and `forceExpandRoom('soldier')` behind the barracks blueprint.
+- Added a visual-only per-ant tunnel lane offset for normal ant drawing, dot/sprite drawing, and `S.antCrowd` atlas drawing.
+- Updated builder edge movement to keep the active edge id while moving on a dig edge, so builder visuals can use the same lane system.
+- Stored `visualSignature` on soil/fog cache metadata and blocked transformed-cache reuse when the current visible nest signature differs.
+- Slowed nurse room-slot wandering, lengthened nurse target holds, and reduced slot jitter.
+- Added `go_room_wander` so idle nurses walk through completed tunnels to the nursery/queen room before starting room-slot wandering.
+- Protected timed room-wander action actors during visual actor trimming where possible, reducing room ants popping out during cap rebalancing.
+- Further slowed worker room-slot wandering and made worker target holds longer.
+- Added a room-exit easing step in `move()` so action ants walk from their current room-slot position back to the node center before entering a tunnel path.
+- Slowed `S.antCrowd` room movement/edge-leave frequency and preserved arrival position when crowd ants enter rooms, preventing high-count room pops.
+- Updated `CURRENT_SYSTEM_OVERVIEW.md` with the reserved special-room recovery behavior.
+
+Verification:
+- Inline JavaScript syntax check passed with `new Function(...)`.
+- `git diff --check` passed with only LF/CRLF warnings.
+- Static grep confirmed the new helper, reserved priorities, and overview notes.
+- In-app Browser runtime verification was attempted, but the browser connection failed during setup in this environment.
+
 ## 2026-06-06 Halve soldier hiring cost
 
 Purpose:
