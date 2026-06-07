@@ -11092,7 +11092,7 @@ function expandMap(forcedType, isEmergency) {
             damageRaidEnemy(en, dmg);
             // 毒演出: 敵ごとに約0.7秒間隔で緑の粒
             en._poisonT = (en._poisonT || 0) + dt;
-            if(en._poisonT >= 0.7){ en._poisonT = 0; fx(en.x, en.y - dp(12), '☠', '#86efac'); }
+            if(en._poisonT >= 0.7){ en._poisonT = 0; fx(en.x, en.y - dp(12), '☠', '#c084fc'); }
           }
         }
       }
@@ -12505,7 +12505,7 @@ function expandMap(forcedType, isEmergency) {
     if(researchUI.meta) {
       const metaHtml = renderResearchMeta();
       researchUI.meta.style.display = metaHtml ? '' : 'none';
-      if(researchUI.meta.innerHTML !== metaHtml) researchUI.meta.innerHTML = metaHtml;
+      if(!S._researchInteracting && researchUI.meta.innerHTML !== metaHtml) researchUI.meta.innerHTML = metaHtml;
     }
 
     if(researchUI.viewToggle) {
@@ -12522,7 +12522,7 @@ function expandMap(forcedType, isEmergency) {
     if(view === 'classic' && S.researchTreeModalOpen) closeResearchTreeModal();
     if(S.researchTreeModalOpen && researchTreeModalBody) {
       const mHtml = renderResearchTreeModal(rs);
-      if(researchTreeModalBody.innerHTML !== mHtml) researchTreeModalBody.innerHTML = mHtml;
+      if(!S._researchInteracting && researchTreeModalBody.innerHTML !== mHtml) researchTreeModalBody.innerHTML = mHtml;
     }
 
     // innerHTML の不要な置き換えを防ぐ。
@@ -12531,7 +12531,7 @@ function expandMap(forcedType, isEmergency) {
     const newHtml = (view === 'classic')
       ? RESEARCH_BRANCH_DEFS.map(branch => renderResearchBranch(branch, rs)).join('')
       : renderResearchTree(rs);
-    if(researchUI.branchList.innerHTML !== newHtml) {
+    if(!S._researchInteracting && researchUI.branchList.innerHTML !== newHtml) {
       researchUI.branchList.innerHTML = newHtml;
     }
   }
@@ -12688,6 +12688,28 @@ function expandMap(forcedType, isEmergency) {
       if(!b) return;
       buyMetaUpgrade(b.getAttribute('data-meta-buy'));
     });
+  }
+
+  // 研究パネルを押している間は updateResearchUI の innerHTML 置換を止める。
+  // クッキー増減で「研究可能/不足」が切り替わるたびにツリーが作り替えられ、
+  // タップ中(pointerdown→pointerup→click)に対象ノードが消えてクリックが失われる
+  // （＝研究を押せたり押せなかったり）のを防ぐ。pointerup/cancel または安全タイマで解除。
+  {
+    let _riTimer = null;
+    const begin = () => {
+      S._researchInteracting = true;
+      if(_riTimer) clearTimeout(_riTimer);
+      _riTimer = setTimeout(() => { S._researchInteracting = false; }, 1500);
+    };
+    const end = () => {
+      S._researchInteracting = false;
+      if(_riTimer) { clearTimeout(_riTimer); _riTimer = null; }
+    };
+    [researchUI.branchList, researchUI.meta, researchTreeModalBody].forEach(el => {
+      if(el) el.addEventListener('pointerdown', begin, { passive: true });
+    });
+    window.addEventListener('pointerup', end, { passive: true });
+    window.addEventListener('pointercancel', end, { passive: true });
   }
 
   // 研究ツリー拡大モーダルの開閉

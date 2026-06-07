@@ -1,5 +1,17 @@
 # Development Log
 
+## 2026-06-08 Research tree: fix intermittent tap loss; poison fx purple
+
+Findings:
+- Research from the tree worked "sometimes" (押せたり押せなかったり). Cause: `updateResearchUI()` runs every frame and replaces `#research-branch-list` innerHTML whenever the tree HTML changes — and it changes whenever a node's affordability flips (cookies are constantly earned/spent in real play). If that rebuild lands between a tap's pointerdown and pointerup, the node the finger is on is destroyed and the click never fires. (Earlier checks missed it because they ran with a fixed huge cookie balance, so the HTML was stable.)
+
+Changes:
+- Added an interaction guard `S._researchInteracting`: set on `pointerdown` over `#research-branch-list` / `#research-meta` / the expand modal body (with a 1.5 s safety timeout), cleared on window `pointerup` / `pointercancel`. The three innerHTML replacements in `updateResearchUI()` (branch list, meta panel, modal body) are skipped while it is true, so the element under the finger survives the whole tap. After pointerup the next frame rebuilds normally.
+- Poison-jaw fx (☠ above engaged enemies) recolored green → purple (`#c084fc`).
+
+Verification (preview):
+- `pointerdown` on a node set the flag true; window `pointerup` cleared it. With the flag forced true, a marked node (`data-tm`) survived a frame where its affordability changed (no rebuild); after clearing the flag the next frame rebuilt (mark gone). Buying still works (real click on a ready node completes). No console errors.
+
 ## 2026-06-08 Research: first "new effect" node — 毒顎 (Poison Jaw) soldier DoT
 
 Purpose:
