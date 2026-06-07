@@ -1,5 +1,23 @@
 # Development Log
 
+## 2026-06-07 Research engine — phase 3 (prestige meta currency "insight")
+
+Purpose:
+- Add the second loop: prestige (転生) grants a permanent meta currency that funds research-strengthening upgrades persisting across resets.
+
+Changes:
+- Permanent store `localStorage['antResearchMeta'] = {insight, meta:{costDown, effUp}}`, independent of the colony save so it survives prestige resets and reloads. `loadResearchMeta()` (called before `applyPrestigeBonus()` at startup) restores it into `G.insight`/`G.researchMeta`; `saveResearchMeta()` writes on purchase; `addInsightPermanent()` is a pre-reset read-modify-write.
+- Earning: `computePrestigeInsight()` = `floor(sqrt(totalResearchLevels)+sqrt(G.tot/40))` (min 1). The prestige button adds it and passes `insightGain` via the existing `antPrestige` handoff; `applyPrestigeBonus()` toasts it after reload.
+- Meta upgrades (`RESEARCH_META_DEFS`, insight cost `getMetaCost`=base×growth^lv): `costDown` (max 20) → `getResearchCostMul()` (−3%/Lv, floor −60%) used by `getResearchNodeCost`; `effUp` (∞) → `getResearchEffMul()` applied in `getResearchBonus` (=1+Σ×effMul). Both default 0 → behavior-neutral until bought.
+- UI: `#research-meta` panel (purple) above the research lock note, shown once `prestigeCount>0`/`insight>0`/any meta level; `renderResearchMeta()` lists balance + per-upgrade level/next-cost; buys via `data-meta-buy` → `buyMetaUpgrade()`.
+
+Verification (preview):
+- Seeded `antResearchMeta` insight=500 → on reload `G.insight`=500, panel visible (balance 500, costDown 🧠2 / effUp 🧠3).
+- Bought costDown×5: ferment_unlock cost 🍪30+🍃4K → 🍪25+🍃3.4K (×0.85 = −15%). Bought effUp×5: 食料生産 rose (effMul into getResearchBonus). Insight 500→393 (−107 = exact sum of scaled costs). Store persisted `{insight:393, meta:{costDown:5, effUp:5}}`.
+- No console errors; `new Function` syntax check passed (15099 lines).
+
+Not yet done: new-system unlock nodes (auto-gather/auto-research) + runtime, large-tree UI scaling.
+
 ## 2026-06-07 Fix mobile: nest cross-section hidden by opaque HUD overlay
 
 Purpose:

@@ -603,6 +603,39 @@
     }
     /* ===== 研究ツリー：系統樹ビュー（土・洞窟テーマ。旧リストはトグルで温存） ===== */
     .research-view-toggle { display: flex; gap: 6px; margin-bottom: 8px; }
+    /* 段階3: 転生メタ通貨「知見」パネル（紫＝知識テーマ） */
+    .research-meta {
+      margin-bottom: 8px;
+      border: 1px solid rgba(139, 92, 246, 0.34);
+      border-radius: 10px;
+      padding: 8px;
+      background: linear-gradient(180deg, rgba(40, 32, 74, 0.6), rgba(24, 20, 44, 0.6));
+    }
+    .rmeta-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+    .rmeta-title { font-size: 11px; font-weight: 800; color: #c4b5fd; }
+    .rmeta-balance { font-size: 14px; font-weight: 800; color: #ede9fe; }
+    .rmeta-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 5px 6px; margin-bottom: 5px;
+      border: 1px solid rgba(139, 92, 246, 0.28);
+      border-radius: 8px;
+      background: rgba(30, 27, 55, 0.5);
+    }
+    .rmeta-row:last-child { margin-bottom: 0; }
+    .rmeta-ic { font-size: 16px; flex: 0 0 auto; }
+    .rmeta-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .rmeta-name { font-size: 11px; font-weight: 700; color: #e9e4ff; }
+    .rmeta-name b { color: #c4b5fd; }
+    .rmeta-desc { font-size: 9px; color: #a99fd0; line-height: 1.3; }
+    .rmeta-buy {
+      flex: 0 0 auto; white-space: nowrap;
+      border: 1px solid rgba(167, 139, 250, 0.55);
+      border-radius: 7px;
+      background: linear-gradient(180deg, #3b2f63, #241d40);
+      color: #ede9fe; font-size: 11px; font-weight: 700;
+      padding: 6px 10px; cursor: pointer; touch-action: manipulation;
+    }
+    .rmeta-buy.disabled { opacity: 0.45; pointer-events: none; filter: grayscale(0.6); }
     .rview-btn {
       flex: 1;
       border: 1px solid rgba(110, 75, 38, 0.5);
@@ -2753,6 +2786,7 @@
             <div class="tab-card research-panel">
               <div class="tab-sec-title">研究センター</div>
               <div class="research-lead" id="research-lead">研究は巣全体のルールを書き換える上位システムです。</div>
+              <div class="research-meta" id="research-meta" style="display:none;"></div>
               <div class="research-lock" id="research-lock-note">🔒 研究未解放: 食料を10,000まで蓄えると解放されます。</div>
               <div class="research-overview" id="research-overview"></div>
               <div class="research-view-toggle" id="research-view-toggle"></div>
@@ -3680,14 +3714,89 @@ function getResearchBonuses(){
   if(!_researchBonusCache) recomputeResearchBonuses();
   return _researchBonusCache;
 }
-// 倍率取得（無ければ1）。additive: 1 + Σ(perLevel×level)。減少効果は perLevel を負に。
+// 倍率取得。1 + Σ(perLevel×level) に、転生メタ「知識の結晶」(effUp)の係数を掛ける。
 function getResearchBonus(key){
-  return 1 + (getResearchBonuses().muls[key] || 0);
+  return 1 + (getResearchBonuses().muls[key] || 0) * getResearchEffMul();
 }
 function hasResearchUnlock(flag){
   return !!getResearchBonuses().flags[flag];
 }
 function invalidateResearchBonuses(){ _researchBonusCache = null; }
+
+// ===== 段階3: 転生メタ通貨「知見(insight)」と恒久メタ層 =====
+// 知見は転生(プレステージ)で獲得し、コロニーのセーブとは別の恒久キー(RESEARCH_META_KEY)に保存する。
+// メタ層はリセットをまたいで永続し、研究コスト割引(costDown)と研究効果増(effUp)を提供する。
+const RESEARCH_META_KEY = 'antResearchMeta';
+const RESEARCH_META_DEFS = [
+  { key:'costDown', icon:'💡', name:'研究効率化', desc:'研究コスト -3%/Lv（最大 -60%）', baseCost:2, growth:1.8, max:20 },
+  { key:'effUp',    icon:'🧠', name:'知識の結晶', desc:'研究の倍率効果 +5%/Lv', baseCost:3, growth:1.8, max:Infinity }
+];
+function getResearchMeta(){
+  if(!G.researchMeta || typeof G.researchMeta !== 'object') G.researchMeta = { costDown:0, effUp:0 };
+  return G.researchMeta;
+}
+function getMetaLevel(key){ return Math.max(0, Math.floor(getResearchMeta()[key] || 0)); }
+function getMetaMax(def){ return (def.max === Infinity) ? Infinity : Math.max(1, Math.floor(def.max || 1)); }
+function getMetaCost(def, level){ return Math.max(1, Math.floor(def.baseCost * Math.pow(def.growth, Math.max(0, level)))); }
+function getResearchCostMul(){ return Math.max(0.4, 1 - 0.03 * getMetaLevel('costDown')); }
+function getResearchEffMul(){ return 1 + 0.05 * getMetaLevel('effUp'); }
+
+function _readResearchMetaStore(){
+  const data = { insight:0, meta:{ costDown:0, effUp:0 } };
+  try {
+    const raw = localStorage.getItem(RESEARCH_META_KEY);
+    if(raw){
+      const p = JSON.parse(raw);
+      if(p && typeof p === 'object'){
+        data.insight = Math.max(0, Math.floor(+p.insight || 0));
+        if(p.meta && typeof p.meta === 'object'){
+          data.meta.costDown = Math.max(0, Math.floor(+p.meta.costDown || 0));
+          data.meta.effUp = Math.max(0, Math.floor(+p.meta.effUp || 0));
+        }
+      }
+    }
+  } catch(_){}
+  return data;
+}
+function loadResearchMeta(){
+  const d = _readResearchMetaStore();
+  G.insight = d.insight;
+  G.researchMeta = d.meta;
+}
+function saveResearchMeta(){
+  try {
+    localStorage.setItem(RESEARCH_META_KEY, JSON.stringify({ insight: Math.max(0, Math.floor(G.insight || 0)), meta: getResearchMeta() }));
+  } catch(_){}
+}
+// 転生リセット直前に、恒久ストアへ直接加算する（G を介さず read-modify-write）。
+function addInsightPermanent(amount){
+  const d = _readResearchMetaStore();
+  d.insight += Math.max(0, Math.floor(amount || 0));
+  try { localStorage.setItem(RESEARCH_META_KEY, JSON.stringify(d)); } catch(_){}
+}
+function computePrestigeInsight(){
+  let totalLv = 0;
+  const un = (G.research && G.research.unlockedNodes) ? G.research.unlockedNodes : {};
+  for(const k in un){ const v = un[k]; totalLv += (typeof v === 'number') ? v : (v ? 1 : 0); }
+  return Math.max(1, Math.floor(Math.sqrt(totalLv) + Math.sqrt(Math.max(0, G.tot || 0) / 40)));
+}
+function buyMetaUpgrade(key){
+  const def = RESEARCH_META_DEFS.find(d => d.key === key);
+  if(!def) return false;
+  const lv = getMetaLevel(key);
+  if(lv >= getMetaMax(def)) return false;
+  const cost = getMetaCost(def, lv);
+  if((G.insight || 0) < cost){ toast('知見が足りません', true); return false; }
+  G.insight = Math.max(0, Math.floor((G.insight || 0) - cost));
+  getResearchMeta()[key] = lv + 1;
+  saveResearchMeta();
+  invalidateResearchBonuses();
+  toast(`${def.icon} ${def.name} Lv${lv + 1}`);
+  if(typeof G.recalc === 'function') G.recalc();
+  if(typeof updateResearchUI === 'function') updateResearchUI();
+  if(typeof updateUI === 'function') updateUI();
+  return true;
+}
 
 function ensureResearchState(target = G){
   if(!target) return makeDefaultResearchState();
@@ -11968,6 +12077,7 @@ function expandMap(forcedType, isEmergency) {
     lead: document.getElementById('research-lead'),
     lock: document.getElementById('research-lock-note'),
     overview: document.getElementById('research-overview'),
+    meta: document.getElementById('research-meta'),
     viewToggle: document.getElementById('research-view-toggle'),
     branchList: document.getElementById('research-branch-list')
   };
@@ -12303,6 +12413,26 @@ function expandMap(forcedType, isEmergency) {
     return `<div class="rtree-scroll">${buildResearchTreeInner(rs).inner}</div>`;
   }
 
+  // 段階3: 転生メタ通貨「知見」パネル（転生済み or 知見/メタ所持時のみ表示）
+  function renderResearchMeta(){
+    const insight = Math.max(0, Math.floor(G.insight || 0));
+    const anyMeta = getMetaLevel('costDown') > 0 || getMetaLevel('effUp') > 0;
+    const show = (G.prestigeCount || 0) > 0 || insight > 0 || anyMeta;
+    if(!show) return '';
+    const rows = RESEARCH_META_DEFS.map(def => {
+      const lv = getMetaLevel(def.key);
+      const maxed = lv >= getMetaMax(def);
+      const cost = maxed ? 0 : getMetaCost(def, lv);
+      const can = !maxed && insight >= cost;
+      return `<div class="rmeta-row">`
+        + `<span class="rmeta-ic">${def.icon}</span>`
+        + `<span class="rmeta-body"><span class="rmeta-name">${def.name}${lv > 0 ? ` <b>Lv${lv}</b>` : ''}</span><span class="rmeta-desc">${def.desc}</span></span>`
+        + `<button type="button" class="rmeta-buy${can ? '' : ' disabled'}" data-meta-buy="${def.key}">${maxed ? '上限' : '🧠' + fmtCount(cost)}</button>`
+        + `</div>`;
+    }).join('');
+    return `<div class="rmeta-head"><span class="rmeta-title">🧠 知見（転生で獲得・恒久）</span><span class="rmeta-balance">${fmtCount(insight)}</span></div>${rows}`;
+  }
+
   // 拡大モーダル用のスケール: ツリー全体（縦横とも）がなるべく収まるようにフィットさせる。
   // 縦長のツリーを横幅だけに合わせると拡大しすぎて一度に少ししか見えないため、両方向の小さい方を採用。
   function getResearchTreeModalScale(treeW, treeH){
@@ -12347,6 +12477,12 @@ function expandMap(forcedType, isEmergency) {
       }
     }
     // ビュー切替トグル（系統樹 / クラシック）
+    if(researchUI.meta) {
+      const metaHtml = renderResearchMeta();
+      researchUI.meta.style.display = metaHtml ? '' : 'none';
+      if(researchUI.meta.innerHTML !== metaHtml) researchUI.meta.innerHTML = metaHtml;
+    }
+
     if(researchUI.viewToggle) {
       const toggleHtml = renderResearchViewToggle(getResearchView());
       if(researchUI.viewToggle.innerHTML !== toggleHtml) researchUI.viewToggle.innerHTML = toggleHtml;
@@ -12506,6 +12642,14 @@ function expandMap(forcedType, isEmergency) {
       const b = e.target.closest('[data-research-view]');
       if(!b) return;
       setResearchView(b.getAttribute('data-research-view'));
+    });
+  }
+
+  if(researchUI.meta) {
+    researchUI.meta.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-meta-buy]');
+      if(!b) return;
+      buyMetaUpgrade(b.getAttribute('data-meta-buy'));
     });
   }
 
@@ -13659,11 +13803,13 @@ function syncFermenterUnlockUI() {
   // ============================================================
   const btnPrestige = document.getElementById('btn-prestige');
   if(btnPrestige) btnPrestige.onclick = () => {
-    if(!confirm('コロニーをリセットして転生しますか？\n\n引継ぎ内容:\n・食料生産+10%ボーナス\n・初期働きアリ+2匹\n・転生回数記録\n\n※これまでの記録は日記に残ります')) return;
+    const insightGain = computePrestigeInsight();
+    if(!confirm(`コロニーをリセットして転生しますか？\n\n引継ぎ内容:\n・食料生産+10%ボーナス\n・初期働きアリ+2匹\n・🧠 知見 +${insightGain}（恒久メタ研究の通貨）\n・転生回数記録\n\n※これまでの記録は日記に残ります`)) return;
     const pc = (G.prestigeCount||0)+1;
     const lb = (G.legacyBonus||0)+0.10;
     const rw = G.raidWins||0; const rt = G.raidTotal||0;
-    localStorage.setItem('antPrestige', JSON.stringify({prestigeCount:pc, legacyBonus:lb, raidWins:rw, raidTotal:rt}));
+    addInsightPermanent(insightGain);   // 恒久ストアへ加算（リセット・通常リロードをまたいで保持）
+    localStorage.setItem('antPrestige', JSON.stringify({prestigeCount:pc, legacyBonus:lb, raidWins:rw, raidTotal:rt, insightGain}));
     localStorage.removeItem(SAVE_KEY);
     location.reload();
   };
@@ -13680,6 +13826,7 @@ function syncFermenterUnlockUI() {
       G.raidTotal = Math.max(G.raidTotal||0, p.raidTotal||0);
       G.ants.worker = Math.min((G.ants.worker||8)+2*(p.prestigeCount||0), 20);
       if(p.prestigeCount>0) toast(`✨ 転生${p.prestigeCount}回目ボーナス！食料生産+${Math.round((p.legacyBonus||0)*100)}%`);
+      if(p.insightGain>0) toast(`🧠 知見を ${p.insightGain} 獲得！研究タブの「知見」で恒久強化を購入できる`);
     } catch(e) {}
   }
 
@@ -18051,6 +18198,7 @@ function syncFermenterUnlockUI() {
   initGame();
 
   // 改善: 転生ボーナス適用 → チュートリアル初期化 → プログレッシブUI
+  loadResearchMeta();      // 段階3: 転生メタ通貨「知見」と恒久メタ層を恒久ストアから復元
   applyPrestigeBonus();
   initProgressiveUI();
   TUT.init();

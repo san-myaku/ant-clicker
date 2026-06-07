@@ -527,7 +527,18 @@ The research system is the intended late-game engine, so effects are **data-driv
 - **Repeatable content so far**: `gather_inf` (gatherFood +5%/Lv), `brood_egg_inf` (broodEgg +4%/Lv), `brood_larva_inf` (broodLarva +3%/Lv), all `max:Infinity, costGrowth:1.5`. More keys/branches and new-system unlock flags are added incrementally.
 - **Tree UI**: nodes show a `Lv N` badge (repeatables), the **next-level** cost as footer (`formatResearchCost` uses the current level), and `済`/`上限` for done/maxed.
 
-Not yet implemented (planned phases): prestige meta currency (`G.insight`) + permanent meta layer (`getResearchCostMul`/effect boosts), new-system unlock nodes (auto-gather, auto-research, etc.) and their runtime, and large-tree UI scaling (era grouping / modal zoom).
+### 13.0b Prestige meta currency "知見 (insight)" — second loop
+
+Prestige (転生) now grants a permanent meta currency **insight** that funds a meta layer persisting across resets — the two-loop engine.
+
+- **Permanent store**: a separate `localStorage` key `RESEARCH_META_KEY = 'antResearchMeta'` holds `{ insight, meta:{ costDown, effUp } }`. It is independent of the colony save (`SAVE_KEY`), so it survives both normal reloads and prestige resets. `loadResearchMeta()` restores it into `G.insight` / `G.researchMeta` at startup (called just before `applyPrestigeBonus()`); `saveResearchMeta()` writes it on every meta purchase; `addInsightPermanent()` does a read-modify-write straight to the store right before a prestige reset.
+- **Earning**: on prestige, `computePrestigeInsight()` = `floor(sqrt(totalResearchLevels) + sqrt(G.tot/40))` (min 1). The prestige button adds it via `addInsightPermanent()` and passes `insightGain` through the existing `antPrestige` handoff so `applyPrestigeBonus()` can toast it after reload.
+- **Meta upgrades** (`RESEARCH_META_DEFS`, bought with insight, exponential insight cost `getMetaCost`):
+  - `costDown` (max 20): research cost `-3%/Lv` (floored at `-60%`) via `getResearchCostMul()`, which `getResearchNodeCost()` multiplies in.
+  - `effUp` (infinite): research multiplier effects `+5%/Lv` via `getResearchEffMul()`, applied in `getResearchBonus(key)` = `1 + Σ(perLevel×level) × getResearchEffMul()`. Default 0 → ×1, so it is behavior-neutral until purchased.
+- **UI**: a `#research-meta` panel (purple theme) sits above the research lock note (so it shows even before research is re-unlocked after a prestige). It shows the insight balance + per-upgrade rows with level and next insight cost (`renderResearchMeta`), is shown only once `prestigeCount>0` / `insight>0` / any meta level exists, and buys via `data-meta-buy` → `buyMetaUpgrade()`.
+
+Not yet implemented (planned phases): new-system unlock nodes (auto-gather, auto-research, etc.) and their runtime, and large-tree UI scaling (era grouping / modal zoom).
 
 Research UI:
 
