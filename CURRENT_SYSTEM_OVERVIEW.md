@@ -1,6 +1,6 @@
 # Ant Colony V23 Current System Overview
 
-Last updated: 2026-06-06 (22)
+Last updated: 2026-06-07 (23)
 Target file: `index.html`
 
 This document is the current implementation overview for the single-file ant clicker game. When gameplay, UI, save data, AI behavior, or public deployment assumptions change, update this file together with `DEVELOPMENT_LOG.md`.
@@ -152,6 +152,12 @@ On desktop, the right panel keeps its fixed side layout, but the top HUD is visu
 - The desktop growth-factor line uses compact chips while preserving the same underlying support/penalty/blocker conditions.
 
 Top/right HUD resource boxes stay visible from the start. Discovery and unlocks change values and related gameplay, but they no longer remove cookie, larvae, rate, rest, season, or depth boxes from the layout.
+
+Product Design refresh:
+
+- `design_concepts/` contains the three generated UI concept boards used for the visual direction.
+- The implemented direction is the refined current dark UI: deep colony panels, amber/green/blue state accents, clearer tab and dock affordances, and polished modal/menu surfaces.
+- The refresh is CSS-centered and keeps the existing UI structure, save keys, localStorage payloads, `G` / `S` state, and canvas rendering unchanged.
 
 Stats modal:
 
@@ -352,6 +358,7 @@ Target reservation:
   - reserved barracks, ferment rooms, and cookie rooms can accept modest stacking
 - Reserved special rooms use hidden+visible room-node counts to resume already placed but unfinished rooms after load or assignment rebuild. `G.*Pending` tracks reservations that have not yet been placed.
 - Target cap prevents large builder populations from opening unlimited pending construction edges at once. The current cap is 3 simultaneous construction targets.
+- Duplicate-room prevention: `getDigTarget()` will not create a NEW room of `forcedType` while an unfinished (placed, `edgeFrac < 1`, underground) room of that same type already exists. Previously, because normal rooms have a stack limit of 1, a second/third work slot in the same `rebuildBuilderAssignments()` pass could not reserve the first new room and instead called `expandMap()`/`forceExpandRoom()` again, spawning 2-3 parallel rooms of the same type (the "multiple builders digging the same room" / multiple orange dashed tunnels bug). Now, if a same-type room is already under construction, `getDigTarget()` skips both the room expansion and the fallback shaft and returns `null` for that slot, so extra builders help other existing digs or idle instead of opening a duplicate. This limits concurrent under-construction rooms to 1 per non-shaft type; rooms of a type are built sequentially. Reserved special rooms (ferment/cookie/barracks) were already dedup-safe via their pending-count + "dig the unbuilt edge first" logic.
 - Active construction highlights and partial unfinished tunnel drawing are also tied to `S.buildAssignments`, so stale visible-builder targets do not appear as extra parallel work.
 
 Visible builder behavior loop:
@@ -505,12 +512,31 @@ Research unlocks when food reaches `10,000`.
 
 Research state lives in `G.research`.
 
+### 13.0 Engine model (data-driven, leveled, repeatable)
+
+The research system is the intended late-game engine, so effects are **data-driven** and nodes can be **repeatable / infinitely scaling** (fuel = cookie, with exponential cost). Design forks chosen: cookie fuel (exponential), one-time unlock nodes + infinite repeatable upgrades, effects = both multipliers and new-system unlocks, and (planned) prestige grants a meta currency.
+
+- **Node schema** (`RESEARCH_NODE_DEFS`): besides `id, branch, name, desc, prereq, breakthrough, costCookie, costFood`, nodes may declare:
+  - `max`: max level (`1`/omitted = one-time; `Infinity` or `repeatable:true` = infinite)
+  - `costGrowth`: per-level cost multiplier for repeatables (e.g. `1.5`)
+  - `effects: [...]`: data effects — `{kind:'mul', key, perLevel}` (additive into a multiplier accumulator) or `{kind:'flag', flag}` (unlock).
+- **Leveled state**: `G.research.unlockedNodes[id]` is now a **numeric level** (old boolean saves normalize to `1` in `ensureResearchState`). `researchLevel(id)` reads it; `hasResearchNode(id)` = level>0; `getResearchNodeMaxLevel(def)` resolves the cap.
+- **Effect aggregation**: `recomputeResearchBonuses()` walks all nodes×levels into a cache (`_researchBonusCache = {muls, flags}`); read via `getResearchBonus(key)` (= `1 + Σ(perLevel×level)`) and `hasResearchUnlock(flag)`. Cache is invalidated on purchase (`invalidateResearchBonuses()`) and lazily rebuilt. Existing multiplier helpers now read it: `getGatherResearchMul→getResearchBonus('gatherFood')`, `getBroodEggMul→'broodEgg'`, `getBroodLarvaMul→'broodLarva'`, `getWasteGenerationMul→'wasteGen'` (perLevel `-0.10`). Legacy 16 nodes were migrated to `effects` data with identical numbers, so behavior is unchanged.
+- **Cost & purchase**: `getResearchNodeCost(def, level)` = `floor(costCookie × costGrowth^level)` (food likewise; one-time = base). It also applies an optional meta discount `getResearchCostMul()` if defined (prestige phase). `buyResearchNode()` increments the level (not boolean), deducts the level-scaled cost, invalidates the bonus cache, and runs one-time-only side effects (queen whispers / `G.major.*` compat) only on the 0→1 step.
+- **Status**: `getResearchStatus` returns `done` (one-time owned), `maxed` (finite repeatable at cap), `ready`, or `locked`. UI marks: `✓` done, `★` maxed.
+- **Repeatable content so far**: `gather_inf` (gatherFood +5%/Lv), `brood_egg_inf` (broodEgg +4%/Lv), `brood_larva_inf` (broodLarva +3%/Lv), all `max:Infinity, costGrowth:1.5`. More keys/branches and new-system unlock flags are added incrementally.
+- **Tree UI**: nodes show a `Lv N` badge (repeatables), the **next-level** cost as footer (`formatResearchCost` uses the current level), and `済`/`上限` for done/maxed.
+
+Not yet implemented (planned phases): prestige meta currency (`G.insight`) + permanent meta layer (`getResearchCostMul`/effect boosts), new-system unlock nodes (auto-gather, auto-research, etc.) and their runtime, and large-tree UI scaling (era grouping / modal zoom).
+
 Research UI:
 
 - The Research tab shows overview cards for total progress, currently affordable research, and next candidate.
-- Each branch renders as a lane with icon, accent color, branch description, progress bar, and ready/done counts.
-- Nodes render with status marks, breakthrough tags, prerequisite tags, condition tags, cost, node id, and action state.
-- Same-branch prerequisites are visualized with indentation and connector lines; progression data still comes from `RESEARCH_NODE_DEFS.prereq`.
+- The Research tab has two view modes, switchable via a toggle (`#research-view-toggle`, buttons `data-research-view="tree|classic"`). The choice is held in `S.researchView` and persisted to `localStorage` under `RESEARCH_VIEW_KEY = 'ant_research_view_v1'`. Default is `tree`. Both views render into the same `#research-branch-list` container, so the existing `data-research-buy` click delegation (and `buyResearchNode`'s own guards) work in either mode.
+  - `tree` (default, new): a branch-lane skill-tree with an earthy/cave theme. `renderResearchTree()` + `computeResearchTreeLayout()` lay each branch out as a horizontal lane; nodes are placed in columns by `getResearchNodeDepth()` (prereq depth) and stacked into subrows when a depth has several nodes. Nodes are circular "chambers" (`.rtree-node`, branch accent rim, icon + name + cost + status mark) and same-branch prereqs are drawn as curved SVG "tunnel" connectors (`.rtree-link`, dim when locked, amber when the prereq is open, glowing when the node is done). States: `is-done` / `is-ready` (amber pulse) / `is-wait` (ready but unaffordable) / `is-locked`, plus `is-breakthrough` (double rim). The tree is horizontally scrollable (`.rtree-scroll`, `touch-action: pan-x` + `overscroll-behavior-x: contain` so touch vertical drags delegate to the `#control-panel` `pan-y` scroller instead of being trapped by the nested horizontal scroller). Because `touch-action` does not affect the mouse wheel, a `wheel` listener on `#control-panel` redirects vertical-wheel events that occur over `.rtree-scroll` to the nearest scrollable-Y ancestor (manually adjusting `scrollTop`), so wheel scrolling no longer stalls when the cursor is over the tree; horizontal-wheel intent is left to the tree. Node descriptions/reasons are shown via the button `title` tooltip. The core tree HTML is built by `buildResearchTreeInner(rs)` (returns `{inner, width, height}`) and shared by the panel and the expand modal.
+  - Expand modal (tree view only): a `⛶` button (`data-research-expand`) in the toggle bar opens `#modal-research-tree`, a large `.modal-overlay` (`94vw × 90vh`) that re-renders the same tree via `renderResearchTreeModal()` scaled with a CSS `transform: scale()` to fit the WHOLE tree (both axes — the min of width-fit and height-fit; `getResearchTreeModalScale(treeW, treeH)`, clamped ~0.55–1.6×) inside a `.rtree-modal-stage` sized to the scaled extent for correct two-axis scrolling. Because the tree is tall and narrow, fitting both axes keeps all branches visible at once rather than over-zooming. While open (`S.researchTreeModalOpen`), `updateResearchUI()` keeps the modal body live; it closes on the close button, overlay click, `Escape`, or switching to classic, and re-fits on window resize. Buying delegates from the modal body the same way as the panel. The in-panel mini tree is kept unchanged.
+  - `classic` (preserved fallback): the original vertical list. Each branch renders as a lane with icon, accent color, branch description, progress bar, and ready/done counts. Nodes render as cards with status marks, breakthrough tags, prerequisite tags, condition tags, cost, node id, and action state. Same-branch prerequisites are visualized with indentation and connector lines.
+- All layout is derived at runtime from `RESEARCH_NODE_DEFS` (branch + `prereq`); nodes have no stored coordinates.
 
 Current branches:
 

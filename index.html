@@ -601,6 +601,168 @@
       .research-branch-head { align-items: flex-start; }
       .research-node-card { margin-left: calc(var(--depth, 0) * 6px); }
     }
+    /* ===== 研究ツリー：系統樹ビュー（土・洞窟テーマ。旧リストはトグルで温存） ===== */
+    .research-view-toggle { display: flex; gap: 6px; margin-bottom: 8px; }
+    .rview-btn {
+      flex: 1;
+      border: 1px solid rgba(110, 75, 38, 0.5);
+      border-radius: 8px;
+      background: linear-gradient(180deg, rgba(43, 30, 18, 0.9), rgba(28, 19, 11, 0.92));
+      color: #d9c3a5;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 6px 8px;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .rview-btn.is-active {
+      border-color: rgba(245, 158, 11, 0.7);
+      color: #fde9c8;
+      background: linear-gradient(180deg, rgba(92, 58, 24, 0.92), rgba(58, 38, 18, 0.94));
+      box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.25);
+    }
+    .research-branch-list.is-tree { gap: 0; }
+    .rtree-scroll {
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      /* 縦ドラッグは親(#control-panel)の縦スクロールへ委譲し、横ドラッグだけツリーを送る。
+         これがないとネストしたスクロール領域でジェスチャを奪い合い「途中で止まる」。 */
+      touch-action: pan-x;
+      overscroll-behavior-x: contain;
+      border: 1px solid rgba(86, 60, 33, 0.6);
+      border-radius: 10px;
+      padding: 8px;
+      background:
+        radial-gradient(140px 90px at 18% 0%, rgba(120, 82, 40, 0.22), transparent 70%),
+        radial-gradient(180px 130px at 82% 100%, rgba(80, 52, 26, 0.28), transparent 72%),
+        linear-gradient(180deg, #2a1d12, #1c130b);
+    }
+    .rtree { position: relative; }
+    .rtree-links-svg { position: absolute; left: 0; top: 0; pointer-events: none; }
+    .rtree-link { fill: none; stroke-width: 6; stroke-linecap: round; }
+    .rtree-link.is-locked { stroke: rgba(120, 96, 64, 0.32); }
+    .rtree-link.is-open { stroke: rgba(217, 170, 110, 0.62); }
+    .rtree-link.is-done { stroke: rgba(245, 180, 90, 0.92); filter: drop-shadow(0 0 3px rgba(245, 158, 11, 0.5)); }
+    .rtree-lane { position: absolute; left: 0; right: 0; }
+    .rtree-lane::before {
+      content: "";
+      position: absolute;
+      left: 4px; right: 4px; top: 24px; bottom: 6px;
+      border-radius: 8px;
+      background: linear-gradient(180deg, rgba(58, 40, 22, 0.5), rgba(38, 26, 15, 0.3));
+      border: 1px solid rgba(86, 60, 33, 0.32);
+    }
+    .rtree-lane.is-locked { opacity: 0.62; }
+    .rtree-lane-head {
+      position: absolute; left: 10px; top: 4px;
+      display: flex; align-items: center; gap: 6px;
+      font-size: 10px;
+      z-index: 2;
+    }
+    .rtree-lane-icon {
+      width: 18px; height: 18px; border-radius: 6px;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 11px;
+      background: color-mix(in srgb, var(--branch-color, #38bdf8) 22%, rgba(28, 19, 11, 0.85));
+      border: 1px solid color-mix(in srgb, var(--branch-color, #38bdf8) 50%, rgba(86, 60, 33, 0.7));
+    }
+    .rtree-lane-name { font-weight: 800; color: #f0ddbe; }
+    .rtree-lane-state { color: #b79a76; font-size: 9px; }
+    .rtree-node {
+      position: absolute;
+      transform: translate(-50%, -24px);
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      width: 110px; padding: 0; margin: 0; border: none; background: none;
+      color: #e9d6b6; cursor: pointer; touch-action: manipulation;
+    }
+    .rtree-node-dot {
+      position: relative;
+      width: 48px; height: 48px; border-radius: 999px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      background: radial-gradient(circle at 38% 32%, color-mix(in srgb, var(--branch-color, #38bdf8) 26%, #3a2616), #241710 78%);
+      border: 2px solid color-mix(in srgb, var(--branch-color, #38bdf8) 55%, rgba(86, 60, 33, 0.8));
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5), inset 0 0 6px rgba(0, 0, 0, 0.5);
+    }
+    .rtree-node-mk {
+      position: absolute; right: -4px; bottom: -4px;
+      width: 16px; height: 16px; border-radius: 999px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 800;
+      background: rgba(28, 19, 11, 0.95);
+      border: 1px solid rgba(150, 110, 66, 0.6);
+      color: #d9c3a5;
+    }
+    .rtree-node-nm {
+      font-size: 10px; font-weight: 700; line-height: 1.2; text-align: center;
+      color: #f1e2c6; max-width: 110px; overflow-wrap: anywhere;
+    }
+    .rtree-node-ct { font-size: 9px; font-weight: 700; color: #fcd34d; }
+    .rtree-node.is-locked { opacity: 0.6; filter: grayscale(0.5); }
+    .rtree-node.is-locked .rtree-node-dot { border-color: rgba(120, 96, 64, 0.5); }
+    .rtree-node.is-wait .rtree-node-dot { border-color: rgba(245, 200, 120, 0.78); }
+    .rtree-node.is-ready .rtree-node-dot {
+      border-color: rgba(245, 158, 11, 0.95);
+      animation: rtreePulse 1.6s ease-in-out infinite;
+    }
+    .rtree-node.is-ready .rtree-node-mk { color: #ffe08a; border-color: rgba(245, 158, 11, 0.7); }
+    .rtree-node.is-done .rtree-node-dot {
+      background: radial-gradient(circle at 38% 32%, color-mix(in srgb, var(--branch-color, #38bdf8) 58%, #6b4a1f), #2e1d0f 80%);
+      border-color: color-mix(in srgb, var(--branch-color, #38bdf8) 72%, #f5b45a);
+    }
+    .rtree-node.is-done .rtree-node-mk { color: #9be29b; border-color: rgba(120, 180, 90, 0.6); }
+    .rtree-node.is-breakthrough .rtree-node-dot { border-width: 3px; border-style: double; }
+    .rtree-node.is-breakthrough .rtree-node-nm { color: #fbbf24; }
+    .rtree-node.is-maxed .rtree-node-dot {
+      border-color: #f5b45a;
+      background: radial-gradient(circle at 38% 32%, color-mix(in srgb, var(--branch-color, #38bdf8) 50%, #6b4a1f), #2e1d0f 80%);
+    }
+    .rtree-node.is-maxed .rtree-node-mk { color: #fcd34d; border-color: rgba(245,158,11,0.7); }
+    .rtree-node-lv {
+      position: absolute; left: -6px; top: -6px;
+      min-width: 18px; height: 16px; padding: 0 3px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 800; line-height: 1;
+      background: rgba(20,13,7,0.95);
+      border: 1px solid color-mix(in srgb, var(--branch-color,#38bdf8) 60%, rgba(150,110,66,0.7));
+      color: #ffe9c2;
+    }
+    @keyframes rtreePulse {
+      0%, 100% { box-shadow: 0 2px 4px rgba(0,0,0,0.5), 0 0 0 3px rgba(245,158,11,0.14), 0 0 8px rgba(245,158,11,0.35); }
+      50% { box-shadow: 0 2px 4px rgba(0,0,0,0.5), 0 0 0 4px rgba(245,158,11,0.26), 0 0 14px rgba(245,158,11,0.6); }
+    }
+    @media (max-width: 520px) {
+      .rtree-scroll { padding: 6px; }
+    }
+    /* 研究ツリー拡大表示モーダル（大画面でも全体を大きく見られる。パネル内の小ツリーは温存） */
+    .rview-expand { flex: 0 0 auto; min-width: 40px; padding: 6px 8px; }
+    .modal-box.rtree-modal-box {
+      width: 94vw; max-width: 1500px;
+      height: 90vh; max-height: 90vh;
+      padding: 12px;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+      background: #1c130b;
+      border-color: rgba(110, 75, 38, 0.7);
+    }
+    .rtree-modal-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; flex: 0 0 auto; }
+    .rtree-modal-title { font-size: 14px; font-weight: 800; color: #f0ddbe; }
+    .rtree-modal-head .modal-btn { margin-top: 0; }
+    .rtree-modal-body {
+      flex: 1 1 auto; min-height: 0;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-x pan-y;
+      overscroll-behavior: contain;
+      border-radius: 10px;
+      background:
+        radial-gradient(240px 170px at 16% 0%, rgba(120, 82, 40, 0.22), transparent 70%),
+        radial-gradient(300px 220px at 84% 100%, rgba(80, 52, 26, 0.26), transparent 72%),
+        linear-gradient(180deg, #2a1d12, #160f08);
+    }
+    .rtree-modal-stage { position: relative; margin: 0 auto; }
+    .rtree-modal-scaler { position: relative; transform-origin: top left; }
     .room-pending-row {
       display: flex;
       align-items: center;
@@ -1982,6 +2144,430 @@
       min-width: 78px;
       text-align: center;
     }
+
+    /* ===== Product Design refresh: refined dark colony UI ===== */
+    :root {
+      --pd-bg: #06100f;
+      --pd-panel: rgba(8, 18, 20, 0.94);
+      --pd-panel-strong: rgba(7, 13, 19, 0.98);
+      --pd-panel-soft: rgba(13, 27, 27, 0.76);
+      --pd-line: rgba(184, 119, 57, 0.42);
+      --pd-line-soft: rgba(148, 163, 184, 0.18);
+      --pd-text: #edf5f2;
+      --pd-muted: #9caea9;
+      --pd-faint: #6f817e;
+      --pd-green: #5ee08a;
+      --pd-gold: #f3c45c;
+      --pd-blue: #7cc7ff;
+      --pd-red: #fb7a6e;
+      --pd-shadow: 0 12px 28px rgba(0, 0, 0, 0.48);
+      --pd-inset: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+    html, body {
+      background:
+        linear-gradient(180deg, #071118 0%, var(--pd-bg) 52%, #05090b 100%);
+      color: var(--pd-text);
+    }
+    .txt-green { color: var(--pd-green); }
+    .txt-gold { color: var(--pd-gold); }
+    .txt-blue { color: var(--pd-blue); }
+    button:focus-visible,
+    .btn:focus-visible,
+    .dock-item:focus-visible,
+    .res-box:focus-visible,
+    .control-tab-btn:focus-visible,
+    .modal-btn:focus-visible {
+      outline: 2px solid rgba(124, 199, 255, 0.85);
+      outline-offset: 2px;
+    }
+    #game-pane::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(90deg, rgba(0,0,0,0) 78%, rgba(5, 10, 13, 0.3) 100%);
+      z-index: 1;
+    }
+    #side-pane,
+    #control-panel,
+    #upgradeDock,
+    .tab-card,
+    .mobile-menu-card,
+    .modal-box {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0)),
+        var(--pd-panel);
+      border-color: var(--pd-line);
+      box-shadow: var(--pd-shadow), var(--pd-inset);
+      color: var(--pd-text);
+      backdrop-filter: blur(12px);
+    }
+    #top-bar {
+      background:
+        linear-gradient(180deg, rgba(7, 13, 19, 0.98) 0%, rgba(7, 13, 19, 0.86) 70%, rgba(7, 13, 19, 0) 100%);
+      border-color: var(--pd-line);
+      backdrop-filter: blur(10px);
+    }
+    .res-box {
+      position: relative;
+      overflow: hidden;
+      border-radius: 8px;
+      border-color: var(--pd-line-soft);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0)),
+        rgba(9, 19, 20, 0.9);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.32), var(--pd-inset);
+    }
+    .res-box::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto;
+      height: 2px;
+      background: linear-gradient(90deg, rgba(94,224,138,0), rgba(184,119,57,0.75), rgba(124,199,255,0));
+      opacity: 0.72;
+      pointer-events: none;
+    }
+    #food-box,
+    #cookie-box,
+    #pop-box {
+      border-color: rgba(184, 119, 57, 0.58);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0)),
+        linear-gradient(135deg, rgba(20, 42, 32, 0.95), rgba(9, 16, 18, 0.96));
+    }
+    #cookie-box {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0)),
+        linear-gradient(135deg, rgba(54, 35, 14, 0.96), rgba(11, 16, 18, 0.96));
+    }
+    #pop-box {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0)),
+        linear-gradient(135deg, rgba(14, 34, 46, 0.95), rgba(9, 16, 18, 0.96));
+    }
+    .res-lbl,
+    .tab-sec-title,
+    .dock-title,
+    .unlock-preview-title {
+      letter-spacing: 0;
+      color: var(--pd-muted);
+    }
+    .res-val,
+    .ant-count {
+      color: var(--pd-text);
+      text-shadow: 0 1px 8px rgba(0,0,0,0.34);
+    }
+    #next-goal-box {
+      border-color: rgba(243, 196, 92, 0.34);
+      background: rgba(23, 25, 14, 0.72);
+    }
+    #next-goal-text { color: var(--pd-gold) !important; }
+    .bar-wrap {
+      height: 7px;
+      background: rgba(2, 6, 8, 0.56);
+      border: 1px solid rgba(255,255,255,0.05);
+      box-shadow: inset 0 1px 4px rgba(0,0,0,0.65);
+    }
+    .bar-fill {
+      border-radius: inherit;
+      box-shadow: 0 0 10px rgba(255,255,255,0.18);
+    }
+    .info-row { color: var(--pd-muted); }
+    .growth-bottleneck .support,
+    .growth-bottleneck .penalty,
+    .growth-bottleneck .blocker {
+      border-radius: 8px;
+    }
+    .control-tab-btn,
+    .btn,
+    .btn-up-sm,
+    .dock-toggle,
+    .modal-btn,
+    .render-row select {
+      border-radius: 8px;
+      border-color: var(--pd-line-soft);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0)),
+        rgba(14, 25, 31, 0.92);
+      color: var(--pd-text);
+      box-shadow: 0 5px 13px rgba(0,0,0,0.28), var(--pd-inset);
+    }
+    .control-tab-btn {
+      min-height: 42px;
+      color: #c9d8d3;
+    }
+    .control-tab-btn.active {
+      color: #fff9e8;
+      border-color: rgba(243, 196, 92, 0.76);
+      background:
+        linear-gradient(180deg, rgba(243,196,92,0.2), rgba(243,196,92,0.04)),
+        rgba(17, 26, 29, 0.96);
+      box-shadow: 0 0 0 1px rgba(243,196,92,0.1), 0 10px 22px rgba(0,0,0,0.35), var(--pd-inset);
+    }
+    .tab-alert,
+    .dock-badge {
+      background: var(--pd-gold);
+      border-color: rgba(91, 55, 12, 0.55);
+      color: #181007;
+    }
+    .tab-card,
+    #upgradeDock {
+      border-radius: 8px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0)),
+        rgba(7, 15, 18, 0.9);
+    }
+    .tab-sec-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+    .tab-sec-title::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--pd-gold);
+      box-shadow: 0 0 8px rgba(243,196,92,0.65);
+      flex: 0 0 auto;
+    }
+    .btn:hover,
+    .dock-item:hover,
+    .control-tab-btn:hover,
+    .dock-toggle:hover,
+    .modal-btn:hover {
+      border-color: rgba(243, 196, 92, 0.5);
+      transform: translateY(-1px);
+    }
+    .btn:active,
+    .dock-item:active,
+    .control-tab-btn:active,
+    .modal-btn:active {
+      transform: translateY(0) scale(0.98);
+    }
+    .btn-em {
+      border-color: rgba(243, 196, 92, 0.86);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0)),
+        linear-gradient(135deg, #8c3f13, #c67620 58%, #8f3d13);
+      box-shadow: 0 10px 22px rgba(198, 118, 32, 0.28), 0 0 0 1px rgba(243,196,92,0.1), var(--pd-inset);
+    }
+    #act-tap {
+      border-radius: 8px;
+      min-height: 62px;
+    }
+    #act-tap .btn-tit {
+      font-size: 15px;
+      color: #fffaf0;
+    }
+    #act-tap .btn-sub { color: rgba(255, 250, 240, 0.74); }
+    .dock-grid { gap: 8px; }
+    .dock-item,
+    .unlock-preview-item {
+      border-radius: 8px;
+      border-color: rgba(184, 119, 57, 0.38);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0)),
+        linear-gradient(180deg, rgba(13, 34, 28, 0.92), rgba(7, 12, 17, 0.95));
+      box-shadow: 0 6px 16px rgba(0,0,0,0.3), var(--pd-inset);
+    }
+    .dock-item.can-buy {
+      border-color: rgba(243, 196, 92, 0.88);
+      box-shadow: 0 0 0 1px rgba(243,196,92,0.16), 0 0 18px rgba(243,196,92,0.34), var(--pd-inset);
+    }
+    .dock-item.disabled,
+    .dock-item.locked {
+      opacity: 0.48;
+      filter: grayscale(0.75);
+      box-shadow: none;
+    }
+    .dock-meta .dock-name,
+    .unlock-preview-item .name,
+    .goal-name { color: var(--pd-text); }
+    .dock-meta .dock-cost,
+    .dock-meta .dock-status,
+    .dock-meta .dock-desc,
+    .unlock-preview-item .state,
+    .goal-prog,
+    .btn-sub {
+      color: var(--pd-muted);
+    }
+    .ant-icon {
+      border-radius: 8px;
+      border-color: rgba(184, 119, 57, 0.42);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0)),
+        rgba(10, 24, 22, 0.9);
+    }
+    .unlock-preview,
+    .goal-item,
+    .stats-section,
+    #hover-tip,
+    #speed-ind {
+      border-radius: 8px;
+      border-color: var(--pd-line-soft);
+      background: rgba(3, 8, 11, 0.58);
+      box-shadow: var(--pd-inset);
+    }
+    .stats-section-title,
+    .tut-title,
+    .cookie-title {
+      color: var(--pd-gold);
+    }
+    .modal-overlay {
+      background: rgba(0, 0, 0, 0.76);
+      backdrop-filter: blur(3px);
+    }
+    .modal-box {
+      border-radius: 8px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0)),
+        rgba(9, 17, 22, 0.98);
+    }
+    .modal-btn {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0)),
+        rgba(34, 48, 55, 0.95);
+    }
+    .toast {
+      border-radius: 8px;
+      background: rgba(5, 10, 12, 0.92);
+      border: 1px solid var(--pd-line-soft);
+      border-left: 3px solid var(--pd-gold);
+    }
+    .toast.info { border-left-color: var(--pd-blue); }
+    .toast.success { border-left-color: var(--pd-green); }
+    .toast.warn { border-left-color: var(--pd-red); }
+    #version-tag {
+      border-radius: 8px;
+      color: rgba(237,245,242,0.68);
+      background: rgba(7, 13, 19, 0.62);
+    }
+    .render-row input[type="checkbox"] { accent-color: var(--pd-blue); }
+
+    @media (max-width: 959px) {
+      #game-pane::after {
+        background: linear-gradient(180deg, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0) 24%, rgba(0,0,0,0.3) 100%);
+      }
+      #top-bar {
+        gap: 5px;
+        background: linear-gradient(180deg, rgba(7,13,19,0.96) 0%, rgba(7,13,19,0.76) 78%, rgba(7,13,19,0) 100%);
+      }
+      #top-bar > .res-box {
+        min-height: 36px;
+      }
+      #btn-menu {
+        border-color: rgba(243, 196, 92, 0.38);
+        background: rgba(9, 17, 20, 0.92);
+      }
+      #next-goal-box {
+        border-radius: 8px;
+        background: rgba(7, 13, 19, 0.68);
+      }
+      #mobile-menu-sheet {
+        filter: drop-shadow(0 16px 26px rgba(0,0,0,0.38));
+      }
+      .mobile-menu-card {
+        border-radius: 8px;
+      }
+      #control-panel {
+        padding: 6px 10px max(11px, env(safe-area-inset-bottom));
+        gap: 7px;
+        border-top-color: rgba(184, 119, 57, 0.48);
+        background:
+          linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0)),
+          linear-gradient(to top, rgba(7,13,19,0.99) 0%, rgba(8,18,20,0.94) 84%, rgba(8,18,20,0.72) 100%);
+        box-shadow: 0 -14px 28px rgba(0,0,0,0.46), var(--pd-inset);
+      }
+      #control-panel.sheet-open {
+        border-radius: 8px 8px 0 0;
+        background: rgba(7, 13, 19, 0.99);
+      }
+      #mobile-sheet-handle {
+        min-height: 24px;
+        color: var(--pd-muted);
+      }
+      .sheet-grip {
+        width: 78px;
+        height: 5px;
+        background: linear-gradient(90deg, rgba(124,199,255,0.35), rgba(243,196,92,0.8), rgba(94,224,138,0.35));
+      }
+      #control-growth-bars {
+        gap: 9px !important;
+      }
+      #act-tap {
+        min-height: 60px;
+        padding: 10px 12px;
+      }
+      .control-tab-btn {
+        min-height: 44px;
+        padding: 8px 6px;
+      }
+      .tab-card {
+        padding: 7px;
+      }
+      .dock-grid-tab {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 7px;
+      }
+      .dock-grid-tab .dock-item {
+        min-height: 86px;
+      }
+      #dock-common-grid .dock-item {
+        min-height: 66px;
+      }
+      .ant-count {
+        min-width: 54px;
+      }
+    }
+
+    @media (min-width: 960px) {
+      #side-pane {
+        background:
+          linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0)),
+          linear-gradient(180deg, rgba(8,18,20,0.98), rgba(6,12,17,0.99));
+        border-left-color: rgba(184, 119, 57, 0.44);
+        box-shadow: -14px 0 32px rgba(0,0,0,0.5), inset 1px 0 0 rgba(255,255,255,0.04);
+      }
+      #top-bar {
+        padding: 10px 14px;
+        gap: 7px;
+        background: rgba(7, 13, 19, 0.98);
+        border-bottom-color: rgba(184, 119, 57, 0.34);
+      }
+      #control-panel {
+        padding: 12px 14px 16px;
+        gap: 10px;
+        background:
+          linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0)),
+          rgba(7, 13, 19, 0.97);
+      }
+      #control-tabs,
+      #control-tab-panels {
+        gap: 9px;
+      }
+      .tab-card {
+        padding: 10px;
+      }
+      #btn-menu {
+        border-color: rgba(243, 196, 92, 0.34);
+        background: rgba(9, 17, 20, 0.96);
+      }
+      #mobile-menu-sheet {
+        filter: drop-shadow(0 16px 28px rgba(0,0,0,0.38));
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .dock-item.can-buy,
+      .dock-item.tier-major::before,
+      .goal-item.active {
+        animation: none;
+      }
+    }
   </style>
 </head>
 <body>
@@ -2167,6 +2753,7 @@
               <div class="research-lead" id="research-lead">研究は巣全体のルールを書き換える上位システムです。</div>
               <div class="research-lock" id="research-lock-note">🔒 研究未解放: 食料を10,000まで蓄えると解放されます。</div>
               <div class="research-overview" id="research-overview"></div>
+              <div class="research-view-toggle" id="research-view-toggle"></div>
               <div class="research-branch-list" id="research-branch-list"></div>
               <div class="research-note">突破ノードは研究枝の進行を大きく変えます。</div>
             </div>
@@ -2515,6 +3102,16 @@
         <div class="render-hint">設定は自動保存されます</div>
         <button class="modal-btn" id="btn-render-close">閉じる</button>
     </div>
+</div>
+
+<div id="modal-research-tree" class="modal-overlay">
+  <div class="modal-box rtree-modal-box">
+    <div class="rtree-modal-head">
+      <span class="rtree-modal-title">🌳 研究ツリー</span>
+      <button class="modal-btn rtree-modal-close" id="btn-research-tree-close" type="button">閉じる</button>
+    </div>
+    <div class="rtree-modal-body" id="research-tree-modal-body"></div>
+  </div>
 </div>
 
 <script>
@@ -3023,11 +3620,14 @@ const RESEARCH_BRANCH_DEFS = [
 ];
 
   const RESEARCH_NODE_DEFS = [
-  { id: 'gather_1', branch: 'gather', name: '採集効率I', desc: '働きアリの食料収集効率 +10%', costCookie: 1, costFood: 0, prereq: [], breakthrough: false },
-  { id: 'gather_2', branch: 'gather', name: '採集効率II', desc: '働きアリの食料収集効率 +15%', costCookie: 2, costFood: 0, prereq: ['gather_1'], breakthrough: false },
-  { id: 'brood_1', branch: 'brood', name: '育児効率I', desc: '卵→幼虫速度 +10%', costCookie: 1, costFood: 0, prereq: [], breakthrough: false },
-  { id: 'brood_2', branch: 'brood', name: '幼虫給餌改善', desc: '幼虫→成虫速度 +8%', costCookie: 2, costFood: 0, prereq: ['brood_1'], breakthrough: false },
-  { id: 'hygiene_1', branch: 'hygiene', name: '衛生基礎', desc: 'ゴミ発生量 -10%', costCookie: 1, costFood: 0, prereq: [], breakthrough: false },
+  { id: 'gather_1', branch: 'gather', name: '採集効率I', desc: '働きアリの食料収集効率 +10%', costCookie: 1, costFood: 0, prereq: [], breakthrough: false, effects:[{kind:'mul',key:'gatherFood',perLevel:0.10}] },
+  { id: 'gather_2', branch: 'gather', name: '採集効率II', desc: '働きアリの食料収集効率 +15%', costCookie: 2, costFood: 0, prereq: ['gather_1'], breakthrough: false, effects:[{kind:'mul',key:'gatherFood',perLevel:0.15}] },
+  { id: 'gather_inf', branch: 'gather', name: '採集強化', desc: '食料収集効率 +5%/Lv（無限）', costCookie: 3, costFood: 0, costGrowth: 1.5, max: Infinity, prereq: ['gather_2'], breakthrough: false, effects:[{kind:'mul',key:'gatherFood',perLevel:0.05}] },
+  { id: 'brood_1', branch: 'brood', name: '育児効率I', desc: '卵→幼虫速度 +10%', costCookie: 1, costFood: 0, prereq: [], breakthrough: false, effects:[{kind:'mul',key:'broodEgg',perLevel:0.10}] },
+  { id: 'brood_2', branch: 'brood', name: '幼虫給餌改善', desc: '幼虫→成虫速度 +8%', costCookie: 2, costFood: 0, prereq: ['brood_1'], breakthrough: false, effects:[{kind:'mul',key:'broodLarva',perLevel:0.08}] },
+  { id: 'brood_egg_inf', branch: 'brood', name: '孵化強化', desc: '卵→幼虫速度 +4%/Lv（無限）', costCookie: 3, costFood: 0, costGrowth: 1.5, max: Infinity, prereq: ['brood_1'], breakthrough: false, effects:[{kind:'mul',key:'broodEgg',perLevel:0.04}] },
+  { id: 'brood_larva_inf', branch: 'brood', name: '成長強化', desc: '幼虫→成虫速度 +3%/Lv（無限）', costCookie: 3, costFood: 0, costGrowth: 1.5, max: Infinity, prereq: ['brood_2'], breakthrough: false, effects:[{kind:'mul',key:'broodLarva',perLevel:0.03}] },
+  { id: 'hygiene_1', branch: 'hygiene', name: '衛生基礎', desc: 'ゴミ発生量 -10%', costCookie: 1, costFood: 0, prereq: [], breakthrough: false, effects:[{kind:'mul',key:'wasteGen',perLevel:-0.10}] },
   { id: 'hygiene_2', branch: 'hygiene', name: '清掃効率I', desc: '清掃効率 +20%', costCookie: 2, costFood: 0, prereq: ['hygiene_1'], breakthrough: false },
   { id: HYGIENE_WORKER_CLEAN_NODE, branch: 'hygiene', name: 'お掃除はおまかせ', desc: 'ゴミ室の運用を整え、働きアリの一部も低優先でゴミ掃除に参加する。清掃判断と運搬量も改善。', costCookie: 6, costFood: 0, prereq: ['hygiene_2'], breakthrough: false },
   { id: 'ferment_unlock', branch: 'ferment', name: '発酵室解放', desc: '発酵室を建設可能にする突破研究', costCookie: 30, costFood: 4000, prereq: [], breakthrough: true },
@@ -3050,6 +3650,43 @@ function getResearchNodeDef(nodeId){
   return RESEARCH_NODE_BY_ID[nodeId] || null;
 }
 
+// ===== 研究効果の集約（データ駆動） =====
+// 各ノードの effects:[{kind:'mul',key,perLevel}|{kind:'flag',flag}] を「全ノード×レベル」で集計し、
+// 倍率キー(muls)と解放フラグ(flags)にまとめる。倍率は最終的に 1 + Σ(perLevel×level)。
+// これにより、新しいノードは effects データを足すだけで効果が反映され、膨大化できる。
+let _researchBonusCache = null;
+function recomputeResearchBonuses(){
+  const muls = {};
+  const flags = {};
+  const rs = ensureResearchState();
+  const un = (rs && rs.unlockedNodes) ? rs.unlockedNodes : {};
+  for(const def of RESEARCH_NODE_DEFS){
+    if(!def || !def.effects) continue;
+    const raw = un[def.id];
+    const lv = (typeof raw === 'number') ? Math.max(0, Math.floor(raw)) : (raw ? 1 : 0);
+    if(lv <= 0) continue;
+    for(const e of def.effects){
+      if(!e) continue;
+      if(e.kind === 'mul' && e.key) muls[e.key] = (muls[e.key] || 0) + (e.perLevel || 0) * lv;
+      else if(e.kind === 'flag' && e.flag) flags[e.flag] = true;
+    }
+  }
+  _researchBonusCache = { muls, flags };
+  return _researchBonusCache;
+}
+function getResearchBonuses(){
+  if(!_researchBonusCache) recomputeResearchBonuses();
+  return _researchBonusCache;
+}
+// 倍率取得（無ければ1）。additive: 1 + Σ(perLevel×level)。減少効果は perLevel を負に。
+function getResearchBonus(key){
+  return 1 + (getResearchBonuses().muls[key] || 0);
+}
+function hasResearchUnlock(flag){
+  return !!getResearchBonuses().flags[flag];
+}
+function invalidateResearchBonuses(){ _researchBonusCache = null; }
+
 function ensureResearchState(target = G){
   if(!target) return makeDefaultResearchState();
   const def = makeDefaultResearchState();
@@ -3070,12 +3707,35 @@ function ensureResearchState(target = G){
   if(target.major && target.research.unlockedNodes[GEO_DEPTH_2_NODE]) target.major.depth2 = true;
   if(target.major && target.research.unlockedNodes[GEO_DEPTH_3_NODE]) target.major.depth3 = true;
   if(target.major && target.research.unlockedNodes[BARRACKS_BLUEPRINT_NODE]) target.major.barracks = true;
+  // 後方互換: unlockedNodes の値を数値レベルへ正規化（旧セーブの true → 1）。0以下は削除。
+  const _un = target.research.unlockedNodes;
+  for(const k in _un){
+    const v = _un[k];
+    const lv = (typeof v === 'number') ? Math.max(0, Math.floor(v)) : (v ? 1 : 0);
+    if(lv > 0) _un[k] = lv; else delete _un[k];
+  }
   return target.research;
 }
 
-function hasResearchNode(nodeId){
+// レベル制: unlockedNodes[id] は数値レベル（旧 true は 1 とみなす）
+function researchLevel(nodeId){
   const rs = ensureResearchState();
-  return !!(rs.unlockedNodes && rs.unlockedNodes[nodeId]);
+  const v = rs.unlockedNodes ? rs.unlockedNodes[nodeId] : 0;
+  if(typeof v === 'number') return Math.max(0, Math.floor(v));
+  return v ? 1 : 0;
+}
+
+// ノードの最大レベル（1=一度きり / Infinity or 未指定の repeatable=無限）
+function getResearchNodeMaxLevel(def){
+  if(!def) return 1;
+  if(def.max === Infinity || def.max === 'inf') return Infinity;
+  if(typeof def.max === 'number' && def.max > 0) return Math.floor(def.max);
+  if(def.repeatable) return Infinity;
+  return 1;
+}
+
+function hasResearchNode(nodeId){
+  return researchLevel(nodeId) > 0;
 }
 
 function hasCookieFind2x(){
@@ -3108,9 +3768,26 @@ function isResearchBranchUnlocked(branchId){
   return !!(rs.unlockedBranches && rs.unlockedBranches[branchId]);
 }
 
+// 次に購入するレベル(level)のコスト。反復ノードは costGrowth^level で増加。一度きりは基本コスト。
+function getResearchNodeCost(def, level){
+  if(!def) return { cookie:0, food:0 };
+  const lvl = Math.max(0, Math.floor(level || 0));
+  const max = getResearchNodeMaxLevel(def);
+  const repeatable = (max > 1);
+  const growth = (typeof def.costGrowth === 'number' && def.costGrowth > 0) ? def.costGrowth : 1;
+  const factor = repeatable ? Math.pow(growth, lvl) : 1;
+  const discount = (typeof getResearchCostMul === 'function') ? getResearchCostMul() : 1; // メタ割引(段階3)。未定義なら1
+  return {
+    cookie: Math.max(0, Math.floor((def.costCookie || 0) * factor * discount)),
+    food: Math.max(0, Math.floor((def.costFood || 0) * factor * discount))
+  };
+}
+
 function getResearchStatus(def){
   if(!def) return 'locked';
-  if(hasResearchNode(def.id)) return 'done';
+  const lv = researchLevel(def.id);
+  const max = getResearchNodeMaxLevel(def);
+  if(lv >= max) return (max <= 1) ? 'done' : 'maxed';  // 一度きり→done / 上限到達の反復→maxed
   if(!isResearchSystemUnlocked()) return 'locked';
   if(!isResearchBranchUnlocked(def.branch)) return 'locked';
   if(Array.isArray(def.prereq)) {
@@ -3124,7 +3801,8 @@ function getResearchStatus(def){
 
 function canAffordResearch(def){
   if(!def) return false;
-  return (G.cookie >= (def.costCookie || 0)) && (G.food >= (def.costFood || 0));
+  const c = getResearchNodeCost(def, researchLevel(def.id));
+  return (G.cookie >= c.cookie) && (G.food >= c.food);
 }
 
 function getAvailableResearchNodeCount(){
@@ -3204,39 +3882,33 @@ function buyResearchNode(nodeId){
   if(!def) return false;
   const status = getResearchStatus(def);
   if(status !== 'ready') return false;
-  if(!canAffordResearch(def)) {
+  const lv = researchLevel(def.id);
+  const cost = getResearchNodeCost(def, lv);
+  if(G.cookie < cost.cookie || G.food < cost.food) {
     toast('資源が不足しています', true);
     return false;
   }
-  G.cookie = Math.max(0, Math.floor(G.cookie - (def.costCookie || 0)));
-  G.food = Math.max(0, G.food - (def.costFood || 0));
+  G.cookie = Math.max(0, Math.floor(G.cookie - cost.cookie));
+  G.food = Math.max(0, G.food - cost.food);
   const rs = ensureResearchState();
-  rs.unlockedNodes[def.id] = true;
-  if(def.id === COOKIE_FIND_2X_NODE && G.major) G.major.cookie2x = true;
-  if(def.id === SOLDIER_JAW_2X_NODE && G.major) G.major.jaw2x = true;
-  if(def.id === GEO_DEPTH_2_NODE && G.major) G.major.depth2 = true;
-  if(def.id === GEO_DEPTH_3_NODE && G.major) G.major.depth3 = true;
-  if(def.id === BARRACKS_BLUEPRINT_NODE && G.major) G.major.barracks = true;
-  toast(`🔬 研究完了: ${def.name}`);
-  if(def.id === 'ferment_unlock') {
-    addQueenWhisper('発酵室の設計が完成したわ。建設を始めて', 'ferment_unlock');
+  const wasZero = (lv <= 0);
+  rs.unlockedNodes[def.id] = lv + 1;   // レベル+1（反復ノードは積み増し）
+  invalidateResearchBonuses();
+  // 初回取得時のみの解放演出・G.major互換（反復ノードは2回目以降スキップ）
+  if(wasZero){
+    if(def.id === COOKIE_FIND_2X_NODE && G.major) G.major.cookie2x = true;
+    if(def.id === SOLDIER_JAW_2X_NODE && G.major) G.major.jaw2x = true;
+    if(def.id === GEO_DEPTH_2_NODE && G.major) G.major.depth2 = true;
+    if(def.id === GEO_DEPTH_3_NODE && G.major) G.major.depth3 = true;
+    if(def.id === BARRACKS_BLUEPRINT_NODE && G.major) G.major.barracks = true;
+    if(def.id === 'ferment_unlock') addQueenWhisper('発酵室の設計が完成したわ。建設を始めて', 'ferment_unlock');
+    if(def.id === FERMENT_WORKER_UNLOCK_NODE) { toast('🧪 発酵アリが雇用可能になった'); addQueenWhisper('発酵室の専任が生まれたわ。香りの流れが変わるはず', 'ferment_worker_unlock'); }
+    if(def.id === HYGIENE_WORKER_CLEAN_NODE) addQueenWhisper('働きアリにも掃除の手順を覚えさせたわ。育児室の汚れに気づきやすくなるはず', 'worker_waste_clean');
+    if(def.id === GEO_DEPTH_2_NODE) addQueenWhisper('新しい層への道が開いたわ。何が待っているかしら', 'depth2_unlock');
+    if(def.id === GEO_DEPTH_3_NODE) addQueenWhisper('さらに深い世界へ……未知の領域ね', 'depth3_unlock');
+    if(def.id === BARRACKS_BLUEPRINT_NODE) addQueenWhisper('兵舎が建てば、巣を守る兵士を育てられるわ', 'barracks_blueprint');
   }
-  if(def.id === FERMENT_WORKER_UNLOCK_NODE) {
-    toast('🧪 発酵アリが雇用可能になった');
-    addQueenWhisper('発酵室の専任が生まれたわ。香りの流れが変わるはず', 'ferment_worker_unlock');
-  }
-  if(def.id === HYGIENE_WORKER_CLEAN_NODE) {
-    addQueenWhisper('働きアリにも掃除の手順を覚えさせたわ。育児室の汚れに気づきやすくなるはず', 'worker_waste_clean');
-  }
-  if(def.id === GEO_DEPTH_2_NODE) {
-    addQueenWhisper('新しい層への道が開いたわ。何が待っているかしら', 'depth2_unlock');
-  }
-  if(def.id === GEO_DEPTH_3_NODE) {
-    addQueenWhisper('さらに深い世界へ……未知の領域ね', 'depth3_unlock');
-  }
-  if(def.id === BARRACKS_BLUEPRINT_NODE) {
-    addQueenWhisper('兵舎が建てば、巣を守る兵士を育てられるわ', 'barracks_blueprint');
-  }
+  toast(getResearchNodeMaxLevel(def) > 1 ? `🔬 ${def.name} Lv${lv + 1}` : `🔬 研究完了: ${def.name}`);
   G.recalc();
   updateResearchUI();
   updateFermentPanelUI();
@@ -3245,22 +3917,19 @@ function buyResearchNode(nodeId){
 }
 
 function getGatherResearchMul(){
-  let mul = 1;
-  if(hasResearchNode('gather_1')) mul += 0.10;
-  if(hasResearchNode('gather_2')) mul += 0.15;
-  return mul;
+  return getResearchBonus('gatherFood');
 }
 
 function getBroodEggMul(){
-  return hasResearchNode('brood_1') ? 1.10 : 1;
+  return getResearchBonus('broodEgg');
 }
 
 function getBroodLarvaMul(){
-  return hasResearchNode('brood_2') ? 1.08 : 1;
+  return getResearchBonus('broodLarva');
 }
 
 function getWasteGenerationMul(){
-  return hasResearchNode('hygiene_1') ? 0.90 : 1;
+  return getResearchBonus('wasteGen');
 }
 
 function hasHygieneAdvancedClean(){
@@ -7764,6 +8433,11 @@ function expandMap(forcedType, isEmergency) {
       if(forcedType === 'waste' && !canAddWaste) forcedType = 'shaft';
 
       // Prefer a matching hidden room (nursery/food) or create one before shafts.
+      // 重複部屋の防止: すでに同タイプの未完成部屋が掘られている場合、
+      // （スタック上限で予約できないだけでも）新しい同型部屋は作らない。
+      // これがないと、複数スロットを埋める際に同じ forcedType の部屋を2〜3個並行生成し、
+      // 「複数の建築アリが同じ部屋を作る（オレンジの点線が複数本）」状態になる。
+      let forcedRoomUnderConstruction = false;
       if(forcedType !== 'shaft') {
           // ② 配列順で最初に採用するのをやめ、入口に近い部屋を優先する。
           // 同じ深さに複数の未接続部屋があるとき、右端/左端の遠い部屋から掘り始める問題を防ぐ。
@@ -7779,6 +8453,7 @@ function expandMap(forcedType, isEmergency) {
               if(depthLock && hidden.y > depthLimit) continue;
               if(isNodeAboveGround(hidden)) continue;
               if(hidden.type !== forcedType) continue;
+              forcedRoomUnderConstruction = true; // 同タイプの未完成部屋が存在する
               const reason = "existing:"+forcedType;
               if(!isDigTargetReservable(i, hiddenIdx, reason)) continue;
               const dist = Math.abs(hidden.x - exXPref);
@@ -7788,14 +8463,17 @@ function expandMap(forcedType, isEmergency) {
           }
           if(bestPref) return decorateDigTarget(bestPref);
 
-          const newEidPref = expandMap(forcedType, true);
-          if(newEidPref !== null && newEidPref !== undefined) {
-              return decorateDigTarget({ eid:newEidPref, to:S.full.edges[newEidPref].v, dir:1, score:1100, reason:"expand:"+forcedType });
-          }
+          // すでに同タイプの未完成部屋があるなら、新規生成せずに下の既存工事/シャフト処理へ流す。
+          if(!forcedRoomUnderConstruction) {
+              const newEidPref = expandMap(forcedType, true);
+              if(newEidPref !== null && newEidPref !== undefined) {
+                  return decorateDigTarget({ eid:newEidPref, to:S.full.edges[newEidPref].v, dir:1, score:1100, reason:"expand:"+forcedType });
+              }
 
-          const forcedRoomEid = forceExpandRoom(forcedType);
-          if(forcedRoomEid !== null && forcedRoomEid !== undefined) {
-              return decorateDigTarget({ eid:forcedRoomEid, to:S.full.edges[forcedRoomEid].v, dir:1, score:1050, reason:"force:"+forcedType });
+              const forcedRoomEid = forceExpandRoom(forcedType);
+              if(forcedRoomEid !== null && forcedRoomEid !== undefined) {
+                  return decorateDigTarget({ eid:forcedRoomEid, to:S.full.edges[forcedRoomEid].v, dir:1, score:1050, reason:"force:"+forcedType });
+              }
           }
       }
 
@@ -7840,6 +8518,11 @@ function expandMap(forcedType, isEmergency) {
       if(bestExisting) return decorateDigTarget(bestExisting);
 
       // === 3) Expand new room
+      // 重複部屋の防止: 同タイプの未完成部屋があるなら、新しい部屋もフォールバックのshaftも作らず
+      // このスロットを空ける（建築アリは他の既存工事を手伝うか待機する）。
+      if(forcedType !== 'shaft' && forcedRoomUnderConstruction) {
+          return null;
+      }
       const newEid = expandMap(forcedType, (forcedType !== 'shaft'));
       if(newEid !== null && newEid !== undefined) {
           return decorateDigTarget({ eid:newEid, to:S.full.edges[newEid].v, dir:1, score:500, reason:"expand:"+forcedType });
@@ -11283,8 +11966,11 @@ function expandMap(forcedType, isEmergency) {
     lead: document.getElementById('research-lead'),
     lock: document.getElementById('research-lock-note'),
     overview: document.getElementById('research-overview'),
+    viewToggle: document.getElementById('research-view-toggle'),
     branchList: document.getElementById('research-branch-list')
   };
+  const researchTreeModal = document.getElementById('modal-research-tree');
+  const researchTreeModalBody = document.getElementById('research-tree-modal-body');
 
   const fermentPanelUI = {
     summary: document.getElementById('ferment-room-summary'),
@@ -11324,20 +12010,23 @@ function expandMap(forcedType, isEmergency) {
   }
 
   function formatResearchCost(def){
+    const c = getResearchNodeCost(def, researchLevel(def.id));
     const parts = [];
-    if((def.costCookie || 0) > 0) parts.push(`🍪${def.costCookie}`);
-    if((def.costFood || 0) > 0) parts.push(`🍃${def.costFood}`);
+    if(c.cookie > 0) parts.push(`🍪${fmtCount(c.cookie)}`);
+    if(c.food > 0) parts.push(`🍃${fmtCount(c.food)}`);
     return (parts.length > 0) ? parts.join(' + ') : '-';
   }
 
   function getResearchStatusLabel(status){
     if(status === 'done') return '研究済み';
+    if(status === 'maxed') return '上限';
     if(status === 'ready') return '研究可能';
     return 'ロック中';
   }
 
   function getResearchNodeReason(def, status, canResearch){
     if(!def) return '';
+    if(status === 'maxed') return '上限到達';
     if(status === 'done') return '完了済み';
     if(!isResearchSystemUnlocked()) return '研究センター未解放';
     if(!isResearchBranchUnlocked(def.branch)) return '枝ロック中';
@@ -11354,6 +12043,7 @@ function expandMap(forcedType, isEmergency) {
 
   function getResearchStatusMark(status, canResearch){
     if(status === 'done') return '✓';
+    if(status === 'maxed') return '★';
     if(status === 'ready') return canResearch ? '!' : '…';
     return '•';
   }
@@ -11465,6 +12155,175 @@ function expandMap(forcedType, isEmergency) {
     `;
   }
 
+  // ===== 研究ツリー：系統樹ビュー（土・洞窟テーマ。旧リストはトグルで温存） =====
+  // 描画先は #research-branch-list を共用するので、既存の data-research-buy クリック委譲がそのまま効く。
+  const RESEARCH_VIEW_KEY = 'ant_research_view_v1';
+
+  function getResearchView(){
+    if(S.researchView === 'classic' || S.researchView === 'tree') return S.researchView;
+    let v = 'tree';
+    try { const s = localStorage.getItem(RESEARCH_VIEW_KEY); if(s === 'classic' || s === 'tree') v = s; } catch(_){}
+    S.researchView = v;
+    return v;
+  }
+
+  function setResearchView(v){
+    if(v !== 'classic' && v !== 'tree') return;
+    S.researchView = v;
+    try { localStorage.setItem(RESEARCH_VIEW_KEY, v); } catch(_){}
+    updateResearchUI();
+  }
+
+  function escResearchTip(s){
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function renderResearchViewToggle(view){
+    const tree = (view !== 'classic');
+    let html = `<button type="button" class="rview-btn${tree ? ' is-active' : ''}" data-research-view="tree">🌳 系統樹</button>`
+             + `<button type="button" class="rview-btn${tree ? '' : ' is-active'}" data-research-view="classic">📋 クラシック</button>`;
+    // 系統樹のときだけ「拡大表示」ボタンを出す（大画面で全体を大きく見るためのモーダル）
+    if(tree) html += `<button type="button" class="rview-btn rview-expand" data-research-expand="1" title="大きく表示" aria-label="研究ツリーを拡大表示">⛶</button>`;
+    return html;
+  }
+
+  const RTREE_CONST = { NODE_R:24, COL_W:120, ROW_H:98, HEADER_H:26, LANE_VPAD:8, LEFT_PAD:28, RIGHT_PAD:22, TOP_PAD:8, LANE_GAP:10 };
+
+  function computeResearchTreeLayout(){
+    const C = RTREE_CONST;
+    const lanes = [];
+    let y = C.TOP_PAD;
+    let maxCol = 0;
+    for(const branch of RESEARCH_BRANCH_DEFS){
+      const nodes = getResearchBranchNodes(branch.id);
+      const colMap = {};
+      for(const def of nodes){
+        const d = getResearchNodeDepth(def);
+        (colMap[d] = colMap[d] || []).push(def);
+        if(d > maxCol) maxCol = d;
+      }
+      const depths = Object.keys(colMap).map(Number).sort((a,b)=>a-b);
+      const subrowsMax = depths.length ? Math.max(...depths.map(d => colMap[d].length)) : 0;
+      const hasNodes = nodes.length > 0;
+      const nodesAreaH = hasNodes ? subrowsMax * C.ROW_H : 8;
+      const laneH = C.HEADER_H + C.LANE_VPAD + nodesAreaH + C.LANE_VPAD;
+      const laneTop = y;
+      const posById = {};
+      const nodeLayouts = [];
+      for(const d of depths){
+        const arr = colMap[d];
+        for(let s = 0; s < arr.length; s++){
+          const def = arr[s];
+          const cx = C.LEFT_PAD + d * C.COL_W + C.NODE_R;
+          const cy = laneTop + C.HEADER_H + C.LANE_VPAD + C.NODE_R + s * C.ROW_H;
+          posById[def.id] = { cx, cy };
+          nodeLayouts.push({ def, cx, cy });
+        }
+      }
+      lanes.push({ branch, top: laneTop, height: laneH, nodes: nodeLayouts, posById, hasNodes });
+      y += laneH + C.LANE_GAP;
+    }
+    const width = C.LEFT_PAD + (maxCol + 1) * C.COL_W + C.RIGHT_PAD;
+    const height = Math.max(C.TOP_PAD * 2, y - C.LANE_GAP + C.TOP_PAD);
+    return { lanes, width, height };
+  }
+
+  function renderResearchTreeNode(def, cx, cy, accent){
+    const status = getResearchStatus(def);
+    const canResearch = (status === 'ready') && canAffordResearch(def);
+    const lv = researchLevel(def.id);
+    const repeatable = getResearchNodeMaxLevel(def) > 1;
+    const cls = ['rtree-node'];
+    let st = 'is-locked';
+    if(status === 'done') st = 'is-done';
+    else if(status === 'maxed') st = 'is-maxed';
+    else if(status === 'ready') st = canResearch ? 'is-ready' : 'is-wait';
+    cls.push(st);
+    if(def.breakthrough) cls.push('is-breakthrough');
+    const mark = getResearchStatusMark(status, canResearch);
+    const icon = getResearchBranchDef(def.branch).icon || '•';
+    const cost = formatResearchCost(def);
+    const reason = getResearchNodeReason(def, status, canResearch);
+    // フッター: 完了=済 / 上限=上限 / それ以外=次レベルのコスト
+    const footer = (status === 'done') ? '済' : (status === 'maxed') ? '上限' : cost;
+    // レベルバッジ（反復ノードで取得済みのとき）
+    const lvBadge = (repeatable && lv > 0) ? `<span class="rtree-node-lv">Lv${lv}</span>` : '';
+    const lvTip = repeatable ? `\nレベル: ${lv}${getResearchNodeMaxLevel(def) === Infinity ? '' : '/' + getResearchNodeMaxLevel(def)}` : '';
+    const tip = `${def.name} ｜ ${def.desc}${lvTip}\n状態: ${getResearchStatusLabel(status)}${reason ? '（' + reason + '）' : ''}\nコスト: ${cost}`;
+    return `<button type="button" class="${cls.join(' ')}" style="left:${cx}px;top:${cy}px;--branch-color:${accent}" data-research-buy="${def.id}" title="${escResearchTip(tip)}" aria-label="${escResearchTip(def.name)}">`
+      + `<span class="rtree-node-dot"><span class="rtree-node-ic">${icon}</span><span class="rtree-node-mk">${mark}</span>${lvBadge}</span>`
+      + `<span class="rtree-node-nm">${def.name}</span>`
+      + `<span class="rtree-node-ct">${footer}</span>`
+      + `</button>`;
+  }
+
+  // ツリー本体(.rtree)のHTMLを生成。パネル内表示と拡大モーダルで共用する。
+  function buildResearchTreeInner(rs){
+    const layout = computeResearchTreeLayout();
+    const laneBands = [];
+    const links = [];
+    const nodeEls = [];
+    for(const lane of layout.lanes){
+      const branch = lane.branch;
+      const accent = branch.accent || '#38bdf8';
+      const branchOpen = rs.unlocked && isResearchBranchUnlocked(branch.id);
+      const total = lane.nodes.length;
+      const doneCount = lane.nodes.reduce((a, n) => a + (hasResearchNode(n.def.id) ? 1 : 0), 0);
+      const stateTxt = !rs.unlocked ? '研究未解放'
+        : (!branchOpen ? 'ロック中' : (total > 0 ? `${doneCount}/${total}` : '今後解放'));
+      laneBands.push(`<div class="rtree-lane${branchOpen ? '' : ' is-locked'}" style="top:${lane.top}px;height:${lane.height}px;--branch-color:${accent}">`
+        + `<div class="rtree-lane-head"><span class="rtree-lane-icon">${branch.icon || '•'}</span><span class="rtree-lane-name">${branch.label}</span><span class="rtree-lane-state">${stateTxt}</span></div>`
+        + `</div>`);
+      if(!lane.hasNodes) continue;
+      for(const n of lane.nodes){
+        const pre = Array.isArray(n.def.prereq) ? n.def.prereq : [];
+        for(const pid of pre){
+          const p = lane.posById[pid];
+          if(!p) continue;
+          const linkCls = hasResearchNode(n.def.id) ? 'is-done' : (hasResearchNode(pid) ? 'is-open' : 'is-locked');
+          const mx = (p.cx + n.cx) / 2;
+          links.push(`<path class="rtree-link ${linkCls}" d="M${p.cx},${p.cy} C${mx},${p.cy} ${mx},${n.cy} ${n.cx},${n.cy}" />`);
+        }
+      }
+      for(const n of lane.nodes) nodeEls.push(renderResearchTreeNode(n.def, n.cx, n.cy, accent));
+    }
+    const inner = `<div class="rtree" style="width:${layout.width}px;height:${layout.height}px">`
+      + laneBands.join('')
+      + `<svg class="rtree-links-svg" width="${layout.width}" height="${layout.height}" viewBox="0 0 ${layout.width} ${layout.height}" aria-hidden="true">${links.join('')}</svg>`
+      + nodeEls.join('')
+      + `</div>`;
+    return { inner, width: layout.width, height: layout.height };
+  }
+
+  function renderResearchTree(rs){
+    return `<div class="rtree-scroll">${buildResearchTreeInner(rs).inner}</div>`;
+  }
+
+  // 拡大モーダル用のスケール: ツリー全体（縦横とも）がなるべく収まるようにフィットさせる。
+  // 縦長のツリーを横幅だけに合わせると拡大しすぎて一度に少ししか見えないため、両方向の小さい方を採用。
+  function getResearchTreeModalScale(treeW, treeH){
+    const body = researchTreeModalBody;
+    let bw = (body && body.clientWidth) ? body.clientWidth : Math.floor(window.innerWidth * 0.9);
+    let bh = (body && body.clientHeight) ? body.clientHeight : Math.floor(window.innerHeight * 0.8);
+    bw = Math.max(260, bw - 12);
+    bh = Math.max(260, bh - 12);
+    const fit = Math.min(bw / Math.max(1, treeW), bh / Math.max(1, treeH));
+    return Math.max(0.55, Math.min(1.6, fit));
+  }
+
+  function renderResearchTreeModal(rs){
+    const t = buildResearchTreeInner(rs);
+    const scale = getResearchTreeModalScale(t.width, t.height);
+    const sw = Math.ceil(t.width * scale);
+    const sh = Math.ceil(t.height * scale);
+    return `<div class="rtree-modal-stage" style="width:${sw}px;height:${sh}px">`
+      + `<div class="rtree-modal-scaler" style="width:${t.width}px;height:${t.height}px;transform:scale(${scale.toFixed(3)})">`
+      + t.inner
+      + `</div></div>`;
+  }
+
   function updateResearchUI(){
     const rs = ensureResearchState();
     if(researchUI.lead) {
@@ -11485,13 +12344,30 @@ function expandMap(forcedType, isEmergency) {
         researchUI.overview.innerHTML = overviewHtml;
       }
     }
+    // ビュー切替トグル（系統樹 / クラシック）
+    if(researchUI.viewToggle) {
+      const toggleHtml = renderResearchViewToggle(getResearchView());
+      if(researchUI.viewToggle.innerHTML !== toggleHtml) researchUI.viewToggle.innerHTML = toggleHtml;
+    }
+
     if(!researchUI.branchList) return;
 
-    const sections = RESEARCH_BRANCH_DEFS.map(branch => renderResearchBranch(branch, rs));
+    const view = getResearchView();
+    researchUI.branchList.classList.toggle('is-tree', view !== 'classic');
+
+    // 拡大モーダル: 開いている間はモーダル本文にもツリーを描画。クラシックへ切替時は閉じる。
+    if(view === 'classic' && S.researchTreeModalOpen) closeResearchTreeModal();
+    if(S.researchTreeModalOpen && researchTreeModalBody) {
+      const mHtml = renderResearchTreeModal(rs);
+      if(researchTreeModalBody.innerHTML !== mHtml) researchTreeModalBody.innerHTML = mHtml;
+    }
+
     // innerHTML の不要な置き換えを防ぐ。
     // updateResearchUI は毎フレーム呼ばれるが、内容が同じなら DOM を触らない。
     // これにより「タップ中に innerHTML が置き換わってクリックが失われる」問題も軽減する。
-    const newHtml = sections.join('');
+    const newHtml = (view === 'classic')
+      ? RESEARCH_BRANCH_DEFS.map(branch => renderResearchBranch(branch, rs)).join('')
+      : renderResearchTree(rs);
     if(researchUI.branchList.innerHTML !== newHtml) {
       researchUI.branchList.innerHTML = newHtml;
     }
@@ -11620,6 +12496,67 @@ function expandMap(forcedType, isEmergency) {
       buyResearchNode(nodeId);
     });
   }
+
+  if(researchUI.viewToggle) {
+    researchUI.viewToggle.addEventListener('click', (e) => {
+      const exp = e.target.closest('[data-research-expand]');
+      if(exp) { openResearchTreeModal(); return; }
+      const b = e.target.closest('[data-research-view]');
+      if(!b) return;
+      setResearchView(b.getAttribute('data-research-view'));
+    });
+  }
+
+  // 研究ツリー拡大モーダルの開閉
+  function openResearchTreeModal(){
+    if(getResearchView() === 'classic') setResearchView('tree');
+    S.researchTreeModalOpen = true;
+    if(researchTreeModal) researchTreeModal.classList.add('show');
+    updateResearchUI();
+  }
+  function closeResearchTreeModal(){
+    S.researchTreeModalOpen = false;
+    if(researchTreeModal) researchTreeModal.classList.remove('show');
+  }
+  if(researchTreeModal) {
+    researchTreeModal.addEventListener('click', (e) => { if(e.target === researchTreeModal) closeResearchTreeModal(); });
+  }
+  if(researchTreeModalBody) {
+    researchTreeModalBody.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-research-buy]');
+      if(!btn) return;
+      const nodeId = btn.getAttribute('data-research-buy');
+      if(nodeId) buyResearchNode(nodeId);
+    });
+  }
+  { const _rtClose = document.getElementById('btn-research-tree-close'); if(_rtClose) _rtClose.addEventListener('click', closeResearchTreeModal); }
+  window.addEventListener('keydown', (e) => { if(e.key === 'Escape' && S.researchTreeModalOpen) closeResearchTreeModal(); });
+  window.addEventListener('resize', () => { if(S.researchTreeModalOpen) updateResearchUI(); });
+
+  // マウスホイールでの縦スクロールが、ツリーの横スクロール領域(.rtree-scroll)上で止まる問題の対策。
+  // touch-action はホイールに効かないため、縦ホイール時は親の縦スクロール領域を手動でスクロールする。
+  (function(){
+    const cpEl = document.getElementById('control-panel');
+    if(!cpEl) return;
+    const findScrollableY = (el) => {
+      let n = el;
+      while(n && n !== document.body){
+        const cs = getComputedStyle(n);
+        if((cs.overflowY === 'auto' || cs.overflowY === 'scroll') && n.scrollHeight > n.clientHeight + 1) return n;
+        n = n.parentElement;
+      }
+      return null;
+    };
+    cpEl.addEventListener('wheel', (e) => {
+      const sc = (e.target && e.target.closest) ? e.target.closest('.rtree-scroll') : null;
+      if(!sc) return;                                   // ツリー横スクロール領域の外は通常処理
+      if(Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return; // 横方向の意図はツリーの横スクロールに任せる
+      const scroller = findScrollableY(sc.parentElement) || cpEl;
+      const before = scroller.scrollTop;
+      scroller.scrollTop += e.deltaY;
+      if(scroller.scrollTop !== before) e.preventDefault();
+    }, { passive: false });
+  })();
 
   // ゴミ室解禁をUpgrade Dockに追加
   // MAJOR_UPGRADE: 発動メジャーをUpgrade Dock管理対象に追加

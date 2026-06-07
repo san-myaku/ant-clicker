@@ -1,5 +1,109 @@
 # Development Log
 
+## 2026-06-07 Research engine — phase 1+2 (data-driven effects, leveled/infinite repeatable nodes)
+
+Purpose:
+- Begin turning research into the late-game engine (per approved plan): data-driven effects so nodes scale to "vast", plus infinite repeatable upgrades fueled by cookie with exponential cost.
+
+Findings:
+- Effects were hard-wired per node (`hasResearchNode('id')` inside each helper), and `unlockedNodes[id]` was a boolean — neither scales to many/repeatable nodes.
+
+Changes (phase 1 — data-driven, behavior-preserving):
+- `unlockedNodes[id]` is now a numeric **level**; `ensureResearchState` normalizes old boolean saves to `1`. Added `researchLevel(id)`, `getResearchNodeMaxLevel(def)`; `hasResearchNode` = level>0.
+- Added effect aggregation: node `effects:[{kind:'mul',key,perLevel}|{kind:'flag',flag}]`, `recomputeResearchBonuses()` → `_researchBonusCache{muls,flags}`, `getResearchBonus(key)`=`1+Σ(perLevel×level)`, `hasResearchUnlock(flag)`, `invalidateResearchBonuses()`.
+- Migrated the 16 legacy nodes to `effects` data (gather/brood = mul, hygiene_1 = mul -0.10) and repointed `getGatherResearchMul/getBroodEggMul/getBroodLarvaMul/getWasteGenerationMul` at the aggregation — identical numbers.
+
+Changes (phase 2 — leveled cost/buy + infinite repeatables + UI):
+- `getResearchNodeCost(def, level)` = `floor(costCookie × costGrowth^level)` (food too; one-time=base; optional `getResearchCostMul()` discount hook for the prestige phase).
+- `getResearchStatus` adds `maxed` (finite repeatable at cap) vs `done` (one-time). `buyResearchNode` increments level, deducts level-scaled cost, runs one-time side effects only on 0→1.
+- `formatResearchCost` shows the next-level cost; tree nodes show a `Lv N` badge and `済`/`上限`. Status marks `✓`/`★`. CSS for `.rtree-node-lv` and `.is-maxed`.
+- Added repeatable content: `gather_inf` (+5%/Lv gatherFood), `brood_egg_inf` (+4%/Lv), `brood_larva_inf` (+3%/Lv), all `max:Infinity, costGrowth:1.5`.
+
+Verification (python http.server + preview):
+- Backward-compat: a boolean `unlockedNodes` normalized to `1` via `ensureResearchState`/`G.save`.
+- Phase 1 equivalence: buying gather_1+gather_2 raised 食料生産 13.49→16.87 (×1.25 = old 1+0.10+0.15 exactly); cookie 1000→997.
+- Phase 2 repeatable: buying `gather_inf` 5× gave levels 1–5 with costs 3,4,6,10,15 (=floor(3×1.5^Lv)), Lv5 badge, next-cost 🍪22 shown, never "done". No console errors; `new Function` syntax check passed.
+
+Not yet done (next phases): prestige meta currency `G.insight` + meta layer (`getResearchCostMul`/effect boosts), new-system unlock nodes (auto-gather/auto-research) + runtime, large-tree UI scaling.
+
+## 2026-06-07 Product Design-style UI concept pass and refined dark refresh
+
+Purpose:
+- Try the Product Design-style workflow on the existing single-file Ant Colony app: generate multiple visual directions, choose a direction, and implement a CSS-centered refresh without touching gameplay or save data.
+
+Changes:
+- Copied the three generated concept boards into `design_concepts/` and documented the selected direction in `design_concepts/README.md`.
+- Implemented the selected "refined current dark UI" direction with a late CSS override block in `index.html`.
+- Polished HUD resource chips, the right/bottom control panel, tabs, upgrade dock cards, menu sheet, buttons, modals, stats sections, and focus states.
+- Kept the existing `#top-bar`, `#control-panel`, `#control-tabs`, and `#upgradeDock` structure. No save key, localStorage payload, `G` / `S` state, or canvas-rendering logic was changed.
+
+Verification:
+- Inline JS syntax check passed with `new Function(...)` (1 script, 14898 lines).
+- `git diff --check` passed with only existing LF-to-CRLF working-copy warnings.
+- Headless Chromium responsive checks passed at 1280x720 and 390x844: top HUD, control panel, TAP button, tabs, dock grid, and stats modal were visible/usable with no console errors. Screenshots were saved under `qa_screenshots/`.
+
+## 2026-06-07 Research tree: fix scroll trap, add large-screen expand modal
+
+Purpose:
+- Research tab scrolling stuttered/stopped partway, and the tree was cramped in the narrow control panel on large screens.
+
+Findings:
+- `#control-panel` is the vertical scroller (`overflow-y:auto; touch-action: pan-y`). The new `.rtree-scroll` (horizontal, `overflow-x:auto`) had no `touch-action`, so on touch/trackpad the nested horizontal scroller fought the parent for the gesture and vertical scrolling got stuck.
+- The tree had only the in-panel (~355px) view, forcing horizontal scrolling and leaving big screens underused.
+
+Changes:
+- Scroll fix: `.rtree-scroll` now sets `touch-action: pan-x` + `overscroll-behavior: contain`, so vertical drags delegate to `#control-panel` (`pan-y`) and only horizontal drags pan the tree.
+- Extracted the tree body into `buildResearchTreeInner(rs)` shared by the panel and a new expand modal.
+- Added a large-screen expand modal: a `⛶` button (`data-research-expand`) in the toggle bar opens `#modal-research-tree` (94vw × 90vh). `renderResearchTreeModal()` re-renders the same tree scaled with `transform: scale()` to fit the modal width (`getResearchTreeModalScale()`, ~0.66–2.4×) inside a `.rtree-modal-stage` sized to the scaled extent for two-axis scrolling. Live-updates while open; closes on button / overlay click / Escape / switching to classic; re-fits on resize. The in-panel mini tree is unchanged.
+
+Verification:
+- Inline JS syntax check passed with `new Function(...)` (14869 lines).
+- In-browser (1280×820): `.rtree-scroll` computed `touch-action: pan-x` (parent `#control-panel` `pan-y`); expand button present. Modal opened at 1229×764 showing all 16 nodes scaled 2.25× to fill width (stage 1193×2396, vertical scroll). Buying a node from inside the modal worked (gather_2 → done, cookie 213→211); close button hid the modal and cleared the flag. No console errors.
+
+Follow-up (same day):
+- Mouse-wheel still stalled in the in-panel tree (touch-action does not affect the wheel; `overscroll-behavior: contain` also blocked chaining). Fixed: changed `.rtree-scroll` to `overscroll-behavior-x: contain` and added a non-passive `wheel` listener on `#control-panel` that redirects vertical-wheel over `.rtree-scroll` to the nearest scrollable-Y ancestor (manual `scrollTop`), leaving horizontal-wheel to the tree.
+- Expand modal over-zoomed (2.25× via width-fit) so only ~2 lanes showed. Changed `getResearchTreeModalScale()` to fit BOTH axes (min of width/height fit, clamped ~0.55–1.6×) so the whole tree is visible at once.
+- Verified in-browser: a synthetic vertical `wheel` over a tree node scrolled `#control-panel` 0→220 (default prevented), while horizontal wheel left the parent unmoved. Modal now renders at scale 0.64 with stage 340×681 ≤ body 693 (all 7 branches / 16 nodes visible without vertical scroll). No console errors.
+
+## 2026-06-07 Prevent builder ants from building duplicate rooms
+
+Purpose:
+- Stop multiple builder ants from digging two/three parallel rooms of the same type at once (reported as several orange dashed tunnels going to "the same room").
+
+Findings:
+- `getDigTarget()` is the only room/shaft creator and is called repeatedly by `rebuildBuilderAssignments()` to fill `workSlots` (up to `targetCap`=3 distinct targets). Within one rebuild, `forcedType` (chosen from pop/food ratios) is constant.
+- Normal rooms have a stack limit of 1, so after the first slot creates and reserves a new `forcedType` room, the next slot could not reserve it (`isDigTargetReservable` false) and fell through to `expandMap()`/`forceExpandRoom()` again, creating a second/third room of the same type. The `existing:` and section-3 expand paths repeated this.
+- Reserved special rooms (ferment/cookie/barracks) were already safe because they dig the existing unbuilt edge first (stack limit 3) and only expand when `*Pending > 0`.
+
+Changes:
+- In `getDigTarget()`, the `forcedType` branch now tracks `forcedRoomUnderConstruction` (set when any unfinished underground edge has a hidden node of `forcedType`). When true, it does NOT call `expandMap()`/`forceExpandRoom()` for that type, and section 3 returns `null` (skipping both the duplicate room and the fallback shaft) so the slot is left for other existing work or idle.
+- Net effect: at most 1 under-construction room per non-shaft type; same-type rooms build sequentially. Dig speed and reserved-room flows are unchanged.
+
+Verification:
+- Inline JS syntax check passed with `new Function(...)` (14803 lines).
+- In-browser, fresh game forced into the duplicate-prone state (6 builders, pop ratio high so `forcedType`=nursery, then food): over 150+240+360 frames the max concurrent unfinished rooms was 1 for every type (nursery, then food); `workSlots`=6 but only 1 target was assigned (no fabricated duplicates or junk shafts).
+- Confirmed construction still progresses: the nursery edge `acc` rose to ~0.62/chunk (chunkSec≈6.7s), `edgeFrac` advanced to 0.62, and a new nursery completed (visible 1→2) before the system moved on to a food room. No console errors.
+
+## 2026-06-07 Research tree visual overhaul (branch skill-tree, earthy theme)
+
+Purpose:
+- Replace the research tab's vertical card list with a game-style skill tree (per reference images), while keeping the old list as a fallback.
+
+Findings:
+- The research UI was DOM/HTML based: `renderResearchBranch()` / `renderResearchNodeCard()` build branch sections + node cards into `#research-branch-list`, rebuilt every frame by `updateResearchUI()` with a string-equality guard to avoid clobbering taps.
+- `RESEARCH_NODE_DEFS` carry `branch` + `prereq` (same-branch chains, depth 0-3 via `getResearchNodeDepth()`) but no coordinates, so a tree layout must be derived at runtime.
+- Purchases are delegated from `#research-branch-list` via `data-research-buy`; `buyResearchNode()` already guards non-ready/ unaffordable nodes, so any view can reuse the same delegation safely.
+
+Changes:
+- Added a view toggle (`#research-view-toggle`, `data-research-view="tree|classic"`), stored in `S.researchView` and persisted to `localStorage` (`RESEARCH_VIEW_KEY='ant_research_view_v1'`, default `tree`).
+- Added the new `tree` view: `computeResearchTreeLayout()` lays branches out as horizontal lanes (columns by prereq depth, subrow stacking for shared depths); `renderResearchTree()` / `renderResearchTreeNode()` emit circular chamber nodes (`.rtree-node`) and curved SVG tunnel connectors (`.rtree-link`) into the shared `#research-branch-list`.
+- Earthy/cave CSS theme: soil-gradient scroller, dug-out lane bands, branch-accent node rims, amber "tunnel" links, states `is-done`/`is-ready`(pulse)/`is-wait`/`is-locked`, `is-breakthrough` double rim. Tree is horizontally scrollable; node desc/reason shown via `title`.
+- `updateResearchUI()` now renders the toggle and branches between `renderResearchTree()` and the preserved classic card list based on `getResearchView()`.
+
+Verification:
+- Inline JS syntax check passed with `new Function(...)` (14789 lines).
+- In-browser (python http.server + preview), research unlocked + all branches opened: tree rendered 16 nodes / 9 links / 7 lanes with correct state classes (done 2, ready 5, locked 9, breakthrough 4); toggle switched tree<->classic (16 cards <-> 16 nodes) and persisted to localStorage; no console errors. Screenshot confirmed the earthy branch-tree look.
+
 ## 2026-06-06 Review builder AI and room expansion recovery
 
 Purpose:
