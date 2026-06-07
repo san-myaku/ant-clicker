@@ -1,5 +1,19 @@
 # Development Log
 
+## 2026-06-08 Defense research: おしあいへしあい (stall) and 数は何にも勝る (quantity)
+
+Purpose:
+- Two more defense-branch nodes forking off 顎強化 (soldier_jaw_2x).
+
+Changes:
+- `oshiai` (おしあいへしあい): one-time, `mul 'blockRadius' +0.5`. Wired in `refreshRaidEnemyEngagement` — soldiers count an enemy as engaged within `RAID_SURFACE_SOLDIER_BLOCK_RADIUS × getResearchBonusRaw('blockRadius')`, so a wider hold radius engages more enemies (more enemies slowed/poisoned, fewer breach).
+- `numbers_win` (数は何にも勝る): one-time breakthrough, `mul 'soldierCost' -0.40` + `mul 'soldierPower' -0.20`. Cost wired in `G.getCost('soldier')`; power wired in `getSoldierPowerMul()` (used by both `getColonyCombatPower` and `getRaidSurfaceSoldierDamage`).
+- Added `getResearchBonusRaw(key)` = `1 + Σ(perLevel×level)` WITHOUT the effUp meta multiplier, used for these fixed tradeoff effects (soldierCost/soldierPower/blockRadius) so the prestige "知識の結晶" can't amplify a −40%/−20% into something broken (e.g. negative power). Production muls keep using `getResearchBonus` (effUp-boosted).
+- Defense lane is now 顎強化 → { 毒顎 → 毒の濃度, おしあいへしあい, 数は何にも勝る }.
+
+Verification (preview):
+- Both nodes render/buy. After `numbers_win`: soldier hire cost 1030 → 618 (×0.60 = −40% exact); soldier DPS 166.7 → 133.3 and 防衛力 1K → 800 (×0.80 = −20% exact); effUp meta did not amplify them. `oshiai` buys and aggregates `blockRadius`. No console errors; syntax check passed.
+
 ## 2026-06-08 Research tree: fix intermittent tap loss; poison fx purple
 
 Findings:
