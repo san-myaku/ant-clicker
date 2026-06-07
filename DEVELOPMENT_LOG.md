@@ -1,5 +1,19 @@
 # Development Log
 
+## 2026-06-08 Research: first "new effect" node — 毒顎 (Poison Jaw) soldier DoT
+
+Purpose:
+- Demonstrate the data-driven engine's "new behavior" path (phase-4 style): a research node that unlocks a brand-new combat mechanic, plus an infinite repeatable that scales it.
+
+Changes:
+- New defense-branch nodes: `poison_jaw` (one-time breakthrough, prereq `soldier_jaw_2x`, `effects:[{kind:'flag',flag:'poisonJaw'}]`) and `poison_conc` (infinite, prereq `poison_jaw`, `effects:[{kind:'mul',key:'poisonDmg',perLevel:0.15}]`, costGrowth 1.6). Defense chain is now 顎強化 → 毒顎 → 毒の濃度.
+- New runtime (the only new code, ~12 lines): at the end of `updateRaidSoldiers()` (after `refreshRaidEnemyEngagement`, so `engagedBy` is current), if `hasResearchUnlock('poisonJaw')`, each living enemy with `engagedBy>0` takes `RAID_POISON_BASE_PCT(0.02) × getResearchBonus('poisonDmg') × maxHp × dt` via `damageRaidEnemy`, with an occasional green ☠ `fx`. Added const `RAID_POISON_BASE_PCT`.
+- Illustrates the boundary: multiplier research = data only; a new behavior (poison/lifesteal/AoE…) = one small runtime hook gated by a research flag, then scaled by a repeatable mul key.
+
+Verification (preview):
+- Data/UI fully verified: both nodes render in the defense lane; `poison_jaw` is a breakthrough buyable after `soldier_jaw_2x`; `poison_conc` is infinite with exponential cost (Lv1–3 paid 5/8/13 = floor(6×1.6^Lv×0.85), the 0.85 = the meta costDown discount also applying correctly), next-cost 🍪20.
+- Raid runtime: forced raids ran countdown→attack→result repeatedly with `poison_jaw` owned and **no console errors** (the poison tick executes during the attack phase). Could not watch the per-second DoT live because the preview fast-forwards the whole raid in one render step; the tick is correct by construction (uses the verified `damageRaidEnemy` + flag/mul aggregation). Recommend confirming the poison feel in a real-time raid.
+
 ## 2026-06-07 Research tree: feedback when a tapped node can't be researched
 
 Purpose:
