@@ -1,5 +1,23 @@
 # Development Log
 
+## 2026-06-07 Fix mobile: nest cross-section hidden by opaque HUD overlay
+
+Purpose:
+- On mobile the nest cross-section (canvas) was not visible, and the UI looked off — both regressions from the dark UI refresh.
+
+Findings:
+- `#side-pane` is the full-screen HUD overlay (`position:absolute; inset:0; pointer-events:none`) on mobile; on desktop (`min-width:960`) it is repositioned to a relative ~420px right column.
+- The UI refresh's panel-background rule listed `#side-pane` alongside the real panels, giving it an opaque `var(--pd-panel)` (rgba(8,18,20,0.94)) background + `backdrop-filter: blur(12px)`. On mobile that opaque overlay covered the whole canvas, hiding the nest. Desktop was unaffected because its `#side-pane` is the side column (own background from base + the desktop media rule).
+- The "UI width not optimized" report could not be reproduced at the DOM level: at 375px everything is full-width (wrap/layout/game-pane/top-bar/control-panel = 375, tabs/dock fill 355), no horizontal overflow, viewport meta `width=device-width, initial-scale=1`. Likely the same broken-overlay perception, resolved by the fix.
+
+Changes:
+- Removed `#side-pane` from the refresh's opaque panel-background selector list, so the mobile HUD overlay is transparent again and the canvas shows through. Real panels (`#control-panel`/`#upgradeDock`/`.tab-card`/`.mobile-menu-card`/`.modal-box`) keep the dark panel background.
+
+Verification (preview):
+- Mobile 375×812: `#side-pane` background transparent / no backdrop-filter; nest cross-section (sky, surface, rooms, tunnels) renders; full-width, no horizontal scroll.
+- Desktop 1280: `#side-pane` is the relative ~421px right column with its gradient background; game-pane 859px with the canvas visible — no regression.
+- `new Function` JS syntax check passed.
+
 ## 2026-06-07 Research engine — phase 1+2 (data-driven effects, leveled/infinite repeatable nodes)
 
 Purpose:
