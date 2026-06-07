@@ -12628,13 +12628,25 @@ function expandMap(forcedType, isEmergency) {
     }).join('');
   }
 
+  // ツリーのノードをタップして研究を実行。実行できない場合は理由をトーストで返す。
+  // （ロック中/資源不足のノードを押しても無反応だと「ボタンが効かない」と感じるため。
+  //  クラシック表示はボタンが disabled になるが、ツリーのノードは常に押せるので明示フィードバックする）
+  function tryBuyResearchFromTree(nodeId){
+    if(!nodeId) return;
+    if(buyResearchNode(nodeId)) return;                 // 成功（完了トーストは buyResearchNode 側）
+    const def = getResearchNodeDef(nodeId);
+    if(!def) return;
+    const status = getResearchStatus(def);
+    if(status === 'done') toast('研究済みです');
+    else if(status === 'maxed') toast('このノードは上限です');
+    else if(status === 'locked') toast(getResearchNodeReason(def, status, false) || '前提条件が必要です', true);
+    // status==='ready' で資源不足の場合は buyResearchNode が既にトースト済み
+  }
   if(researchUI.branchList) {
     researchUI.branchList.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-research-buy]');
       if(!btn) return;
-      const nodeId = btn.getAttribute('data-research-buy');
-      if(!nodeId) return;
-      buyResearchNode(nodeId);
+      tryBuyResearchFromTree(btn.getAttribute('data-research-buy'));
     });
   }
 
@@ -12674,8 +12686,7 @@ function expandMap(forcedType, isEmergency) {
     researchTreeModalBody.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-research-buy]');
       if(!btn) return;
-      const nodeId = btn.getAttribute('data-research-buy');
-      if(nodeId) buyResearchNode(nodeId);
+      tryBuyResearchFromTree(btn.getAttribute('data-research-buy'));
     });
   }
   { const _rtClose = document.getElementById('btn-research-tree-close'); if(_rtClose) _rtClose.addEventListener('click', closeResearchTreeModal); }

@@ -1,5 +1,20 @@
 # Development Log
 
+## 2026-06-07 Research tree: feedback when a tapped node can't be researched
+
+Purpose:
+- User reported research couldn't be completed from the skill-tree view ("the button doesn't work").
+
+Findings:
+- Tree nodes ARE clickable and DO complete research: verified in preview that a real click (via elementFromPoint at the node center → topmost element is the node's child) on a ready+affordable node buys it (in both the panel tree and the expand modal); no overlay intercept, no transform hit-test issue. Tree HTML is not rebuilt every frame in steady state (0 mutations observed), so taps aren't lost to a mid-tap innerHTML replace.
+- Real cause of the "doesn't work" feeling: unlike the classic cards (whose button is `disabled` when not researchable), tree nodes are always tappable, but `buyResearchNode` returns silently for locked/done/maxed nodes (only ready-but-unaffordable toasts). Early game has few cookies and deeper nodes are locked, so most taps did nothing visible.
+
+Changes:
+- Added `tryBuyResearchFromTree(nodeId)` used by both tree click handlers (panel `#research-branch-list` and `#research-tree-modal-body`). On a failed buy it now toasts the reason: locked → `getResearchNodeReason` (e.g. "前提: 採集効率I" / "枝ロック中" / "研究センター未解放"), done → "研究済みです", maxed → "このノードは上限です". Ready-but-unaffordable still uses `buyResearchNode`'s existing "資源が不足しています" toast.
+
+Verification (preview):
+- Ready+affordable: clicking gather_1 (cookie 100) completed it. Locked: clicking gather_2 (prereq gather_1 missing) toasted "前提: 採集効率I" and did not buy. No console errors; syntax check passed.
+
 ## 2026-06-07 Fix duplicate room tunnels (loops) and mobile left-edge clipping
 
 Purpose:
