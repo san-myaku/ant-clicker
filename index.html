@@ -2680,6 +2680,9 @@
   const NURSE_ROOM_WANDER_SPEED_MUL = 0.16;
   const NURSE_ROOM_WANDER_TARGET_MIN = 2.20;
   const NURSE_ROOM_WANDER_TARGET_MAX = 4.20;
+  const NURSE_CARE_DWELL_MIN = 0.90;
+  const NURSE_CARE_DWELL_MAX = 1.80;
+  const NURSE_CARE_DWELL_SPEED_MUL = 0.05;
   const WORKER_ROOM_WANDER_SPEED_MUL = 0.24;
   const WORKER_ROOM_WANDER_TARGET_MIN = 1.40;
   const WORKER_ROOM_WANDER_TARGET_MAX = 2.80;
@@ -7116,9 +7119,16 @@ function expandMap(forcedType, isEmergency) {
     a.task='wander';
     a.stT=1+Math.random();
     clearRoomWander(a);
+    clearNurseCareFields(a);
   }
   function clearRoomWander(a) {
+    if(!a) return;
     a.wT = null; a.wNode = null; a.wUseSlots = false; a.wtx = null; a.wty = null;
+  }
+  function clearNurseCareFields(a) {
+    if(!a) return;
+    a.tendNode = null;
+    a.tendT = null;
   }
   function startRoomWander(a, nodeId, minT, maxT, useSlots) {
     if(!a || !S.full || nodeId == null) return false;
@@ -7225,6 +7235,100 @@ function expandMap(forcedType, isEmergency) {
     }
     a.idleWanderRoomId = null;
     return startRoomWander(a, roomId, NURSE_ROOM_WANDER_MIN, NURSE_ROOM_WANDER_MAX, true);
+  }
+
+  function getNearestRoomSlot(n, x, y) {
+    if(!n || !n.slots || !n.slots.length) return null;
+    let best = null;
+    let bestD = Infinity;
+    for(const s of n.slots) {
+      const dx = x - s.x;
+      const dy = y - s.y;
+      const d = dx * dx + dy * dy;
+      if(d < bestD) { bestD = d; best = s; }
+    }
+    return best;
+  }
+
+  function startNurseCareDwell(a, roomId) {
+    if(!a || !S.full || roomId == null) return false;
+    const n = S.full.nodes[roomId];
+    if(!n || n.type !== 'nursery') return false;
+
+    a.task = 'nurse_tend';
+    a.node = roomId;
+    a.eid = -1;
+    a.path = null;
+    a.pIdx = 0;
+    a.phase = 'tend';
+    a.tendNode = roomId;
+    a.tendT = NURSE_CARE_DWELL_MIN + Math.random() * Math.max(0, NURSE_CARE_DWELL_MAX - NURSE_CARE_DWELL_MIN);
+    a.wNode = roomId;
+    a.wUseSlots = true;
+    a.wT = null;
+
+    const roomDx = (Number.isFinite(a.x) ? a.x : n.x) - n.x;
+    const roomDy = (Number.isFinite(a.y) ? a.y : n.y) - n.y;
+    const insideRoom = Math.hypot(roomDx, roomDy) <= n.r * 0.92;
+    const baseX = insideRoom ? a.x : n.x;
+    const baseY = insideRoom ? a.y : n.y;
+    const slot = getNearestRoomSlot(n, baseX, baseY);
+    const jig = dp(1.6);
+    a.wtx = (slot ? slot.x : baseX) + (Math.random() - 0.5) * jig;
+    a.wty = (slot ? slot.y : baseY) + (Math.random() - 0.5) * jig;
+
+    const ox = a.wtx - n.x;
+    const oy = a.wty - n.y;
+    const d = Math.hypot(ox, oy);
+    const maxR = n.r * 0.82;
+    if(d > maxR && d > 0) {
+      a.wtx = n.x + ox / d * maxR;
+      a.wty = n.y + oy / d * maxR;
+    }
+    return true;
+  }
+
+  function updateNurseCareDwell(a, dt) {
+    const roomId = (a && a.tendNode != null) ? a.tendNode : (a ? a.node : null);
+    const n = (S.full && roomId != null) ? S.full.nodes[roomId] : null;
+    if(!a || !n || n.type !== 'nursery') {
+      clearRoomWander(a);
+      clearNurseCareFields(a);
+      if(a) a.task = 'idle';
+      return;
+    }
+
+    a.tendT = (typeof a.tendT === 'number' ? a.tendT : 0) - dt;
+    if(a.tendT <= 0) {
+      clearRoomWander(a);
+      clearNurseCareFields(a);
+      a.task = 'idle';
+      return;
+    }
+
+    if(a.wtx == null || a.wty == null) {
+      const slot = getNearestRoomSlot(n, a.x, a.y);
+      a.wtx = slot ? slot.x : n.x;
+      a.wty = slot ? slot.y : n.y;
+    }
+
+    const dx = a.wtx - a.x;
+    const dy = a.wty - a.y;
+    const d = Math.hypot(dx, dy);
+    if(d > dp(0.8)) {
+      const step = Math.min(d, ANT_WANDER_STEP_SPEED * NURSE_CARE_DWELL_SPEED_MUL * dt);
+      a.x += (dx / d) * step;
+      a.y += (dy / d) * step;
+      a.rot = Math.atan2(dy, dx);
+    }
+
+    const ox = a.x - n.x;
+    const oy = a.y - n.y;
+    const rd = Math.hypot(ox, oy);
+    if(rd > n.r * 0.92 && rd > 0) {
+      a.x = n.x + ox / rd * n.r * 0.92;
+      a.y = n.y + oy / rd * n.r * 0.92;
+    }
   }
 
   // 清掃運搬の状態をクリア
@@ -8575,11 +8679,20 @@ function expandMap(forcedType, isEmergency) {
       const visibleNodeCount = S.nodeVis ? S.nodeVis.reduce((sum, v) => sum + (v ? 1 : 0), 0) : nodeCount;
       const logicalCount = Math.max(0, Math.floor(G.tot || 0));
       const larvaeCount = Math.max(0, Math.floor(G.larvae || 0));
-      if(nodeCount > 160 || visibleNodeCount > 140 || larvaeCount > 8000 || logicalCount > 3000) {
-        cap = Math.min(cap, ACTION_ANT_LARGE_COLONY_CAP);
-      } else if(nodeCount > 110 || visibleNodeCount > 100 || logicalCount > 800) {
-        cap = Math.min(cap, ACTION_ANT_MEDIUM_COLONY_CAP);
-      }
+      // 段(tier)はヒステリシス付き。指標が閾値付近で揺れても上限が往復しないようにする。
+      // 上限が毎フレーム変わると S.ants が大量に増減し、アリがその場で消えて女王室に湧き直す
+      // ＝「部屋で現れたり消えたり」の一因になるため、戻す側の閾値を一回り低くして段を固定する。
+      const prevTier = S._actionCapTier || 0;
+      const largeUp    = (nodeCount > 160 || visibleNodeCount > 140 || larvaeCount > 8000 || logicalCount > 3000);
+      const mediumUp   = (nodeCount > 110 || visibleNodeCount > 100 || logicalCount > 800);
+      const largeKeep  = (nodeCount > 150 || visibleNodeCount > 130 || larvaeCount > 7200 || logicalCount > 2700);
+      const mediumKeep = (nodeCount > 100 || visibleNodeCount > 90  || logicalCount > 720);
+      let tier = largeUp ? 2 : (mediumUp ? 1 : 0);
+      if(prevTier >= 2 && largeKeep) tier = Math.max(tier, 2);
+      if(prevTier >= 1 && mediumKeep) tier = Math.max(tier, 1);
+      S._actionCapTier = tier;
+      if(tier >= 2) cap = Math.min(cap, ACTION_ANT_LARGE_COLONY_CAP);
+      else if(tier >= 1) cap = Math.min(cap, ACTION_ANT_MEDIUM_COLONY_CAP);
     }
     return Math.min(cap, getRenderCap());
   }
@@ -8661,7 +8774,9 @@ function expandMap(forcedType, isEmergency) {
     if(task === 'go_large_food' || task === 'large_food_wait' || task === 'large_food_carry') return true;
     if(task === 'go_waste_pick' || task === 'go_waste_drop') return true;
     if(task === 'go_feed_pick' || task === 'go_feed_drop') return true;
+    if(task === 'go_q' || task === 'go_n' || task === 'go_larva_pick' || task === 'go_larva_drop') return true;
     if(task === 'go_room_wander') return true;
+    if(task === 'nurse_tend') return true;
     if(task === 'wander' && (a.wNode != null || a.wUseSlots || a.wT != null)) return true;
     if(a.role === 'builder' && task !== 'idle' && task !== 'wander') return true;
     if(a.role === 'soldier' && (S.invaders && S.invaders.length) && task !== 'idle') return true;
@@ -9566,7 +9681,7 @@ function expandMap(forcedType, isEmergency) {
           }
         }
         else if(a.task==='go_q') { move(a,dt); if(a.phase==='done') a.task='idle'; }
-        else if(a.task==='go_n') { move(a,dt); if(a.phase==='done') { const dst = S.full.nodes[a.node]; dst.invEgg++; if(a.goldenCargo) dst.invGoldenEgg = Math.max(0, Math.floor(dst.invGoldenEgg || 0)) + 1; a.cargo=null; a.goldenCargo=false; a.task='idle'; } }
+        else if(a.task==='go_n') { move(a,dt); if(a.phase==='done') { const dst = S.full.nodes[a.node]; dst.invEgg++; if(a.goldenCargo) dst.invGoldenEgg = Math.max(0, Math.floor(dst.invGoldenEgg || 0)) + 1; a.cargo=null; a.goldenCargo=false; if(!startNurseCareDwell(a, a.node)) a.task='idle'; } }
         else if(a.task==='go_feed_pick') {
           move(a,dt);
           if(a.phase==='done') {
@@ -9601,7 +9716,8 @@ function expandMap(forcedType, isEmergency) {
                 fx(a.x, a.y - dp(10), `🍃→🐛`, '#4ade80');
               }
             }
-            a.carryType=null; a.foodCarry=0; a.feedSrc=null; a.feedDst=null; a.task='idle';
+            a.carryType=null; a.foodCarry=0; a.feedSrc=null; a.feedDst=null;
+            if(!startNurseCareDwell(a, a.node)) a.task='idle';
           }
         }
         else if(a.task==='go_larva_pick') {
@@ -9628,7 +9744,8 @@ function expandMap(forcedType, isEmergency) {
               dst.invLarva = (dst.invLarva||0) + 1;
               if(goldenTake > 0) dst.invGoldenLarva = Math.max(0, Math.floor(dst.invGoldenLarva || 0)) + goldenTake;
             }
-            a.cargo=null; a.carryType=null; a.larvaSrc=null; a.larvaDst=null; a.task='idle';
+            a.cargo=null; a.carryType=null; a.larvaSrc=null; a.larvaDst=null;
+            if(!startNurseCareDwell(a, a.node)) a.task='idle';
           }
         }
         else if(a.task==='go_waste_pick') {
@@ -9666,6 +9783,7 @@ function expandMap(forcedType, isEmergency) {
             a.task='idle';
           }
         }
+        else if(a.task==='nurse_tend') updateNurseCareDwell(a, dt);
         else if(a.task==='wander') updateTimedRoomWander(a,dt);
       } else if(a.role === 'soldier') {
         if(raidActive) {
@@ -14836,11 +14954,13 @@ function syncFermenterUnlockUI() {
 
   function shouldDrawActionAntOverlayInCrowd(a) {
     if(!a) return false;
-    const task = a.task || 'idle';
-    if(isProtectedActionAntActor(a)) return true;
-    if(task === 'rest' || task === 'go_rest') return true;
-    if(task === 'go_out' || task === 'surf' || task === 'ret' || task === 'go_in') return true;
-    return false;
+    // 行動アリ(S.ants)はすべて「本物のアリ」の代表。crowdSprite でも常に実位置で上に描き、
+    // 同数だけ群衆(S.antCrowd)から差し引く。
+    // 以前は idle / 素の wander を対象外にしていたため、アリが仕事を切り替えて一瞬手が空くたびに
+    // 描画対象から外れ、その穴埋めの群衆アリが部屋のランダムな座標へ毎フレーム湧いて消えていた
+    // （＝育児室などで座標がジャンプして見えるちらつき）。常に true にして配分を固定する。
+    // 群衆は「行動アリ上限を超えた頭数」だけを担当するので、描画負荷はほぼ変わらない。
+    return true;
   }
 
   function getCrowdOverlayRoleCounts(hideSoldiers) {
@@ -15205,6 +15325,64 @@ function syncFermenterUnlockUI() {
     h = Math.imul(h, 1274126177) >>> 0;
     h ^= (h >>> 16);
     return (h >>> 0) / 4294967296;
+  }
+
+  function getRoomVisualKindSalt(kind) {
+    if(kind === 'larva') return 101;
+    if(kind === 'egg') return 211;
+    if(kind === 'food') return 307;
+    if(kind === 'cookie') return 401;
+    return 503;
+  }
+
+  function pickRoomVisualSlotIndex(nodeId, kind, ordinal, slotLimit, used) {
+    if(slotLimit <= 0) return -1;
+    const salt = getRoomVisualKindSalt(kind);
+    const start = Math.floor(seed01FromIds((nodeId + 1) * 1009 + salt, (ordinal + 1) * 9176) * slotLimit) % slotLimit;
+    for(let step=0; step<slotLimit; step++) {
+      const idx = (start + step) % slotLimit;
+      if(!used || !used.has(idx)) return idx;
+    }
+    return -1;
+  }
+
+  function syncRoomVisualSlotIndices(n, nodeId, kind, desiredCount, slotLimit, used) {
+    const limit = Math.max(0, Math.floor(slotLimit || 0));
+    const want = Math.min(Math.max(0, Math.floor(desiredCount || 0)), limit);
+    if(!n || want <= 0 || limit <= 0) {
+      if(n && n._roomVisualSlots && n._roomVisualSlots[kind]) n._roomVisualSlots[kind] = [];
+      return [];
+    }
+    if(!n._roomVisualSlots) n._roomVisualSlots = {};
+    const prev = Array.isArray(n._roomVisualSlots[kind]) ? n._roomVisualSlots[kind] : [];
+    const next = [];
+    const localUsed = new Set();
+
+    for(const rawIdx of prev) {
+      if(next.length >= want) break;
+      const idx = Math.floor(rawIdx);
+      if(idx < 0 || idx >= limit) continue;
+      if(localUsed.has(idx)) continue;
+      if(used && used.has(idx)) continue;
+      next.push(idx);
+      localUsed.add(idx);
+      if(used) used.add(idx);
+    }
+
+    let guard = 0;
+    while(next.length < want && guard < limit * 2 + want) {
+      const idx = pickRoomVisualSlotIndex(nodeId, kind, next.length + guard, limit, used);
+      if(idx < 0) break;
+      if(!localUsed.has(idx)) {
+        next.push(idx);
+        localUsed.add(idx);
+        if(used) used.add(idx);
+      }
+      guard++;
+    }
+
+    n._roomVisualSlots[kind] = next;
+    return next;
   }
 
   function drawLarvaSimple(ctx, x, y, seed01, scale){
@@ -16139,47 +16317,61 @@ function syncFermenterUnlockUI() {
       const invCookie = Math.max(0, Math.floor(n.invCookie || 0));
       const invCookieDraw = (n.type === 'cookieroom') ? invCookie : 0;
       const waste = Math.max(0, +n.invWaste || 0);
-      const maxSlotsDraw = Math.min(n.slots.length, getRoomSlotDrawCap(n)); // 描画上限（負荷対策）
-      const totalDraw = Math.min(maxSlotsDraw, invLarva + invEgg + invFood + invCookieDraw);
+      const slotCount = n.slots ? n.slots.length : 0;
+      const maxSlotsDraw = Math.min(slotCount, getRoomSlotDrawCap(n)); // 描画上限（負荷対策）
       const lightLarva = (antRender.mode === 'dot' || antRender.mode === 'crowdSprite' || renderZoom < 0.88); // 軽量モードは簡易描画
       const drawLarvaWaste = isLarvaRoom && waste > 0 && n.slots && n.slots.length;
+      const usedRoomSlots = new Set();
+      const larvaSlots = syncRoomVisualSlotIndices(n, id, 'larva', invLarva, maxSlotsDraw, usedRoomSlots);
+      const eggSlots = syncRoomVisualSlotIndices(n, id, 'egg', invEgg, maxSlotsDraw, usedRoomSlots);
+      const foodSlots = syncRoomVisualSlotIndices(n, id, 'food', invFood, maxSlotsDraw, usedRoomSlots);
+      const cookieSlots = syncRoomVisualSlotIndices(n, id, 'cookie', invCookieDraw, maxSlotsDraw, usedRoomSlots);
+      const totalDraw = larvaSlots.length + eggSlots.length + foodSlots.length + cookieSlots.length;
       if(totalDraw > 0 || drawLarvaWaste || (n.type === 'waste' && n.slots && n.slots.length)) {
         ctx.save();
         clipBlobPath(ctx, n);
-        for(let k=0; k<totalDraw; k++){
-          const s = n.slots[k];
-          if(k < invLarva) {
-            const seed = seed01FromIds(n.id ?? i, k);
-            // 幼虫サイズを1.5倍（見た目強調）
-            if(lightLarva) drawLarvaSimple(ctx, s.x, s.y, seed, 0.78);
-            else drawLarvaAt(ctx, s.x, s.y, S.t, seed, 0.72);
-            if(k < invGoldenLarva) {
-              ctx.save();
-              ctx.strokeStyle = 'rgba(250, 204, 21, 0.95)';
-              ctx.lineWidth = dp(1.2);
-              ctx.beginPath(); ctx.arc(s.x, s.y, dp(5.2), 0, 6.28); ctx.stroke();
-              ctx.restore();
-            }
-          } else if(k < invLarva + invEgg) {
-            const eggIdx = k - invLarva;
-            const isGoldenEgg = eggIdx < invGoldenEgg;
-            ctx.fillStyle = isGoldenEgg ? '#facc15' : '#fef3c7';
-            ctx.beginPath(); ctx.arc(s.x, s.y, dp(isGoldenEgg ? 3.6 : 3), 0, 6.28); ctx.fill();
-            if(isGoldenEgg) {
-              ctx.strokeStyle = 'rgba(255,255,255,0.55)';
-              ctx.lineWidth = dp(0.8);
-              ctx.beginPath(); ctx.arc(s.x, s.y, dp(4.6), 0, 6.28); ctx.stroke();
-            }
-          } else if(k < invLarva + invEgg + invFood) {
-            ctx.fillStyle = '#4ade80';
-            ctx.beginPath(); ctx.arc(s.x, s.y, dp(3), 0, 6.28); ctx.fill();
-          } else {
-            ctx.fillStyle = '#fcd34d';
-            ctx.beginPath(); ctx.arc(s.x, s.y, dp(3), 0, 6.28); ctx.fill();
-            ctx.fillStyle = '#a16207';
-            ctx.beginPath(); ctx.arc(s.x - dp(0.8), s.y - dp(0.6), dp(0.55), 0, 6.28); ctx.fill();
-            ctx.beginPath(); ctx.arc(s.x + dp(1), s.y + dp(0.5), dp(0.45), 0, 6.28); ctx.fill();
+        for(let k=0; k<larvaSlots.length; k++){
+          const slotIdx = larvaSlots[k];
+          const s = n.slots[slotIdx];
+          if(!s) continue;
+          const seed = seed01FromIds(n.id ?? i, slotIdx);
+          // 幼虫サイズを1.5倍（見た目強調）
+          if(lightLarva) drawLarvaSimple(ctx, s.x, s.y, seed, 0.78);
+          else drawLarvaAt(ctx, s.x, s.y, S.t, seed, 0.72);
+          if(k < invGoldenLarva) {
+            ctx.save();
+            ctx.strokeStyle = 'rgba(250, 204, 21, 0.95)';
+            ctx.lineWidth = dp(1.2);
+            ctx.beginPath(); ctx.arc(s.x, s.y, dp(5.2), 0, 6.28); ctx.stroke();
+            ctx.restore();
           }
+        }
+        for(let k=0; k<eggSlots.length; k++){
+          const s = n.slots[eggSlots[k]];
+          if(!s) continue;
+          const isGoldenEgg = k < invGoldenEgg;
+          ctx.fillStyle = isGoldenEgg ? '#facc15' : '#fef3c7';
+          ctx.beginPath(); ctx.arc(s.x, s.y, dp(isGoldenEgg ? 3.6 : 3), 0, 6.28); ctx.fill();
+          if(isGoldenEgg) {
+            ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+            ctx.lineWidth = dp(0.8);
+            ctx.beginPath(); ctx.arc(s.x, s.y, dp(4.6), 0, 6.28); ctx.stroke();
+          }
+        }
+        for(const slotIdx of foodSlots){
+          const s = n.slots[slotIdx];
+          if(!s) continue;
+          ctx.fillStyle = '#4ade80';
+          ctx.beginPath(); ctx.arc(s.x, s.y, dp(3), 0, 6.28); ctx.fill();
+        }
+        for(const slotIdx of cookieSlots){
+          const s = n.slots[slotIdx];
+          if(!s) continue;
+          ctx.fillStyle = '#fcd34d';
+          ctx.beginPath(); ctx.arc(s.x, s.y, dp(3), 0, 6.28); ctx.fill();
+          ctx.fillStyle = '#a16207';
+          ctx.beginPath(); ctx.arc(s.x - dp(0.8), s.y - dp(0.6), dp(0.55), 0, 6.28); ctx.fill();
+          ctx.beginPath(); ctx.arc(s.x + dp(1), s.y + dp(0.5), dp(0.45), 0, 6.28); ctx.fill();
         }
         // 幼虫室のゴミ描画（軽量・控えめ）
         if(drawLarvaWaste) {

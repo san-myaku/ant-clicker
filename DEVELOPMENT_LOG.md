@@ -15,6 +15,11 @@ Findings:
 - When a nurse was assigned to idle-wander in a nursery/queen room different from its logical `a.node`, the visual position could move into that room while `a.node` stayed behind. When the wander ended, the next path update snapped the ant back to the old node, reading as a sudden disappearance.
 - The attached save is a 91-ant `sprite`-mode case, so the remaining fast/popping room ants were mainly normal `S.ants` action actors rather than `S.antCrowd`.
 - Workers and nurses could still snap from a room slot to the tunnel center as soon as a path task started, making room ants appear/disappear.
+- Nurse care tasks still returned directly to `idle` after egg placement, larva feeding, or larva transfer. In an active nursery this could immediately assign another nearby care task and make one nurse look like it was moving too fast inside a single room.
+- Nursery contents were drawn by packing larvae, eggs, and food from the first room slots every frame. When counts changed, existing dots could jump to different coordinates, which could read as a nurse or nursery object briefly appearing in several places.
+- Root cause of the random-coordinate room flicker (dominant in `crowdSprite` mode): the crowd/overlay partition was unstable. `shouldDrawActionAntOverlayInCrowd()` excluded `idle` and plain `wander` action ants, and that same predicate is BOTH the crowd-overlay draw filter and the `getCrowdOverlayRoleCounts()` subtraction set. So every time an action ant flipped busy↔idle, the per-role overlay count changed by 1, the crowd role target (`G.ants − overlay`) changed by 1, and `syncAntCrowd()` added or removed a crowd ant of that role. New crowd ants are placed at a random in-room slot, so nurses/workers flickered at random coordinates inside rooms even though the total headcount was correct.
+- Measured in-browser (synthetic 2040-ant colony, 30 stable frames): the OLD nurse overlay count took 13 distinct values (129–144) and the OLD worker overlay swung across 27 distinct values (43–110) — i.e. dozens of crowd ants spawning/despawning at random spots per fraction of a second.
+- Secondary cause of in-room appear/disappear: `getActionAntCap()` used hard thresholds, so a metric hovering near a threshold made the cap flip-flop, mass-resizing `S.ants` (ants vanish in place; replacements spawn at the queen room via `spawnAnt`).
 
 Changes:
 - Added `getRoomNodeCountByType(type, includeHidden)` and kept `getFermentRoomNodeCount()` as a wrapper.
@@ -30,13 +35,18 @@ Changes:
 - Further slowed worker room-slot wandering and made worker target holds longer.
 - Added a room-exit easing step in `move()` so action ants walk from their current room-slot position back to the node center before entering a tunnel path.
 - Slowed `S.antCrowd` room movement/edge-leave frequency and preserved arrival position when crowd ants enter rooms, preventing high-count room pops.
-- Updated `CURRENT_SYSTEM_OVERVIEW.md` with the reserved special-room recovery behavior.
+- Added `nurse_tend`, a short nursery dwell after egg placement, larva feeding, and larva transfer, with very low drift speed and actor-trimming protection.
+- Added runtime-only stable room inventory slot indices for larvae, eggs, food, and cookie dots so nursery inventory count changes do not repack the whole room from slot 0.
+- Protected the remaining nurse transit tasks (`go_q`, `go_n`, `go_larva_pick`, `go_larva_drop`) during visual actor trimming.
+- Made `shouldDrawActionAntOverlayInCrowd()` return true for every action ant, so all `S.ants` are drawn on top at their real positions and subtracted from the crowd. This keeps the overlay/crowd partition stable across task changes and removes the random-coordinate room flicker at its source.
+- Added hysteresis to `getActionAntCap()` via `S._actionCapTier` with lower "keep" thresholds than the "up" thresholds, so the action-actor cap no longer flip-flops when a metric hovers near a threshold.
+- Updated `CURRENT_SYSTEM_OVERVIEW.md` with the reserved special-room recovery behavior, nurse care dwell behavior, stable room inventory slot behavior, the stable crowd/overlay partition, and the hysteretic action-ant cap.
 
 Verification:
-- Inline JavaScript syntax check passed with `new Function(...)`.
+- Inline JavaScript syntax check passed with `new Function(...)` (14645 lines checked).
+- In-browser runtime verification (python http.server + preview): no console errors; `S._actionCapTier` confirmed the new cap code is live.
+- On a synthetic 2040-ant colony in `crowdSprite` mode, over 30 stable frames the fixed per-role overlay counts were constant (nurse 144 / worker 477, distinct=1) and `S.antCrowd.count` was constant (1391), versus the replicated OLD logic which oscillated (nurse 13 distinct values, worker 27) — confirming the flicker source is removed while idle ants were present (idle workers up to 434).
 - `git diff --check` passed with only LF/CRLF warnings.
-- Static grep confirmed the new helper, reserved priorities, and overview notes.
-- In-app Browser runtime verification was attempted, but the browser connection failed during setup in this environment.
 
 ## 2026-06-06 Halve soldier hiring cost
 

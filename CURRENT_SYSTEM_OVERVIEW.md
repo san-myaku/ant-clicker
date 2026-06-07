@@ -273,7 +273,7 @@ Crowd rendering:
 - The atlas frames include abdomen, thorax, head, legs, and antennae. Leg motion is baked into walk frames and offset by each ant's `gaitPhase`.
 - `S.antCrowd` uses typed-array style fields (`x`, `y`, `rot`, `role`, `gaitPhase`, `speed`, `routeKind`, `nodeId`, `edgeId`, `t`) and is not saved.
 - `S.antCrowd` handles lightweight room wandering and completed-edge travel only. It does not run cargo, construction, feeding, waste, combat, or reward logic.
-- Important action ants from `S.ants` (cargo, golden, panic, rest, large food, waste/feed jobs, surface gathering, builder work, invader-response soldiers) are drawn on top of the crowd and subtracted from crowd role counts to avoid duplicate bodies where possible.
+- ALL action ants from `S.ants` are drawn on top of the crowd at their real positions and subtracted from crowd role counts, so the overlay/crowd partition stays stable as ants change tasks. `shouldDrawActionAntOverlayInCrowd()` returns true for every action ant (it is used both as the crowd-overlay draw filter and as the `getCrowdOverlayRoleCounts()` subtraction set, so the two always match). Previously this predicate excluded `idle`/plain `wander` ants; that made the per-role overlay count oscillate every frame (a busy↔idle flip changed it by 1), which forced `syncAntCrowd()` to add/remove a crowd ant of that role each time. Newly added crowd ants are placed at a random in-room slot (`placeCrowdAntInNode(keepPosition=false)`), so the oscillation showed up as nurses/workers flickering at random coordinates inside rooms. Because the crowd only ever covers the headcount BEYOND `getActionAntCap()`, drawing the idle minority on top costs almost nothing.
 - During raid attack/result phases, underground soldier crowd/actors are hidden; `S.raidSoldiers` remains the surface raid representation.
 
 Current state:
@@ -283,6 +283,7 @@ Current state:
 - Visible builder ants remain in `S.ants` as representative animation.
 - Other per-frame task roles still use `S.ants` more directly, but `S.ants` is now capped separately by `getActionAntCap()` rather than the 10,000 visual display cap.
 - `getActionAntCap()` lowers the representative action-actor cap on very large nests: medium colonies can cap at 650 and large/very-larva-heavy colonies can cap at 420. This keeps heavy saves from updating 1000 action actors while `S.antCrowd` preserves the visual population.
+- The cap tier is hysteretic. `getActionAntCap()` stores the chosen tier in `S._actionCapTier` and uses lower "keep" thresholds than the "up" thresholds (e.g. larvae enters the 420 tier at >8000 but only leaves it below 7200). This stops the cap from flip-flopping when a metric (visible node count, larvae, logical population) hovers near a threshold, which would otherwise mass-resize `S.ants` every frame and make ants vanish in place and respawn at the queen room.
 - Numeric systems that directly use `G.ants.*`, such as base food production and egg/larva progression, are less affected.
 - Ant path heading uses forward/backward samples on the current tunnel curve so endpoint/junction frames keep the travel direction instead of snapping to 0 degrees.
 - Phase 4 Perf-1 keeps `S.ants` but lightens it:
@@ -427,6 +428,7 @@ Nurse behavior:
 - Clean larva-room waste
 - Wait/wander in room slots when idle so they do not visually stack into one ant.
 - Idle nurse room wandering uses slower nursery-specific movement and longer target holds than worker room wandering.
+- After placing eggs, feeding larvae, or moving larvae into a nursery, a nurse enters a short `nurse_tend` dwell in that nursery. This prevents immediate task reassignment from making a nurse look like it is darting around one room at high speed.
 - If an idle nurse needs to wait in a nursery/queen room that is not its current node, it first walks there via completed tunnels (`go_room_wander`) and only then starts room-slot wandering. This keeps the visual room position and logical `a.node` aligned.
 - When any action ant starts a tunnel path from a room slot, `move()` first eases the ant back to its current node center before entering the edge. This prevents slot-to-tunnel snaps when workers or nurses leave a room.
 - Timed room-wander action actors are protected during representative actor trimming where possible, so ants do not pop out of rooms just because the visual actor cap is being rebalanced.
@@ -437,6 +439,7 @@ Egg and larva systems:
 - Nurses move eggs into nursery rooms.
 - Eggs in queen room do not directly hatch.
 - Egg and larva inventories are distributed across rooms rather than fixed to one room.
+- Room inventory visuals keep runtime-only stable slot indices per room/item kind. Larvae, eggs, food, and cookie dots no longer redraw by simply packing from slot 0 each frame, so count changes do not make existing nursery contents jump to unrelated coordinates.
 - Larvae require food before becoming adults.
 
 Nurse upgrade:
