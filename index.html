@@ -1232,7 +1232,7 @@
         display: flex;
         flex-wrap: nowrap;
         align-items: stretch;
-        padding: max(4px, env(safe-area-inset-top)) 8px 4px;
+        padding: max(4px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) 4px max(8px, env(safe-area-inset-left));
         gap: 4px;
         background: linear-gradient(to bottom, rgba(8, 14, 24, 0.9) 0%, rgba(8, 14, 24, 0.72) 72%, rgba(8, 14, 24, 0) 100%);
       }
@@ -1283,8 +1283,8 @@
       #next-goal-box {
         position: absolute;
         top: calc(100% + 4px);
-        left: 8px;
-        right: 8px;
+        left: calc(8px + env(safe-area-inset-left));
+        right: calc(8px + env(safe-area-inset-right));
         z-index: 31;
         min-height: 0;
         padding: 4px 8px !important;
@@ -1306,7 +1306,7 @@
       #mobile-menu-sheet {
         position: absolute;
         top: calc(max(4px, env(safe-area-inset-top)) + 42px);
-        right: 8px;
+        right: calc(8px + env(safe-area-inset-right));
         z-index: 48;
         width: min(308px, calc(100vw - 16px));
         pointer-events: none;
@@ -2509,7 +2509,7 @@
         border-radius: 8px;
       }
       #control-panel {
-        padding: 6px 10px max(11px, env(safe-area-inset-bottom));
+        padding: 6px max(10px, env(safe-area-inset-right)) max(11px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
         gap: 7px;
         border-top-color: rgba(184, 119, 57, 0.48);
         background:
@@ -7425,8 +7425,11 @@ function expandMap(forcedType, isEmergency) {
             S.full.byNode[A.id].push(eid);
             S.full.byNode[nid].push(eid);
 
-            // 低確率で“追加の接続”を作る（浅い層ほど出やすい）
-            maybeAddLoop(nid);
+            // ループ（追加接続）は無効化。
+            // maybeAddLoop は「新規の未掘削(hidden)部屋」に2本目の通路を生やすが、
+            // 新部屋がhiddenの間は親通路もループ通路も両方が掘削対象(frontier)になり、
+            // 同じ部屋へ2ルートで同時に掘ってしまう（ユーザー指摘の重複）。1部屋=1通路にする。
+            // maybeAddLoop(nid);
 
             return eid;
           }

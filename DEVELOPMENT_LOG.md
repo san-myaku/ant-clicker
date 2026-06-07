@@ -1,5 +1,23 @@
 # Development Log
 
+## 2026-06-07 Fix duplicate room tunnels (loops) and mobile left-edge clipping
+
+Purpose:
+- Builders again dug two routes to the same room (recurring complaint), and the mobile UI's left edge was slightly clipped.
+
+Findings:
+- Duplicate room: the earlier guard (`forcedRoomUnderConstruction`) only stops two separate same-type rooms. The remaining cause is `maybeAddLoop(nid)` called right after a new room is created in `expandMap`: it adds a second pending edge from the brand-new (still hidden) room to a visible node. While the room is hidden, both the parent edge and the loop edge are "frontier" edges (one endpoint hidden), so builders dig both → two tunnels to the same room. That call is the only loop creator, so every loop manifests as this double-dig.
+- Mobile left clip: `safe-area-inset` was applied only to top/bottom, never left/right. With `viewport-fit=cover`, full-bleed bars (`#top-bar`, `#control-panel`) sit flush to the physical edge, so on notched/curved phones the left content is clipped. Not reproducible in the emulator (insets=0), which is why earlier width checks looked full-width.
+
+Changes:
+- Disabled the loop call: commented out `maybeAddLoop(nid)` in `expandMap` so each new room gets exactly one tunnel (nest is now a tree, `loops≈0`).
+- Added horizontal safe-area padding: `#top-bar` and `#control-panel` mobile padding now use `max(8px|10px, env(safe-area-inset-left|right))`; `#next-goal-box` and `#mobile-menu-sheet` edge offsets use `calc(8px + env(safe-area-inset-left|right))`.
+
+Verification (preview):
+- Builder: fresh colony with 8 builders / high pop ratio, 600-frame scan — max pending edges per hidden room = 1 (no double-route examples).
+- Safe-area: at 375px (inset 0) computed padding is unchanged (8px / 10px) → no regression; `env()` insets only add space on real devices.
+- No console errors; `new Function` syntax check passed.
+
 ## 2026-06-07 Research engine — phase 3 (prestige meta currency "insight")
 
 Purpose:

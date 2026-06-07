@@ -241,6 +241,8 @@ Generation guards prevent rooms from being created above the surface:
 
 Tunnel crossing is prevented during generation: `edgeIntersectsExisting(newEdge, skipU, skipV)` tests a candidate tunnel's bezier against existing edges before the node/edge is committed. `queueMainShaftEdge`, the `expandMap` non-branch loop, and `forceExpandRoom` each skip a placement that would cross an existing tunnel.
 
+Loop edges (extra cross-connections) are disabled: each new room gets exactly one tunnel. `maybeAddLoop()` still exists but its only call site (after a new room is created in `expandMap`) is commented out. It used to add a second pending edge from the brand-new (still hidden) room to a visible node; because both the parent edge and the loop edge are then "frontier" edges (one endpoint hidden), builders dug both at once — two routes converging on the same room (a repeated user complaint). The nest is now effectively a tree (`loops≈0`).
+
 `S.band` controls the active dig layer. It is saved and restored. If missing or invalid, it is repaired before builder target selection.
 
 ## 7. Ant Counts, Rendering, And Current Separation
