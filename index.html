@@ -3236,23 +3236,29 @@
   const GOLDEN_FINGER_COST_BASE = 20;
   const GOLDEN_FINGER_COST_GROWTH = 2;
   const GOLDEN_FINGER_CHANCES = [0, 0.002, 0.0035, 0.0055, 0.008, 0.011]; // Lv1..5: 0.2%〜1.1%
+  const GOLDEN_AUTO_LAY_FACTOR = 0.5; // 黄金枝「黄金の自動産卵」: 自動産卵時の黄金卵率はタップ時の半分
   const MAJOR_COOKIE2X_COST = 40; // 日本語: クッキー出現率2倍
   const MAJOR_JAW2X_COST = 60;    // 日本語: 兵隊攻撃2倍
   const COOKIE_FIND_2X_NODE = 'cookie_find_2x';
   const SOLDIER_JAW_2X_NODE = 'soldier_jaw_2x';
   const MAJOR_DEPTH2_COST = 15;   // 深度II解放コスト
   const MAJOR_DEPTH3_COST = 40;   // 深度III解放コスト
+  const MAJOR_DEPTH4_COST = 90;   // 深度IV解放コスト
   const MAJOR_BARRACKS_COST = 25; // 兵舎設計図コスト
   const GEO_DEPTH_2_NODE = 'geo_depth_2';
   const GEO_DEPTH_3_NODE = 'geo_depth_3';
+  const GEO_DEPTH_4_NODE = 'geo_depth_4';
   const BARRACKS_BLUEPRINT_NODE = 'military_barracks_blueprint';
   // MAJOR_UPGRADE: 発動メジャー（アクティブ）設定
   const MAJOR_ACT_COOKIE_CD = 12000;  // 日本語: クッキーブーストCD（秒）旧600→×20に
   const MAJOR_ACT_COOKIE_WIN = 15;   // 日本語: 出現ウィンドウ（秒）
   const MAJOR_ACT_COOKIE_ACTIVE = 10;// 日本語: 発動時間（秒）
-  const MAJOR_ACT_COOKIE_BASE = 0.006;// 日本語: 初期当選率
-  const MAJOR_ACT_COOKIE_INC = 0.0015;// 日本語: 外れ時の上昇
-  const MAJOR_ACT_COOKIE_MAX = 0.03; // 日本語: 上限
+  // 出現頻度を旧値の1/10に下げた（base/inc/max を ÷10）。majorActives はセーブされず
+  // 起動毎に hunting からやり直す＝CD(3h20m)が事実上効かないため、体感の出現頻度は
+  // この抽選確率で決まる。÷10で探索時間が約2分→約20分に伸び、出現頻度が約1/10になる。
+  const MAJOR_ACT_COOKIE_BASE = 0.0006;// 日本語: 初期当選率（旧0.006）
+  const MAJOR_ACT_COOKIE_INC = 0.00015;// 日本語: 外れ時の上昇（旧0.0015）
+  const MAJOR_ACT_COOKIE_MAX = 0.003; // 日本語: 上限（旧0.03）
   const MAJOR_ACT_ROLL_INTERVAL = 3; // 日本語: 抽選間隔（秒）
   const MAJOR_ACT_COOKIE_MUL = 100;  // 日本語: クッキー出現率倍率
   const MAJOR_ACT_LUCKY_MARGIN = 34;             // ラッキー対象の画面端マージン（CSS px）
@@ -3325,7 +3331,16 @@
   const CARRY_SPEED_MUL = 0.85;
   const BUILDER_LOGIC_MAX_SLOTS = 18;
   const BUILDER_LOGIC_BASE_CHUNK_SEC = 4.8;
-  const BUILDER_ASSIGNMENT_MAX_TARGETS = 3;
+  const BUILDER_ASSIGNMENT_MAX_TARGETS = 4;  // 並行建築サイトのハード上限（マルチタスクLv3で1+3=4）
+  const BUILDER_MULTITASK_MAX = 3;           // 研究「マルチタスク」最大Lv（並行 2/3/4）
+  // 研究「鬼の居ぬ間も！/夜なべ建築」: オフライン建築
+  const OFFLINE_BUILD_EFF_BASE = 1/3;        // 基本効率（オンラインの1/3）
+  const OFFLINE_BUILD_STEP_SEC = 20;         // ステップあたりの建築時間（safety=8チャンク/呼び出しを超えない粒度）
+  const OFFLINE_BUILD_MAX_STEPS = 1500;      // 安全弁（ループ上限）
+  const OFFLINE_BUILD_EFF_CAP = 1.0;         // オフライン効率の上限（オンライン超えにしない）
+  // 研究「英才教育」: 黄金育成の優先度と加速
+  const GOLDEN_REAR_BASE_PRIORITY = 1/3;     // 通常時の黄金優先度（旧=全優先1.0を1/3へ弱体化）
+  const GOLDEN_BROOD_ACCEL = 0.5;            // 英才教育時の追加黄金変換量（通常レートの50%上乗せ）
   // Branching shafts (tuning)
   const SHAFT_BRANCH_PROB = 0.35;
   const SHAFT_BRANCH_MIN_DEPTH = 180;   // dp units from soil start (S.full.sy)
@@ -3639,6 +3654,7 @@ function makeDefaultResearchState(){
       ferment: true,
       geology: true,
       defense: true,
+      golden: true,
       expedition: false
     },
     unlockedNodes: {}
@@ -3652,6 +3668,7 @@ const RESEARCH_BRANCH_DEFS = [
   { id: 'ferment', label: '発酵枝', icon: '🧪', accent: '#a78bfa', desc: '食料からクッキーへ' },
   { id: 'geology', label: '地質枝', icon: '⛏️', accent: '#f59e0b', desc: '深度と拡張範囲' },
   { id: 'defense', label: '防衛枝', icon: '⚔️', accent: '#60a5fa', desc: '襲撃への備え' },
+  { id: 'golden', label: '黄金枝', icon: '👑', accent: '#fbbf24', desc: '黄金の卵と祝福' },
   { id: 'expedition', label: '遠征枝', icon: '🧭', accent: '#14b8a6', desc: '将来の外探索' }
 ];
 
@@ -3663,6 +3680,7 @@ const RESEARCH_BRANCH_DEFS = [
   { id: 'brood_2', branch: 'brood', name: '幼虫給餌改善', desc: '幼虫→成虫速度 +8%', costCookie: 2, costFood: 0, prereq: ['brood_1'], breakthrough: false, effects:[{kind:'mul',key:'broodLarva',perLevel:0.08}] },
   { id: 'brood_egg_inf', branch: 'brood', name: '孵化強化', desc: '卵→幼虫速度 +4%/Lv（無限）', costCookie: 3, costFood: 0, costGrowth: 1.5, max: Infinity, prereq: ['brood_1'], breakthrough: false, effects:[{kind:'mul',key:'broodEgg',perLevel:0.04}] },
   { id: 'brood_larva_inf', branch: 'brood', name: '成長強化', desc: '幼虫→成虫速度 +3%/Lv（無限）', costCookie: 3, costFood: 0, costGrowth: 1.5, max: Infinity, prereq: ['brood_2'], breakthrough: false, effects:[{kind:'mul',key:'broodLarva',perLevel:0.03}] },
+  { id: 'golden_brood', branch: 'brood', name: '英才教育', desc: '黄金卵・黄金幼虫を全室で最優先に育て、さらに黄金の成長を加速する。(通常時の黄金優先は控えめになる)', costCookie: 25, costFood: 3000, prereq: ['brood_2'], breakthrough: true, effects:[{kind:'flag',flag:'goldenBrood'}] },
   { id: 'hygiene_1', branch: 'hygiene', name: '衛生基礎', desc: 'ゴミ発生量 -10%', costCookie: 1, costFood: 0, prereq: [], breakthrough: false, effects:[{kind:'mul',key:'wasteGen',perLevel:-0.10}] },
   { id: 'hygiene_2', branch: 'hygiene', name: '清掃効率I', desc: '清掃効率 +20%', costCookie: 2, costFood: 0, prereq: ['hygiene_1'], breakthrough: false },
   { id: HYGIENE_WORKER_CLEAN_NODE, branch: 'hygiene', name: 'お掃除はおまかせ', desc: 'ゴミ室の運用を整え、働きアリの一部も低優先でゴミ掃除に参加する。清掃判断と運搬量も改善。', costCookie: 6, costFood: 0, prereq: ['hygiene_2'], breakthrough: false },
@@ -3674,13 +3692,25 @@ const RESEARCH_BRANCH_DEFS = [
   { id: COOKIE_FIND_2X_NODE, branch: 'ferment', name: '甘味探索', desc: '働きアリが甘い匂いを見つけやすくなり、クッキー発見の機会が増える。', costCookie: MAJOR_COOKIE2X_COST, costFood: 0, prereq: [], breakthrough: false },
   { id: GEO_DEPTH_2_NODE, branch: 'geology', name: '深度II解放', desc: 'より深い地層への掘削を可能にし、新しい部屋候補と拡張範囲を解放する。', costCookie: MAJOR_DEPTH2_COST, costFood: 0, prereq: [], breakthrough: true },
   { id: GEO_DEPTH_3_NODE, branch: 'geology', name: '深度III解放', desc: 'さらに深い地層への拡張を可能にし、大規模コロニー化の土台を作る。', costCookie: MAJOR_DEPTH3_COST, costFood: 0, prereq: [GEO_DEPTH_2_NODE], breakthrough: true },
+  { id: GEO_DEPTH_4_NODE, branch: 'geology', name: '深度IV解放', desc: 'さらに深い最深層への掘削を可能にし、巨大コロニーの土台を広げる。', costCookie: MAJOR_DEPTH4_COST, costFood: 0, prereq: [GEO_DEPTH_3_NODE], breakthrough: true },
+  // 建築系（地質枝）: 並行建築 / オフライン建築 / 部屋増築
+  { id: 'build_multitask', branch: 'geology', name: 'マルチタスク', desc: '建築アリが複数の部屋を同時に建築できるようになる。並行サイト数 1→2→3→4（Lvごと+1）。', costCookie: 10, costFood: 0, costGrowth: 3, max: BUILDER_MULTITASK_MAX, prereq: [], breakthrough: false, effects:[{kind:'mul',key:'buildParallel',perLevel:1}] },
+  { id: 'offline_build', branch: 'geology', name: '鬼の居ぬ間も！', desc: 'ゲームを閉じている間も建築アリが1/3の効率で部屋の拡張を進める。', costCookie: 30, costFood: 5000, prereq: ['build_multitask'], breakthrough: true, effects:[{kind:'flag',flag:'offlineBuild'}] },
+  { id: 'offline_build_speed', branch: 'geology', name: '夜なべ建築', desc: 'オフライン建築の効率 +20%/Lv（無限。最大でオンライン相当まで）', costCookie: 6, costFood: 0, costGrowth: 1.6, max: Infinity, prereq: ['offline_build'], breakthrough: false, effects:[{kind:'mul',key:'offlineBuildSpeed',perLevel:0.20}] },
+  { id: 'room_expand', branch: 'geology', name: '増築', desc: '建築済みの育児室・食料庫の容量 +5%/Lv（無限）', costCookie: 8, costFood: 0, costGrowth: 1.5, max: Infinity, prereq: [], breakthrough: false, effects:[{kind:'mul',key:'roomCapacity',perLevel:0.05}] },
   // 兵舎設計図(BARRACKS_BLUEPRINT_NODE)は部屋タブの購入カードへ戻したため研究ツリーには出さない。
   // 互換: 定数 BARRACKS_BLUEPRINT_NODE と G.major.barracks、ensureResearchState の同期処理は維持。
   { id: SOLDIER_JAW_2X_NODE, branch: 'defense', name: '顎強化', desc: '兵隊アリの大顎を鍛え、レイドや害虫への攻撃力を高める。', costCookie: MAJOR_JAW2X_COST, costFood: 0, prereq: [], breakthrough: false },
   { id: 'poison_jaw', branch: 'defense', name: '毒顎', desc: '兵隊アリの大顎に毒を仕込む。接敵した敵に毎秒「体力の2%」の毒ダメージ（継続）。', costCookie: 20, costFood: 0, prereq: [SOLDIER_JAW_2X_NODE], breakthrough: true, effects:[{kind:'flag',flag:'poisonJaw'}] },
   { id: 'poison_conc', branch: 'defense', name: '毒の濃度', desc: '毒ダメージ +15%/Lv（無限）', costCookie: 6, costFood: 0, costGrowth: 1.6, max: Infinity, prereq: ['poison_jaw'], breakthrough: false, effects:[{kind:'mul',key:'poisonDmg',perLevel:0.15}] },
   { id: 'oshiai', branch: 'defense', name: 'おしあいへしあい', desc: '兵隊が敵をより広く押さえ込む。足止め範囲 +50%（接敵する敵が増え、足止め・毒が効きやすくなる）。', costCookie: 12, costFood: 0, prereq: [SOLDIER_JAW_2X_NODE], breakthrough: false, effects:[{kind:'mul',key:'blockRadius',perLevel:0.5}] },
-  { id: 'numbers_win', branch: 'defense', name: '数は何にも勝る', desc: '兵隊アリの雇用コスト -40%。ただし各兵隊の兵力 -20%（質より量の戦術）。', costCookie: 25, costFood: 0, prereq: [SOLDIER_JAW_2X_NODE], breakthrough: true, effects:[{kind:'mul',key:'soldierCost',perLevel:-0.40},{kind:'mul',key:'soldierPower',perLevel:-0.20}] }
+  { id: 'numbers_win', branch: 'defense', name: '数は何にも勝る', desc: '兵隊アリの雇用コスト -40%。ただし各兵隊の兵力 -20%（質より量の戦術）。', costCookie: 25, costFood: 0, prereq: [SOLDIER_JAW_2X_NODE], breakthrough: true, effects:[{kind:'mul',key:'soldierCost',perLevel:-0.40},{kind:'mul',key:'soldierPower',perLevel:-0.20}] },
+  // 黄金枝: 黄金の指/黄金卵/黄金バフ(黄金幼虫→成虫で発動)を強化する。golden_1 は黄金の指 Lv1 が入口条件。
+  { id: 'golden_1', branch: 'golden', name: '黄金の輝きI', desc: 'タップ産卵で黄金卵が生まれる確率 ×1.5。', costCookie: 15, costFood: 0, prereq: [], breakthrough: false, effects:[{kind:'mul',key:'goldenEggChance',perLevel:0.5}] },
+  { id: 'golden_shine_inf', branch: 'golden', name: '黄金の輝き', desc: '黄金卵の確率 +15%/Lv（無限）', costCookie: 8, costFood: 0, costGrowth: 1.5, max: Infinity, prereq: ['golden_1'], breakthrough: false, effects:[{kind:'mul',key:'goldenEggChance',perLevel:0.15}] },
+  { id: 'golden_blessing', branch: 'golden', name: '黄金の祝福', desc: '黄金アリのバフ効果（食料/産卵/クッキー）を ×1.5 に強める。', costCookie: 20, costFood: 0, prereq: ['golden_1'], breakthrough: false, effects:[{kind:'mul',key:'goldenBuffPower',perLevel:0.5}] },
+  { id: 'golden_blessing_inf', branch: 'golden', name: '豊穣の祝福', desc: '黄金バフ効果 +20%/Lv（無限）', costCookie: 12, costFood: 0, costGrowth: 1.6, max: Infinity, prereq: ['golden_blessing'], breakthrough: false, effects:[{kind:'mul',key:'goldenBuffPower',perLevel:0.20}] },
+  { id: 'golden_auto', branch: 'golden', name: '黄金の自動産卵', desc: '女王の自動産卵でも黄金卵が生まれるようになる（確率はタップ時の半分）。', costCookie: 40, costFood: 5000, prereq: ['golden_1'], breakthrough: true, effects:[{kind:'flag',flag:'goldenAutoLay'}] }
 ];
 
 const RESEARCH_NODE_BY_ID = {};
@@ -3821,6 +3851,7 @@ function ensureResearchState(target = G){
   if(target.major && target.major.depth2) target.research.unlockedNodes[GEO_DEPTH_2_NODE] = true;
   if(target.major && target.major.depth3) target.research.unlockedNodes[GEO_DEPTH_3_NODE] = true;
   if(target.major && target.major.barracks) target.research.unlockedNodes[BARRACKS_BLUEPRINT_NODE] = true;
+  if(target.research.unlockedNodes[GEO_DEPTH_4_NODE]) target.research.unlockedNodes[GEO_DEPTH_3_NODE] = true;
   if(target.research.unlockedNodes[GEO_DEPTH_3_NODE]) target.research.unlockedNodes[GEO_DEPTH_2_NODE] = true;
   if(target.major && target.research.unlockedNodes[COOKIE_FIND_2X_NODE]) target.major.cookie2x = true;
   if(target.major && target.research.unlockedNodes[SOLDIER_JAW_2X_NODE]) target.major.jaw2x = true;
@@ -3872,6 +3903,10 @@ function hasDepth2Unlock(){
 
 function hasDepth3Unlock(){
   return hasDepth2Unlock() && (hasResearchNode(GEO_DEPTH_3_NODE) || !!(G.major && G.major.depth3));
+}
+
+function hasDepth4Unlock(){
+  return hasDepth3Unlock() && hasResearchNode(GEO_DEPTH_4_NODE);
 }
 
 function hasBarracksBlueprint(){
@@ -3954,8 +3989,14 @@ function isResearchNodeConditionMet(def){
   if(def.id === GEO_DEPTH_3_NODE) {
     return !!(G.major && G.major.depth3) || (hasDepth2Unlock() && (G.bLv || 0) >= 4);
   }
+  if(def.id === GEO_DEPTH_4_NODE) {
+    return hasDepth3Unlock() && (G.bLv || 0) >= 6;
+  }
   if(def.id === BARRACKS_BLUEPRINT_NODE) {
     return !!(G.major && G.major.barracks) || (G.bLv || 0) >= 3;
+  }
+  if(def.id === 'golden_1') {
+    return getGoldenFingerLevel() >= 1;
   }
   return true;
 }
@@ -3982,8 +4023,15 @@ function getResearchNodeConditionText(def){
     if(!hasDepth2Unlock()) return '条件: 深度II解放';
     return isResearchNodeConditionMet(def) ? '条件: 建築Lv4 達成' : `条件: 建築Lv4（現在Lv${G.bLv || 0}）`;
   }
+  if(def.id === GEO_DEPTH_4_NODE) {
+    if(!hasDepth3Unlock()) return '条件: 深度III解放';
+    return isResearchNodeConditionMet(def) ? '条件: 建築Lv6 達成' : `条件: 建築Lv6（現在Lv${G.bLv || 0}）`;
+  }
   if(def.id === BARRACKS_BLUEPRINT_NODE) {
     return isResearchNodeConditionMet(def) ? '条件: 建築Lv3 達成' : `条件: 建築Lv3（現在Lv${G.bLv || 0}）`;
+  }
+  if(def.id === 'golden_1') {
+    return isResearchNodeConditionMet(def) ? '条件: 黄金の指 Lv1 達成' : '条件: 黄金の指を購入（Lv1）';
   }
   return '';
 }
@@ -4026,6 +4074,8 @@ function buyResearchNode(nodeId){
     if(def.id === HYGIENE_WORKER_CLEAN_NODE) addQueenWhisper('働きアリにも掃除の手順を覚えさせたわ。育児室の汚れに気づきやすくなるはず', 'worker_waste_clean');
     if(def.id === GEO_DEPTH_2_NODE) addQueenWhisper('新しい層への道が開いたわ。何が待っているかしら', 'depth2_unlock');
     if(def.id === GEO_DEPTH_3_NODE) addQueenWhisper('さらに深い世界へ……未知の領域ね', 'depth3_unlock');
+    if(def.id === GEO_DEPTH_4_NODE) addQueenWhisper('最深部へ……ここまで来たのね', 'depth4_unlock');
+    if(def.id === 'golden_auto') addQueenWhisper('眠っている間も、黄金の子が生まれるわ', 'golden_auto_unlock');
     if(def.id === BARRACKS_BLUEPRINT_NODE) addQueenWhisper('兵舎が建てば、巣を守る兵士を育てられるわ', 'barracks_blueprint');
   }
   toast(getResearchNodeMaxLevel(def) > 1 ? `🔬 ${def.name} Lv${lv + 1}` : `🔬 研究完了: ${def.name}`);
@@ -4300,6 +4350,18 @@ function getHatchableEggCount(nurseryIds){
 }
 
 // 卵在庫を部屋単位で幼虫へ変換（先頭1部屋固定を避ける）
+// 研究「英才教育」: 黄金育成の優先度。通常は GOLDEN_REAR_BASE_PRIORITY(=1/3)、英才教育で 1.0(全優先)。
+function getGoldenRearPriority(){
+  return hasResearchUnlock('goldenBrood') ? 1.0 : GOLDEN_REAR_BASE_PRIORITY;
+}
+// 部屋内で「何個を黄金として変換するか」を、比例(優先なし)↔全優先 を p でブレンドして返す。
+function blendGoldenTake(take, haveGolden, haveTotal, p){
+  if(take <= 0 || haveGolden <= 0) return 0;
+  const prop = haveTotal > 0 ? take * haveGolden / haveTotal : 0; // 優先なし(在庫比例)
+  const full = Math.min(haveGolden, take);                        // 全優先(現状)
+  return Math.max(0, Math.min(haveGolden, take, Math.floor(prop + p * (full - prop))));
+}
+
 function convertEggToLarvaInRooms(amount, nurseryIds){
   if(!S.full) return { total: 0, golden: 0 };
   const req = Math.max(0, Math.floor(amount || 0));
@@ -4309,6 +4371,11 @@ function convertEggToLarvaInRooms(amount, nurseryIds){
 
   const ids = nurseryIds || getNurseryIds();
   const eggRoomIds = getEggPlacementRoomIds(ids);
+  const p = getGoldenRearPriority();
+  // 英才教育(p≥1)時は黄金在庫の多い部屋から処理し、全室で黄金を最優先にする
+  const orderedEggRoomIds = (p >= 1)
+    ? eggRoomIds.slice().sort((a,b)=> (Math.floor((S.full.nodes[b]||{}).invGoldenEgg||0)) - (Math.floor((S.full.nodes[a]||{}).invGoldenEgg||0)))
+    : eggRoomIds;
 
   const consumeOne = (id) => {
     const n = S.full.nodes[id];
@@ -4317,7 +4384,7 @@ function convertEggToLarvaInRooms(amount, nurseryIds){
     if(haveEgg <= 0) return;
     const take = Math.min(haveEgg, remain);
     const haveGoldenEgg = Math.min(haveEgg, Math.max(0, Math.floor(n.invGoldenEgg || 0)));
-    const takeGolden = Math.min(haveGoldenEgg, take);
+    const takeGolden = blendGoldenTake(take, haveGoldenEgg, haveEgg, p);
     n.invEgg = haveEgg - take;
     if(takeGolden > 0) {
       n.invGoldenEgg = haveGoldenEgg - takeGolden;
@@ -4328,7 +4395,7 @@ function convertEggToLarvaInRooms(amount, nurseryIds){
     remain -= take;
   };
 
-  for(const id of eggRoomIds) {
+  for(const id of orderedEggRoomIds) {
     consumeOne(id);
     if(remain <= 0) break;
   }
@@ -4415,15 +4482,21 @@ function consumeLarvaeFromRooms(amount, larvaRoomIds) {
   let consumed = 0;
   let golden = 0;
   if(remain <= 0) return { total: 0, golden: 0 };
-  const ids = (larvaRoomIds && larvaRoomIds.length) ? larvaRoomIds : getLarvaGrowthRoomIds(getNurseryIds());
+  const baseIds = (larvaRoomIds && larvaRoomIds.length) ? larvaRoomIds : getLarvaGrowthRoomIds(getNurseryIds());
+  const p = getGoldenRearPriority();
+  // 英才教育(p≥1)時は黄金幼虫の多い部屋から処理し、全室で黄金を最優先にする
+  const ids = (p >= 1)
+    ? baseIds.slice().sort((a,b)=> (Math.floor((S.full.nodes[b]||{}).invGoldenLarva||0)) - (Math.floor((S.full.nodes[a]||{}).invGoldenLarva||0)))
+    : baseIds;
   for(const id of ids) {
     const n = S.full.nodes[id];
     if(!n || remain <= 0) continue;
-    const take = Math.min(Math.max(0, Math.floor(n.invLarva || 0)), remain);
+    const haveLarva = Math.max(0, Math.floor(n.invLarva || 0));
+    const take = Math.min(haveLarva, remain);
     if(take > 0) {
-      const haveGoldenLarva = Math.min(Math.max(0, Math.floor(n.invGoldenLarva || 0)), Math.max(0, Math.floor(n.invLarva || 0)));
-      const takeGolden = Math.min(haveGoldenLarva, take);
-      n.invLarva = Math.max(0, Math.floor(n.invLarva || 0) - take);
+      const haveGoldenLarva = Math.min(Math.max(0, Math.floor(n.invGoldenLarva || 0)), haveLarva);
+      const takeGolden = blendGoldenTake(take, haveGoldenLarva, haveLarva, p);
+      n.invLarva = Math.max(0, haveLarva - take);
       if(takeGolden > 0) {
         n.invGoldenLarva = haveGoldenLarva - takeGolden;
         golden += takeGolden;
@@ -4436,6 +4509,45 @@ function consumeLarvaeFromRooms(amount, larvaRoomIds) {
   }
   if(golden > 0) G.goldenLarvae = Math.max(0, Math.floor(G.goldenLarvae || 0) - golden);
   return { total: consumed, golden };
+}
+
+// 研究「英才教育」: 黄金の卵/幼虫を通常レートに上乗せで（GOLDEN_BROOD_ACCEL倍）追加変換し、黄金育成を加速する。
+// 各変換ごとに G の総量を更新してから変換関数(p=1で黄金優先)を呼ぶので、総数 invariant は保たれる。
+function accelerateGoldenBrood(dt){
+  if(!hasResearchUnlock('goldenBrood') || !S.full || !(dt > 0)) return;
+  const nurseryIds = getNurseryIds();
+
+  // 黄金卵 -> 黄金幼虫
+  if((G.goldenEggs || 0) > 0 && (G.eggs || 0) > 0){
+    let eggRate = (100 / EGG_TO_LARVA_SEC) * (1 + (G.ants.nurse * 0.5)) * getNurseHatchMul(G.nLv) * getBroodEggMul() * GOLDEN_BROOD_ACCEL;
+    S._goldenEggAccel = (S._goldenEggAccel || 0) + eggRate * dt;
+    let n = Math.floor(S._goldenEggAccel / 100);
+    if(n > 0){
+      S._goldenEggAccel -= n * 100;
+      n = Math.min(n, Math.floor(G.goldenEggs || 0), Math.floor(G.eggs || 0));
+      if(n > 0){
+        G.eggs -= n; G.larvae += n;
+        convertEggToLarvaInRooms(n, nurseryIds);
+      }
+    }
+  } else { S._goldenEggAccel = 0; }
+
+  // 黄金幼虫 -> 黄金成虫（人口上限を尊重）
+  if((G.goldenLarvae || 0) > 0 && (G.larvae || 0) > 0 && G.tot < G.caps.pop){
+    let larvaRate = (100 / LARVA_TO_ADULT_SEC) * getNurseHatchMul(G.nLv) * getNurseLarvaAdultCountMul() * getBroodLarvaMul() * GOLDEN_BROOD_ACCEL;
+    S._goldenLarvaAccel = (S._goldenLarvaAccel || 0) + larvaRate * dt;
+    let n = Math.floor(S._goldenLarvaAccel / 100);
+    if(n > 0){
+      S._goldenLarvaAccel -= n * 100;
+      n = Math.min(n, Math.floor(G.goldenLarvae || 0), Math.floor(G.larvae || 0), Math.max(0, Math.floor(G.caps.pop - G.tot)));
+      if(n > 0){
+        G.larvae = Math.max(0, G.larvae - n);
+        G.ants.worker += n;
+        const out = consumeLarvaeFromRooms(n, getLarvaGrowthRoomIds(nurseryIds));
+        promoteGoldenAdults(out.golden);
+      }
+    }
+  } else { S._goldenLarvaAccel = 0; }
 }
 
 // 最寄りの部屋IDを返す（距離は部屋中心の直線距離）
@@ -4930,7 +5042,7 @@ function ensureRestSlots(n){
       // MAJOR_UPGRADE: 深度メジャー未購入ならロックする
       if(G.getDepthUnlocked() < needDepth) {
           S.band.depthLock = true;
-          if(now - (S.band.lastBlockToastAt || 0) > 3500) {
+          if(!S._offlineBuilding && now - (S.band.lastBlockToastAt || 0) > 3500) {
               toast(`深度${needDepth}をメジャーアップグレードで解放して`);
               S.band.lastBlockToastAt = now;
           }
@@ -4960,7 +5072,7 @@ function ensureRestSlots(n){
       // 次の層ほど「埋めてから降りる」要求を少し強める（落ちるのが早すぎるのを防ぐ）
       S.band.targetFill = Math.min(45, S.band.targetFill + 4);
 
-      toast(`巣はさらに深部へ… (第${S.band.index+1}層)`);
+      if(!S._offlineBuilding) toast(`巣はさらに深部へ… (第${S.band.index+1}層)`);
   }
   // Retina など高解像度画面でも同じ見た目の太さ・大きさにする係数
   const dp = (x) => x * (window.devicePixelRatio || 1);
@@ -5668,7 +5780,8 @@ function ensureRestSlots(n){
     getDepthUnlocked() {
       const d2 = hasDepth2Unlock();
       const d3 = hasDepth3Unlock();
-      return 1 + (d2 ? 1 : 0) + (d3 ? 1 : 0);
+      const d4 = hasDepth4Unlock();
+      return 1 + (d2 ? 1 : 0) + (d3 ? 1 : 0) + (d4 ? 1 : 0);
     },
 
     getCost(role) {
@@ -5740,12 +5853,15 @@ function ensureRestSlots(n){
 
         if (!S.full) return;
 
+        // 研究「増築」: 建築済みの育児室・食料庫の容量寄与を拡充（基準1, +5%/Lv）
+        const rc = getResearchBonus('roomCapacity');
+
         S.full.nodes.forEach((n, i) => {
             if (!S.nodeVis[i]) return;
 
             if (isCountedRoomType(n.type)) roomTotal++;
-            if (n.type === 'food')       this.caps.food += 1000;
-            if (n.type === 'nursery')    { this.caps.pop += 150; this.caps.egg += 150; }
+            if (n.type === 'food')       this.caps.food += Math.floor(1000 * rc);
+            if (n.type === 'nursery')    { this.caps.pop += Math.floor(150 * rc); this.caps.egg += Math.floor(150 * rc); }
             if (n.type === 'rest')       { restCount++; ensureRestSlots(n); }
             if (n.type === 'soldier')    { barracksExists = true; soldierRooms++; }
             if (n.type === 'waste')      { wasteCount++; }
@@ -7901,10 +8017,14 @@ function expandMap(forcedType, isEmergency) {
         }
         if(S.band && S.band.forceShaft > 0) S.band.forceShaft--;
       }
-      if(room.type !== 'shaft') toast(`完成: ${roomLabel(room.type)}`);
+      if(S._offlineBuilding) {
+        if(room.type !== 'shaft') S._offlineBuiltCount = (S._offlineBuiltCount || 0) + 1;
+      } else {
+        if(room.type !== 'shaft') toast(`完成: ${roomLabel(room.type)}`);
+      }
       if(room.type === 'food') {
         G.food = clamp(G.food + 100, 0, G.caps.food);
-        fx(room.x, room.y - dp(20), "+100", "#4ade80");
+        if(!S._offlineBuilding) fx(room.x, room.y - dp(20), "+100", "#4ade80");
       }
       return true;
     }
@@ -8673,8 +8793,10 @@ function expandMap(forcedType, isEmergency) {
   function calcBuilderTargetCap(workSlots) {
     const slots = Math.max(0, Math.floor(workSlots || 0));
     if(slots <= 0) return 0;
-    if(slots <= 2) return slots;
-    return Math.min(BUILDER_ASSIGNMENT_MAX_TARGETS, 2 + Math.floor(Math.sqrt(slots)));
+    // 研究「マルチタスク」: 並行建築サイト数 = 1 + Lv（初期1=並行なし、研究で2/3/4）。
+    // builder作業スロット数とハード上限でクランプ。
+    const parallel = 1 + Math.max(0, Math.min(BUILDER_MULTITASK_MAX, researchLevel('build_multitask')));
+    return Math.min(parallel, slots, BUILDER_ASSIGNMENT_MAX_TARGETS);
   }
 
   function countVisibleBuilders() {
@@ -8794,6 +8916,31 @@ function expandMap(forcedType, isEmergency) {
         }
       }
     }
+  }
+
+  // 研究「鬼の居ぬ間も！/夜なべ建築」: オフライン中の建築進行。
+  // 既存の updateBuilderLogic を時間ステップで回すだけなので、target cap・band fill・
+  // 深度ロック・chunkSec が全てそのまま効き、「オンラインを eff 倍速で回す」になる（暴走しない）。
+  function runOfflineBuilding(offlineSec){
+    if(!hasResearchUnlock('offlineBuild') || !S.full) return 0;
+    if(Math.floor(G.ants.builder || 0) <= 0) return 0;
+    const eff = Math.min(OFFLINE_BUILD_EFF_CAP, OFFLINE_BUILD_EFF_BASE * getResearchBonus('offlineBuildSpeed'));
+    const steps = Math.min(OFFLINE_BUILD_MAX_STEPS, Math.floor(offlineSec * eff / OFFLINE_BUILD_STEP_SEC));
+    if(steps <= 0) return 0;
+    S._offlineBuilding = true;
+    S._offlineBuiltCount = 0;
+    try {
+      for(let i=0; i<steps; i++){
+        updateBuilderLogic(OFFLINE_BUILD_STEP_SEC);
+        // 層が埋まったら次の層へ降りる。リアルタイム2秒ガードはオフラインでは無効化する。
+        if(S.band) S.band.lastShiftAt = ((typeof performance!=='undefined' && performance.now) ? performance.now() : 0) - 3000;
+        maybeShiftBand();
+      }
+    } catch(_){}
+    S._offlineBuilding = false;
+    const built = Math.max(0, Math.floor(S._offlineBuiltCount || 0));
+    G.recalc();
+    return built;
   }
 
   function getVisualBuilderTarget() {
@@ -9049,19 +9196,23 @@ function expandMap(forcedType, isEmergency) {
     return getGoldenBuffById(S.globalBuffs && S.globalBuffs.activeId);
   }
 
+  // 黄金枝「黄金の祝福」: 黄金バフの効果ぶん(1超や加算分)を倍率強化する
   function getGlobalFoodMul(){
     const b = getActiveGoldenBuff();
-    return (b && b.foodMul) ? b.foodMul : 1;
+    if(!(b && b.foodMul)) return 1;
+    return 1 + (b.foodMul - 1) * getResearchBonus('goldenBuffPower');
   }
 
   function getGlobalLayMul(){
     const b = getActiveGoldenBuff();
-    return (b && b.layMul) ? b.layMul : 1;
+    if(!(b && b.layMul)) return 1;
+    return 1 + (b.layMul - 1) * getResearchBonus('goldenBuffPower');
   }
 
   function getGlobalCookieAdd(){
     const b = getActiveGoldenBuff();
-    return (b && b.cookieAdd) ? b.cookieAdd : 0;
+    if(!(b && b.cookieAdd)) return 0;
+    return b.cookieAdd * getResearchBonus('goldenBuffPower');
   }
 
   function isGoldenCookieOnlyActive(){
@@ -9330,7 +9481,9 @@ function expandMap(forcedType, isEmergency) {
 
   function getGoldenFingerChance(lv=getGoldenFingerLevel()){
     const idx = clamp(Math.floor(lv || 0), 0, GOLDEN_FINGER_MAX_LV);
-    return GOLDEN_FINGER_CHANCES[idx] || 0;
+    const base = GOLDEN_FINGER_CHANCES[idx] || 0;
+    // 黄金枝「黄金の輝き」: 黄金卵率を倍率強化（指Lv0は base=0 なので影響なし）
+    return base * getResearchBonus('goldenEggChance');
   }
 
   function getGoldenFingerCost(){
@@ -11696,6 +11849,11 @@ function expandMap(forcedType, isEmergency) {
       addEgg = Math.floor(layProg / 100);
       G.layP = layProg % 100;
       if(addEgg > 0) G.eggs += addEgg;
+      // 黄金枝「黄金の自動産卵」: オフラインは期待値で黄金卵を加算（末尾の normalizeInventories が部屋在庫へ分配）
+      if(addEgg > 0 && hasResearchUnlock('goldenAutoLay')) {
+        const gAuto = Math.floor(addEgg * getGoldenFingerChance() * GOLDEN_AUTO_LAY_FACTOR);
+        if(gAuto > 0) G.goldenEggs = Math.min(Math.floor(G.eggs || 0), Math.max(0, Math.floor(G.goldenEggs || 0)) + gAuto);
+      }
       if(addEgg > 0 && S.full) {
         // オフライン中は育児アリの運搬を簡略化し、産まれた卵を孵化対象の部屋へ反映する
         addEggToEggRooms(Math.floor(addEgg), nurseryIdsOffline);
@@ -11827,6 +11985,11 @@ function expandMap(forcedType, isEmergency) {
         const larvaCnt = Math.max(0, Math.floor(n.invLarva || 0));
         if(larvaCnt > 0) n.invWaste = (n.invWaste || 0) + (larvaCnt * WASTE_RATE_PER_LARVA * getWasteGenerationMul() * sec);
       }
+      // 研究「鬼の居ぬ間も！」: オフライン中の建築進行（建築アリが部屋拡張を進める）
+      const offlineBuilt = runOfflineBuilding(sec);
+      if(offlineBuilt > 0) toast(`🏗️ 留守中に ${offlineBuilt} 部屋ぶん建築が進んだ`);
+      // 研究「英才教育」: オフライン中の黄金育成の加速
+      accelerateGoldenBrood(sec * OFFLINE_EFF);
       // 卵・食料の「見た目在庫」が実データ G.eggs とずれないよう補正
       normalizeInventories();
     }
@@ -12509,7 +12672,8 @@ function expandMap(forcedType, isEmergency) {
     }
     if(researchUI.overview) {
       const overviewHtml = renderResearchOverview(rs);
-      if(researchUI.overview.innerHTML !== overviewHtml) {
+      // スクロール/タップ中は概要カードの再構築も止める（スクロール中断・タップ消失の防止）
+      if(!S._researchInteracting && researchUI.overview.innerHTML !== overviewHtml) {
         researchUI.overview.innerHTML = overviewHtml;
       }
     }
@@ -12708,20 +12872,25 @@ function expandMap(forcedType, isEmergency) {
   // （＝研究を押せたり押せなかったり）のを防ぐ。pointerup/cancel または安全タイマで解除。
   {
     let _riTimer = null;
-    const begin = () => {
+    const arm = (ms) => {
       S._researchInteracting = true;
       if(_riTimer) clearTimeout(_riTimer);
-      _riTimer = setTimeout(() => { S._researchInteracting = false; }, 1500);
+      _riTimer = setTimeout(() => { S._researchInteracting = false; _riTimer = null; }, ms);
     };
-    const end = () => {
-      S._researchInteracting = false;
-      if(_riTimer) { clearTimeout(_riTimer); _riTimer = null; }
-    };
+    const begin = () => arm(1500);   // 押下中（安全タイマ）
+    const end = () => arm(350);      // 指を離した直後も慣性スクロール開始まで少し延長
+    // スクロール（縦=#control-panel / 横=.rtree-scroll、慣性含む）の間は innerHTML 置換を抑止する。
+    // 慣性スクロール中に再構築するとスクロール対象のDOMが作り替えられ、スクロールが途中で止まる（モバイル不具合）。
+    const onScroll = () => arm(450);
     [researchUI.branchList, researchUI.meta, researchTreeModalBody].forEach(el => {
       if(el) el.addEventListener('pointerdown', begin, { passive: true });
     });
     window.addEventListener('pointerup', end, { passive: true });
     window.addEventListener('pointercancel', end, { passive: true });
+    // capture=true: scroll はバブルしないが、キャプチャ段階で子孫スクローラ(.rtree-scroll 等)の scroll も拾える
+    const _cpScroll = document.getElementById('control-panel');
+    if(_cpScroll) _cpScroll.addEventListener('scroll', onScroll, true);
+    if(researchTreeModalBody) researchTreeModalBody.addEventListener('scroll', onScroll, true);
   }
 
   // 研究ツリー拡大モーダルの開閉
@@ -13381,12 +13550,16 @@ function syncFermenterUnlockUI() {
     bindTip(document.getElementById('btn-major-golden2x'), () => {
       const lv = getGoldenFingerLevel();
       const cur = formatChancePct(getGoldenFingerChance(lv));
+      // 黄金枝「黄金の自動産卵」解放後は自動産卵でも黄金卵が出る
+      const autoLine = hasResearchUnlock('goldenAutoLay')
+        ? `自動産卵でも黄金卵が生まれる(確率は${Math.round(GOLDEN_AUTO_LAY_FACTOR*100)}%)`
+        : '自動産卵では黄金卵は生まれない';
       if(lv >= GOLDEN_FINGER_MAX_LV) {
-        return `黄金の指\n現在: Lv.${lv} (最大)\nタップ産卵時の黄金卵率: ${cur}\n自動産卵では黄金卵は生まれない`;
+        return `黄金の指\n現在: Lv.${lv} (最大)\nタップ産卵時の黄金卵率: ${cur}\n${autoLine}`;
       }
       const nextLv = lv + 1;
       const next = formatChancePct(getGoldenFingerChance(nextLv));
-      return `黄金の指\n現在: Lv.${lv} → Lv.${nextLv}\nタップ産卵時の黄金卵率: ${cur} → ${next}\n自動産卵では黄金卵は生まれない\nコスト: 🍪 ${getGoldenFingerCost()}`;
+      return `黄金の指\n現在: Lv.${lv} → Lv.${nextLv}\nタップ産卵時の黄金卵率: ${cur} → ${next}\n${autoLine}\nコスト: 🍪 ${getGoldenFingerCost()}`;
     });
 
     bindTip(document.getElementById('btn-up-worker'), () => {
@@ -13762,6 +13935,7 @@ function syncFermenterUnlockUI() {
     { id:'queenlv5', icon:'👑', name:'女王Lv.5に到達',           check:()=>G.qLv>=5,     prog:()=>`Lv.${G.qLv}/5`, reward:{cookie:80} },
     { id:'pop5000',  icon:'🏆', name:'個体数5,000匹達成',        check:()=>G.tot>=5000,  prog:()=>`${Math.min(G.tot,5000)}/5000匹`, reward:{food:10000,cookie:150} },
     { id:'depth3',   icon:'🕳️', name:'深度IIIを解放',            check:()=>hasDepth3Unlock(), prog:()=>hasDepth3Unlock()?'解放済':'未解放', reward:{cookie:200} },
+    { id:'depth4',   icon:'🕳️', name:'深度IVを解放',             check:()=>hasDepth4Unlock(), prog:()=>hasDepth4Unlock()?'解放済':'未解放', reward:{cookie:400} },
     { id:'pop10000', icon:'🌟', name:'個体数10,000匹達成（エンド）', check:()=>G.tot>=10000, prog:()=>`${Math.min(G.tot,10000)}/10000匹`, reward:{cookie:500} },
   ];
 
@@ -15553,9 +15727,16 @@ function syncFermenterUnlockUI() {
         const addEgg = Math.floor(G.layP / 100);
         G.layP = G.layP % 100;
         G.eggs += addEgg; // eggs can exceed incubation capacity; nurseries only limit hatching
+        // 黄金枝「黄金の自動産卵」: 解放後は自動産卵でも黄金卵が生まれる（確率はタップの半分）
+        let goldAuto = 0;
+        if(hasResearchUnlock('goldenAutoLay')) {
+          const gc = getGoldenFingerChance() * GOLDEN_AUTO_LAY_FACTOR;
+          if(gc > 0){ for(let gi=0; gi<addEgg; gi++){ if(Math.random() < gc) goldAuto++; } }
+          if(goldAuto > 0) G.goldenEggs = Math.min(Math.floor(G.eggs||0), Math.max(0, Math.floor(G.goldenEggs||0)) + goldAuto);
+        }
         // 追加: 卵は女王室に産み、育児アリが卵室へ運搬する
         if(S.full) {
-          addEggToQueenRoom(addEgg);
+          addEggToQueenRoom(addEgg, goldAuto);
         }
       }
     } else {
@@ -15636,6 +15817,9 @@ function syncFermenterUnlockUI() {
     } else {
       G.larvaToAdultP = 0;
     }
+
+    // 研究「英才教育」: 黄金の卵/幼虫を通常レートに上乗せで加速変換する
+    accelerateGoldenBrood(dt);
 
     if(G.ants.soldier > 0) {
       if(G.raidTimer === -1 && S.raidVis.state === "none") {

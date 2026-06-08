@@ -1,6 +1,6 @@
 # Ant Colony V23 Current System Overview
 
-Last updated: 2026-06-07 (23)
+Last updated: 2026-06-08 (23)
 Target file: `index.html`
 
 This document is the current implementation overview for the single-file ant clicker game. When gameplay, UI, save data, AI behavior, or public deployment assumptions change, update this file together with `DEVELOPMENT_LOG.md`.
@@ -359,7 +359,8 @@ Target reservation:
   - forced/priority construction
   - reserved barracks, ferment rooms, and cookie rooms can accept modest stacking
 - Reserved special rooms use hidden+visible room-node counts to resume already placed but unfinished rooms after load or assignment rebuild. `G.*Pending` tracks reservations that have not yet been placed.
-- Target cap prevents large builder populations from opening unlimited pending construction edges at once. The current cap is 3 simultaneous construction targets.
+- Target cap prevents large builder populations from opening unlimited pending construction edges at once. The simultaneous-construction-site cap is now **research-gated**: `calcBuilderTargetCap()` returns `min(1 + researchLevel('build_multitask'), workSlots, BUILDER_ASSIGNMENT_MAX_TARGETS=4)`. So with no research only **1** site is built at a time (no parallelism); the マルチタスク research (leveled max 3) raises it to 2→3→4. (Extra builders beyond the active sites stack onto a stackable target or idle.)
+- Offline construction (research 鬼の居ぬ間も！/夜なべ建築): `runOfflineBuilding(sec)` is called at the end of `calcOffline()` when `hasResearchUnlock('offlineBuild')`. It steps the existing `updateBuilderLogic()` over `min(OFFLINE_BUILD_MAX_STEPS, offlineSec × eff / OFFLINE_BUILD_STEP_SEC)` iterations, where `eff = min(1.0, OFFLINE_BUILD_EFF_BASE(1/3) × getResearchBonus('offlineBuildSpeed'))`, advancing the dig band (with the realtime 2-second shift guard bypassed) between steps. Because it reuses the live builder logic, target cap / band fill / depth lock all apply, so offline building cannot runaway. `advanceDigEdge`/`maybeShiftBand` suppress toast/fx while `S._offlineBuilding`; a single summary toast reports the rooms built.
 - Duplicate-room prevention: `getDigTarget()` will not create a NEW room of `forcedType` while an unfinished (placed, `edgeFrac < 1`, underground) room of that same type already exists. Previously, because normal rooms have a stack limit of 1, a second/third work slot in the same `rebuildBuilderAssignments()` pass could not reserve the first new room and instead called `expandMap()`/`forceExpandRoom()` again, spawning 2-3 parallel rooms of the same type (the "multiple builders digging the same room" / multiple orange dashed tunnels bug). Now, if a same-type room is already under construction, `getDigTarget()` skips both the room expansion and the fallback shaft and returns `null` for that slot, so extra builders help other existing digs or idle instead of opening a duplicate. This limits concurrent under-construction rooms to 1 per non-shaft type; rooms of a type are built sequentially. Reserved special rooms (ferment/cookie/barracks) were already dedup-safe via their pending-count + "dig the unbuilt edge first" logic.
 - Active construction highlights and partial unfinished tunnel drawing are also tied to `S.buildAssignments`, so stale visible-builder targets do not appear as extra parallel work.
 
@@ -451,6 +452,12 @@ Egg and larva systems:
 - Room inventory visuals keep runtime-only stable slot indices per room/item kind. Larvae, eggs, food, and cookie dots no longer redraw by simply packing from slot 0 each frame, so count changes do not make existing nursery contents jump to unrelated coordinates.
 - Larvae require food before becoming adults.
 
+Golden rearing priority (research 英才教育 / `goldenBrood`):
+
+- `convertEggToLarvaInRooms` and `consumeLarvaeFromRooms` decide how much of each conversion is golden via `blendGoldenTake(take, haveGolden, haveTotal, p)` = `floor(prop + p×(full−prop))`, where `prop` = proportional (no priority) and `full` = `min(haveGolden, take)` (full golden-first). `p = getGoldenRearPriority()`.
+- Base priority is `GOLDEN_REAR_BASE_PRIORITY = 1/3` (previously golden were always fully front-loaded; this is a deliberate baseline nerf so golden no longer monopolize conversion by default). These functions only change WHICH items convert, not the logical totals (`G.eggs/larvae` are decremented by the caller), so totals stay invariant.
+- With 英才教育 (`goldenBrood`): `p = 1.0` (full priority) and rooms are processed golden-first globally; additionally `accelerateGoldenBrood(dt)` converts EXTRA golden eggs→larvae and larvae→adults at `GOLDEN_BROOD_ACCEL (0.5)` × the base brood rate (updating `G` totals before calling the conversion fns, so invariant-safe). Runs in live `update()` and once in `calcOffline`. Net effect: golden lineage advances faster → more golden adults / golden buffs.
+
 Nurse upgrade:
 
 - Internal value: `nLv`
@@ -500,13 +507,20 @@ Current fields:
 Behavior:
 
 - Golden Finger levels increase the chance that manual tap laying creates a golden egg.
-- Automatic egg laying does not create golden eggs.
+- Automatic egg laying does not create golden eggs by default. Exception: the Golden-branch research `golden_auto` (flag `goldenAutoLay`) makes queen auto-laying also roll golden eggs at `getGoldenFingerChance() × GOLDEN_AUTO_LAY_FACTOR (0.5)`, in both the live loop and offline progression.
 - Golden eggs are tracked as a subset of normal eggs.
 - Golden larvae are tracked as a subset of normal larvae.
 - When a golden larva becomes an adult, it creates a golden worker/ant buff event.
 - Golden egg and golden larva dots are drawn in rooms with gold coloring.
 
 The legacy `G.major.golden2x` flag remains for save compatibility and UI grouping, but the actual progression is `goldenFingerLv`.
+
+Golden-branch research effects (data-driven; see section 13 for the nodes):
+
+- `goldenEggChance` (`golden_1`, `golden_shine_inf`): multiplies `getGoldenFingerChance()` (affects both tap and `goldenAutoLay`). Since the golden-finger base chance is 0 at Lv 0, the multiplier is a no-op until golden finger Lv 1 — which is also `golden_1`'s unlock condition.
+- `goldenBuffPower` (`golden_blessing`, `golden_blessing_inf`): scales the active golden buff's strength in `getGlobalFoodMul()`/`getGlobalLayMul()` (`1 + (mul-1)×bonus`) and `getGlobalCookieAdd()` (`add×bonus`).
+- `goldenAutoLay` (`golden_auto`): flag that enables auto-lay golden eggs (above). Auto-laid golden eggs are added to `G.goldenEggs` and the room `invGoldenEgg` via `addEggToQueenRoom(amount, golden)` (live) or reconciled by `normalizeInventories()` (offline).
+- All three keys use the effUp-boosted `getResearchBonus` (beneficial production-style muls).
 
 ## 13. Research System
 
@@ -526,7 +540,7 @@ The research system is the intended late-game engine, so effects are **data-driv
 - **Effect aggregation**: `recomputeResearchBonuses()` walks all nodes×levels into a cache (`_researchBonusCache = {muls, flags}`); read via `getResearchBonus(key)` (= `1 + Σ(perLevel×level)`) and `hasResearchUnlock(flag)`. Cache is invalidated on purchase (`invalidateResearchBonuses()`) and lazily rebuilt. Existing multiplier helpers now read it: `getGatherResearchMul→getResearchBonus('gatherFood')`, `getBroodEggMul→'broodEgg'`, `getBroodLarvaMul→'broodLarva'`, `getWasteGenerationMul→'wasteGen'` (perLevel `-0.10`). Legacy 16 nodes were migrated to `effects` data with identical numbers, so behavior is unchanged.
 - **Cost & purchase**: `getResearchNodeCost(def, level)` = `floor(costCookie × costGrowth^level)` (food likewise; one-time = base). It also applies an optional meta discount `getResearchCostMul()` if defined (prestige phase). `buyResearchNode()` increments the level (not boolean), deducts the level-scaled cost, invalidates the bonus cache, and runs one-time-only side effects (queen whispers / `G.major.*` compat) only on the 0→1 step.
 - **Status**: `getResearchStatus` returns `done` (one-time owned), `maxed` (finite repeatable at cap), `ready`, or `locked`. UI marks: `✓` done, `★` maxed.
-- **Repeatable content so far**: `gather_inf` (gatherFood +5%/Lv), `brood_egg_inf` (broodEgg +4%/Lv), `brood_larva_inf` (broodLarva +3%/Lv), all `max:Infinity, costGrowth:1.5`. More keys/branches and new-system unlock flags are added incrementally.
+- **Repeatable content so far**: `gather_inf` (gatherFood +5%/Lv), `brood_egg_inf` (broodEgg +4%/Lv), `brood_larva_inf` (broodLarva +3%/Lv) at `costGrowth:1.5`; `poison_conc` (poisonDmg +15%/Lv, `1.6`); `golden_shine_inf` (goldenEggChance +15%/Lv, `1.5`); `golden_blessing_inf` (goldenBuffPower +20%/Lv, `1.6`). All `max:Infinity`. More keys/branches and new-system unlock flags are added incrementally.
 - **Tree UI**: nodes show a `Lv N` badge (repeatables), the **next-level** cost as footer (`formatResearchCost` uses the current level), and `済`/`上限` for done/maxed.
 
 ### 13.0b Prestige meta currency "知見 (insight)" — second loop
@@ -546,7 +560,7 @@ Research UI:
 
 - The Research tab shows overview cards for total progress, currently affordable research, and next candidate.
 - The Research tab has two view modes, switchable via a toggle (`#research-view-toggle`, buttons `data-research-view="tree|classic"`). The choice is held in `S.researchView` and persisted to `localStorage` under `RESEARCH_VIEW_KEY = 'ant_research_view_v1'`. Default is `tree`. Both views render into the same `#research-branch-list` container, so the existing `data-research-buy` click delegation (and `buyResearchNode`'s own guards) work in either mode.
-  - `tree` (default, new): a branch-lane skill-tree with an earthy/cave theme. `renderResearchTree()` + `computeResearchTreeLayout()` lay each branch out as a horizontal lane; nodes are placed in columns by `getResearchNodeDepth()` (prereq depth) and stacked into subrows when a depth has several nodes. Nodes are circular "chambers" (`.rtree-node`, branch accent rim, icon + name + cost + status mark) and same-branch prereqs are drawn as curved SVG "tunnel" connectors (`.rtree-link`, dim when locked, amber when the prereq is open, glowing when the node is done). States: `is-done` / `is-ready` (amber pulse) / `is-wait` (ready but unaffordable) / `is-locked`, plus `is-breakthrough` (double rim). The tree is horizontally scrollable (`.rtree-scroll`, `touch-action: pan-x` + `overscroll-behavior-x: contain` so touch vertical drags delegate to the `#control-panel` `pan-y` scroller instead of being trapped by the nested horizontal scroller). Because `touch-action` does not affect the mouse wheel, a `wheel` listener on `#control-panel` redirects vertical-wheel events that occur over `.rtree-scroll` to the nearest scrollable-Y ancestor (manually adjusting `scrollTop`), so wheel scrolling no longer stalls when the cursor is over the tree; horizontal-wheel intent is left to the tree. Node descriptions/reasons are shown via the button `title` tooltip. The core tree HTML is built by `buildResearchTreeInner(rs)` (returns `{inner, width, height}`) and shared by the panel and the expand modal.
+  - `tree` (default, new): a branch-lane skill-tree with an earthy/cave theme. `renderResearchTree()` + `computeResearchTreeLayout()` lay each branch out as a horizontal lane; nodes are placed in columns by `getResearchNodeDepth()` (prereq depth) and stacked into subrows when a depth has several nodes. Nodes are circular "chambers" (`.rtree-node`, branch accent rim, icon + name + cost + status mark) and same-branch prereqs are drawn as curved SVG "tunnel" connectors (`.rtree-link`, dim when locked, amber when the prereq is open, glowing when the node is done). States: `is-done` / `is-ready` (amber pulse) / `is-wait` (ready but unaffordable) / `is-locked`, plus `is-breakthrough` (double rim). The tree is horizontally scrollable (`.rtree-scroll`, `touch-action: pan-x` + `overscroll-behavior-x: contain` so touch vertical drags delegate to the `#control-panel` `pan-y` scroller instead of being trapped by the nested horizontal scroller). Because `touch-action` does not affect the mouse wheel, a `wheel` listener on `#control-panel` redirects vertical-wheel events that occur over `.rtree-scroll` to the nearest scrollable-Y ancestor (manually adjusting `scrollTop`), so wheel scrolling no longer stalls when the cursor is over the tree; horizontal-wheel intent is left to the tree. Scroll-vs-rebuild guard: because `updateResearchUI()` rebuilds the tree/overview/meta innerHTML whenever their HTML changes (affordability flips constantly; the tree re-renders many times/sec), mutating the scrolled subtree during an inertial (post-flick) scroll would kill the momentum on mobile ("scroll stops partway"). To prevent this, `S._researchInteracting` is armed not only on `pointerdown` (1.5 s safety) but also on every `scroll` event — a capture-phase `scroll` listener on `#control-panel` (which also catches the nested `.rtree-scroll`) and on `.rtree-modal-body` re-arms it for 450 ms; `pointerup`/`pointercancel` arm a 350 ms delay to bridge into momentum. While `S._researchInteracting` is true, all four innerHTML rebuilds in `updateResearchUI` (branch list, overview, meta, modal body) are skipped, so scrolling/momentum is never interrupted; rebuilds resume ~0.45 s after scrolling settles. Node descriptions/reasons are shown via the button `title` tooltip. The core tree HTML is built by `buildResearchTreeInner(rs)` (returns `{inner, width, height}`) and shared by the panel and the expand modal.
   - Expand modal (tree view only): a `⛶` button (`data-research-expand`) in the toggle bar opens `#modal-research-tree`, a large `.modal-overlay` (`94vw × 90vh`) that re-renders the same tree via `renderResearchTreeModal()` scaled with a CSS `transform: scale()` to fit the WHOLE tree (both axes — the min of width-fit and height-fit; `getResearchTreeModalScale(treeW, treeH)`, clamped ~0.55–1.6×) inside a `.rtree-modal-stage` sized to the scaled extent for correct two-axis scrolling. Because the tree is tall and narrow, fitting both axes keeps all branches visible at once rather than over-zooming. While open (`S.researchTreeModalOpen`), `updateResearchUI()` keeps the modal body live; it closes on the close button, overlay click, `Escape`, or switching to classic, and re-fits on window resize. Buying delegates from the modal body the same way as the panel. The in-panel mini tree is kept unchanged.
   - `classic` (preserved fallback): the original vertical list. Each branch renders as a lane with icon, accent color, branch description, progress bar, and ready/done counts. Nodes render as cards with status marks, breakthrough tags, prerequisite tags, condition tags, cost, node id, and action state. Same-branch prerequisites are visualized with indentation and connector lines.
 - All layout is derived at runtime from `RESEARCH_NODE_DEFS` (branch + `prereq`); nodes have no stored coordinates.
@@ -559,6 +573,7 @@ Current branches:
 - Ferment
 - Geology
 - Defense
+- Golden (黄金枝, 👑, accent `#fbbf24`; default-unlocked; strengthens the golden finger / golden egg / golden buff lineage)
 - Expedition
 
 Current implemented nodes:
@@ -578,7 +593,18 @@ Current implemented nodes:
 - `cookie_find_2x`: Sweet scouting / cookie appearance x2 passive
 - `geo_depth_2`: Depth II unlock
 - `geo_depth_3`: Depth III unlock
+- `geo_depth_4`: Depth IV unlock (breakthrough; prereq `geo_depth_3` + builder Lv 6; cost `MAJOR_DEPTH4_COST = 90`🍪). Lets `G.getDepthUnlocked()` reach 4 so the dig band can shift one layer deeper. No `G.major.depth4` legacy flag.
 - `soldier_jaw_2x`: Jaw strengthening / soldier attack x2 passive
+- `golden_1`: 黄金の輝きI (golden branch root; condition = golden finger Lv 1; `mul goldenEggChance +0.5`)
+- `golden_shine_inf`: 黄金の輝き (infinite; goldenEggChance `+0.15`/Lv)
+- `golden_blessing`: 黄金の祝福 (`mul goldenBuffPower +0.5`)
+- `golden_blessing_inf`: 豊穣の祝福 (infinite; goldenBuffPower `+0.20`/Lv)
+- `golden_auto`: 黄金の自動産卵 (breakthrough; `flag goldenAutoLay` — auto-laying also produces golden eggs)
+- `build_multitask`: マルチタスク (geology; leveled max 3; simultaneous construction sites = `1 + level`, i.e. base 1 → 2/3/4. Read directly via `researchLevel`, gates `calcBuilderTargetCap`)
+- `offline_build`: 鬼の居ぬ間も！ (geology; breakthrough; `flag offlineBuild` — builders progress construction while the game is closed)
+- `offline_build_speed`: 夜なべ建築 (geology; infinite; `offlineBuildSpeed` +20%/Lv — raises offline build efficiency, capped at online rate)
+- `room_expand`: 増築 (geology; infinite; `roomCapacity` +5%/Lv — scales built food/nursery room capacity)
+- `golden_brood`: 英才教育 (brood; breakthrough; `flag goldenBrood` — full global golden-rearing priority + acceleration; also see section 11)
 
 `military_barracks_blueprint` was removed from the research tree (the barracks blueprint is now a Rooms tab dock purchase). Its constant and `G.major.barracks` compatibility plumbing are kept, so old saves that researched it stay valid. The defense branch now contains only `soldier_jaw_2x`.
 
@@ -601,12 +627,14 @@ Phase 5B migration state:
 
 - `geo_depth_2` is the official unlock for Depth II.
 - `geo_depth_3` is the official unlock for Depth III and depends on `geo_depth_2`.
+- `geo_depth_4` is the official unlock for Depth IV and depends on `geo_depth_3` (added 2026-06-08; research-only, no `G.major.depth4` legacy flag).
 - `military_barracks_blueprint` is the official unlock for the barracks blueprint.
 - Old save flags `G.major.depth2`, `G.major.depth3`, and `G.major.barracks` are still read. If present, `ensureResearchState()` marks the corresponding research nodes as unlocked.
 - New research purchases also keep the old flags true so builder targeting, depth checks, and older compatibility paths keep working.
 - Effect helpers:
   - `hasDepth2Unlock()` controls Depth II availability and depth display.
   - `hasDepth3Unlock()` controls Depth III availability and depth display.
+  - `hasDepth4Unlock()` (= `hasDepth3Unlock() && hasResearchNode(GEO_DEPTH_4_NODE)`) controls Depth IV; `G.getDepthUnlocked()` returns `1 + d2 + d3 + d4` (max 4) so the dig band (`maybeShiftBand` / `requiredDepthForBand`) can descend one layer further.
   - `hasBarracksBlueprint()` controls barracks blueprint state and first-barracks construction targeting.
 - Soldier hiring still requires both the blueprint and an actually built barracks room through `isSoldierUnlocked()`.
 - Remaining non-research major flows include Golden Finger, active cookie boost, and the future big-carry placeholder.
@@ -711,6 +739,7 @@ Soldiers:
 Invaders:
 
 - Underground invaders can target food rooms and nursery rooms.
+- Underground invaders only spawn once `S.band.index >= INVADER_MIN_DEPTH (3)` (and `visRooms >= 3`). The dig band reaches index 3 only at Depth IV (II→idx1, III→idx2, IV→idx3), so underground invaders effectively begin at Depth IV. Before the Depth IV node existed, `band.index` capped at 2 and this spawn path was unreachable.
 - Surface raid system uses `S.raidVis` and `resolveRaid()`.
 - Raid phases are warning/countdown -> attack -> result.
 
@@ -833,15 +862,17 @@ Cookie x100 boost (`S.majorActives.cookie`):
 
 - Runtime state machine is `hunting -> available -> active -> cooldown`.
 - While `hunting`, it rolls once every `MAJOR_ACT_ROLL_INTERVAL = 3` seconds.
-- First roll chance is `MAJOR_ACT_COOKIE_BASE = 0.006` (`0.6%`).
-- Each miss adds `MAJOR_ACT_COOKIE_INC = 0.0015` (`+0.15%`) pity.
-- Roll chance is capped at `MAJOR_ACT_COOKIE_MAX = 0.03` (`3%`).
+- First roll chance is `MAJOR_ACT_COOKIE_BASE = 0.0006` (`0.06%`).
+- Each miss adds `MAJOR_ACT_COOKIE_INC = 0.00015` (`+0.015%`) pity.
+- Roll chance is capped at `MAJOR_ACT_COOKIE_MAX = 0.003` (`0.3%`).
+- These three probabilities were reduced to 1/10 of their original values (2026-06-08) to lower the appearance frequency by ~10×. See the persistence note below for why the roll chance — not the cooldown — governs perceived frequency.
 - When a roll succeeds, a sugar/cookie lucky target becomes `available` for `MAJOR_ACT_COOKIE_WIN = 15` seconds.
 - Tapping the target activates the boost for `MAJOR_ACT_COOKIE_ACTIVE = 10` seconds.
 - While active, worker cookie chance uses `MAJOR_ACT_COOKIE_MUL = 100`.
 - After activation, or after missing the available target, cooldown is `MAJOR_ACT_COOKIE_CD = 12000` seconds (`3h 20m`).
-- Expected time from entering `hunting` until target appearance is about `119` seconds.
-- Probability of seeing the target within the first `15` seconds of hunting is about `4.4%`.
+- Expected time from entering `hunting` until target appearance is now about `1190` seconds (~20 min), ~10× the previous ~119 s.
+- Probability of seeing the target within the first `15` seconds of hunting is now about `0.45%` (was ~4.4%).
+- **Persistence note (important):** `S.majorActives` is **not** part of the save (`serializeWorld()`/`toSave()` do not include it). Every page load re-initializes `cookie` to `{ state:'hunting', cdUntil:0, pity:0, nextRollAt:0 }`, so the `MAJOR_ACT_COOKIE_CD` cooldown is effectively bypassed across sessions: a fresh hunt begins on each open. The perceived appearance frequency is therefore set by the per-session hunting roll (the `base`/`inc`/`max` curve), not by the cooldown. (The cooldown only applies within one continuous session after the boost fires/expires.) This is why lowering the roll chance — rather than raising the cooldown — is what reduces how often the player sees the 欠片.
 
 ## 19. Offline Progression
 
@@ -857,6 +888,8 @@ Current flow:
 - Apply simplified larva feeding.
 - Convert larvae to adults.
 - Apply cookie production approximation.
+- Run offline construction (`runOfflineBuilding(sec)`) if 鬼の居ぬ間も！ (`offlineBuild`) is researched: builders advance/expand rooms at `1/3 × offlineBuildSpeed` efficiency by stepping the live builder logic. See section 9.
+- Run golden-rearing acceleration (`accelerateGoldenBrood(sec × OFFLINE_EFF)`) if 英才教育 (`goldenBrood`) is researched. See section 11.
 
 Important current correction:
 
@@ -879,7 +912,7 @@ Goal tree includes:
 - First barracks build
 - Soldier hire
 - Raid win
-- Depth II/III
+- Depth II/III/IV
 - First cookie room
 - Queen level goals
 

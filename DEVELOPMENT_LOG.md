@@ -1,5 +1,92 @@
 # Development Log
 
+## 2026-06-08 Mobile fix: research tab scroll stalls mid-flick
+
+Purpose:
+- On mobile the research tab felt unstable — scrolling stopped partway.
+
+Findings:
+- `updateResearchUI()` runs every frame and replaces `#research-branch-list` (the tree), `#research-overview`, and the meta panel innerHTML whenever their HTML changes. The tree/overview HTML changes constantly in real play (affordability flips as cookies move; the tree even re-renders ~12×/sec). Mutating the scrolled subtree during an inertial (post-flick) scroll kills the momentum on mobile WebKit/Blink → "scroll stops partway".
+- The existing `S._researchInteracting` guard only covered the active touch (`pointerdown`→`pointerup`). After `pointerup`, momentum scrolling continues but the guard was already cleared, so a rebuild lands mid-momentum. Also `#research-overview` was rebuilt with **no** guard at all.
+
+Changes:
+- Extended the guard to cover scrolling + momentum: a `scroll` listener (capture) on `#control-panel` (the persistent vertical scroller — capture also catches the nested `.rtree-scroll` horizontal scroller) and on `.rtree-modal-body` re-arms `S._researchInteracting` for 450 ms on every scroll event (touch-drag and inertia both fire scroll events continuously), so rebuilds are deferred until ~0.45 s after scrolling settles. `pointerup`/`pointercancel` now arm a 350 ms delay (instead of clearing instantly) to bridge the gap until the first momentum scroll event. Refactored the guard to a single `arm(ms)` helper.
+- Added the `!S._researchInteracting` guard to the `#research-overview` rebuild (previously unguarded).
+
+Verification (preview, mobile 375×812):
+- Dispatching a `scroll` event on `.rtree-scroll` (descendant) and on `#control-panel` both set `S._researchInteracting=true` (capture listener catches descendant scrolls). 
+- Simulated continuous scrolling on `#control-panel` while flipping affordability 55×: `#research-branch-list` was rebuilt only **1×** (the initial frame) and `interacting` stayed true — i.e. rebuilds are suppressed during scroll, so momentum is no longer interrupted. After stopping, the guard cleared (`interacting=false`) and per-frame rebuilds resumed (110× over the next ~8.6 s), so the UI still updates once scrolling settles.
+- No console errors; `new Function` syntax check passed (15,356 lines).
+
+## 2026-06-08 Research: builder branch ×4 (geology) + 英才教育 (brood, golden rearing)
+
+Purpose:
+- Five new data-driven research nodes: builder QoL/scaling in the geology branch, and a golden-rearing node in the brood branch.
+
+Changes (geology, 表示名は「地質枝」のまま):
+- `build_multitask` マルチタスク (leveled max3): `calcBuilderTargetCap()` now gates simultaneous construction sites on the research level — `min(1 + researchLevel('build_multitask'), workSlots, BUILDER_ASSIGNMENT_MAX_TARGETS=4)`. **Base = 1 site (no parallelism); research unlocks 2→3→4.** Old `2+√slots` formula removed.
+- `offline_build` 鬼の居ぬ間も！ (breakthrough, flag `offlineBuild`) + `offline_build_speed` 夜なべ建築 (infinite, `offlineBuildSpeed` +20%/Lv): new `runOfflineBuilding(sec)` (called at the end of `calcOffline`) steps the existing `updateBuilderLogic()` at `OFFLINE_BUILD_EFF_BASE(1/3) × offlineBuildSpeed` (capped 1.0). Because it reuses the live builder logic, target cap / band fill / depth lock all apply, so it can't runaway (plus `OFFLINE_BUILD_MAX_STEPS=1500`). `advanceDigEdge`/`maybeShiftBand` suppress toast/fx while `S._offlineBuilding`; a single summary toast reports rooms built.
+- `room_expand` 増築 (infinite, `roomCapacity` +5%/Lv): `G.recalc()` scales the per-room capacity contribution of food rooms (`+1000`) and nurseries (`+150 pop/egg`) by `getResearchBonus('roomCapacity')` (base/200·50·50 unchanged).
+
+Changes (brood):
+- `golden_brood` 英才教育 (breakthrough, flag `goldenBrood`, prereq brood_2): golden-rearing priority + acceleration.
+  - **Baseline nerf**: the within-room golden-first bias (previously `takeGolden=min(haveGolden,take)` = full priority for everyone) is now blended toward proportional via `getGoldenRearPriority()` — base `GOLDEN_REAR_BASE_PRIORITY=1/3`. New helper `blendGoldenTake(take, haveGolden, haveTotal, p)` = `floor(prop + p*(full-prop))`, applied in `convertEggToLarvaInRooms`/`consumeLarvaeFromRooms` (logical totals unchanged → invariant-safe).
+  - **英才教育**: `p=1.0` (full priority) + rooms processed golden-first globally + `accelerateGoldenBrood(dt)` (new) converts EXTRA golden eggs→larvae and larvae→adults at `GOLDEN_BROOD_ACCEL(0.5)`× the base brood rate (updates G totals before calling the conversion fns → invariant-safe). Called in live `update()` and in `calcOffline`.
+
+Verification (preview, headless eval; globals `G`/`S` only):
+- Syntax: `new Function` parse OK (15,350 lines, 0 errors). No console errors across all tests, including a real offline-calc reload.
+- All 5 nodes render in the correct branches (⛏️/🥚), correct lock/breakthrough state, costs reflect meta costDown.
+- マルチタスク: 30 builders, build_multitask Lv0 → `S.buildAssignments.targets` = 1 site; Lv3 → 4 sites (workSlots 12). (`researchLevel` is read directly, no cache.)
+- 増築: room_expand Lv4 + effUp meta(5) → `roomCapacity` ×1.25; `G.caps.food`/`egg`/`pop` match `base + roomCount × floor(contrib×1.25)` exactly.
+- オフライン建築: rewound the save timestamp 2h and reloaded → `calcOffline` ran `runOfflineBuilding`; visible rooms 42→50 (+8), completed edges 66→75, offline modal shown, no errors.
+- 英才教育: a 30%-golden nursery — golden_brood OFF → 44% of converted eggs were golden (1/3 blend between proportional 0.30 and full 1.0); ON → 100% golden (full priority). Egg/larva totals conserved (invariant held).
+
+Note: the offline test overwrote the preview's localStorage save with test state (the in-page backup was lost on reload). Players' own browser saves are unaffected; only this preview instance.
+
+## 2026-06-08 Cookie boost (甘い香りの欠片): appearance frequency reduced to 1/10
+
+Purpose:
+- User reported the cookie-boost lucky target (`甘い香りの欠片`) appears far too often — "shows up every time I open the game".
+
+Findings:
+- The boost cycle is `hunting → available(15s) → active(10s)/cooldown(MAJOR_ACT_COOKIE_CD=12000s/3h20m)`. On paper the 3h20m cooldown dominates (~1 appearance / 3.4h), which contradicted the report.
+- Root cause: **`S.majorActives` is not persisted.** It is initialized in the `S` literal (`cookie:{state:'hunting', cdUntil:0, pity:0, nextRollAt:0}`) and used at runtime, but `serializeWorld()`/`toSave()`/load never touch it (confirmed: the only references are the init + the runtime/UI sites). So every page load restarts a fresh hunt and the cooldown is effectively bypassed across sessions. The perceived frequency is governed by the **hunting roll**, not the cooldown — the target appears ~119 s (~2 min) after each open.
+- Therefore the correct lever for "1/10 appearance frequency" is the roll chance, not the cooldown (raising `cd` would do almost nothing for someone who reopens the game).
+
+Changes:
+- Reduced the three hunting-roll probabilities to 1/10: `MAJOR_ACT_COOKIE_BASE 0.006→0.0006`, `MAJOR_ACT_COOKIE_INC 0.0015→0.00015`, `MAJOR_ACT_COOKIE_MAX 0.03→0.003`. Expected hunt time ~119 s → ~1190 s (~20 min); P(appear within first 15 s) ~4.4% → ~0.45%. Roll logic, cooldown, window, active duration, and the x100 multiplier are unchanged. Added a code comment explaining the non-persistence rationale.
+- Did NOT change `MAJOR_ACT_COOKIE_CD` and did NOT add persistence (out of scope for this request; noted for a possible future decision).
+
+Verification (preview):
+- Reload: no console errors (constants parse/load fine).
+- Empirical: reset `cookie` to a fresh hunt, ran ~60 rolls (timeScale-boosted). `pity` capped at exactly `0.0024` = the NEW `max-base` (0.003−0.0006), not the old `0.024` — confirms the new constants are live. After 60 rolls it was still `hunting` (no win), consistent with the ~10× lower chance (old ~3% cap would have won within 60 rolls ~84% of the time; new ~0.3% cap ~16%).
+
+## 2026-06-08 Research tree: new 黄金枝 (Golden branch) + 地質枝 深度IV (Depth IV)
+
+Purpose:
+- Two research-tree expansions on the data-driven engine: a brand-new Golden branch (strengthens the existing golden finger / golden egg / golden buff lineage) and a 4th depth node in the Geology branch.
+
+Changes (Depth IV):
+- New `GEO_DEPTH_4_NODE = 'geo_depth_4'` (cost `MAJOR_DEPTH4_COST = 90`🍪), geology branch, breakthrough, prereq `geo_depth_3`. No `G.major.depth4` legacy plumbing (never a dock purchase).
+- `hasDepth4Unlock()` = `hasDepth3Unlock() && hasResearchNode(GEO_DEPTH_4_NODE)`; `G.getDepthUnlocked()` now returns `1 + d2 + d3 + d4` (max 4). `requiredDepthForBand()` already returned `4` for band index 3+, and world height (`btm=max(H*3, dp(12000))`) easily clears band index 3's bottom (~dp(2220)) — so no band/world changes were needed; depth IV simply unlocks the next dig layer.
+- Condition: prereq depth III + builder Lv 6 (escalation: II=Lv2, III=Lv4, IV=Lv6). Added condition-met/text, `ensureResearchState` chain-fill (`depth4⇒depth3⇒depth2`), purchase queen-whisper, and a `depth4` colony goal (reward 🍪400, after depth3).
+- Emergent effect (intended, not a bug): underground invaders gate on `S.band.index >= INVADER_MIN_DEPTH (3)` ("第4層〜"). The band only reaches index 3 at depth IV (II→idx1, III→idx2, IV→idx3), so before this change `band.index` capped at 2 and that invader spawn path was unreachable. Depth IV is what finally activates underground invaders — a real payoff for the new node.
+
+Changes (Golden branch — full set, 5 nodes; `id:'golden'`, 👑, accent `#fbbf24`, default-unlocked):
+- `golden_1` 黄金の輝きI (one-time root, condition = 黄金の指 Lv1) `mul goldenEggChance +0.5`; `golden_shine_inf` 黄金の輝き (∞, growth1.5) `+0.15/Lv`; `golden_blessing` 黄金の祝福 (one-time) `mul goldenBuffPower +0.5`; `golden_blessing_inf` 豊穣の祝福 (∞, growth1.6) `+0.20/Lv`; `golden_auto` 黄金の自動産卵 (breakthrough, flag `goldenAutoLay`).
+- Wiring (beneficial muls use effUp-boosted `getResearchBonus`):
+  - `goldenEggChance`: `getGoldenFingerChance()` return ×`getResearchBonus('goldenEggChance')` (covers tap + auto;指Lv0 base=0 so no-op).
+  - `goldenBuffPower`: `getGlobalFoodMul/LayMul` = `1 + (mul-1)×bonus`, `getGlobalCookieAdd` = `add×bonus`.
+  - `goldenAutoLay` (new behavior): when unlocked, the live auto-lay (`update`) and offline auto-lay (`calcOffline`) roll golden eggs at `getGoldenFingerChance() × GOLDEN_AUTO_LAY_FACTOR(0.5)`; live rolls per-egg + `addEggToQueenRoom(addEgg, gold)`, offline adds the expected count to `G.goldenEggs` and lets the existing `normalizeInventories()` distribute it. Golden-finger tooltip's "自動産卵では黄金卵は生まれない" line flips to "…生まれる(50%)" once unlocked.
+
+Verification (preview, headless eval per MEMORY.md):
+- Syntax: inline-script `new Function` parse OK (15,228 lines, 0 errors). No console errors across load and all tests.
+- Depth IV: seeding the depth chain, `G.getDepthUnlocked()` returns 1→2→3→4. `geo_depth_4` renders in the geology lane as a breakthrough node.
+- Golden branch: all 5 nodes render with 👑 / gold accent / prereq connectors; `golden_1` ready at 指Lv1, others locked; `golden_auto` shows breakthrough double-rim; costs reflect meta costDown (15→🍪12, etc.).
+- Buying via the real tree UI: `golden_1` then `golden_auto` both bought (level 1 each).
+- `goldenAutoLay` end-to-end: with the flag owned and `golden_shine_inf` inflated (chance≫1), 283 auto-laid eggs (qLv=50, zero taps) were ALL golden (ratio 1.000) and distributed to room `invGoldenEgg` (283). Confirms the flag gate, `goldenEggChance` bonus, `getResearchBonus` aggregation, and room distribution together.
+- `goldenBuffPower` is wired identically to the proven `getResearchBonus` pattern and runs every frame without error (construction-verified).
+
 ## 2026-06-08 Defense research: おしあいへしあい (stall) and 数は何にも勝る (quantity)
 
 Purpose:
