@@ -1,5 +1,24 @@
 # Development Log
 
+## 2026-06-08 Mobile fix (real root cause): vertical scroll stalls over the tree (nested pan-x scroller)
+
+Purpose:
+- Still reported after the horizontal-scroll fix: in the research tab the **vertical** scroll "stops partway", but **only in the 系統樹/tree view — classic view is fine**.
+
+Findings:
+- The only structural difference between tree and classic is the nested `.rtree-scroll` (a horizontal scroller, `touch-action: pan-x`, `overflow-x:auto / overflow-y:hidden`) that spans the full vertical extent of the tree. A vertical drag starting on it is supposed to delegate to `#control-panel`'s `pan-y`, but on a real device this delegation is unreliable — the vertical scroll stalls mid-gesture. (Classic view has no nested scroller, so `#control-panel` scrolls cleanly.) The previous horizontal `scrollLeft` fix was real but not the main complaint.
+- Note: this is a real-device touch-action behavior; headless Chrome (mobile-emulated) can't reproduce the stall, so the structural change below is the diagnosis-driven fix, to be confirmed on a phone.
+
+Changes (mobile only, `@media (max-width: 520px)`):
+- Turned `.rtree-scroll` into a **self-contained 2D scroll box**: `overflow:auto` (was `overflow-y:hidden`), `touch-action: pan-x pan-y` (was `pan-x`), `overscroll-behavior: contain`, `max-height: 46vh`. Now the tree owns BOTH axes itself (no vertical delegation to `#control-panel`), exactly like the expand modal's `.rtree-modal-body` (which scrolls fine). This removes the nested-scroller conflict that stalled vertical scrolling. Desktop is untouched (keeps `pan-x` + the wheel-redirect handler).
+- JS: the rebuild scroll-position preserve now restores BOTH `.rtree-scroll.scrollLeft` AND `.scrollTop` (the box is the vertical scroller on mobile now; on desktop `scrollTop` is always 0 so it's a no-op).
+
+Verification (preview, mobile 375×812):
+- `.rtree-scroll` computed `overflow-y:auto`, `touch-action:pan-x pan-y`, `overscroll:contain`, `max-height:373px` (46vh); content 1912px tall scrolls inside the 386px box (vertically scrollable) and 542px wide inside 338px (horizontally scrollable).
+- Across 80 detected rebuilds, all 251 `scrollTop` samples stayed at 300 and all 251 `scrollLeft` stayed at 100 (0 resets) — both axes preserved.
+- No console errors; syntax check passed (15,370 lines). Classic view and desktop unaffected.
+- The actual touch stall must be confirmed on a real phone (not reproducible headless).
+
 ## 2026-06-08 Mobile fix (root cause): research tree horizontal scroll snapped back to left
 
 Purpose:

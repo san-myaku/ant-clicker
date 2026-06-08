@@ -766,7 +766,17 @@
       50% { box-shadow: 0 2px 4px rgba(0,0,0,0.5), 0 0 0 4px rgba(245,158,11,0.26), 0 0 14px rgba(245,158,11,0.6); }
     }
     @media (max-width: 520px) {
-      .rtree-scroll { padding: 6px; }
+      /* モバイル: ツリーを「高さ制限付き 2D スクロール領域」にする。
+         横スクローラ(pan-x)のままだと、その上での縦ドラッグが親(#control-panel)へ
+         委譲しきれず「縦スクロールが途中で止まる」(クラシックは無問題)。
+         拡大モーダル(.rtree-modal-body)と同じく縦横とも自前でパンさせて競合を断つ。 */
+      .rtree-scroll {
+        padding: 6px;
+        overflow: auto;               /* 縦横ともスクロール（旧 overflow-y:hidden を解除） */
+        touch-action: pan-x pan-y;    /* 縦横とも自分でパン（親委譲をやめる＝止まらない） */
+        overscroll-behavior: contain; /* スクロール連鎖を抑止 */
+        max-height: 46vh;             /* パネル内に収まる高さに制限し、ツリー自身を縦スクロール領域に */
+      }
     }
     /* 研究ツリー拡大表示モーダル（大画面でも全体を大きく見られる。パネル内の小ツリーは温存） */
     .rview-expand { flex: 0 0 auto; min-width: 40px; padding: 6px 8px; }
@@ -12708,15 +12718,20 @@ function expandMap(forcedType, isEmergency) {
       ? RESEARCH_BRANCH_DEFS.map(branch => renderResearchBranch(branch, rs)).join('')
       : renderResearchTree(rs);
     if(!S._researchInteracting && researchUI.branchList.innerHTML !== newHtml) {
-      // ツリーの横スクロール位置(.rtree-scroll.scrollLeft)は innerHTML 置換で要素ごと作り直され 0 に戻る。
-      // （右にスクロールしても再構築のたびに左端へ戻され「スクロールが効かない」体感になる）。保存→復元する。
-      // 縦の #control-panel.scrollTop は #control-panel 自体が作り直されないので保持される。
+      // ツリーの .rtree-scroll は innerHTML 置換で要素ごと作り直され、スクロール位置が 0 に戻る。
+      // 横(scrollLeft)は常に、縦(scrollTop)はモバイルで .rtree-scroll 自身が縦スクローラになる
+      // (max-width:520px の 2D スクロール化)ため、両方を保存→復元する。
+      // ※デスクトップは .rtree-scroll が overflow-y:hidden なので scrollTop は常に 0（復元は無害な no-op）。
       const _oldRt = researchUI.branchList.querySelector('.rtree-scroll');
       const _savedLeft = _oldRt ? _oldRt.scrollLeft : 0;
+      const _savedTop = _oldRt ? _oldRt.scrollTop : 0;
       researchUI.branchList.innerHTML = newHtml;
-      if(_savedLeft) {
+      if(_savedLeft || _savedTop) {
         const _newRt = researchUI.branchList.querySelector('.rtree-scroll');
-        if(_newRt) _newRt.scrollLeft = _savedLeft;
+        if(_newRt) {
+          if(_savedLeft) _newRt.scrollLeft = _savedLeft;
+          if(_savedTop) _newRt.scrollTop = _savedTop;
+        }
       }
     }
   }
