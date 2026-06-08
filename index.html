@@ -3665,6 +3665,7 @@ function makeDefaultResearchState(){
       geology: true,
       defense: true,
       golden: true,
+      queen: true,
       expedition: false
     },
     unlockedNodes: {}
@@ -3679,6 +3680,7 @@ const RESEARCH_BRANCH_DEFS = [
   { id: 'geology', label: '地質枝', icon: '⛏️', accent: '#f59e0b', desc: '深度と拡張範囲' },
   { id: 'defense', label: '防衛枝', icon: '⚔️', accent: '#60a5fa', desc: '襲撃への備え' },
   { id: 'golden', label: '黄金枝', icon: '👑', accent: '#fbbf24', desc: '黄金の卵と祝福' },
+  { id: 'queen', label: '女王枝', icon: '👸', accent: '#d946ef', desc: '産卵と女王の威厳' },
   { id: 'expedition', label: '遠征枝', icon: '🧭', accent: '#14b8a6', desc: '将来の外探索' }
 ];
 
@@ -3720,7 +3722,14 @@ const RESEARCH_BRANCH_DEFS = [
   { id: 'golden_shine_inf', branch: 'golden', name: '黄金の輝き', desc: '黄金卵の確率 +15%/Lv（無限）', costCookie: 8, costFood: 0, costGrowth: 1.5, max: Infinity, prereq: ['golden_1'], breakthrough: false, effects:[{kind:'mul',key:'goldenEggChance',perLevel:0.15}] },
   { id: 'golden_blessing', branch: 'golden', name: '黄金の祝福', desc: '黄金アリのバフ効果（食料/産卵/クッキー）を ×1.5 に強める。', costCookie: 20, costFood: 0, prereq: ['golden_1'], breakthrough: false, effects:[{kind:'mul',key:'goldenBuffPower',perLevel:0.5}] },
   { id: 'golden_blessing_inf', branch: 'golden', name: '豊穣の祝福', desc: '黄金バフ効果 +20%/Lv（無限）', costCookie: 12, costFood: 0, costGrowth: 1.6, max: Infinity, prereq: ['golden_blessing'], breakthrough: false, effects:[{kind:'mul',key:'goldenBuffPower',perLevel:0.20}] },
-  { id: 'golden_auto', branch: 'golden', name: '黄金の自動産卵', desc: '女王の自動産卵でも黄金卵が生まれるようになる（確率はタップ時の半分）。', costCookie: 40, costFood: 5000, prereq: ['golden_1'], breakthrough: true, effects:[{kind:'flag',flag:'goldenAutoLay'}] }
+  { id: 'golden_auto', branch: 'golden', name: '黄金の自動産卵', desc: '女王の自動産卵でも黄金卵が生まれるようになる（確率はタップ時の半分）。', costCookie: 40, costFood: 5000, prereq: ['golden_1'], breakthrough: true, effects:[{kind:'flag',flag:'goldenAutoLay'}] },
+  // 女王枝: 自動産卵スピード(layMul)とタップ産卵量(tapEggBonus)を伸ばし、人口上限(popCap)・季節耐性・全体採集など女王の威厳でコロニー全体を底上げする。
+  { id: 'queen_vitality', branch: 'queen', name: '女王の活力', desc: '女王の自動産卵スピード ×1.25。', costCookie: 12, costFood: 0, prereq: [], breakthrough: false, effects:[{kind:'mul',key:'layMul',perLevel:0.25}] },
+  { id: 'queen_fertile', branch: 'queen', name: '多産の系譜', desc: '自動産卵スピード +6%/Lv（無限）', costCookie: 8, costFood: 0, costGrowth: 1.5, max: Infinity, prereq: ['queen_vitality'], breakthrough: false, effects:[{kind:'mul',key:'layMul',perLevel:0.06}] },
+  { id: 'queen_double_lay', branch: 'queen', name: '重ね産み', desc: 'タップ1回で産まれる卵 +1個/Lv（最大+3）。', costCookie: 16, costFood: 0, costGrowth: 2.2, max: 3, prereq: ['queen_vitality'], breakthrough: false, effects:[{kind:'mul',key:'tapEggBonus',perLevel:1}] },
+  { id: 'queen_embrace', branch: 'queen', name: '女王の包容力', desc: '個体数の上限 +8%/Lv（無限）', costCookie: 15, costFood: 0, costGrowth: 1.6, max: Infinity, prereq: ['queen_vitality'], breakthrough: false, effects:[{kind:'mul',key:'popCap',perLevel:0.08}] },
+  { id: 'queen_majesty', branch: 'queen', name: '女王の威厳', desc: '季節による自動産卵の落ち込みを無効化する（どの季節でも産卵速度は最低でも等倍）。', costCookie: 30, costFood: 3500, prereq: ['queen_fertile'], breakthrough: true, effects:[{kind:'flag',flag:'queenAllSeasonLay'}] },
+  { id: 'queen_pheromone', branch: 'queen', name: '女王フェロモン', desc: '女王の匂いがコロニー全体を活気づけ、働きアリの食料収集効率 +20%。', costCookie: 35, costFood: 4000, prereq: ['queen_embrace'], breakthrough: true, effects:[{kind:'mul',key:'gatherFood',perLevel:0.20}] }
 ];
 
 const RESEARCH_NODE_BY_ID = {};
@@ -5880,6 +5889,8 @@ function ensureRestSlots(n){
         });
 
         this.caps.pop += restCount * REST_POP_BONUS;
+        // 女王枝「女王の包容力」: 個体数の上限を倍率で底上げ
+        this.caps.pop = Math.floor(this.caps.pop * getResearchBonus('popCap'));
         this.caps.soldier += soldierRooms * SOLDIER_CAP_PER_ROOM;
         S.hasBarracks = barracksExists;
         S.hasRest = restCount > 0;
@@ -9101,7 +9112,11 @@ function expandMap(forcedType, isEmergency) {
   function getCurrentSeason() { return SEASONS[S.season.idx % SEASONS.length]; }
   function getCurrentWeatherEffect() { return WEATHER_EFFECTS[S.weather.id] || WEATHER_EFFECTS.clear; }
   function getSeasonFoodMul() { return getCurrentSeason().foodMul * getCurrentWeatherEffect().foodMul; }
-  function getSeasonLayMul() { return getCurrentSeason().layMul; }
+  function getSeasonLayMul() {
+    const m = getCurrentSeason().layMul;
+    // 女王枝「女王の威厳」: 季節による産卵の落ち込みを無効化（どの季節でも最低でも等倍）
+    return hasResearchUnlock('queenAllSeasonLay') ? Math.max(1, m) : m;
+  }
   function getSeasonRaidMul() { return getCurrentSeason().raidMul; }
   function getWeatherMoveMul() { return getCurrentWeatherEffect().moveMul; }
 
@@ -11854,7 +11869,7 @@ function expandMap(forcedType, isEmergency) {
     if(G.qLv > 0) {
       let layRate = (G.qLv * 2); // % per sec
       if(G.nLv >= 2) layRate *= 1.1; // nurse Lv2 bonus
-      layRate *= getGlobalLayMul() * getSeasonLayMul();
+      layRate *= getResearchBonus('layMul') * getGlobalLayMul() * getSeasonLayMul();
       const layProg = G.layP + layRate * sec;
       addEgg = Math.floor(layProg / 100);
       G.layP = layProg % 100;
@@ -15103,19 +15118,26 @@ function syncFermenterUnlockUI() {
     return Math.random() < chance;
   }
 
-  // 卵を 1 個追加。TAP ボタンまたは女王をタップしたときに実行
+  // 女王枝「重ね産み」: タップ1回で産まれる卵の数（基本1 + tapEggBonus、effUpは掛けない）
+  function getTapEggCount(){
+    return 1 + Math.max(0, Math.floor(getResearchBonuses().muls.tapEggBonus || 0));
+  }
+
+  // 卵を産む。TAP ボタンまたは女王をタップしたときに実行（女王枝「重ね産み」で複数個）
   function tryLayEgg(source="tap", sx=null, sy=null) {
     // 産卵は常に可能（育児室の上限は「孵化」にのみ影響する想定）
     const MAX_EGGS = 1e9; // 過剰な数値での表示崩れ対策（実質無制限）
-    const goldenEgg = rollGoldenEggForManualTap(source);
-    G.eggs = Math.min(MAX_EGGS, G.eggs + 1);
+    const n = getTapEggCount();
+    let goldenCount = 0;
+    for(let i = 0; i < n; i++){ if(rollGoldenEggForManualTap(source)) goldenCount++; }
+    G.eggs = Math.min(MAX_EGGS, G.eggs + n);
     if(TUT && typeof TUT.recordTap === 'function') TUT.recordTap(source);
-    if(goldenEgg) G.goldenEggs = Math.min(Math.floor(G.eggs || 0), Math.max(0, Math.floor(G.goldenEggs || 0)) + 1);
+    if(goldenCount > 0) G.goldenEggs = Math.min(Math.floor(G.eggs || 0), Math.max(0, Math.floor(G.goldenEggs || 0)) + goldenCount);
     sfxTap(); // 産卵SE
     safeVibrate(8); // モバイル振動
     // 追加: 卵は女王室に産み、育児アリが卵室へ運搬する
     if(S.full) {
-      addEggToQueenRoom(1, goldenEgg ? 1 : 0);
+      addEggToQueenRoom(n, goldenCount);
     }
     updateUI();
     // UI feedback: only for manual egg laying (change)
@@ -15127,12 +15149,12 @@ function syncFermenterUnlockUI() {
         sy = r.top + r.height/2;
       }
     }
-    if(goldenEgg) {
-      toast("黄金の卵が産まれた！");
+    if(goldenCount > 0) {
+      toast(goldenCount > 1 ? `黄金の卵が${goldenCount}個産まれた！` : "黄金の卵が産まれた！");
       addQueenWhisper('黄金の卵……大切に育てましょう', 'golden');
       if(sx!=null && sy!=null) spawnFloatPlus(sx, sy, "黄金卵!");
     } else if(sx!=null && sy!=null) {
-      spawnFloatPlus(sx, sy, "+1");
+      spawnFloatPlus(sx, sy, "+" + n);
     }
     pulseEggNumber();
   }
@@ -15745,7 +15767,7 @@ function syncFermenterUnlockUI() {
     if(G.qLv > 0) {
       let layRate = (G.qLv*0.2 * 10); // % per sec
       if(G.nLv >= 2) layRate *= 1.1; // nurse Lv2: auto egg-laying assistance
-      layRate *= getGlobalLayMul() * getSeasonLayMul();
+      layRate *= getResearchBonus('layMul') * getGlobalLayMul() * getSeasonLayMul();
       G.layP += layRate*dt;
       if(G.layP>=100) {
         const addEgg = Math.floor(G.layP / 100);

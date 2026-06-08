@@ -1,5 +1,33 @@
 # Development Log
 
+## 2026-06-09 Research: 女王枝 (Queen branch) — egg-laying engine + colony-mother boosts
+
+Purpose:
+- New default-unlocked research branch focused on the queen: speed up auto-laying, lay multiple eggs per tap, raise the population cap, and add colony-wide "majesty" perks. Fills the slot between the Golden and (unimplemented) Expedition branches.
+
+Changes:
+- `RESEARCH_BRANCH_DEFS`: added `{ id:'queen', label:'女王枝', icon:'👸', accent:'#d946ef', desc:'産卵と女王の威厳' }` (before Expedition). `makeDefaultResearchState()` marks `queen:true`, so the branch is unlocked by default like Golden.
+- Six new data-driven nodes (`RESEARCH_NODE_DEFS`):
+  - `queen_vitality` (root): `mul layMul +0.25` — auto-lay ×1.25.
+  - `queen_fertile` (infinite, `costGrowth 1.5`): `layMul +0.06`/Lv.
+  - `queen_double_lay` (max 3, `costGrowth 2.2`): `mul tapEggBonus +1`/Lv.
+  - `queen_embrace` (infinite, `costGrowth 1.6`): `mul popCap +0.08`/Lv.
+  - `queen_majesty` (breakthrough): `flag queenAllSeasonLay`.
+  - `queen_pheromone` (breakthrough): `mul gatherFood +0.20` (reuses the Gather-branch key).
+- Wiring:
+  - Auto-lay: both lay loops (live + offline) now multiply `layRate *= getResearchBonus('layMul')` ahead of the existing global/season multipliers.
+  - Tap-lay: new `getTapEggCount()` = `1 + floor(Σ tapEggBonus)` (raw accumulator, no effUp since eggs are integer). `tryLayEgg()` lays `n` eggs at once, rolls a golden egg per egg, batches them into `G.eggs` / `addEggToQueenRoom(n, goldenCount)`, and the feedback shows `+n` (plus a "黄金の卵がN個産まれた！" toast when several goldens land).
+  - Pop cap: `caps.pop` is multiplied by `getResearchBonus('popCap')` after the rest-room bonus.
+  - Season resilience: `getSeasonLayMul()` returns `max(1, seasonLayMul)` when `queenAllSeasonLay` is set, so autumn/winter no longer drop auto-lay below ×1.
+  - Worker foraging: `queen_pheromone` reuses `gatherFood`, so it stacks additively with the Gather branch through the existing `getResearchBonus('gatherFood')` path (no new wiring needed).
+
+Verification (preview, served index.html):
+- Reloaded; no console errors, game boots (V23.0). `G.research.unlockedBranches` includes `queen`.
+- Research tree renders the 👸 女王枝 lane and all six nodes (`女王の活力 / 多産の系譜 / 重ね産み / 女王の包容力 / 女王の威厳 / 女王フェロモン`); overview total is `9/40` (six queen nodes added). Unbought, every new `mul` key defaults to ×1, so behavior is unchanged until a node is purchased.
+
+Note:
+- The index.html implementation landed in a prior session, but the matching CURRENT_SYSTEM_OVERVIEW.md / DEVELOPMENT_LOG.md updates failed at the time (an edit whose `old_string` didn't match the live text), so this commit catches the docs up alongside the code.
+
 ## 2026-06-08 Mobile fix (real root cause): vertical scroll stalls over the tree (nested pan-x scroller)
 
 Purpose:

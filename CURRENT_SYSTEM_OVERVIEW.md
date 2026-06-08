@@ -574,6 +574,7 @@ Current branches:
 - Geology
 - Defense
 - Golden (黄金枝, 👑, accent `#fbbf24`; default-unlocked; strengthens the golden finger / golden egg / golden buff lineage)
+- Queen (女王枝, 👸, accent `#d946ef`; default-unlocked; egg-laying spine — auto-lay speed + per-tap egg count — plus colony-mother boosts (population cap, worker foraging) and a "majesty" season-resilience special)
 - Expedition
 
 Current implemented nodes:
@@ -600,6 +601,12 @@ Current implemented nodes:
 - `golden_blessing`: 黄金の祝福 (`mul goldenBuffPower +0.5`)
 - `golden_blessing_inf`: 豊穣の祝福 (infinite; goldenBuffPower `+0.20`/Lv)
 - `golden_auto`: 黄金の自動産卵 (breakthrough; `flag goldenAutoLay` — auto-laying also produces golden eggs)
+- `queen_vitality`: 女王の活力 (queen branch root; `mul layMul +0.25` — auto-lay speed ×1.25)
+- `queen_fertile`: 多産の系譜 (infinite; layMul `+0.06`/Lv)
+- `queen_double_lay`: 重ね産み (leveled, max 3; `mul tapEggBonus +1`/Lv — +1 egg per manual tap per level)
+- `queen_embrace`: 女王の包容力 (infinite; popCap `+0.08`/Lv — raises population cap)
+- `queen_majesty`: 女王の威厳 (breakthrough; `flag queenAllSeasonLay` — seasonal auto-lay penalty floored at ×1)
+- `queen_pheromone`: 女王フェロモン (breakthrough; `mul gatherFood +0.20` — reuses the gather key to boost worker foraging)
 - `build_multitask`: マルチタスク (geology; leveled max 3; simultaneous construction sites = `1 + level`, i.e. base 1 → 2/3/4. Read directly via `researchLevel`, gates `calcBuilderTargetCap`)
 - `offline_build`: 鬼の居ぬ間も！ (geology; breakthrough; `flag offlineBuild` — builders progress construction while the game is closed)
 - `offline_build_speed`: 夜なべ建築 (geology; infinite; `offlineBuildSpeed` +20%/Lv — raises offline build efficiency, capped at online rate)
@@ -609,6 +616,14 @@ Current implemented nodes:
 `military_barracks_blueprint` was removed from the research tree (the barracks blueprint is now a Rooms tab dock purchase). Its constant and `G.major.barracks` compatibility plumbing are kept, so old saves that researched it stay valid. The defense branch now contains only `soldier_jaw_2x`.
 
 Expedition branch exists but its nodes are not implemented yet.
+
+Queen-branch research effects (data-driven; default-unlocked branch):
+
+- `layMul` (`queen_vitality`, `queen_fertile`): multiplies the auto-lay rate in both the live loop and offline progression (`layRate *= getResearchBonus('layMul')`), alongside the existing global/season lay multipliers.
+- `tapEggBonus` (`queen_double_lay`): `getTapEggCount()` = `1 + floor(Σ tapEggBonus)` (raw accumulator, no effUp since eggs are integer). `tryLayEgg` lays that many eggs per manual tap, rolls a golden egg per egg, shows a `+n` float, and a "黄金の卵がN個産まれた！" toast when more than one golden lands.
+- `popCap` (`queen_embrace`): multiplies `this.caps.pop` after the rest-room bonus, raising the population cap.
+- `queenAllSeasonLay` (`queen_majesty`): flag; `getSeasonLayMul()` returns `max(1, seasonLayMul)`, so autumn/winter no longer slow auto-laying below ×1.
+- `gatherFood` (`queen_pheromone`): reuses the Gather-branch key, stacking additively into worker foraging via the same `getResearchBonus('gatherFood')` path.
 
 Mushroom/leaf systems are removed or postponed.
 
