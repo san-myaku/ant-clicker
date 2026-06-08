@@ -12708,7 +12708,16 @@ function expandMap(forcedType, isEmergency) {
       ? RESEARCH_BRANCH_DEFS.map(branch => renderResearchBranch(branch, rs)).join('')
       : renderResearchTree(rs);
     if(!S._researchInteracting && researchUI.branchList.innerHTML !== newHtml) {
+      // ツリーの横スクロール位置(.rtree-scroll.scrollLeft)は innerHTML 置換で要素ごと作り直され 0 に戻る。
+      // （右にスクロールしても再構築のたびに左端へ戻され「スクロールが効かない」体感になる）。保存→復元する。
+      // 縦の #control-panel.scrollTop は #control-panel 自体が作り直されないので保持される。
+      const _oldRt = researchUI.branchList.querySelector('.rtree-scroll');
+      const _savedLeft = _oldRt ? _oldRt.scrollLeft : 0;
       researchUI.branchList.innerHTML = newHtml;
+      if(_savedLeft) {
+        const _newRt = researchUI.branchList.querySelector('.rtree-scroll');
+        if(_newRt) _newRt.scrollLeft = _savedLeft;
+      }
     }
   }
 

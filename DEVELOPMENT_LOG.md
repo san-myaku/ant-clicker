@@ -1,5 +1,21 @@
 # Development Log
 
+## 2026-06-08 Mobile fix (root cause): research tree horizontal scroll snapped back to left
+
+Purpose:
+- The previous scroll fix (deferring rebuilds during scroll) was not enough — the user still reported the research tab (especially the 系統樹/tree view) scroll "stops working partway".
+
+Findings (reproduced on mobile 375×812, not synthetic this time):
+- Real root cause: `updateResearchUI()` rebuilds `#research-branch-list` via `innerHTML = renderResearchTree(rs)`, which **recreates the `.rtree-scroll` element** every time the tree HTML changes (constantly in play). A fresh element starts at `scrollLeft = 0`, so the tree's **horizontal** scroll position is reset to the left on every rebuild. Scrolling right to reach deep nodes kept snapping back → "scroll doesn't work".
+- Verified directly: `#control-panel.scrollTop` (vertical) is **preserved** across the rebuild (the scroller element isn't recreated, only its descendant is), but `.rtree-scroll.scrollLeft` (horizontal) went 120 → 0 on each `innerHTML` swap. With a `MutationObserver`, `.rtree-scroll` was recreated 77× during a rebuild storm.
+
+Changes:
+- In `updateResearchUI()`, around the branch-list `innerHTML` replacement: capture the old `.rtree-scroll`'s `scrollLeft` before, and restore it onto the new `.rtree-scroll` after. Vertical scroll needs nothing (already preserved). Classic view has no `.rtree-scroll` (`scrollLeft` 0 → no-op), so it's unaffected.
+
+Verification (preview, mobile):
+- With the fix, across **77 detected rebuilds** (each recreating `.rtree-scroll`), all 239 sampled `scrollLeft` values stayed at 140 (0 resets) — horizontal position is now preserved. No console errors; `new Function` syntax check passed (15,365 lines).
+- The prior rebuild-deferral guard is kept (it preserves momentum during an active flick); this change fixes the post-settle snap-back that the guard didn't cover.
+
 ## 2026-06-08 Mobile fix: research tab scroll stalls mid-flick
 
 Purpose:
