@@ -1,5 +1,18 @@
 # Development Log
 
+## 2026-06-09 Builder crew assist: extra builders now modestly speed active digs
+
+Purpose:
+- Hiring more builder ants should feel useful even when normal construction keeps `stackLimit=1` and `build_multitask` has not opened more parallel sites yet.
+
+Changes:
+- Added a saturated crew-assist multiplier to `updateBuilderLogic()`: formally unassigned builder ants are shared across active dig targets and multiply progress by `1 + 1.50 * idleShare / (idleShare + 7)`.
+- Kept the balance controls intact: normal rooms still have `stackLimit=1`, special reserved construction keeps its existing stacking rules, and `build_multitask` still only controls simultaneous construction sites.
+- Debug/stat UI now reports `assist xN.NN`; the builder hire tooltip mentions that spare builders modestly help digging, capped at +150%.
+
+Verification target:
+- 1 builder = x1.00 assist, 2 builders on one normal dig = about x1.19, 5 builders = about x1.55, 10 builders = about x1.84, and the assist bonus never exceeds +150%.
+
 ## 2026-06-09 Research: 女王枝 (Queen branch) — egg-laying engine + colony-mother boosts
 
 Purpose:

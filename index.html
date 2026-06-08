@@ -3343,6 +3343,8 @@
   const BUILDER_LOGIC_BASE_CHUNK_SEC = 4.8;
   const BUILDER_ASSIGNMENT_MAX_TARGETS = 4;  // 並行建築サイトのハード上限（マルチタスクLv3で1+3=4）
   const BUILDER_MULTITASK_MAX = 3;           // 研究「マルチタスク」最大Lv（並行 2/3/4）
+  const BUILDER_CREW_ASSIST_MAX = 1.50;      // 正式配属外の建築アリによる補助加速の上限（+150%）
+  const BUILDER_CREW_ASSIST_HALF_SLOTS = 7;  // 補助加速が上限の半分に達する余剰アリ数/建築対象
   // 研究「鬼の居ぬ間も！/夜なべ建築」: オフライン建築
   const OFFLINE_BUILD_EFF_BASE = 1/3;        // 基本効率（オンラインの1/3）
   const OFFLINE_BUILD_STEP_SEC = 20;         // ステップあたりの建築時間（safety=8チャンク/呼び出しを超えない粒度）
@@ -8916,16 +8918,44 @@ function expandMap(forcedType, isEmergency) {
     return st;
   }
 
+  function calcBuilderCrewAssistStats(realBuilders, assignedSlots, activeTargetCount) {
+    const real = Math.max(0, Math.floor(realBuilders || 0));
+    const assigned = Math.max(0, Math.floor(assignedSlots || 0));
+    const active = Math.max(0, Math.floor(activeTargetCount || 0));
+    const idleSlots = Math.max(0, real - assigned);
+    if(idleSlots <= 0 || active <= 0) {
+      return { idleSlots, idleShare:0, bonus:0, mul:1 };
+    }
+    const idleShare = idleSlots / active;
+    const denom = idleShare + Math.max(0.001, BUILDER_CREW_ASSIST_HALF_SLOTS);
+    const bonus = Math.min(BUILDER_CREW_ASSIST_MAX, BUILDER_CREW_ASSIST_MAX * idleShare / denom);
+    return { idleSlots, idleShare, bonus, mul:1 + bonus };
+  }
+
   function updateBuilderLogic(dt) {
     if(!S.full) return;
     const st = rebuildBuilderAssignments();
-    for(const target of Object.values(st.targets)) {
+    const targets = Object.values(st.targets);
+    const activeTargetCount = targets.reduce((sum, target) => {
+      if(!target || target.eid == null || !S.full.edges[target.eid]) return sum;
+      if((S.edgeFrac[target.eid] || 0) >= 1) return sum;
+      return sum + (Math.max(0, Math.floor(target.assigned || 0)) > 0 ? 1 : 0);
+    }, 0);
+    const stats = st.stats || {};
+    const assist = calcBuilderCrewAssistStats(stats.realBuilders, stats.assignedSlots, activeTargetCount);
+    stats.activeTargetCount = activeTargetCount;
+    stats.assistIdleSlots = assist.idleSlots;
+    stats.assistIdleShare = assist.idleShare;
+    stats.assistBonus = assist.bonus;
+    stats.assistMul = assist.mul;
+    st.stats = stats;
+    for(const target of targets) {
       if(!target || target.eid == null || !S.full.edges[target.eid]) continue;
       if((S.edgeFrac[target.eid] || 0) >= 1) continue;
       const assigned = Math.max(0, Math.floor(target.assigned || 0));
       if(assigned <= 0) continue;
       const chunkSec = Math.max(0.1, target.chunkSec || getBuilderLogicChunkSec(target));
-      target.acc = Math.max(0, +target.acc || 0) + dt * assigned / chunkSec;
+      target.acc = Math.max(0, +target.acc || 0) + dt * assigned * assist.mul / chunkSec;
       let safety = 0;
       while(target.acc >= 1 && safety < 8) {
         target.acc -= 1;
@@ -8995,6 +9025,11 @@ function expandMap(forcedType, isEmergency) {
       workSlots: Math.max(0, Math.floor(stats.workSlots || 0)),
       assignedSlots: Math.max(0, Math.floor(stats.assignedSlots || 0)),
       targetCount: Math.max(0, Math.floor(stats.targetCount || 0)),
+      activeTargetCount: Math.max(0, Math.floor(stats.activeTargetCount || 0)),
+      assistIdleSlots: Math.max(0, Math.floor(stats.assistIdleSlots || 0)),
+      assistIdleShare: Math.max(0, +stats.assistIdleShare || 0),
+      assistBonus: Math.max(0, +stats.assistBonus || 0),
+      assistMul: Math.max(1, +stats.assistMul || 1),
       renderCap: Math.max(0, Math.floor(stats.renderCap || getRenderCap()))
     };
   }
@@ -13661,7 +13696,7 @@ function syncFermenterUnlockUI() {
 
     bindTip(document.getElementById('row-builder'), () => {
       const cost = G.getCost('builder');
-      return `建築アリを雇う\nコスト: 🍃 ${cost} + 働きアリ1\n効果: 巣の掘削・部屋拡張`;
+      return `建築アリを雇う\nコスト: 🍃 ${cost} + 働きアリ1\n効果: 巣の掘削・部屋拡張。余剰建築アリは掘削を控えめに補助（最大+150%）`;
     });
 
     bindTip(document.getElementById('grp-soldier'), () => {
@@ -14340,7 +14375,7 @@ function syncFermenterUnlockUI() {
       `crowd:${S.antCrowd ? S.antCrowd.count : 0} visible:${perf.visibleCrowd || 0} culled:${perf.culledCrowd || 0} atlas:${perf.crowdAtlasFrames || 0}\n` +
       `ai full:${perf.aiFull || 0} light:${perf.aiLight || 0} skipped:${perf.aiSkipped || 0}\n` +
       `draw crowd:${perf.drawCrowd || 0} dot:${perf.drawDot || 0} sprite:${perf.drawSprite || 0} vector:${perf.drawVector || 0} batches:${perf.drawBatches || 0}\n` +
-      `builder real:${bStats.realBuilders} visible:${bStats.visibleBuilders} work:${bStats.assignedSlots}/${bStats.workSlots} targets:${bStats.targetCount} cap:${bStats.renderCap}\n` +
+      `builder real:${bStats.realBuilders} visible:${bStats.visibleBuilders} work:${bStats.assignedSlots}/${bStats.workSlots} targets:${bStats.targetCount} assist x${bStats.assistMul.toFixed(2)} idle:${bStats.assistIdleSlots} cap:${bStats.renderCap}\n` +
       `cam:${camScale} dpr:${dpr} mode:${modeSetting}->${modeUsed} lod:${lod}/${lodUsed}\n` +
       `nodes:${nodes} edges:${edges} loops≈${loops}\n` +
       `deg avg:${avgDeg} shaft:${avgDegS} room:${avgDegR}\n` +
@@ -15564,7 +15599,8 @@ function syncFermenterUnlockUI() {
       ['描画上限', fmtStatNum(getRenderCap())],
       ['群れ表示', fmtStatNum(S.antCrowd ? S.antCrowd.count : 0)],
       ['演出アリ', fmtStatNum(S.ants ? S.ants.length : 0)],
-      ['建築枠', `${fmtStatNum(builderStats.assignedSlots || 0)}/${fmtStatNum(builderStats.workSlots || 0)}`]
+      ['建築枠', `${fmtStatNum(builderStats.assignedSlots || 0)}/${fmtStatNum(builderStats.workSlots || 0)}`],
+      ['建築補助', `x${(builderStats.assistMul || 1).toFixed(2)}`]
     ]);
   }
 
