@@ -1,5 +1,16 @@
 # Development Log
 
+## 2026-06-09 Research balance: costs x8 and defense nodes leveled
+
+Purpose:
+- Research was too cheap overall, and the defense nodes `oshiai` / `numbers_win` should be levelable like poison concentration.
+
+Changes:
+- Added `RESEARCH_GLOBAL_COST_MUL = 8` and applied it to normal research node costs and meta insight upgrade costs.
+- Made `oshiai` infinite with `costGrowth:1.6`: Lv1 keeps the old +50% block radius, later levels add +20%/Lv.
+- Made `numbers_win` infinite with `costGrowth:1.6`: Lv1 keeps the old soldier cost -40% / power -20%, later levels add cost -10%/Lv and power -5%/Lv.
+- Extended research `mul` effects with optional `firstLevel` so old saves at Lv1 keep their previous effect while repeatable levels can use a smaller incremental value.
+
 ## 2026-06-09 Builder crew assist: extra builders now modestly speed active digs
 
 Purpose:

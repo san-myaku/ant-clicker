@@ -3241,6 +3241,7 @@
   const FERMENT_WORKER_ROOM_REQ = 2;
   const FERMENTER_BONUS_PER_ANT = 0.08;
   const FERMENTER_BONUS_MAX = 0.40;
+  const RESEARCH_GLOBAL_COST_MUL = 8; // 研究システム全体の基礎コスト倍率（安すぎ対策: 5〜10倍レンジの中間）
   // MAJOR_UPGRADE: メジャー（パッシブ）購入コスト（クッキー）
   const GOLDEN_FINGER_MAX_LV = 5;
   const GOLDEN_FINGER_COST_BASE = 20;
@@ -3717,8 +3718,8 @@ const RESEARCH_BRANCH_DEFS = [
   { id: SOLDIER_JAW_2X_NODE, branch: 'defense', name: '顎強化', desc: '兵隊アリの大顎を鍛え、レイドや害虫への攻撃力を高める。', costCookie: MAJOR_JAW2X_COST, costFood: 0, prereq: [], breakthrough: false },
   { id: 'poison_jaw', branch: 'defense', name: '毒顎', desc: '兵隊アリの大顎に毒を仕込む。接敵した敵に毎秒「体力の2%」の毒ダメージ（継続）。', costCookie: 20, costFood: 0, prereq: [SOLDIER_JAW_2X_NODE], breakthrough: true, effects:[{kind:'flag',flag:'poisonJaw'}] },
   { id: 'poison_conc', branch: 'defense', name: '毒の濃度', desc: '毒ダメージ +15%/Lv（無限）', costCookie: 6, costFood: 0, costGrowth: 1.6, max: Infinity, prereq: ['poison_jaw'], breakthrough: false, effects:[{kind:'mul',key:'poisonDmg',perLevel:0.15}] },
-  { id: 'oshiai', branch: 'defense', name: 'おしあいへしあい', desc: '兵隊が敵をより広く押さえ込む。足止め範囲 +50%（接敵する敵が増え、足止め・毒が効きやすくなる）。', costCookie: 12, costFood: 0, prereq: [SOLDIER_JAW_2X_NODE], breakthrough: false, effects:[{kind:'mul',key:'blockRadius',perLevel:0.5}] },
-  { id: 'numbers_win', branch: 'defense', name: '数は何にも勝る', desc: '兵隊アリの雇用コスト -40%。ただし各兵隊の兵力 -20%（質より量の戦術）。', costCookie: 25, costFood: 0, prereq: [SOLDIER_JAW_2X_NODE], breakthrough: true, effects:[{kind:'mul',key:'soldierCost',perLevel:-0.40},{kind:'mul',key:'soldierPower',perLevel:-0.20}] },
+  { id: 'oshiai', branch: 'defense', name: 'おしあいへしあい', desc: '兵隊が敵をより広く押さえ込む。足止め範囲 +50%、以後 +20%/Lv（無限）。', costCookie: 12, costFood: 0, costGrowth: 1.6, max: Infinity, prereq: [SOLDIER_JAW_2X_NODE], breakthrough: false, effects:[{kind:'mul',key:'blockRadius',firstLevel:0.5,perLevel:0.2}] },
+  { id: 'numbers_win', branch: 'defense', name: '数は何にも勝る', desc: '兵隊アリの雇用コスト -40%、以後 -10%/Lv。ただし各兵隊の兵力 -20%、以後 -5%/Lv（無限）。', costCookie: 25, costFood: 0, costGrowth: 1.6, max: Infinity, prereq: [SOLDIER_JAW_2X_NODE], breakthrough: true, effects:[{kind:'mul',key:'soldierCost',firstLevel:-0.40,perLevel:-0.10},{kind:'mul',key:'soldierPower',firstLevel:-0.20,perLevel:-0.05}] },
   // 黄金枝: 黄金の指/黄金卵/黄金バフ(黄金幼虫→成虫で発動)を強化する。golden_1 は黄金の指 Lv1 が入口条件。
   { id: 'golden_1', branch: 'golden', name: '黄金の輝きI', desc: 'タップ産卵で黄金卵が生まれる確率 ×1.5。', costCookie: 15, costFood: 0, prereq: [], breakthrough: false, effects:[{kind:'mul',key:'goldenEggChance',perLevel:0.5}] },
   { id: 'golden_shine_inf', branch: 'golden', name: '黄金の輝き', desc: '黄金卵の確率 +15%/Lv（無限）', costCookie: 8, costFood: 0, costGrowth: 1.5, max: Infinity, prereq: ['golden_1'], breakthrough: false, effects:[{kind:'mul',key:'goldenEggChance',perLevel:0.15}] },
@@ -3758,7 +3759,12 @@ function recomputeResearchBonuses(){
     if(lv <= 0) continue;
     for(const e of def.effects){
       if(!e) continue;
-      if(e.kind === 'mul' && e.key) muls[e.key] = (muls[e.key] || 0) + (e.perLevel || 0) * lv;
+      if(e.kind === 'mul' && e.key) {
+        const add = (typeof e.firstLevel === 'number' && lv > 0)
+          ? e.firstLevel + (e.perLevel || 0) * Math.max(0, lv - 1)
+          : (e.perLevel || 0) * lv;
+        muls[e.key] = (muls[e.key] || 0) + add;
+      }
       else if(e.kind === 'flag' && e.flag) flags[e.flag] = true;
     }
   }
@@ -3797,7 +3803,7 @@ function getResearchMeta(){
 }
 function getMetaLevel(key){ return Math.max(0, Math.floor(getResearchMeta()[key] || 0)); }
 function getMetaMax(def){ return (def.max === Infinity) ? Infinity : Math.max(1, Math.floor(def.max || 1)); }
-function getMetaCost(def, level){ return Math.max(1, Math.floor(def.baseCost * Math.pow(def.growth, Math.max(0, level)))); }
+function getMetaCost(def, level){ return Math.max(1, Math.floor(def.baseCost * RESEARCH_GLOBAL_COST_MUL * Math.pow(def.growth, Math.max(0, level)))); }
 function getResearchCostMul(){ return Math.max(0.4, 1 - 0.03 * getMetaLevel('costDown')); }
 function getResearchEffMul(){ return 1 + 0.05 * getMetaLevel('effUp'); }
 
@@ -3954,8 +3960,8 @@ function getResearchNodeCost(def, level){
   const factor = repeatable ? Math.pow(growth, lvl) : 1;
   const discount = (typeof getResearchCostMul === 'function') ? getResearchCostMul() : 1; // メタ割引(段階3)。未定義なら1
   return {
-    cookie: Math.max(0, Math.floor((def.costCookie || 0) * factor * discount)),
-    food: Math.max(0, Math.floor((def.costFood || 0) * factor * discount))
+    cookie: Math.max(0, Math.floor((def.costCookie || 0) * RESEARCH_GLOBAL_COST_MUL * factor * discount)),
+    food: Math.max(0, Math.floor((def.costFood || 0) * RESEARCH_GLOBAL_COST_MUL * factor * discount))
   };
 }
 
