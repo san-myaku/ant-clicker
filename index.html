@@ -6062,6 +6062,9 @@ function ensureRestSlots(n){
           this.research = makeDefaultResearchState();
         }
         ensureResearchState(this);
+        // ロードでノード状態が入れ替わったので、研究倍率キャッシュを無効化して再計算させる。
+        // （未無効化だと、ロード前に構築された空キャッシュが固定され getResearchBonus が全キー ×1.0 を返す＝研究効果が反映されない）
+        invalidateResearchBonuses();
 
         const last = +d.lastSave || Date.now();
         this.lastSave = last;
@@ -12484,9 +12487,57 @@ function expandMap(forcedType, isEmergency) {
     return '•';
   }
 
+  // ===== A1: 効果の差分プレビュー（現値→次値） =====
+  // 研究効果(データ)から「今の合計効果 → このノードをあと1Lv買った後の合計効果」を算出して短く表示する。
+  // 集計は recomputeResearchBonuses と完全に同じ規則（firstLevel は 0→1 のみ加算）に揃える。
+  // effUp 適用キーかどうかも本体の消費側（getResearchBonus / getResearchBonusRaw）に合わせる。
+  const RESEARCH_PREVIEW_KEY = {
+    gatherFood:{label:'採集効率'}, broodEgg:{label:'卵の成長'}, broodLarva:{label:'幼虫の成長'},
+    wasteGen:{label:'ゴミ発生'}, goldenEggChance:{label:'黄金卵の確率'}, goldenBuffPower:{label:'黄金バフ'},
+    layMul:{label:'自動産卵速度'}, popCap:{label:'個体数上限'}, offlineBuildSpeed:{label:'オフライン建築'},
+    roomCapacity:{label:'部屋容量'}, poisonDmg:{label:'毒ダメージ'},
+    // effUp 非適用（本体は getResearchBonusRaw で消費）
+    soldierCost:{label:'兵隊コスト', raw:true}, soldierPower:{label:'兵力', raw:true}, blockRadius:{label:'足止め範囲', raw:true},
+    // 基準値1からの整数カウント（effUp非適用）
+    tapEggBonus:{label:'タップ産卵', count:true, base:1, unit:'個'}, buildParallel:{label:'並行建築', count:true, base:1, unit:'箇所'}
+  };
+  function _fmtPreviewPct(mul){
+    const p = Math.round((mul - 1) * 100);
+    return (p > 0 ? '+' : '') + p + '%';
+  }
+  function getResearchEffectPreviewText(def){
+    if(!def || !Array.isArray(def.effects) || !def.effects.length) return '';
+    const lv = researchLevel(def.id);
+    const atMax = lv >= getResearchNodeMaxLevel(def);
+    const effMul = getResearchEffMul();
+    const muls = getResearchBonuses().muls;
+    const parts = [];
+    for(const e of def.effects){
+      if(!e) continue;
+      if(e.kind === 'flag'){ parts.push(hasResearchNode(def.id) ? '解放済' : '解放'); continue; }
+      if(e.kind !== 'mul' || !e.key) continue;
+      const cfg = RESEARCH_PREVIEW_KEY[e.key];
+      if(!cfg) continue; // 未知キーは誤表示を避けて出さない
+      // 次の1Lvで増える素の量（firstLevel は 0→1 ステップのみ、以降は perLevel）
+      const inc = (typeof e.firstLevel === 'number' && lv === 0) ? e.firstLevel : (e.perLevel || 0);
+      if(cfg.count){
+        const curRaw = muls[e.key] || 0;
+        const cur = cfg.base + Math.floor(curRaw);
+        const next = cfg.base + Math.floor(curRaw + inc);
+        parts.push(atMax ? `${cfg.label} ${cur}${cfg.unit}(最大)` : `${cfg.label} ${cur}→${next}${cfg.unit}`);
+      } else {
+        const curMul = cfg.raw ? getResearchBonusRaw(e.key) : getResearchBonus(e.key);
+        const nextMul = curMul + inc * (cfg.raw ? 1 : effMul);
+        parts.push(atMax ? `${cfg.label} ${_fmtPreviewPct(curMul)}(最大)` : `${cfg.label} ${_fmtPreviewPct(curMul)}→${_fmtPreviewPct(nextMul)}`);
+      }
+    }
+    return parts.length ? ('効果: ' + parts.join(' / ')) : '';
+  }
+
   function renderResearchNodeCard(def){
     const status = getResearchStatus(def);
     const canResearch = (status === 'ready') && canAffordResearch(def);
+    const effPreview = getResearchEffectPreviewText(def);
     const prereqText = getResearchPrereqText(def);
     const condText = getResearchNodeConditionText(def);
     const condMet = !condText || isResearchNodeConditionMet(def);
@@ -12514,6 +12565,7 @@ function expandMap(forcedType, isEmergency) {
             <span class="research-node-status">${getResearchStatusLabel(status)}</span>
           </div>
           <div class="research-node-desc">${def.desc}</div>
+          ${effPreview ? `<div class="research-node-effect" style="font-size:11px;font-weight:700;color:#fcd34d;margin-top:3px">${effPreview}</div>` : ''}
           ${tags.length ? `<div class="research-node-tags">${tags.join('')}</div>` : ''}
           <div class="research-node-meta">
             <span class="research-node-cost">${formatResearchCost(def)}</span>
@@ -12705,7 +12757,8 @@ function expandMap(forcedType, isEmergency) {
     // レベルバッジ（反復ノードで取得済みのとき）
     const lvBadge = (repeatable && lv > 0) ? `<span class="rtree-node-lv">Lv${lv}</span>` : '';
     const lvTip = repeatable ? `\nレベル: ${lv}${getResearchNodeMaxLevel(def) === Infinity ? '' : '/' + getResearchNodeMaxLevel(def)}` : '';
-    const tip = `${def.name} ｜ ${def.desc}${lvTip}\n状態: ${getResearchStatusLabel(status)}${reason ? '（' + reason + '）' : ''}\nコスト: ${cost}`;
+    const effPreview = getResearchEffectPreviewText(def);
+    const tip = `${def.name} ｜ ${def.desc}${lvTip}${effPreview ? '\n' + effPreview : ''}\n状態: ${getResearchStatusLabel(status)}${reason ? '（' + reason + '）' : ''}\nコスト: ${cost}`;
     return `<button type="button" class="${cls.join(' ')}" style="left:${cx}px;top:${cy}px;--branch-color:${accent}" data-research-buy="${def.id}" title="${escResearchTip(tip)}" aria-label="${escResearchTip(def.name)}">`
       + `<span class="rtree-node-dot"><span class="rtree-node-ic">${icon}</span><span class="rtree-node-mk">${mark}</span>${lvBadge}</span>`
       + `<span class="rtree-node-nm">${def.name}</span>`

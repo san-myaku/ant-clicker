@@ -1,5 +1,20 @@
 # Development Log
 
+## 2026-06-10 Research A1: effect delta preview + fix stale research-bonus cache on load
+
+Purpose:
+- Roadmap slice **A1 (差分プレビュー)**: show each research node's effect as "current → next" so the player sees what a purchase actually does (e.g. `採集効率 +13%→+19%`), not just a flavor desc.
+
+Changes:
+- New data-driven helper `getResearchEffectPreviewText(def)` + key→label map `RESEARCH_PREVIEW_KEY`. For each `mul` effect it computes the **current total** (`getResearchBonus`/`getResearchBonusRaw`, matching how the game consumes each key) and the **next-level total** (current + the increment this purchase grants). The increment follows the exact aggregation rule (`firstLevel` only on the 0→1 step, else `perLevel`); effUp is applied only for keys the game reads through `getResearchBonus`. Integer keys (`tapEggBonus`, `buildParallel`) render as `1→2個/箇所` from a base of 1; flag nodes render `解放`/`解放済`; maxed/owned show `…(最大)`. Unknown keys are skipped (never a misleading number).
+- Wired into both views: tree node `title` tooltip (`renderResearchTreeNode`) and a new inline `.research-node-effect` line on the classic card (`renderResearchNodeCard`).
+
+Bug fix (surfaced by A1):
+- **Research bonuses were not applied after loading a save.** `G.fromSave()` set `this.research = d.research` + `ensureResearchState(this)` but never called `invalidateResearchBonuses()`. If `getResearchBonuses()` ran at any point before the save was applied, the empty cache built then stuck (cache only recomputes when null, and load never nulled it). Result: `getResearchBonus(key)` returned `×1.0` for **every** key after a reload until the next research purchase — i.e. all owned research silently did nothing. Added `invalidateResearchBonuses()` right after `ensureResearchState(this)` in the load path. (Prestige goes through a reload, so it's covered by the same fix.)
+
+Verification (preview, effUp Lv5 → ×1.25):
+- Before fix: every owned node showed current `0%` (cache empty). After fix, reload → `gather_1` (owned) `採集効率 +13%(最大)`, `gather_inf` (shares key) `+13%→+19%`, `room_expand` (Lv5) `部屋容量 +31%→+38%`, `numbers_win` (firstLevel, raw) `兵隊コスト 0%→-40% / 兵力 0%→-20%`, `queen_double_lay` `タップ産卵 1→2個`, `golden_blessing` `黄金バフ 0%→+63%`. Classic inline line matches. 40 nodes render, no console errors/warnings. In-game brood multiplier now reflects research (e.g. `卵→幼虫 ×108`) confirming the cache fix applies to live gameplay, not just the tooltip.
+
 ## 2026-06-10 Research tree expand modal: multi-column layout (no longer tiny on wide screens)
 
 Purpose:
