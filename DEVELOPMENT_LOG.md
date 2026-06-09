@@ -1,5 +1,21 @@
 # Development Log
 
+## 2026-06-10 Research tree expand modal: multi-column layout (no longer tiny on wide screens)
+
+Purpose:
+- In the `⛶` expand modal the tree (a vertical stack of branch lanes) is tall and narrow. Fitting one column to both axes hit the scale floor (~0.55×) and rendered a tiny tree in a narrow centre strip with huge empty left/right margins — pointless on a large screen (user report).
+
+Changes:
+- `computeResearchTreeLayout(columns)` now takes a column count (default 1 = unchanged single column for the in-panel mini tree). For `columns > 1` it precomputes each lane's height, then packs lanes greedily into N equal-width columns (`LANE_COL_GAP = 20` between columns) — each lane drops into the currently-shortest column to balance heights. Node `cx` and the lane band gain the column's `left` offset; lane bands now carry explicit `left`/`width` (overriding the CSS `left:0;right:0`). The `columns = 1` output is byte-identical to before, so the panel mini tree is untouched.
+- `buildResearchTreeInner(rs, columns)` threads the count through; `renderResearchTree` (panel) still calls it with 1.
+- Replaced `getResearchTreeModalScale()` with column selection inside `renderResearchTreeModal()`: it tries `columns = 1 … min(6, branchCount)`, computes the fit scale (`min(width-fit, height-fit)`, clamped `0.6–1.7×`) for each, and picks the count that **maximizes the scale** (ties favour fewer columns / less whitespace). The chosen layout is transform-scaled in `.rtree-modal-stage` as before.
+- Bumped `.rtree-modal-box` `max-width` 1500 → 1700px so very wide screens can reach ~1× instead of being width-capped.
+
+Verification (preview):
+- 1600×900 (modal body 1504×765): **3 columns** (lane lefts 0 / 550 / 1100), **scale 0.883** (was ~0.55), stage 1440px = **96% width fill**, **0px vertical & horizontal scroll** — all 9 lanes / 40 nodes visible at once. Tallest column bottom 742px < 765px body (nothing clipped). No console errors/warnings.
+- In-panel mini tree: still **1 column** (lane lefts `[0]`), 9 lanes — unchanged.
+- Mobile 375×812: falls back to **1 column**, scale 0.6, horizontal scroll 0, vertical scroll only (same UX as before) — no regression.
+
 ## 2026-06-09 Builder target stickiness and dig-start movement
 
 Purpose:

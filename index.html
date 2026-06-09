@@ -781,7 +781,7 @@
     /* 研究ツリー拡大表示モーダル（大画面でも全体を大きく見られる。パネル内の小ツリーは温存） */
     .rview-expand { flex: 0 0 auto; min-width: 40px; padding: 6px 8px; }
     .modal-box.rtree-modal-box {
-      width: 94vw; max-width: 1500px;
+      width: 94vw; max-width: 1700px;
       height: 90vh; max-height: 90vh;
       padding: 12px;
       display: flex; flex-direction: column;
@@ -12625,12 +12625,15 @@ function expandMap(forcedType, isEmergency) {
     return html;
   }
 
-  const RTREE_CONST = { NODE_R:24, COL_W:120, ROW_H:98, HEADER_H:26, LANE_VPAD:8, LEFT_PAD:28, RIGHT_PAD:22, TOP_PAD:8, LANE_GAP:10 };
+  const RTREE_CONST = { NODE_R:24, COL_W:120, ROW_H:98, HEADER_H:26, LANE_VPAD:8, LEFT_PAD:28, RIGHT_PAD:22, TOP_PAD:8, LANE_GAP:10, LANE_COL_GAP:20 };
 
-  function computeResearchTreeLayout(){
+  // ツリーのレイアウトを計算。columns>1 のときはレーンを複数列に詰めて横長の画面を使い切る（拡大モーダル用）。
+  // columns=1 は従来どおり縦1列（パネル内ミニツリー）で、結果は以前と完全に同一。
+  function computeResearchTreeLayout(columns){
     const C = RTREE_CONST;
-    const lanes = [];
-    let y = C.TOP_PAD;
+    columns = Math.max(1, Math.floor(columns || 1));
+    // 1) 各ブランチレーンの内訳（深さ別の列マップ・レーン高さ）を先に求める
+    const laneInfos = [];
     let maxCol = 0;
     for(const branch of RESEARCH_BRANCH_DEFS){
       const nodes = getResearchBranchNodes(branch.id);
@@ -12645,24 +12648,39 @@ function expandMap(forcedType, isEmergency) {
       const hasNodes = nodes.length > 0;
       const nodesAreaH = hasNodes ? subrowsMax * C.ROW_H : 8;
       const laneH = C.HEADER_H + C.LANE_VPAD + nodesAreaH + C.LANE_VPAD;
-      const laneTop = y;
+      laneInfos.push({ branch, colMap, depths, laneH, hasNodes });
+    }
+    // 1列ブロックの幅は全ブランチ共通（最大深さに合わせる）。各列はこの幅で並べる。
+    const colBlockW = C.LEFT_PAD + (maxCol + 1) * C.COL_W + C.RIGHT_PAD;
+    // 2) レーンを columns 個の列へ詰める。毎回「いちばん低い列」へ入れる貪欲法＝列の高さが揃い、フィットスケールを最大化できる。
+    const colBottoms = new Array(columns).fill(C.TOP_PAD);
+    const lanes = [];
+    for(const li of laneInfos){
+      let ci = 0;
+      for(let k = 1; k < columns; k++) if(colBottoms[k] < colBottoms[ci]) ci = k;
+      const laneLeft = ci * (colBlockW + C.LANE_COL_GAP);
+      const laneTop = colBottoms[ci];
       const posById = {};
       const nodeLayouts = [];
-      for(const d of depths){
-        const arr = colMap[d];
+      for(const d of li.depths){
+        const arr = li.colMap[d];
         for(let s = 0; s < arr.length; s++){
           const def = arr[s];
-          const cx = C.LEFT_PAD + d * C.COL_W + C.NODE_R;
+          const cx = laneLeft + C.LEFT_PAD + d * C.COL_W + C.NODE_R;
           const cy = laneTop + C.HEADER_H + C.LANE_VPAD + C.NODE_R + s * C.ROW_H;
           posById[def.id] = { cx, cy };
           nodeLayouts.push({ def, cx, cy });
         }
       }
-      lanes.push({ branch, top: laneTop, height: laneH, nodes: nodeLayouts, posById, hasNodes });
-      y += laneH + C.LANE_GAP;
+      lanes.push({ branch: li.branch, left: laneLeft, width: colBlockW, top: laneTop, height: li.laneH, nodes: nodeLayouts, posById, hasNodes: li.hasNodes });
+      colBottoms[ci] = laneTop + li.laneH + C.LANE_GAP;
     }
-    const width = C.LEFT_PAD + (maxCol + 1) * C.COL_W + C.RIGHT_PAD;
-    const height = Math.max(C.TOP_PAD * 2, y - C.LANE_GAP + C.TOP_PAD);
+    let usedCols = 0;
+    for(const b of colBottoms) if(b > C.TOP_PAD) usedCols++;
+    usedCols = Math.max(1, usedCols);
+    const width = usedCols * colBlockW + (usedCols - 1) * C.LANE_COL_GAP;
+    const maxBottom = colBottoms.reduce((a, b) => Math.max(a, b), C.TOP_PAD);
+    const height = Math.max(C.TOP_PAD * 2, maxBottom - C.LANE_GAP + C.TOP_PAD);
     return { lanes, width, height };
   }
 
@@ -12696,8 +12714,8 @@ function expandMap(forcedType, isEmergency) {
   }
 
   // ツリー本体(.rtree)のHTMLを生成。パネル内表示と拡大モーダルで共用する。
-  function buildResearchTreeInner(rs){
-    const layout = computeResearchTreeLayout();
+  function buildResearchTreeInner(rs, columns){
+    const layout = computeResearchTreeLayout(columns);
     const laneBands = [];
     const links = [];
     const nodeEls = [];
@@ -12709,7 +12727,7 @@ function expandMap(forcedType, isEmergency) {
       const doneCount = lane.nodes.reduce((a, n) => a + (hasResearchNode(n.def.id) ? 1 : 0), 0);
       const stateTxt = !rs.unlocked ? '研究未解放'
         : (!branchOpen ? 'ロック中' : (total > 0 ? `${doneCount}/${total}` : '今後解放'));
-      laneBands.push(`<div class="rtree-lane${branchOpen ? '' : ' is-locked'}" style="top:${lane.top}px;height:${lane.height}px;--branch-color:${accent}">`
+      laneBands.push(`<div class="rtree-lane${branchOpen ? '' : ' is-locked'}" style="left:${lane.left}px;width:${lane.width}px;right:auto;top:${lane.top}px;height:${lane.height}px;--branch-color:${accent}">`
         + `<div class="rtree-lane-head"><span class="rtree-lane-icon">${branch.icon || '•'}</span><span class="rtree-lane-name">${branch.label}</span><span class="rtree-lane-state">${stateTxt}</span></div>`
         + `</div>`);
       if(!lane.hasNodes) continue;
@@ -12757,21 +12775,26 @@ function expandMap(forcedType, isEmergency) {
     return `<div class="rmeta-head"><span class="rmeta-title">🧠 知見（転生で獲得・恒久）</span><span class="rmeta-balance">${fmtCount(insight)}</span></div>${rows}`;
   }
 
-  // 拡大モーダル用のスケール: ツリー全体（縦横とも）がなるべく収まるようにフィットさせる。
-  // 縦長のツリーを横幅だけに合わせると拡大しすぎて一度に少ししか見えないため、両方向の小さい方を採用。
-  function getResearchTreeModalScale(treeW, treeH){
+  // 拡大モーダル: 大画面ではレーンを複数列に並べ、いちばん大きく表示できる列数を選ぶ。
+  // 縦長のツリーを1列のまま縦横フィットさせると極端に縮む（横が大量に余る）ため、
+  // 列数ごとに「モーダルに収まるスケール」を求め、スケールが最大になる列数を採用する。
+  function renderResearchTreeModal(rs){
     const body = researchTreeModalBody;
     let bw = (body && body.clientWidth) ? body.clientWidth : Math.floor(window.innerWidth * 0.9);
     let bh = (body && body.clientHeight) ? body.clientHeight : Math.floor(window.innerHeight * 0.8);
-    bw = Math.max(260, bw - 12);
-    bh = Math.max(260, bh - 12);
-    const fit = Math.min(bw / Math.max(1, treeW), bh / Math.max(1, treeH));
-    return Math.max(0.55, Math.min(1.6, fit));
-  }
-
-  function renderResearchTreeModal(rs){
-    const t = buildResearchTreeInner(rs);
-    const scale = getResearchTreeModalScale(t.width, t.height);
+    bw = Math.max(260, bw - 16);
+    bh = Math.max(260, bh - 16);
+    const clampScale = (f) => Math.max(0.6, Math.min(1.7, f));
+    const maxCols = Math.min(6, RESEARCH_BRANCH_DEFS.length);
+    let best = { cols: 1, scale: 0 };
+    for(let c = 1; c <= maxCols; c++){
+      const L = computeResearchTreeLayout(c);
+      const sc = clampScale(Math.min(bw / Math.max(1, L.width), bh / Math.max(1, L.height)));
+      // スケールが目に見えて大きくなる列数だけ採用（同等以下なら列数の少ない＝余白の少ない方を維持）
+      if(sc > best.scale + 0.012) best = { cols: c, scale: sc };
+    }
+    const t = buildResearchTreeInner(rs, best.cols);
+    const scale = clampScale(Math.min(bw / Math.max(1, t.width), bh / Math.max(1, t.height)));
     const sw = Math.ceil(t.width * scale);
     const sh = Math.ceil(t.height * scale);
     return `<div class="rtree-modal-stage" style="width:${sw}px;height:${sh}px">`
