@@ -1,5 +1,14 @@
 # Development Log
 
+## 2026-06-09 Raid combat: stronger body-blocking and no early breach resolve
+
+Purpose:
+- Foot-stopping felt weak because enemies could slip through a soldier cluster, and a raid could end as soon as one side breached enough even while the other side was still fighting.
+
+Changes:
+- `refreshRaidEnemyEngagement()` now marks every living enemy inside each surface soldier's block radius as engaged, instead of only the nearest one. This makes `oshiai` / `blockRadius` slow and poison the local enemy cluster, not just one body.
+- Raid attack resolution now waits until `getLivingRaidEnemyCount() <= 0`; breach threshold still determines loss, but only after all enemies have either died or breached.
+
 ## 2026-06-09 Research balance: costs x8 and defense nodes leveled
 
 Purpose:

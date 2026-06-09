@@ -11175,10 +11175,15 @@ function expandMap(forcedType, isEmergency) {
     if(!list || !list.length || !S.enemies || !S.enemies.length) return;
     for(const s of list) {
       if(!s || (s.fade != null && s.fade <= 0)) continue;
-      // 「おしあいへしあい」: 足止め範囲を広げて、より多くの敵を接敵(engagedBy>0)にする（固定値）
+      // 「おしあいへしあい」: 足止め範囲内の敵すべてを接敵扱いにする。
+      // 旧実装は兵隊ごとに最寄り1体だけだったため、敵の集団が横をすり抜けやすかった。
       const blockR = RAID_SURFACE_SOLDIER_BLOCK_RADIUS * Math.max(1, getResearchBonusRaw('blockRadius'));
-      const en = findNearestLivingRaidEnemyInRange(s.x, s.y, blockR);
-      if(en) en.engagedBy = (en.engagedBy || 0) + 1;
+      const blockR2 = blockR * blockR;
+      for(const en of S.enemies) {
+        if(!en || en.dead || en.phase === "dead" || en.breached) continue;
+        const dx = en.x - s.x, dy = en.y - s.y;
+        if(dx*dx + dy*dy <= blockR2) en.engagedBy = (en.engagedBy || 0) + 1;
+      }
     }
   }
 
@@ -11465,14 +11470,14 @@ function expandMap(forcedType, isEmergency) {
     S.raidVis.breachedEnemies = breachedEnemies;
     const breachLoseThreshold = getRaidBreachLoseThreshold(totalEnemies);
     let win, reason;
-    if(totalEnemies > 0 && killedEnemies >= totalEnemies) {
+    if(livingEnemies > 0) {
+      return null;
+    } else if(totalEnemies > 0 && killedEnemies >= totalEnemies) {
       win = true; reason = "all_killed";
     } else if(breachedEnemies >= breachLoseThreshold) {
       win = false; reason = "breached";
-    } else if(livingEnemies <= 0) {
-      win = true; reason = breachedEnemies > 0 ? "minor_breach_win" : "no_living";
     } else {
-      return null;
+      win = true; reason = breachedEnemies > 0 ? "minor_breach_win" : "no_living";
     }
     return buildRaidOutcomeFromSurfaceResult({ win, reason, totalEnemies, killedEnemies, breachedEnemies, livingEnemies });
   }
@@ -15981,11 +15986,10 @@ function syncFermenterUnlockUI() {
           en.fade = clamp(en.fade, 0, 1);
         });
 
-        // Phase 7B-4: 終了判定。時間上限はなく、全敵処理 or 突破しきい値で決着する。
+        // Phase 7B-4: 終了判定。時間上限はなく、全敵が死亡/突破してから決着する。
+        // 片側が先に突破しても、反対側の戦闘が残っている間はレイドを続ける。
         const livingNow = getLivingRaidEnemyCount();
-        const breachedNow = S.raidVis.breachedEnemies || 0;
-        const breachThreshold = getRaidBreachLoseThreshold(S.raidVis.totalEnemies || S.enemies.length || 1);
-        const decided = (livingNow <= 0) || (breachedNow >= breachThreshold);
+        const decided = (livingNow <= 0);
         if(decided && S.raidVis.finishDelay == null) {
           S.raidVis.finishDelay = RAID_FINISH_DELAY;
         }
