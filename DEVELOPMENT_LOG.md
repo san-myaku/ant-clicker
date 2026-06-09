@@ -1,5 +1,14 @@
 # Development Log
 
+## 2026-06-09 Builder target stickiness and dig-start movement
+
+Purpose:
+- Builders could appear to switch digging locations mid-construction in the early game, and could snap from a room center to a tunnel edge when expanding from that room.
+
+Changes:
+- `rebuildBuilderAssignments()` now restores unfinished targets from the previous assignment frame before choosing new targets, so active digs stay reserved until completion.
+- Added `moveBuilderToDigEdgeStart()` and use it before `dig_pick` starts moving along the dig edge, so a builder already inside the source room walks to the edge start instead of teleporting there.
+
 ## 2026-06-09 Raid combat: stronger body-blocking and no early breach resolve
 
 Purpose:

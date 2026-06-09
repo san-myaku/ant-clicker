@@ -8003,6 +8003,30 @@ function expandMap(forcedType, isEmergency) {
     return a.edgeT === targetT;
   }
 
+  function moveBuilderToDigEdgeStart(a, digT, dt, speedMul=1) {
+    if(!a || !digT || digT.eid == null || !S.full || !S.full.edges[digT.eid]) return true;
+    const e = S.full.edges[digT.eid];
+    const startT = getDigStartT(digT);
+    const p = cubic(e.p0, e.p1, e.p2, e.p3, startT);
+    const dx = p.x - a.x, dy = p.y - a.y;
+    const d = Math.hypot(dx, dy);
+    if(d <= dp(1.6)) {
+      a.x = p.x;
+      a.y = p.y;
+      a.edgeT = startT;
+      return true;
+    }
+    const restMul = (S.restMul || 1);
+    const extraMul = (typeof speedMul === 'number') ? speedMul : 1;
+    const step = Math.min(d, ANT_SPEED * restMul * extraMul * ROOM_EXIT_SPEED_MUL * dt);
+    a.x += (dx / d) * step;
+    a.y += (dy / d) * step;
+    a.rot = Math.atan2(dy, dx);
+    a.phase = 'room_exit';
+    a.eid = -1;
+    return false;
+  }
+
   function rollDigTreasure(digT) {
     if(Math.random() >= DIG_TREASURE_CHANCE) return;
     // お宝の位置を掘削先の辺上で決定
@@ -8883,6 +8907,27 @@ function expandMap(forcedType, isEmergency) {
     return list[0] || null;
   }
 
+  function restoreStickyBuilderAssignments(prevTargets, workSlots, targetCap) {
+    if(!prevTargets || workSlots <= 0 || targetCap <= 0) return 0;
+    const prevList = Object.values(prevTargets)
+      .filter(t => t && t.eid != null && S.full && S.full.edges[t.eid] && (S.edgeFrac[t.eid] || 0) < 1 && !isDigTargetAboveGround(t))
+      .sort((a,b) => (b.priority || 0) - (a.priority || 0));
+    let restored = 0;
+    for(const t of prevList) {
+      if(restored >= workSlots) break;
+      const st = ensureBuildAssignments();
+      const existingTargetCount = Object.keys(st.targets).length;
+      if(existingTargetCount >= targetCap && !st.targets[getBuildTargetKey(t)]) break;
+      const desired = Math.max(1, Math.floor(t.assigned || 1));
+      const limit = Math.max(1, Math.floor(t.stackLimit || getDigTargetStackLimit(t.eid, t.to, t.reason)));
+      const slots = Math.min(desired, limit, workSlots - restored);
+      for(let i=0; i<slots; i++) {
+        if(addBuilderAssignmentSlot(t, prevTargets)) restored++;
+      }
+    }
+    return restored;
+  }
+
   function rebuildBuilderAssignments() {
     const st = ensureBuildAssignments();
     const prevTargets = st.targets || {};
@@ -8893,6 +8938,10 @@ function expandMap(forcedType, isEmergency) {
     const targetCap = calcBuilderTargetCap(workSlots);
     let assignedSlots = 0;
     let attempts = 0;
+
+    // 掘削中の対象は完成まで優先保持する。毎フレーム再選定すると、
+    // 序盤の比率変動などで建築アリが掘削途中に別の場所へ乗り換えてしまう。
+    assignedSlots += restoreStickyBuilderAssignments(prevTargets, workSlots, targetCap);
 
     while(assignedSlots < workSlots && attempts < workSlots * 3 + 8) {
       attempts++;
@@ -10316,6 +10365,10 @@ function expandMap(forcedType, isEmergency) {
           if(!a.digT || (S.edgeFrac[a.digT.eid] || 0) >= 1) { a.task='idle'; a.digT=null; return; }
           const startNode = getDigStartNode(a.digT);
           if(a.node !== startNode) a.node = startNode;
+          const startT = getDigStartT(a.digT);
+          if(a.edgeT == null || Math.abs((a.edgeT || 0) - startT) < 0.0001) {
+            if(!moveBuilderToDigEdgeStart(a, a.digT, dt)) return;
+          }
           const frontT = getDigFrontT(a.digT);
           const arrivedFront = moveOnEdge(a, a.digT.eid, frontT, dt, 1, a.digT.dir);
           if(arrivedFront) {
