@@ -598,6 +598,8 @@ Current implemented nodes:
 - `ferment_3`: Ingredient saving
 - `ferment_worker_unlock`: Fermenter ant unlock
 - `cookie_find_2x`: Sweet scouting / cookie appearance x2 passive
+- `ferment_mature`: 熟成 (ferment; breakthrough; flag `cookieMature`; held cookies earn √-based passive interest — see B2 below)
+- `ferment_offline`: 自動発酵 (ferment; breakthrough; flag `fermentOffline`; ferment rooms keep producing cookies offline — see B2 below)
 - `geo_depth_2`: Depth II unlock
 - `geo_depth_3`: Depth III unlock
 - `geo_depth_4`: Depth IV unlock (breakthrough; prereq `geo_depth_3` + builder Lv 6; cost `MAJOR_DEPTH4_COST = 90`🍪). Lets `G.getDepthUnlocked()` reach 4 so the dig band can shift one layer deeper. No `G.major.depth4` legacy flag.
@@ -686,6 +688,8 @@ Research effects:
 - `ferment_1`: time `45 -> 38` seconds
 - `ferment_2`: completion has `10%` chance for cookie `+1`
 - `ferment_3`: food cost `100 -> 90`
+- **B2 熟成** (`ferment_mature`, flag `cookieMature`): held cookies earn passive interest `+√(G.cookie) × COOKIE_MATURE_RATE (0.25)/s` — sub-linear, so it rewards banking but never runs away. `addCookie` floors, so the live loop banks the fraction in `S._cookieMatureAcc`; also applied in `calcOffline` (`× OFFLINE_EFF × sec`).
+- **B2 自動発酵** (`ferment_offline`, flag `fermentOffline`): `calcOffline` runs fermenting analytically — `cycles = rooms × floor(sec × OFFLINE_EFF × speedMul / timeSec)`, clamped by `floor(G.food / foodCost)`, then deducts food and `addCookie(cycles × (1 + cookieBonusChance))` (no `fx`/`toast`, offline-safe).
 
 Ferment state per room:
 

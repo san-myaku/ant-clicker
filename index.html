@@ -3252,6 +3252,7 @@
   const FERMENT_BASE_TIME = 45;
   const FERMENT_FAST_TIME = 38;
   const FERMENT_BONUS_COOKIE_CHANCE = 0.10;
+  const COOKIE_MATURE_RATE = 0.25;     // 発1 熟成: クッキー利息 = √所持 × これ /秒（sublinear＝暴走しない）。調整可。
   const FERMENT_WORKER_UNLOCK_NODE = 'ferment_worker_unlock';
   const FERMENT_WORKER_ROOM_REQ = 2;
   const FERMENTER_BONUS_PER_ANT = 0.08;
@@ -3722,6 +3723,8 @@ const RESEARCH_BRANCH_DEFS = [
   { id: 'ferment_3', branch: 'ferment', name: '原料節約', desc: '発酵に必要な食料 100 → 90', costCookie: 8, costFood: 0, prereq: ['ferment_2'], breakthrough: false },
   { id: 'ferment_worker_unlock', branch: 'ferment', name: '発酵アリ解放', desc: '発酵室を2室建設し、巣内に出現させると発酵アリを雇用可能にする突破研究', costCookie: 20, costFood: 3000, prereq: ['ferment_2'], breakthrough: true },
   { id: COOKIE_FIND_2X_NODE, branch: 'ferment', name: '甘味探索', desc: '働きアリが甘い匂いを見つけやすくなり、クッキー発見の機会が増える。', costCookie: MAJOR_COOKIE2X_COST, costFood: 0, prereq: [], breakthrough: false },
+  { id: 'ferment_mature', branch: 'ferment', name: '熟成', desc: '蓄えたクッキーがゆっくり熟成し、所持量に応じて少しずつ増える。√所持で頭打ち＝貯めるほどお得だが暴走はしない、貯蓄の楽しみ。', costCookie: 25, costFood: 3000, prereq: ['ferment_3'], breakthrough: true, effects:[{kind:'flag',flag:'cookieMature'}] },
+  { id: 'ferment_offline', branch: 'ferment', name: '自動発酵', desc: 'ゲームを閉じている間も発酵室がクッキーを作り続ける（食料がある限り、オフライン効率で稼働）。', costCookie: 30, costFood: 4000, prereq: ['ferment_worker_unlock'], breakthrough: true, effects:[{kind:'flag',flag:'fermentOffline'}] },
   { id: GEO_DEPTH_2_NODE, branch: 'geology', name: '深度II解放', desc: 'より深い地層への掘削を可能にし、新しい部屋候補と拡張範囲を解放する。', costCookie: MAJOR_DEPTH2_COST, costFood: 0, prereq: [], breakthrough: true },
   { id: GEO_DEPTH_3_NODE, branch: 'geology', name: '深度III解放', desc: 'さらに深い地層への拡張を可能にし、大規模コロニー化の土台を作る。', costCookie: MAJOR_DEPTH3_COST, costFood: 0, prereq: [GEO_DEPTH_2_NODE], breakthrough: true },
   { id: GEO_DEPTH_4_NODE, branch: 'geology', name: '深度IV解放', desc: 'さらに深い最深層への掘削を可能にし、巨大コロニーの土台を広げる。', costCookie: MAJOR_DEPTH4_COST, costFood: 0, prereq: [GEO_DEPTH_3_NODE], breakthrough: true },
@@ -12017,6 +12020,26 @@ function expandMap(forcedType, isEmergency) {
     if(!isResearchSystemUnlocked() && G.tot >= RESEARCH_UNLOCK_POP) {
       unlockResearchSystem();
     }
+    // 発1 熟成（オフライン）: √所持 × RATE × eff × sec ぶん増える
+    if(hasResearchUnlock('cookieMature') && G.cookie > 0){
+      addCookie(Math.sqrt(G.cookie) * COOKIE_MATURE_RATE * OFFLINE_EFF * sec);
+    }
+    // 発2 自動発酵（オフライン）: 発酵サイクルを解析計算（食料がある限り、オフライン効率で稼働）
+    if(hasResearchUnlock('fermentOffline')){
+      const fRooms = getFermentRoomNodeCount(false);
+      const fRecipe = getFermentRecipe();
+      if(fRooms > 0 && fRecipe.timeSec > 0){
+        const fSpeed = 1 + getFermenterBonusRate();
+        const cyclesPerRoom = Math.floor(sec * OFFLINE_EFF * fSpeed / fRecipe.timeSec);
+        let cycles = fRooms * cyclesPerRoom;
+        const maxByFood = fRecipe.foodCost > 0 ? Math.floor(G.food / fRecipe.foodCost) : cycles;
+        cycles = Math.max(0, Math.min(cycles, maxByFood));
+        if(cycles > 0){
+          G.food -= cycles * fRecipe.foodCost;
+          addCookie(Math.floor(cycles * (1 + fRecipe.cookieBonusChance)));
+        }
+      }
+    }
 
     // Egg laying (progress-based, same as online)
     let addEgg = 0;
@@ -16252,6 +16275,11 @@ function syncFermenterUnlockUI() {
     updateTrails(dt);
     updateInvaders(dt);
     updateFermentRooms(dt);
+    // 発1 熟成: 所持クッキーがゆっくり熟成して増える（√所持でsublinear＝暴走しない）。端数は蓄積して整数で加算。
+    if(hasResearchUnlock('cookieMature') && G.cookie > 0){
+      S._cookieMatureAcc = (S._cookieMatureAcc || 0) + Math.sqrt(G.cookie) * COOKIE_MATURE_RATE * dt;
+      if(S._cookieMatureAcc >= 1){ const whole = Math.floor(S._cookieMatureAcc); S._cookieMatureAcc -= whole; addCookie(whole); }
+    }
     for(let i=S.dust.length-1;i>=0;i--){
       const d=S.dust[i]; d.l-=dt; d.x+=d.vx*dt; d.y+=d.vy*dt;
       if(d.l<=0)S.dust.splice(i,1);

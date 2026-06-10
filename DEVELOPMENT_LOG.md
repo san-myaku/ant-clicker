@@ -1,5 +1,19 @@
 # Development Log
 
+## 2026-06-10 Research B2: ferment branch — cookie maturation (interest) + offline fermenting
+
+Purpose:
+- Roadmap slice **B2 (発酵の自動化＆熟成)**: the ferment branch only sped up / cheapened cookie batches. Add a *saving* mechanic and let fermenting continue while away. Two new ferment breakthroughs; no new branch.
+
+Changes:
+- **発1 熟成** (`ferment_mature`, breakthrough, flag `cookieMature`): held cookies earn passive interest — `+√(G.cookie) × COOKIE_MATURE_RATE (0.25) / s`. The √ makes it **sub-linear** (doubling the stockpile only ~1.41× the interest), so it rewards banking but can never run away exponentially. `addCookie` floors, so the live loop accumulates the fractional amount in `S._cookieMatureAcc` and adds whole cookies; also applied in `calcOffline` (`× OFFLINE_EFF × sec`, from the starting stockpile = conservative).
+- **発2 自動発酵** (`ferment_offline`, breakthrough, flag `fermentOffline`): `calcOffline` now runs fermenting analytically — `cyclesPerRoom = floor(sec × OFFLINE_EFF × speedMul / recipe.timeSec)`, total = `rooms × cyclesPerRoom` clamped by available food (`floor(G.food / foodCost)`), then `G.food -= cycles × foodCost` and `addCookie(cycles × (1 + cookieBonusChance))`. Uses the same `getFermentRecipe` / `getFermenterBonusRate` / visible-room count as the live `updateFermentRooms`, but no `fx`/`toast` (offline-safe).
+- Both are `flag` effects → the A1 preview shows `効果: 解放`; no new bonus keys. `COOKIE_MATURE_RATE` is tunable.
+
+Verification (preview):
+- Loads with no console errors; research tree now **44 nodes**; both ferment nodes render with correct names + `効果: 解放`. Flags default-off → no behavior change (interest accumulator and offline blocks skipped).
+- NOTE: as with B1, the headless preview doesn't run `requestAnimationFrame` / offline progression, so the runtime effect couldn't be observed. Verified by inspection: sub-linear interest can't run away, offline ferment is food-clamped and non-negative, all vars in scope, pure numeric ops. Observable once unlocked in a running game (dev mode makes that easy).
+
 ## 2026-06-10 Research unlock gate → population 200; dev mode force-unlocks research
 
 - Research-center unlock condition changed from **food ≥ 10,000** to **population (生体) ≥ 200** (`RESEARCH_UNLOCK_POP = 200`, checked against `G.tot` in both the live and offline unlock checks). Updated the static lock note, the dynamic lock note (`研究未解放: 生体が200匹に達すると解放されます（あと N匹）`), the overview "next" text (`生体 G.tot/200`), and the not-yet toast (`研究は生体200匹で解放されます`). `RESEARCH_UNLOCK_FOOD` is kept but no longer gates the unlock.
