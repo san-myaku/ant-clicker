@@ -1,5 +1,17 @@
 # Development Log
 
+## 2026-06-10 Research C (first cross-branch interaction nodes): queen×golden + gather×ferment
+
+Purpose:
+- Roadmap slice **C (交差ノード)**, first pair — nodes whose effect makes two branches' *systems* actually interact at runtime (per Codex: a real interaction, not just a cross-branch prereq). Both breakthrough flags; the node lives in one branch but its effect reads another system's live state.
+
+Changes:
+- **女王×黄金「黄金の女王」** (`golden_queen_synergy`, golden, flag `queenGolden`): `getGoldenFingerChance()` is multiplied by `1 + (getResearchBonus('layMul') − 1) × QUEEN_GOLDEN_SCALE (0.5)` — the more you've invested in the queen branch's auto-lay (`layMul`), the higher the golden-egg rate. No queen investment → ×1 (no-op).
+- **採集×発酵「余り物の甘味」** (`ferment_surplus`, ferment, flag `surplusCookie`): when food production would overflow the cap, the overflow is converted to cookies instead of wasted — `overflow × SURPLUS_COOKIE_RATE (0.02)`, banked in `S._surplusAcc`. Captures both the partial overflow (food reaching cap this tick) and steady-state at-cap production.
+- These read live state (`layMul` bonus / food-vs-cap), which the cached mul system can't express, so they're applied at the consumption site behind a flag (not via `effects` muls). New tunable consts `QUEEN_GOLDEN_SCALE`, `SURPLUS_COOKIE_RATE`. (Remaining C ideas — 衛生×発酵 compost, 地質×防衛 — left for a follow-up.)
+
+Verification (preview): loads, no console errors; tree now **50 nodes**; both nodes render with `効果: 解放`. Flags default-off → `getGoldenFingerChance` and the food-cap path are exactly the original behavior (verified by reading the guards). Runtime interaction verified by inspection (a single guarded multiplier / overflow capture, accumulator banks fractions); headless can't run the loop.
+
 ## 2026-06-10 Research B3 (part 2): mineral veins (depth income) + early warning (raid casualty cut)
 
 Purpose:

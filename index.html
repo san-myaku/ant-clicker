@@ -3255,6 +3255,8 @@
   const COOKIE_MATURE_RATE = 0.25;     // 発1 熟成: クッキー利息 = √所持 × これ /秒（sublinear＝暴走しない）。調整可。
   const MINERAL_RATE = 0.3;            // 地2 鉱脈: クッキー湧出 = 深度 × これ /秒。調整可。
   const EARLY_WARNING_REDUCE = 0.4;    // 防1 早期警戒: 襲撃の働きアリ損失を減らす割合(40%)。調整可。
+  const QUEEN_GOLDEN_SCALE = 0.5;      // 交差(女王×黄金): 女王のlayMul投資(超過分)×これ ぶん黄金卵率UP。調整可。
+  const SURPLUS_COOKIE_RATE = 0.02;    // 交差(採集×発酵): 上限超過の食料生産 × これ をクッキーに。調整可。
   const FERMENT_WORKER_UNLOCK_NODE = 'ferment_worker_unlock';
   const FERMENT_WORKER_ROOM_REQ = 2;
   const FERMENTER_BONUS_PER_ANT = 0.08;
@@ -3727,6 +3729,7 @@ const RESEARCH_BRANCH_DEFS = [
   { id: COOKIE_FIND_2X_NODE, branch: 'ferment', name: '甘味探索', desc: '働きアリが甘い匂いを見つけやすくなり、クッキー発見の機会が増える。', costCookie: MAJOR_COOKIE2X_COST, costFood: 0, prereq: [], breakthrough: false },
   { id: 'ferment_mature', branch: 'ferment', name: '熟成', desc: '蓄えたクッキーがゆっくり熟成し、所持量に応じて少しずつ増える。√所持で頭打ち＝貯めるほどお得だが暴走はしない、貯蓄の楽しみ。', costCookie: 25, costFood: 3000, prereq: ['ferment_3'], breakthrough: true, effects:[{kind:'flag',flag:'cookieMature'}] },
   { id: 'ferment_offline', branch: 'ferment', name: '自動発酵', desc: 'ゲームを閉じている間も発酵室がクッキーを作り続ける（食料がある限り、オフライン効率で稼働）。', costCookie: 30, costFood: 4000, prereq: ['ferment_worker_unlock'], breakthrough: true, effects:[{kind:'flag',flag:'fermentOffline'}] },
+  { id: 'ferment_surplus', branch: 'ferment', name: '余り物の甘味', desc: '【交差: 採集×発酵】食料庫が満杯なら、あふれた食料生産を無駄にせずクッキーへ変換する。採集が発酵を支える。', costCookie: 25, costFood: 3000, prereq: ['ferment_3'], breakthrough: true, effects:[{kind:'flag',flag:'surplusCookie'}] },
   { id: GEO_DEPTH_2_NODE, branch: 'geology', name: '深度II解放', desc: 'より深い地層への掘削を可能にし、新しい部屋候補と拡張範囲を解放する。', costCookie: MAJOR_DEPTH2_COST, costFood: 0, prereq: [], breakthrough: true },
   { id: GEO_DEPTH_3_NODE, branch: 'geology', name: '深度III解放', desc: 'さらに深い地層への拡張を可能にし、大規模コロニー化の土台を作る。', costCookie: MAJOR_DEPTH3_COST, costFood: 0, prereq: [GEO_DEPTH_2_NODE], breakthrough: true },
   { id: GEO_DEPTH_4_NODE, branch: 'geology', name: '深度IV解放', desc: 'さらに深い最深層への掘削を可能にし、巨大コロニーの土台を広げる。', costCookie: MAJOR_DEPTH4_COST, costFood: 0, prereq: [GEO_DEPTH_3_NODE], breakthrough: true },
@@ -3752,6 +3755,7 @@ const RESEARCH_BRANCH_DEFS = [
   { id: 'golden_blessing', branch: 'golden', name: '黄金の祝福', desc: '黄金アリのバフ効果（食料/産卵/クッキー）を ×1.5 に強める。', costCookie: 20, costFood: 0, prereq: ['golden_1'], breakthrough: false, effects:[{kind:'mul',key:'goldenBuffPower',perLevel:0.5}] },
   { id: 'golden_blessing_inf', branch: 'golden', name: '豊穣の祝福', desc: '黄金バフ効果 +20%/Lv（無限）', costCookie: 12, costFood: 0, costGrowth: 1.6, max: Infinity, prereq: ['golden_blessing'], breakthrough: false, effects:[{kind:'mul',key:'goldenBuffPower',perLevel:0.20}] },
   { id: 'golden_auto', branch: 'golden', name: '黄金の自動産卵', desc: '女王の自動産卵でも黄金卵が生まれるようになる（確率はタップ時の半分）。', costCookie: 40, costFood: 5000, prereq: ['golden_1'], breakthrough: true, effects:[{kind:'flag',flag:'goldenAutoLay'}] },
+  { id: 'golden_queen_synergy', branch: 'golden', name: '黄金の女王', desc: '【交差: 女王×黄金】女王の威光が黄金を呼ぶ。女王枝の自動産卵への投資が大きいほど、黄金卵の生まれる確率が上がる。', costCookie: 35, costFood: 4000, prereq: ['golden_1'], breakthrough: true, effects:[{kind:'flag',flag:'queenGolden'}] },
   // 女王枝: 自動産卵スピード(layMul)とタップ産卵量(tapEggBonus)を伸ばし、人口上限(popCap)・季節耐性・全体採集など女王の威厳でコロニー全体を底上げする。
   { id: 'queen_vitality', branch: 'queen', name: '女王の活力', desc: '女王の自動産卵スピード ×1.25。', costCookie: 12, costFood: 0, prereq: [], breakthrough: false, effects:[{kind:'mul',key:'layMul',perLevel:0.25}] },
   { id: 'queen_fertile', branch: 'queen', name: '多産の系譜', desc: '自動産卵スピード +6%/Lv（無限）', costCookie: 8, costFood: 0, costGrowth: 1.5, max: Infinity, prereq: ['queen_vitality'], breakthrough: false, effects:[{kind:'mul',key:'layMul',perLevel:0.06}] },
@@ -9662,7 +9666,10 @@ function expandMap(forcedType, isEmergency) {
     const idx = clamp(Math.floor(lv || 0), 0, GOLDEN_FINGER_MAX_LV);
     const base = GOLDEN_FINGER_CHANCES[idx] || 0;
     // 黄金枝「黄金の輝き」: 黄金卵率を倍率強化（指Lv0は base=0 なので影響なし）
-    return base * getResearchBonus('goldenEggChance');
+    let chance = base * getResearchBonus('goldenEggChance');
+    // 交差(女王×黄金): 女王枝の自動産卵投資(layMul)が大きいほど黄金卵率を底上げ
+    if(hasResearchUnlock('queenGolden')) chance *= 1 + (getResearchBonus('layMul') - 1) * QUEEN_GOLDEN_SCALE;
+    return chance;
   }
 
   function getGoldenFingerCost(){
@@ -16050,7 +16057,18 @@ function syncFermenterUnlockUI() {
     const seasonFoodMul = getSeasonFoodMul(); // 季節+天気の食料倍率
     prodPerSec *= restMul * getGlobalFoodMul() * legacyMul * seasonFoodMul * (S._cleanMul || 1); // 衛2 清潔ボーナス
     const prod = prodPerSec * dt;
-    if(G.food < G.caps.food) G.food = Math.min(G.caps.food, G.food + prod);
+    if(G.food < G.caps.food){
+      const _foodBefore = G.food;
+      G.food = Math.min(G.caps.food, G.food + prod);
+      // 交差(採集×発酵): 上限を超えた分の食料生産はクッキーに変換（無駄を出さない）
+      if(hasResearchUnlock('surplusCookie')){
+        const _ov = prod - (G.food - _foodBefore);
+        if(_ov > 0){ S._surplusAcc = (S._surplusAcc || 0) + _ov * SURPLUS_COOKIE_RATE; if(S._surplusAcc >= 1){ const w = Math.floor(S._surplusAcc); S._surplusAcc -= w; addCookie(w); } }
+      }
+    } else if(hasResearchUnlock('surplusCookie') && prod > 0){
+      S._surplusAcc = (S._surplusAcc || 0) + prod * SURPLUS_COOKIE_RATE;
+      if(S._surplusAcc >= 1){ const w = Math.floor(S._surplusAcc); S._surplusAcc -= w; addCookie(w); }
+    }
 
     if(G.qLv > 0) {
       let layRate = (G.qLv*0.2 * 10); // % per sec

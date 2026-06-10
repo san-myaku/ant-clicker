@@ -596,6 +596,7 @@ Current implemented nodes:
 - `ferment_1`: Ferment speed I
 - `ferment_2`: Sweet concentration
 - `ferment_3`: Ingredient saving
+- `ferment_surplus`: 余り物の甘味 (ferment; breakthrough; flag `surplusCookie`; **cross-branch 採集×発酵** — when food production overflows the cap, the surplus becomes cookies (`× SURPLUS_COOKIE_RATE 0.02`, banked in `S._surplusAcc`) instead of being wasted)
 - `ferment_worker_unlock`: Fermenter ant unlock
 - `cookie_find_2x`: Sweet scouting / cookie appearance x2 passive
 - `ferment_mature`: 熟成 (ferment; breakthrough; flag `cookieMature`; held cookies earn √-based passive interest — see B2 below)
@@ -611,6 +612,7 @@ Current implemented nodes:
 - `golden_blessing`: 黄金の祝福 (`mul goldenBuffPower +0.5`)
 - `golden_blessing_inf`: 豊穣の祝福 (infinite; goldenBuffPower `+0.20`/Lv)
 - `golden_auto`: 黄金の自動産卵 (breakthrough; `flag goldenAutoLay` — auto-laying also produces golden eggs)
+- `golden_queen_synergy`: 黄金の女王 (golden; breakthrough; flag `queenGolden`; **cross-branch 女王×黄金** — golden-egg chance ×`1 + (layMul−1)×QUEEN_GOLDEN_SCALE(0.5)`, so queen-branch investment raises the golden rate at runtime)
 - `queen_vitality`: 女王の活力 (queen branch root; `mul layMul +0.25` — auto-lay speed ×1.25)
 - `queen_fertile`: 多産の系譜 (infinite; layMul `+0.06`/Lv)
 - `queen_double_lay`: 重ね産み (leveled, max 3; `mul tapEggBonus +1`/Lv — +1 egg per manual tap per level)
