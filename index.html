@@ -3224,6 +3224,11 @@
   const WASTE_RATE_PER_LARVA = 0.02;  // 幼虫1匹あたりのゴミ増加量/秒
   const WASTE_FULL_PER_LARVA = 5;     // ゴミ満タン基準（幼虫1匹あたり）
   const WASTE_SLOW_MAX = 0.40;        // 最大遅延率（40%）
+  // B1 衛生の資源化（衛1 廃棄物リサイクル / 衛2 清潔ボーナス）。数値は調整可。
+  const WASTE_RECYCLE_RATE = 0.12;    // 衛1: 1秒あたりに食料へ変換する部屋ゴミの割合
+  const WASTE_RECYCLE_FOOD = 3;       // 衛1: ゴミ1単位あたりに戻る食料
+  const CLEAN_THRESHOLD = 0.25;       // 衛2: 幼虫室のゴミ比率がこれ未満なら「清潔」とみなす
+  const CLEAN_BONUS = 0.20;           // 衛2: 清潔時の食料収集ボーナス(+20%)
   // ゴミ室（Part7A）
   const WASTE_ROOM_UNLOCK_LV = 2;     // 解禁に必要な建築Lv
   const WASTE_ROOM_UNLOCK_COST = 5000;// 解禁コスト（食料）
@@ -3708,6 +3713,8 @@ const RESEARCH_BRANCH_DEFS = [
   { id: 'hygiene_1', branch: 'hygiene', name: '衛生基礎', desc: 'ゴミ発生量 -10%', costCookie: 1, costFood: 0, prereq: [], breakthrough: false, effects:[{kind:'mul',key:'wasteGen',perLevel:-0.10}] },
   { id: 'hygiene_2', branch: 'hygiene', name: '清掃効率I', desc: '清掃効率 +20%', costCookie: 2, costFood: 0, prereq: ['hygiene_1'], breakthrough: false },
   { id: HYGIENE_WORKER_CLEAN_NODE, branch: 'hygiene', name: 'お掃除はおまかせ', desc: 'ゴミ室の運用を整え、働きアリの一部も低優先でゴミ掃除に参加する。清掃判断と運搬量も改善。', costCookie: 6, costFood: 0, prereq: ['hygiene_2'], breakthrough: false },
+  { id: 'hygiene_clean_bonus', branch: 'hygiene', name: '清潔なコロニー', desc: '巣が清潔なら（幼虫室のゴミが少ないと）働きアリの食料収集 +20%。掃除を怠ると失われる、状況依存のボーナス。', costCookie: 22, costFood: 2500, prereq: ['hygiene_2'], breakthrough: true, effects:[{kind:'flag',flag:'cleanBonus'}] },
+  { id: 'hygiene_recycle', branch: 'hygiene', name: '廃棄物リサイクル', desc: 'たまった廃棄物を分解して、少しずつ食料に戻す。お荷物だったゴミが収入源になり、掃除も同時に進む。', costCookie: 18, costFood: 2000, prereq: [HYGIENE_WORKER_CLEAN_NODE], breakthrough: true, effects:[{kind:'flag',flag:'wasteRecycle'}] },
   { id: 'ferment_unlock', branch: 'ferment', name: '発酵室解放', desc: '発酵室を建設可能にする突破研究', costCookie: 30, costFood: 4000, prereq: [], breakthrough: true },
   { id: 'ferment_1', branch: 'ferment', name: '発酵短縮I', desc: '発酵時間 45秒 → 38秒', costCookie: 4, costFood: 0, prereq: ['ferment_unlock'], breakthrough: false },
   { id: 'ferment_2', branch: 'ferment', name: '甘味濃縮', desc: '発酵完了時 10%でクッキー+1', costCookie: 6, costFood: 0, prereq: ['ferment_1'], breakthrough: false },
@@ -16005,7 +16012,7 @@ function syncFermenterUnlockUI() {
     const restMul = (S.restMul || 1);
     const legacyMul = 1 + (G.legacyBonus || 0); // 転生ボーナス
     const seasonFoodMul = getSeasonFoodMul(); // 季節+天気の食料倍率
-    prodPerSec *= restMul * getGlobalFoodMul() * legacyMul * seasonFoodMul;
+    prodPerSec *= restMul * getGlobalFoodMul() * legacyMul * seasonFoodMul * (S._cleanMul || 1); // 衛2 清潔ボーナス
     const prod = prodPerSec * dt;
     if(G.food < G.caps.food) G.food = Math.min(G.caps.food, G.food + prod);
 
@@ -16062,13 +16069,22 @@ function syncFermenterUnlockUI() {
     }
 
     // 追加: ゴミ蓄積（幼虫数に比例）
+    let _recycledFood = 0;
+    const _wasteRecycleOn = hasResearchUnlock('wasteRecycle'); // 衛1
     for(let i=0; i<S.full.nodes.length; i++) {
       if(!S.nodeVis[i]) continue;
       const n = S.full.nodes[i];
       if(n.type === 'queen') continue;
       const larvaCnt = Math.max(0, Math.floor(n.invLarva || 0));
       if(larvaCnt > 0) n.invWaste = (n.invWaste || 0) + (larvaCnt * WASTE_RATE_PER_LARVA * getWasteGenerationMul() * dt);
+      // 衛1 廃棄物リサイクル: 溜まったゴミの一部を食料へ変換し、ゴミも減らす（=幼虫成長の遅延も和らぐ）
+      if(_wasteRecycleOn && n.invWaste > 0) {
+        const rec = Math.min(n.invWaste, n.invWaste * WASTE_RECYCLE_RATE * dt);
+        n.invWaste -= rec;
+        _recycledFood += rec * WASTE_RECYCLE_FOOD;
+      }
     }
+    if(_recycledFood > 0 && G.food < G.caps.food) G.food = Math.min(G.caps.food, G.food + _recycledFood);
 
     // 追加: 幼虫→成虫（幼虫室優先、給餌/ゴミ係数で速度変化）
     const nurseryIds = getNurseryIds();
@@ -16079,6 +16095,11 @@ function syncFermenterUnlockUI() {
       larvaTotal += Math.max(0, Math.floor(n.invLarva || 0));
       larvaFoodTotal += Math.max(0, Math.floor(n.invLarvaFood || 0));
       larvaWasteTotal += Math.max(0, +n.invWaste || 0);
+    }
+    // 衛2 清潔ボーナス: 幼虫室のゴミ比率が低い（清潔）なら、次tickの食料収集を底上げする
+    {
+      const _wr = (larvaTotal > 0) ? (larvaWasteTotal / (larvaTotal * WASTE_FULL_PER_LARVA)) : 0;
+      S._cleanMul = (hasResearchUnlock('cleanBonus') && _wr < CLEAN_THRESHOLD) ? (1 + CLEAN_BONUS) : 1;
     }
     if(larvaTotal > 0 && G.tot < G.caps.pop) {
       const need = larvaTotal * LARVA_FOOD_NEED;

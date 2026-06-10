@@ -480,6 +480,7 @@ Waste:
 - Waste room unlock also unlocks the `hygiene_3` / `お掃除はおまかせ` research condition.
 - `hygiene_3` improves cleaner thresholds, cleaner share, and haul amount.
 - After `hygiene_3`, some workers also join low-priority waste cleanup: `8%` of workers, capped at `8` simultaneous worker cleaners.
+- **B1 衛生の資源化** (two hygiene breakthroughs): `wasteRecycle` (`hygiene_recycle`) converts a fraction of each room's `invWaste` to food in the live waste-accumulation loop (`WASTE_RECYCLE_RATE 0.12`/s, food = waste × `WASTE_RECYCLE_FOOD 3`) and reduces the waste — so it doubles as cleaning and eases the larva-growth slowdown. `cleanBonus` (`hygiene_clean_bonus`) is a conditional global bonus: when the larva-room waste ratio is below `CLEAN_THRESHOLD (0.25)`, worker food production is ×`(1 + CLEAN_BONUS = 0.20)`, computed each tick into `S._cleanMul` and multiplied into `prodPerSec` (1-tick lag, default `|| 1`). Both apply in the live loop only (offline progression doesn't include them).
 
 Important functions:
 
@@ -589,6 +590,8 @@ Current implemented nodes:
 - `hygiene_1`: Hygiene basics
 - `hygiene_2`: Cleaning efficiency I
 - `hygiene_3`: `お掃除はおまかせ` / requires waste room unlock; improves cleaning and lets some workers help with waste cleanup
+- `hygiene_clean_bonus`: 清潔なコロニー (hygiene; breakthrough; flag `cleanBonus`; conditional +20% worker food when the nest is clean — see B1 above)
+- `hygiene_recycle`: 廃棄物リサイクル (hygiene; breakthrough; flag `wasteRecycle`; converts room waste into food while cleaning it — see B1 above)
 - `ferment_unlock`: Ferment room unlock
 - `ferment_1`: Ferment speed I
 - `ferment_2`: Sweet concentration

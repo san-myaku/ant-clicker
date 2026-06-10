@@ -1,5 +1,22 @@
 # Development Log
 
+## 2026-06-10 Research B1: hygiene branch enrichment — waste recycling + cleanliness bonus
+
+Purpose:
+- Roadmap slice **B1 (衛生の資源化)**: the hygiene branch was the dullest (only reduced waste generation). Give waste a *use* and cleanliness a *payoff* so managing the nest matters. Two new breakthrough nodes; no new branch.
+
+Existing context:
+- Larvae generate waste per room (`n.invWaste += larvae × WASTE_RATE_PER_LARVA × wasteGenMul × dt`), and high waste already has a downside: it slows larva→adult growth (`wasteCoef = 1 − WASTE_SLOW_MAX × wasteRatio`, `wasteRatio = larvaWaste / (larva × WASTE_FULL_PER_LARVA)`). Workers haul waste to waste rooms.
+
+Changes:
+- **衛1 廃棄物リサイクル** (`hygiene_recycle`, breakthrough, flag `wasteRecycle`): in the live waste-accumulation loop, each room converts a fraction of its `invWaste` to food (`WASTE_RECYCLE_RATE 0.12`/s, food = waste × `WASTE_RECYCLE_FOOD 3`) and reduces the waste. The chore becomes income *and* gets cleaned (which also eases the growth slowdown — double win).
+- **衛2 清潔なコロニー** (`hygiene_clean_bonus`, breakthrough, flag `cleanBonus`): conditional global bonus — when the colony's larva-room waste ratio is below `CLEAN_THRESHOLD 0.25` (clean), worker food production is ×`(1 + CLEAN_BONUS 0.20)`. Computed each tick into `S._cleanMul` from the already-computed `larvaTotal`/`larvaWasteTotal`, multiplied into `prodPerSec` (1-tick lag, default `|| 1`). Rewards keeping waste hauled/recycled, and pairs with 衛1.
+- Both are `flag` effects → the A1 preview shows `効果: 解放`, no new bonus keys. Constants grouped with the other `WASTE_*` consts and tunable.
+
+Verification (preview):
+- Loads with no console errors; research tree now **42 nodes**; both hygiene nodes render with correct names + `効果: 解放`. Flags default-off → `S._cleanMul` is 1 and the recycle block is skipped, so existing behavior is unchanged.
+- NOTE: the headless preview does not run `requestAnimationFrame`, so the live food/larva simulation (where these mechanics execute) is frozen and the runtime effect couldn't be observed here. Verified by inspection instead: additions are surgical, inside the existing proven loop sections, all referenced vars in scope, pure numeric ops with no throw path, and guarded so flag-off is a no-op. Effects are observable once the nodes are unlocked in a running game.
+
 ## 2026-06-10 Research A2: infinite-node milestone rewards (節目報酬)
 
 Purpose:
