@@ -1,5 +1,20 @@
 # Development Log
 
+## 2026-06-10 Research A2: infinite-node milestone rewards (節目報酬)
+
+Purpose:
+- Roadmap slice **A2 (無限の節目報酬)**: repeatable `*_inf` nodes were flat `+x%/Lv` forever (thin). Add **milestone rewards** at Lv10/25/50 so the infinite grind has goals ("push to the next 節目"), a chunky payoff, achievement feedback, and a "極" look when fully mastered.
+
+Changes:
+- **Central table** `RESEARCH_MILESTONES` (keyed by node id) + accessor `getNodeMilestones(def)` (falls back to `def.milestones` if a node ever declares them inline). Keeps node defs clean. Milestone schema: `{lv, mul:{key,add}, flag?, label}` — `mul` adds to a bonus key, `flag` is reserved for future qualitative rewards (automation/conditional), so they slot into the same engine later.
+- **Engine**: `recomputeResearchBonuses` applies, for each owned node, every milestone with `lv ≤ nodeLevel` (adds `mul.add` to `muls[key]`, sets `flag`). Layered on top of the per-level accumulation; goes through `getResearchBonus`, so effUp applies like everything else.
+- **Content**: milestones on 8 core infinite nodes (gather/brood×2/queen×2/room/golden×2) at Lv10/25/50 with chunky boosts to their own key (e.g. `gather_inf` Lv10 +30%, Lv25 +50%, Lv50 +100%). Tunable.
+- **UI**: new `getResearchMilestoneText(def)` shows `★節目 achieved/total｜次 LvN: label（あと◯）` (or `全達成（極）`), wired into the tree tooltip and a classic-card line. `isResearchMastered(def)` adds `is-mastered` → CSS golden glow on the node dot + level badge (the "見た目変化" reward).
+- **Juice**: `buyResearchNode` toasts `✨ 節目 LvN: label！` when a purchase crosses a milestone level.
+
+Verification (preview):
+- Every milestone node shows both the A1 effect line and the `★節目` line; `gather_inf` (Lv0) `★節目 0/3｜次 Lv10: 採集+30%（あと10）`, `room_expand` (Lv5) `…（あと5）` — achieved count and remaining-Lv countdown correct. None mastered (no node at Lv50) → `is-mastered` off, as expected. No console errors; A1 effect previews still correct (`room_expand +31%→+38%`), confirming the milestone insertion didn't disturb the existing per-level aggregation. Milestone bonus + toast fire at `lv ≥ milestone` (no owned infinite node is past Lv10 in the test save, so not triggered live; logic mirrors the A1-verified accumulation path).
+
 ## 2026-06-10 Research A1: effect delta preview + fix stale research-bonus cache on load
 
 Purpose:

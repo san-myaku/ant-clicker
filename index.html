@@ -752,6 +752,15 @@
       background: radial-gradient(circle at 38% 32%, color-mix(in srgb, var(--branch-color, #38bdf8) 50%, #6b4a1f), #2e1d0f 80%);
     }
     .rtree-node.is-maxed .rtree-node-mk { color: #fcd34d; border-color: rgba(245,158,11,0.7); }
+    /* A2: 全節目達成「極」ノードの金色グロー */
+    .rtree-node.is-mastered .rtree-node-dot {
+      border-color: #fcd34d;
+      box-shadow: 0 0 0 2px rgba(252,211,77,0.30), 0 0 12px rgba(245,158,11,0.55), inset 0 0 6px rgba(0,0,0,0.5);
+    }
+    .rtree-node.is-mastered .rtree-node-lv {
+      background: linear-gradient(180deg, #7a5512, #3a2808);
+      border-color: #fcd34d; color: #ffe9b0;
+    }
     .rtree-node-lv {
       position: absolute; left: -6px; top: -6px;
       min-width: 18px; height: 16px; padding: 0 3px; border-radius: 8px;
@@ -3742,6 +3751,26 @@ function getResearchNodeDef(nodeId){
   return RESEARCH_NODE_BY_ID[nodeId] || null;
 }
 
+// ===== A2: 無限研究の「節目報酬(milestone)」 =====
+// 反復ノードの単調な +x%/Lv に、到達レベルでまとまった報酬を上乗せして「次の節目を目指す」目標を作る。
+// recomputeResearchBonuses が lv>=節目Lv の報酬を上乗せ適用する（mul=同キー加算 / flag=解放 に対応。将来の自動化等もここに差せる）。
+// 中央テーブルで持つことで各ノード定義を汚さずに増減できる（def.milestones に直接持たせてもよい）。
+const RESEARCH_MILESTONES = {
+  gather_inf:          [{lv:10,mul:{key:'gatherFood',add:0.30},label:'採集+30%'},{lv:25,mul:{key:'gatherFood',add:0.50},label:'採集+50%'},{lv:50,mul:{key:'gatherFood',add:1.00},label:'採集+100%'}],
+  brood_egg_inf:       [{lv:10,mul:{key:'broodEgg',add:0.25},label:'卵成長+25%'},{lv:25,mul:{key:'broodEgg',add:0.50},label:'卵成長+50%'},{lv:50,mul:{key:'broodEgg',add:1.00},label:'卵成長+100%'}],
+  brood_larva_inf:     [{lv:10,mul:{key:'broodLarva',add:0.20},label:'幼虫成長+20%'},{lv:25,mul:{key:'broodLarva',add:0.40},label:'幼虫成長+40%'},{lv:50,mul:{key:'broodLarva',add:0.80},label:'幼虫成長+80%'}],
+  queen_fertile:       [{lv:10,mul:{key:'layMul',add:0.30},label:'産卵+30%'},{lv:25,mul:{key:'layMul',add:0.60},label:'産卵+60%'},{lv:50,mul:{key:'layMul',add:1.20},label:'産卵+120%'}],
+  queen_embrace:       [{lv:10,mul:{key:'popCap',add:0.30},label:'上限+30%'},{lv:25,mul:{key:'popCap',add:0.60},label:'上限+60%'},{lv:50,mul:{key:'popCap',add:1.20},label:'上限+120%'}],
+  room_expand:         [{lv:10,mul:{key:'roomCapacity',add:0.25},label:'容量+25%'},{lv:25,mul:{key:'roomCapacity',add:0.50},label:'容量+50%'},{lv:50,mul:{key:'roomCapacity',add:1.00},label:'容量+100%'}],
+  golden_shine_inf:    [{lv:10,mul:{key:'goldenEggChance',add:0.75},label:'黄金確率+75%'},{lv:25,mul:{key:'goldenEggChance',add:1.50},label:'黄金確率+150%'},{lv:50,mul:{key:'goldenEggChance',add:3.00},label:'黄金確率+300%'}],
+  golden_blessing_inf: [{lv:10,mul:{key:'goldenBuffPower',add:0.30},label:'黄金バフ+30%'},{lv:25,mul:{key:'goldenBuffPower',add:0.60},label:'黄金バフ+60%'},{lv:50,mul:{key:'goldenBuffPower',add:1.20},label:'黄金バフ+120%'}]
+};
+function getNodeMilestones(def){
+  if(!def) return null;
+  if(Array.isArray(def.milestones) && def.milestones.length) return def.milestones;
+  return RESEARCH_MILESTONES[def.id] || null;
+}
+
 // ===== 研究効果の集約（データ駆動） =====
 // 各ノードの effects:[{kind:'mul',key,perLevel}|{kind:'flag',flag}] を「全ノード×レベル」で集計し、
 // 倍率キー(muls)と解放フラグ(flags)にまとめる。倍率は最終的に 1 + Σ(perLevel×level)。
@@ -3766,6 +3795,15 @@ function recomputeResearchBonuses(){
         muls[e.key] = (muls[e.key] || 0) + add;
       }
       else if(e.kind === 'flag' && e.flag) flags[e.flag] = true;
+    }
+    // A2: 節目報酬（milestone）。到達レベル以上の節目を上乗せ適用（mul=同キー加算 / flag=解放）。
+    const _ms = getNodeMilestones(def);
+    if(_ms){
+      for(const m of _ms){
+        if(!m || lv < m.lv) continue;
+        if(m.mul && m.mul.key) muls[m.mul.key] = (muls[m.mul.key] || 0) + (m.mul.add || 0);
+        if(m.flag) flags[m.flag] = true;
+      }
     }
   }
   _researchBonusCache = { muls, flags };
@@ -4089,6 +4127,12 @@ function buyResearchNode(nodeId){
   const wasZero = (lv <= 0);
   rs.unlockedNodes[def.id] = lv + 1;   // レベル+1（反復ノードは積み増し）
   invalidateResearchBonuses();
+  // A2: 節目(milestone)をちょうど跨いだら報酬解放をトースト
+  const _msHit = getNodeMilestones(def);
+  if(_msHit){
+    const hit = _msHit.find(m => m && m.lv === lv + 1);
+    if(hit) toast(`✨ 節目 Lv${lv + 1}: ${hit.label || '報酬解放'}！`);
+  }
   // 初回取得時のみの解放演出・G.major互換（反復ノードは2回目以降スキップ）
   if(wasZero){
     if(def.id === COOKIE_FIND_2X_NODE && G.major) G.major.cookie2x = true;
@@ -12534,10 +12578,31 @@ function expandMap(forcedType, isEmergency) {
     return parts.length ? ('効果: ' + parts.join(' / ')) : '';
   }
 
+  // A2: 節目(milestone)サマリ。「達成数/総数｜次 LvN: ラベル（あと◯）」を返す。節目無しは空。
+  function getResearchMilestoneText(def){
+    const ms = getNodeMilestones(def);
+    if(!ms || !ms.length) return '';
+    const lv = researchLevel(def.id);
+    const sorted = ms.slice().sort((a,b)=>a.lv-b.lv);
+    const total = sorted.length;
+    const achieved = sorted.filter(m=>lv>=m.lv).length;
+    const next = sorted.find(m=>lv<m.lv);
+    if(!next) return `★節目 ${achieved}/${total} 全達成（極）`;
+    return `★節目 ${achieved}/${total}｜次 Lv${next.lv}: ${next.label||''}（あと${next.lv-lv}）`;
+  }
+  // 全節目達成（=「極」）か
+  function isResearchMastered(def){
+    const ms = getNodeMilestones(def);
+    if(!ms || !ms.length) return false;
+    const lv = researchLevel(def.id);
+    return ms.every(m=>lv>=m.lv);
+  }
+
   function renderResearchNodeCard(def){
     const status = getResearchStatus(def);
     const canResearch = (status === 'ready') && canAffordResearch(def);
     const effPreview = getResearchEffectPreviewText(def);
+    const msText = getResearchMilestoneText(def);
     const prereqText = getResearchPrereqText(def);
     const condText = getResearchNodeConditionText(def);
     const condMet = !condText || isResearchNodeConditionMet(def);
@@ -12545,6 +12610,7 @@ function expandMap(forcedType, isEmergency) {
     const depth = getResearchNodeDepth(def);
     const classes = ['research-node-card'];
     if(def.breakthrough) classes.push('is-breakthrough');
+    if(isResearchMastered(def)) classes.push('is-mastered');  // A2: 全節目達成=極
     if(Array.isArray(def.prereq) && def.prereq.length > 0) classes.push('has-prereq');
     if(status === 'done') classes.push('is-done');
     else if(status === 'ready') classes.push('is-ready');
@@ -12566,6 +12632,7 @@ function expandMap(forcedType, isEmergency) {
           </div>
           <div class="research-node-desc">${def.desc}</div>
           ${effPreview ? `<div class="research-node-effect" style="font-size:11px;font-weight:700;color:#fcd34d;margin-top:3px">${effPreview}</div>` : ''}
+          ${msText ? `<div class="research-node-milestone" style="font-size:10px;font-weight:700;color:#f5b45a;margin-top:2px">${msText}</div>` : ''}
           ${tags.length ? `<div class="research-node-tags">${tags.join('')}</div>` : ''}
           <div class="research-node-meta">
             <span class="research-node-cost">${formatResearchCost(def)}</span>
@@ -12748,6 +12815,7 @@ function expandMap(forcedType, isEmergency) {
     else if(status === 'ready') st = canResearch ? 'is-ready' : 'is-wait';
     cls.push(st);
     if(def.breakthrough) cls.push('is-breakthrough');
+    if(isResearchMastered(def)) cls.push('is-mastered');  // A2: 全節目達成=極
     const mark = getResearchStatusMark(status, canResearch);
     const icon = getResearchBranchDef(def.branch).icon || '•';
     const cost = formatResearchCost(def);
@@ -12758,7 +12826,8 @@ function expandMap(forcedType, isEmergency) {
     const lvBadge = (repeatable && lv > 0) ? `<span class="rtree-node-lv">Lv${lv}</span>` : '';
     const lvTip = repeatable ? `\nレベル: ${lv}${getResearchNodeMaxLevel(def) === Infinity ? '' : '/' + getResearchNodeMaxLevel(def)}` : '';
     const effPreview = getResearchEffectPreviewText(def);
-    const tip = `${def.name} ｜ ${def.desc}${lvTip}${effPreview ? '\n' + effPreview : ''}\n状態: ${getResearchStatusLabel(status)}${reason ? '（' + reason + '）' : ''}\nコスト: ${cost}`;
+    const msText = getResearchMilestoneText(def);
+    const tip = `${def.name} ｜ ${def.desc}${lvTip}${effPreview ? '\n' + effPreview : ''}${msText ? '\n' + msText : ''}\n状態: ${getResearchStatusLabel(status)}${reason ? '（' + reason + '）' : ''}\nコスト: ${cost}`;
     return `<button type="button" class="${cls.join(' ')}" style="left:${cx}px;top:${cy}px;--branch-color:${accent}" data-research-buy="${def.id}" title="${escResearchTip(tip)}" aria-label="${escResearchTip(def.name)}">`
       + `<span class="rtree-node-dot"><span class="rtree-node-ic">${icon}</span><span class="rtree-node-mk">${mark}</span>${lvBadge}</span>`
       + `<span class="rtree-node-nm">${def.name}</span>`
