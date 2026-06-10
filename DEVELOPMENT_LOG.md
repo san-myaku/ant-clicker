@@ -1,5 +1,17 @@
 # Development Log
 
+## 2026-06-10 Research B3 (part 2): mineral veins (depth income) + early warning (raid casualty cut)
+
+Purpose:
+- Finish **B3 (地質・防衛の濃縮)** with the two deferred nodes (地2 鉱脈 / 防1 早期警戒). Both breakthrough flags; kept simple (no new resource).
+
+Changes:
+- **地2 鉱脈** (`mineral_vein`, geology, breakthrough, flag `mineralVein`): a passive cookie trickle scaling with dig depth — `+G.getDepthUnlocked() × MINERAL_RATE (0.3) /s`, fraction banked in `S._mineralAcc` (`addCookie` floors). Rewards digging deep; pairs with 地1 (dig faster → reach depth → mine).
+- **防1 早期警戒** (`early_warning`, defense, breakthrough, flag `earlyWarning`): cuts raid worker casualties by `EARLY_WARNING_REDUCE (0.4)` — `out.loseWorkers` is reduced right after the outcome is computed, so both the loss applied (`G.ants.worker -= …`) and the toast/modal show the smaller number.
+- Both flags → A1 preview `効果: 解放`; default-off = no behavior change.
+
+Verification (preview): loads, no console errors; tree now **48 nodes**; both nodes render with `効果: 解放`; `G.getDepthUnlocked` present (mineral hook valid). Runtime effect (depth trickle / reduced casualties) verified by inspection — flag-gated, accumulator banks fractions, no throw paths — since headless can't run the loop or a raid.
+
 ## 2026-06-10 Research B3 (part 1): geology dig-speed + defense raid-spoils
 
 Purpose:
