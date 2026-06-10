@@ -3733,6 +3733,7 @@ const RESEARCH_BRANCH_DEFS = [
   { id: 'offline_build', branch: 'geology', name: '鬼の居ぬ間も！', desc: 'ゲームを閉じている間も建築アリが1/3の効率で部屋の拡張を進める。', costCookie: 30, costFood: 5000, prereq: ['build_multitask'], breakthrough: true, effects:[{kind:'flag',flag:'offlineBuild'}] },
   { id: 'offline_build_speed', branch: 'geology', name: '夜なべ建築', desc: 'オフライン建築の効率 +20%/Lv（無限。最大でオンライン相当まで）', costCookie: 6, costFood: 0, costGrowth: 1.6, max: Infinity, prereq: ['offline_build'], breakthrough: false, effects:[{kind:'mul',key:'offlineBuildSpeed',perLevel:0.20}] },
   { id: 'room_expand', branch: 'geology', name: '増築', desc: '建築済みの育児室・食料庫の容量 +5%/Lv（無限）', costCookie: 8, costFood: 0, costGrowth: 1.5, max: Infinity, prereq: [], breakthrough: false, effects:[{kind:'mul',key:'roomCapacity',perLevel:0.05}] },
+  { id: 'dig_speed', branch: 'geology', name: '掘削促進', desc: '建築アリの掘削・建築が速くなる。建築速度 +25%/Lv（無限）。オフライン建築にも効く。', costCookie: 6, costFood: 0, costGrowth: 1.5, max: Infinity, prereq: [], breakthrough: false, effects:[{kind:'mul',key:'digSpeed',perLevel:0.25}] },
   // 兵舎設計図(BARRACKS_BLUEPRINT_NODE)は部屋タブの購入カードへ戻したため研究ツリーには出さない。
   // 互換: 定数 BARRACKS_BLUEPRINT_NODE と G.major.barracks、ensureResearchState の同期処理は維持。
   { id: SOLDIER_JAW_2X_NODE, branch: 'defense', name: '顎強化', desc: '兵隊アリの大顎を鍛え、レイドや害虫への攻撃力を高める。', costCookie: MAJOR_JAW2X_COST, costFood: 0, prereq: [], breakthrough: false },
@@ -3740,6 +3741,7 @@ const RESEARCH_BRANCH_DEFS = [
   { id: 'poison_conc', branch: 'defense', name: '毒の濃度', desc: '毒ダメージ +15%/Lv（無限）', costCookie: 6, costFood: 0, costGrowth: 1.6, max: Infinity, prereq: ['poison_jaw'], breakthrough: false, effects:[{kind:'mul',key:'poisonDmg',perLevel:0.15}] },
   { id: 'oshiai', branch: 'defense', name: 'おしあいへしあい', desc: '兵隊が敵をより広く押さえ込む。足止め範囲 +50%、以後 +20%/Lv（無限）。', costCookie: 12, costFood: 0, costGrowth: 1.6, max: Infinity, prereq: [SOLDIER_JAW_2X_NODE], breakthrough: false, effects:[{kind:'mul',key:'blockRadius',firstLevel:0.5,perLevel:0.2}] },
   { id: 'numbers_win', branch: 'defense', name: '数は何にも勝る', desc: '兵隊アリの雇用コスト -40%、以後 -10%/Lv。ただし各兵隊の兵力 -20%、以後 -5%/Lv（無限）。', costCookie: 25, costFood: 0, costGrowth: 1.6, max: Infinity, prereq: [SOLDIER_JAW_2X_NODE], breakthrough: true, effects:[{kind:'mul',key:'soldierCost',firstLevel:-0.40,perLevel:-0.10},{kind:'mul',key:'soldierPower',firstLevel:-0.20,perLevel:-0.05}] },
+  { id: 'raid_spoils', branch: 'defense', name: '戦果', desc: '撃退した襲撃者から奪う戦果が増える。防衛勝利時の食料・クッキー報酬 +30%/Lv（無限）。守りが収入源になる。', costCookie: 8, costFood: 0, costGrowth: 1.6, max: Infinity, prereq: [SOLDIER_JAW_2X_NODE], breakthrough: false, effects:[{kind:'mul',key:'raidSpoils',perLevel:0.30}] },
   // 黄金枝: 黄金の指/黄金卵/黄金バフ(黄金幼虫→成虫で発動)を強化する。golden_1 は黄金の指 Lv1 が入口条件。
   { id: 'golden_1', branch: 'golden', name: '黄金の輝きI', desc: 'タップ産卵で黄金卵が生まれる確率 ×1.5。', costCookie: 15, costFood: 0, prereq: [], breakthrough: false, effects:[{kind:'mul',key:'goldenEggChance',perLevel:0.5}] },
   { id: 'golden_shine_inf', branch: 'golden', name: '黄金の輝き', desc: '黄金卵の確率 +15%/Lv（無限）', costCookie: 8, costFood: 0, costGrowth: 1.5, max: Infinity, prereq: ['golden_1'], breakthrough: false, effects:[{kind:'mul',key:'goldenEggChance',perLevel:0.15}] },
@@ -9068,7 +9070,7 @@ function expandMap(forcedType, isEmergency) {
       const assigned = Math.max(0, Math.floor(target.assigned || 0));
       if(assigned <= 0) continue;
       const chunkSec = Math.max(0.1, target.chunkSec || getBuilderLogicChunkSec(target));
-      target.acc = Math.max(0, +target.acc || 0) + dt * assigned * assist.mul / chunkSec;
+      target.acc = Math.max(0, +target.acc || 0) + dt * assigned * assist.mul * getResearchBonus('digSpeed') / chunkSec; // 地1 掘削速度
       let safety = 0;
       while(target.acc >= 1 && safety < 8) {
         target.acc -= 1;
@@ -11647,8 +11649,9 @@ function expandMap(forcedType, isEmergency) {
     if(out.win) {
       const isFirstWin = G.raidWins === 0;
       G.raidWins++;
-      let rewardFood = out.rewardFood;
-      let rewardCookie = out.rewardCookie || 0;
+      const spoilsMul = getResearchBonus('raidSpoils'); // 防5 戦果: 撃退報酬を増やす
+      let rewardFood = Math.floor(out.rewardFood * spoilsMul);
+      let rewardCookie = Math.floor((out.rewardCookie || 0) * spoilsMul);
       // 初勝利特典: クッキー+10
       if(isFirstWin) {
         rewardCookie += 10;
@@ -12569,7 +12572,7 @@ function expandMap(forcedType, isEmergency) {
   const RESEARCH_PREVIEW_KEY = {
     gatherFood:{label:'採集効率'}, broodEgg:{label:'卵の成長'}, broodLarva:{label:'幼虫の成長'},
     wasteGen:{label:'ゴミ発生'}, goldenEggChance:{label:'黄金卵の確率'}, goldenBuffPower:{label:'黄金バフ'},
-    layMul:{label:'自動産卵速度'}, popCap:{label:'個体数上限'}, offlineBuildSpeed:{label:'オフライン建築'},
+    layMul:{label:'自動産卵速度'}, popCap:{label:'個体数上限'}, offlineBuildSpeed:{label:'オフライン建築'}, digSpeed:{label:'掘削速度'}, raidSpoils:{label:'戦果'},
     roomCapacity:{label:'部屋容量'}, poisonDmg:{label:'毒ダメージ'},
     // effUp 非適用（本体は getResearchBonusRaw で消費）
     soldierCost:{label:'兵隊コスト', raw:true}, soldierPower:{label:'兵力', raw:true}, blockRadius:{label:'足止め範囲', raw:true},

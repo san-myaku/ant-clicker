@@ -1,5 +1,19 @@
 # Development Log
 
+## 2026-06-10 Research B3 (part 1): geology dig-speed + defense raid-spoils
+
+Purpose:
+- Roadmap slice **B3 (地質・防衛の濃縮)**, first pair: speed up expansion and turn defense into income. Two new leveled-infinite nodes (one geology, one defense); no new branch. (地2 鉱脈 / 防1 早期警戒 deferred to a later B3 part — minerals add a new resource and early-warning needs raid-timing UI.)
+
+Changes:
+- **地1 掘削促進** (`dig_speed`, geology, infinite, `digSpeed +25%/Lv`): the builder-logic accumulator (`target.acc += dt × builders × assist.mul / chunkSec`) is multiplied by `getResearchBonus('digSpeed')`. Because offline building runs the same `updateBuilderLogic`, the boost applies online and offline automatically.
+- **防5 戦果** (`raid_spoils`, defense, infinite, `raidSpoils +30%/Lv`): the raid-victory rewards (`out.rewardFood` / `out.rewardCookie`) are multiplied by `getResearchBonus('raidSpoils')` (floored), so repelling raids yields more food/cookies — defense becomes an income source. Builds on the existing win-reward path.
+- Added `digSpeed` / `raidSpoils` labels to `RESEARCH_PREVIEW_KEY` so the A1 preview shows the real `+%` delta (both effUp production muls).
+
+Verification (preview):
+- Loads with no console errors; research tree now **46 nodes**; `dig_speed` shows `効果: 掘削速度 0%→+25%`, `raid_spoils` shows `効果: 戦果 0%→+30%` (preview deltas correct, confirming the key wiring). Default level-0 → `getResearchBonus` = 1, so build speed and raid rewards are unchanged.
+- NOTE: headless preview can't run the live build loop or a raid, so the runtime effect is verified by inspection (a single `getResearchBonus` multiplier at each hook, safe ×1 default, all vars in scope). Observable in a running game (dev mode + a raid).
+
 ## 2026-06-10 Research B2: ferment branch — cookie maturation (interest) + offline fermenting
 
 Purpose:

@@ -604,6 +604,7 @@ Current implemented nodes:
 - `geo_depth_3`: Depth III unlock
 - `geo_depth_4`: Depth IV unlock (breakthrough; prereq `geo_depth_3` + builder Lv 6; cost `MAJOR_DEPTH4_COST = 90`🍪). Lets `G.getDepthUnlocked()` reach 4 so the dig band can shift one layer deeper. No `G.major.depth4` legacy flag.
 - `soldier_jaw_2x`: Jaw strengthening / soldier attack x2 passive
+- `raid_spoils`: 戦果 (defense; infinite; `raidSpoils` +30%/Lv — multiplies raid-victory `rewardFood`/`rewardCookie`, turning successful defense into an income source)
 - `golden_1`: 黄金の輝きI (golden branch root; condition = golden finger Lv 1; `mul goldenEggChance +0.5`)
 - `golden_shine_inf`: 黄金の輝き (infinite; goldenEggChance `+0.15`/Lv)
 - `golden_blessing`: 黄金の祝福 (`mul goldenBuffPower +0.5`)
@@ -619,6 +620,7 @@ Current implemented nodes:
 - `offline_build`: 鬼の居ぬ間も！ (geology; breakthrough; `flag offlineBuild` — builders progress construction while the game is closed)
 - `offline_build_speed`: 夜なべ建築 (geology; infinite; `offlineBuildSpeed` +20%/Lv — raises offline build efficiency, capped at online rate)
 - `room_expand`: 増築 (geology; infinite; `roomCapacity` +5%/Lv — scales built food/nursery room capacity)
+- `dig_speed`: 掘削促進 (geology; infinite; `digSpeed` +25%/Lv — multiplies the builder-logic accumulator `target.acc`, so digging/building is faster; applies offline too since `updateBuilderLogic` is shared)
 - `golden_brood`: 英才教育 (brood; breakthrough; `flag goldenBrood` — full global golden-rearing priority + acceleration; also see section 11)
 
 `military_barracks_blueprint` was removed from the research tree (the barracks blueprint is now a Rooms tab dock purchase). Its constant and `G.major.barracks` compatibility plumbing are kept, so old saves that researched it stay valid. The defense branch now contains only `soldier_jaw_2x`.
