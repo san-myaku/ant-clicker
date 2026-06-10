@@ -1,5 +1,11 @@
 # Development Log
 
+## 2026-06-10 Research unlock gate → population 200; dev mode force-unlocks research
+
+- Research-center unlock condition changed from **food ≥ 10,000** to **population (生体) ≥ 200** (`RESEARCH_UNLOCK_POP = 200`, checked against `G.tot` in both the live and offline unlock checks). Updated the static lock note, the dynamic lock note (`研究未解放: 生体が200匹に達すると解放されます（あと N匹）`), the overview "next" text (`生体 G.tot/200`), and the not-yet toast (`研究は生体200匹で解放されます`). `RESEARCH_UNLOCK_FOOD` is kept but no longer gates the unlock.
+- **Dev mode** (5 s long-press on 描画設定 `#btn-render-settings-pub`, or `?dev=1`) now also calls `unlockResearchSystem()` (+ `updateResearchUI()` on the long-press path) so the research tab is openable in dev mode regardless of the gate. Idempotent (no-op if already unlocked).
+- Verified: loads with no console errors; at `G.tot = 8` the lock note reads `🔒 研究未解放: 生体が200匹に達すると解放されます（あと 192匹）。` (200−8). (Per request, no further gameplay testing.)
+
 ## 2026-06-10 Research B1: hygiene branch enrichment — waste recycling + cleanliness bonus
 
 Purpose:

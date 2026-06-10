@@ -527,7 +527,7 @@ Golden-branch research effects (data-driven; see section 13 for the nodes):
 
 ## 13. Research System
 
-Research unlocks when food reaches `10,000`.
+Research unlocks when the colony population (生体) reaches `200` living ants (`RESEARCH_UNLOCK_POP`, checked against `G.tot` in the live and offline loops). Changed from the old food-`10,000` gate (`RESEARCH_UNLOCK_FOOD` is kept but no longer gates the unlock). The lock note / overview "next" text / not-yet toast all read "生体が200匹…（あと N匹）". Developer mode — a 5 s long-press on the 描画設定 button (`#btn-render-settings-pub`) or `?dev=1` in the URL — also force-unlocks research (calls `unlockResearchSystem()`) alongside revealing `#dev-tools`, so the tab is openable without meeting the gate.
 
 Research state lives in `G.research`.
 

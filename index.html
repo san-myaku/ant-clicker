@@ -2806,7 +2806,7 @@
               <div class="tab-sec-title">研究センター</div>
               <div class="research-lead" id="research-lead">研究は巣全体のルールを書き換える上位システムです。</div>
               <div class="research-meta" id="research-meta" style="display:none;"></div>
-              <div class="research-lock" id="research-lock-note">🔒 研究未解放: 食料を10,000まで蓄えると解放されます。</div>
+              <div class="research-lock" id="research-lock-note">🔒 研究未解放: 生体が200匹に達すると解放されます。</div>
               <div class="research-overview" id="research-overview"></div>
               <div class="research-view-toggle" id="research-view-toggle"></div>
               <div class="research-branch-list" id="research-branch-list"></div>
@@ -3240,6 +3240,7 @@
   const COOKIE_ROOM_COST_BASE = 30;    // クッキー室初期コスト（🍪）
   const COOKIE_ROOM_COST_GROWTH = 2.5; // クッキー室コスト倍率
   const RESEARCH_UNLOCK_FOOD = 10000;
+  const RESEARCH_UNLOCK_POP = 200;    // 研究解放条件: 生体（個体数 G.tot）がこの匹数に達すると解放
   const HYGIENE_WORKER_CLEAN_NODE = 'hygiene_3';
   const FERMENT_ROOM_UNLOCK_NODE = 'ferment_unlock';
   const FERMENT_ROOM_COST = 2000;
@@ -12013,7 +12014,7 @@ function expandMap(forcedType, isEmergency) {
     const foodHeadroom = Math.max(0, G.caps.food - G.food);
     const addFood = Math.min(foodHeadroom, fRate * sec);
     if(addFood > 0) G.food += addFood;
-    if(!isResearchSystemUnlocked() && G.food >= RESEARCH_UNLOCK_FOOD) {
+    if(!isResearchSystemUnlocked() && G.tot >= RESEARCH_UNLOCK_POP) {
       unlockResearchSystem();
     }
 
@@ -12428,7 +12429,7 @@ function expandMap(forcedType, isEmergency) {
       if(!btn) return;
       btn.addEventListener('click', () => {
         if(k === 'research' && !isResearchSystemUnlocked()) {
-          toast(`研究は食料${RESEARCH_UNLOCK_FOOD}で解放されます`, true);
+          toast(`研究は生体${RESEARCH_UNLOCK_POP}匹で解放されます`, true);
           return;
         }
         setControlTab(k);
@@ -12663,7 +12664,7 @@ function expandMap(forcedType, isEmergency) {
       : 0;
     const next = affordableNodes[0] || readyNodes[0] || null;
     const nextText = !rs.unlocked
-      ? `食料 ${fmtCount(G.food)}/${fmtCount(RESEARCH_UNLOCK_FOOD)}`
+      ? `生体 ${fmtCount(G.tot)}/${fmtCount(RESEARCH_UNLOCK_POP)}`
       : (next ? next.name : '前提条件を進行中');
     const nextSub = next
       ? (affordableNodes[0] ? `${getResearchBranchDef(next.branch).label} / 研究可能` : `${getResearchBranchDef(next.branch).label} / ${formatResearchCost(next)}`)
@@ -12940,10 +12941,10 @@ function expandMap(forcedType, isEmergency) {
         : '食料を蓄え、研究センターを稼働させると世界の法則を改変できます。';
     }
     if(researchUI.lock) {
-      const remain = Math.max(0, RESEARCH_UNLOCK_FOOD - Math.floor(G.food || 0));
+      const remain = Math.max(0, RESEARCH_UNLOCK_POP - Math.floor(G.tot || 0));
       researchUI.lock.style.display = rs.unlocked ? 'none' : '';
       if(!rs.unlocked) {
-        researchUI.lock.textContent = `🔒 研究未解放: 食料を10,000まで蓄えると解放されます（あと ${remain}）。`;
+        researchUI.lock.textContent = `🔒 研究未解放: 生体が200匹に達すると解放されます（あと ${remain}匹）。`;
       }
     }
     if(researchUI.overview) {
@@ -14437,12 +14438,13 @@ function syncFermenterUnlockUI() {
     if(location.search.includes('dev=1')) {
       const dt = document.getElementById('dev-tools'); if(dt) dt.style.display = '';
       const nt = document.getElementById('normal-tools'); if(nt) nt.style.display = 'none';
+      if(typeof unlockResearchSystem === 'function') unlockResearchSystem(); // 開発モードは研究も解放
       return;
     }
     const pubBtn = renderUI.pubBtn;
     if(pubBtn) {
       let _devTimer = null;
-      pubBtn.addEventListener('pointerdown', () => { _devTimer = setTimeout(() => { const dt=document.getElementById('dev-tools'); if(dt) dt.style.display=''; const nt=document.getElementById('normal-tools'); if(nt) nt.style.display='none'; toast('⚙️ 開発者モード ON'); }, 5000); });
+      pubBtn.addEventListener('pointerdown', () => { _devTimer = setTimeout(() => { const dt=document.getElementById('dev-tools'); if(dt) dt.style.display=''; const nt=document.getElementById('normal-tools'); if(nt) nt.style.display='none'; if(typeof unlockResearchSystem === 'function') unlockResearchSystem(); if(typeof updateResearchUI === 'function') updateResearchUI(); toast('⚙️ 開発者モード ON（研究も解放）'); }, 5000); });
       pubBtn.addEventListener('pointerup', () => clearTimeout(_devTimer));
       pubBtn.addEventListener('pointercancel', () => clearTimeout(_devTimer));
     }
@@ -16004,7 +16006,7 @@ function syncFermenterUnlockUI() {
       if(S.shake.t <= 0) S.shake.amp = 0;
     }
 
-    if(!isResearchSystemUnlocked() && G.food >= RESEARCH_UNLOCK_FOOD) {
+    if(!isResearchSystemUnlocked() && G.tot >= RESEARCH_UNLOCK_POP) {
       unlockResearchSystem();
     }
 
