@@ -3465,10 +3465,11 @@
 
   // ===== レイド本格化 v1: 敵種多様化 / 応援フェロモン / 復興 =====
   // 敵の兵種（リアル志向＝他コロニーのアリの編成）。worker を基準に倍率で表現。
+  // atk=交戦中の兵隊へ与える毎秒ダメージ倍率 / pushThrough=足止めを押し破る度合い(0..1, 高いほど前進)
   const RAID_ENEMY_KINDS = [
-    { id:'worker', label:'働きアリ', spdMul:1.0, hpMul:1.0, sizeMul:1.0,  tint:'#7f1d1d', weight:50 },
-    { id:'scout',  label:'斥候アリ', spdMul:1.7, hpMul:0.5, sizeMul:0.8,  tint:'#b45309', weight:32 },
-    { id:'brute',  label:'大顎アリ', spdMul:0.6, hpMul:2.4, sizeMul:1.45, tint:'#4c1d1d', weight:18 },
+    { id:'worker', label:'働きアリ', spdMul:1.0, hpMul:1.0, sizeMul:1.0,  tint:'#7f1d1d', weight:50, atk:1.0, pushThrough:0.0  },
+    { id:'scout',  label:'斥候アリ', spdMul:1.7, hpMul:0.5, sizeMul:0.8,  tint:'#b45309', weight:32, atk:0.6, pushThrough:0.25 },
+    { id:'brute',  label:'大顎アリ', spdMul:0.6, hpMul:2.4, sizeMul:1.45, tint:'#4c1d1d', weight:18, atk:2.4, pushThrough:0.55 },
   ];
   // 応援フェロモン（攻撃フェーズ中のタップで兵隊を一時強化＝観るだけ→参加）
   const RAID_RALLY_PER_TAP = 0.5; // 1タップで延びる応援時間(秒)
@@ -3477,6 +3478,9 @@
   // 復興（敗北後の立て直しブースト。負け→スパイラルを防ぐ）
   const RAID_RECOVERY_SEC  = 180; // 復興期の長さ(秒)
   const RAID_RECOVERY_MUL  = 1.5; // 復興中の食料生産倍率
+  // v2: 兵隊の可死化 / 足止め調整（「買えば必ず勝つ」を解消）。数値は実機で要調整。
+  const RAID_SOLDIER_BASE_HP = 24;  // 兵隊1体(代表=weight匹ぶん)の基準HP。兵隊Lvで増える。下げると戦死が増える
+  const RAID_ENEMY_ATK_BASE  = 0.8; // 敵が交戦中の兵隊に与える毎秒ダメージの基準。上げると戦死が増える
   const RAID_MIN_POP = 50;
   const RAID_INTERVAL_MIN_SEC = 10 * 60;
   const RAID_INTERVAL_MAX_SEC = 20 * 60;
@@ -7881,8 +7885,8 @@ function expandMap(forcedType, isEmergency) {
   const RAID_POISON_BASE_PCT = 0.02;                    // 毒顎(研究): 接敵中の敵に毎秒 maxHp×この割合 の毒（研究'poisonDmg'で濃度強化）
   const RAID_BREACH_LOSE_RATIO = 0.30;                  // この割合以上が突破したら敗北
   const RAID_FINISH_DELAY = 0.6;                        // 決着が付いてから resolve するまでの見せ時間
-  const RAID_ENEMY_ENGAGED_SLOW_PER = 0.94;             // 交戦中の兵隊1体あたり敵の前進が鈍る量（膠着感）
-  const RAID_ENEMY_ENGAGED_MIN_FACTOR = 0.01;           // 交戦されても最低この割合は前進（完全停止はしない）
+  const RAID_ENEMY_ENGAGED_SLOW_PER = 0.6;              // v2: 0.94→0.6 兵隊1体での足止めを弱める（完璧な静止を解消）
+  const RAID_ENEMY_ENGAGED_MIN_FACTOR = 0.12;           // v2: 0.01→0.12 交戦中でも確実に前進（押し切られて突破が起きうる）
 
   // ノード from から to への経路（node列）を BFS で探索。完成した通路（edgeFrac>=0.99）のみ通れる
   function findNodePath(srcNodeId, dstNodeId) {
@@ -11086,6 +11090,7 @@ function expandMap(forcedType, isEmergency) {
         `突破: ${sr.breachedEnemies}\n` +
         `残存: ${sr.livingEnemies}\n` +
         `判定: ${reasonText}\n` +
+        (out.soldierLost ? `戦死: 兵隊アリ -${out.soldierLost}\n` : '') +
         (S._rallyUsedThisRaid ? `⚡ 応援の士気が兵を後押しした\n` : '');
     }
     if(out.win) {
@@ -11209,8 +11214,9 @@ function expandMap(forcedType, isEmergency) {
         maxHp: hp,
         dead: false,
         hitFlash: 0,
-        // v1: 兵種（描画の大きさ・色・編成集計に使用）
-        kind: kind.id, sizeMul: kind.sizeMul, tint: kind.tint
+        // v1: 兵種（描画の大きさ・色・編成集計に使用）/ v2: atk(対兵隊DPS) pushThrough(足止め押し破り)
+        kind: kind.id, sizeMul: kind.sizeMul, tint: kind.tint,
+        atk: RAID_ENEMY_ATK_BASE * (kind.atk || 1), pushThrough: kind.pushThrough || 0
       });
     }
   }
@@ -11320,6 +11326,7 @@ function expandMap(forcedType, isEmergency) {
     S.raidSoldiers = [];
     if(count <= 0 || !S.full) return;
     const weight = getRaidSurfaceSoldierWeight(); // Phase 7.5A: 表示1体あたりの論理兵隊数
+    const sHp = getRaidSurfaceSoldierHp() * weight; // v2: 代表1体のHP（weight匹ぶんなので比例）
     const ex = ENX();
     const sy = S.full.sy;
     for(let i=0; i<count; i++) {
@@ -11342,6 +11349,7 @@ function expandMap(forcedType, isEmergency) {
         rot: -Math.PI/2,
         atkCd: Math.random() * RAID_SURFACE_SOLDIER_ATTACK_COOLDOWN, // 攻撃タイミングをばらす
         weight, // Phase 7.5A: 代表倍率（この表示兵隊が何匹ぶんの戦力か）
+        hp: sHp, maxHp: sHp, // v2: 兵隊HP（交戦で減り、0で戦死）
         dead: false
       });
     }
@@ -11380,6 +11388,7 @@ function expandMap(forcedType, isEmergency) {
     if(S.enemies) { for(const en of S.enemies) { if(en) en.engagedBy = 0; } }
 
     for(const s of list) {
+      if(s.dead) { s.fade = Math.max(0, (s.fade == null ? 1 : s.fade) - dt * 2.2); continue; } // v2: 戦死兵はフェードして退場（交戦にも数えない）
       s.wobble = (s.wobble || 0) + dt * 6;
       if(s.fade < 1) s.fade = Math.min(1, s.fade + dt * 3);
       if(s.atkCd) s.atkCd = Math.max(0, s.atkCd - dt); // 攻撃クールダウン減衰
@@ -11426,6 +11435,13 @@ function expandMap(forcedType, isEmergency) {
           s.phase = "engage"; // 近距離は敵に張り付いて追従
           moveToward(s, tx, ty, s.sp * 0.9, dt);
           target.engagedBy = (target.engagedBy || 0) + 1; // 交戦中：この敵を引き留める
+          // v2: 交戦中は敵から反撃を受ける。HPが尽きた兵隊は戦死（代表倍率ぶん兵力が減る）
+          s.hp = (s.hp == null ? 0 : s.hp) - (target.atk || RAID_ENEMY_ATK_BASE) * dt;
+          if(s.hp <= 0 && !s.dead) {
+            s.dead = true;
+            s.targetEnemyId = null;
+            if(S.raidVis) S.raidVis.casualtyWeight = (S.raidVis.casualtyWeight || 0) + (s.weight || 1);
+          }
         }
         // Phase 7B-3: 射程内＆クールダウン明けで攻撃 → 敵HP減少、撃破で再ターゲット
         if(dToTarget <= RAID_SURFACE_SOLDIER_ATTACK_RANGE && (s.atkCd || 0) <= 0) {
@@ -11591,6 +11607,12 @@ function expandMap(forcedType, isEmergency) {
     return RAID_SURFACE_SOLDIER_DAMAGE_BASE * lvMul * rally;
   }
 
+  // v2: 兵隊1体(代表)のHP。兵隊Lvで増える＝強化が生存にも効く。weight倍は呼び出し側で乗算。
+  function getRaidSurfaceSoldierHp() {
+    const lvMul = (typeof getSoldierPowerMul === 'function') ? getSoldierPowerMul(G.sLv || 0) : 1;
+    return RAID_SOLDIER_BASE_HP * lvMul;
+  }
+
   // まだ戦っている敵（死亡でも突破でもない）
   function getLivingRaidEnemyCount() {
     if(!S.enemies) return 0;
@@ -11684,7 +11706,7 @@ function expandMap(forcedType, isEmergency) {
     closeRaidResultModal();
     S.raidVis.state = "attack";
     S.raidVis.timer = 0;
-    S.rallyT = 0; S._rallyToastedThisRaid = false; S._rallyUsedThisRaid = false; // v1: 応援フェロモンの状態リセット
+    S.rallyT = 0; S._rallyToastedThisRaid = false; S._rallyUsedThisRaid = false; S.raidVis.casualtyWeight = 0; // v1/v2: 応援・戦死カウントのリセット
     spawnEnemies();
     ensureRaidSoldiers(); // Phase 7B-2: 地表兵隊アリを出撃
     // Phase 7B-3/4: 地表戦闘の集計を初期化
@@ -11756,6 +11778,11 @@ function expandMap(forcedType, isEmergency) {
       setRaidUI(true, "❌ 防衛失敗", "資源を奪われた…だが巣は立て直す（🌱復興ブースト）。兵隊と兵舎を整えよ。", "LOSS");
       normalizeInventories();
     }
+
+    // v2: 地表戦闘で戦死した兵隊を兵力(G.ants.soldier)に反映（勝っても犠牲が出る）
+    const soldierLost = Math.min(Math.floor(G.ants.soldier || 0), Math.round((S.raidVis && S.raidVis.casualtyWeight) || 0));
+    if(soldierLost > 0) G.ants.soldier = Math.max(0, Math.floor(G.ants.soldier || 0) - soldierLost);
+    modalOut.soldierLost = soldierLost;
 
     // レイドが終わったら兵隊アリを兵舎帰還フェーズに入れる
     if(Array.isArray(S.ants)) {
@@ -16303,9 +16330,12 @@ function syncFermenterUnlockUI() {
           if(en.phase === "approach" || en.phase === "breach") {
             // Phase 7B-4: 交戦中は前進が鈍る（兵隊が足止め＝膠着感）。複数兵でほぼ停止。
             const held = en.engagedBy || 0;
-            const holdFactor = held > 0
+            let holdFactor = held > 0
               ? Math.max(RAID_ENEMY_ENGAGED_MIN_FACTOR, 1 - held * RAID_ENEMY_ENGAGED_SLOW_PER)
               : 1;
+            // v2: 兵種の押し込み力（brute は足止めを押し破って前進する）
+            const push = en.pushThrough || 0;
+            if(push > 0) holdFactor = holdFactor + (1 - holdFactor) * push;
             const dx = en.targetX - en.x;
             en.x += Math.sign(dx) * en.sp * holdFactor * dt;
             en.y = sy + Math.sin(en.t*12) * dp(2);

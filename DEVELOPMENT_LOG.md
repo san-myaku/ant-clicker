@@ -1,5 +1,19 @@
 # Development Log
 
+## 2026-06-13 Raid balance: soldier mortality + weaker stall (fix "buy soldiers = always win")
+
+Purpose:
+- Playtest feedback: soldiers stalled enemies almost perfectly (`SLOW_PER 0.94`, min `0.01` ≈ frozen) and had no HP/death, so owning soldiers = a free guaranteed win with zero attrition. Make raids contested: soldiers can die, stall is imperfect, brutes push through.
+
+Changes:
+- **Soldier mortality**: surface soldiers now have HP (`getRaidSurfaceSoldierHp()` = `RAID_SOLDIER_BASE_HP 24` × soldier-level mul, × `weight` per representative unit). While engaging an enemy they take `enemy.atk`/s; at 0 HP the soldier falls (fades, stops engaging). Casualties accumulate as `S.raidVis.casualtyWeight` (logical) and reduce `G.ants.soldier` at resolve — even a win costs troops, and leveling soldiers now also buys survivability. (Per-display HP scales with `weight`, so the logical casualty *rate* is weight-independent.)
+- **Enemy attack / push**: `RAID_ENEMY_KINDS` gain `atk` (worker 1.0 / scout 0.6 / brute 2.4, × `RAID_ENEMY_ATK_BASE 0.8`) and `pushThrough` (0 / 0.25 / 0.55), stored on each enemy at spawn.
+- **Weaker stall**: `RAID_ENEMY_ENGAGED_SLOW_PER 0.94→0.6`, `RAID_ENEMY_ENGAGED_MIN_FACTOR 0.01→0.12` — engaged enemies creep forward instead of freezing; `pushThrough` blends `holdFactor` toward 1 so brutes bull through a block and reach the entrance unless killed fast → real breach pressure when under-defended.
+- **Result modal** shows `戦死: 兵隊アリ -N`. `casualtyWeight` reset in `beginRaidAttack`.
+- Net: a sufficient, leveled (or rallied) army still wins with modest losses; an under-prepared one is pushed through and loses soldiers — softened by the v1 recovery buff. Numbers are deliberately conservative and tunable.
+
+Verification: loads, no console errors; `S.raidVis.casualtyWeight` undefined at rest (no-op until a raid). NOTE: headless can't run the battle — verified by inspection; **must be playtested + tuned on device** (raise `RAID_ENEMY_ATK_BASE` / lower `RAID_SOLDIER_BASE_HP` if soldiers die too rarely; opposite if too brutal; lower `RAID_ENEMY_ENGAGED_SLOW_PER` for even less stall).
+
 ## 2026-06-13 Raid overhaul v1: enemy variety + rally pheromone + recovery + richer result
 
 Purpose:
