@@ -2806,7 +2806,7 @@
               <div class="tab-sec-title">研究センター</div>
               <div class="research-lead" id="research-lead">研究は巣全体のルールを書き換える上位システムです。</div>
               <div class="research-meta" id="research-meta" style="display:none;"></div>
-              <div class="research-lock" id="research-lock-note">🔒 研究未解放: 生体が200匹に達すると解放されます。</div>
+              <div class="research-lock" id="research-lock-note">🔒 研究未解放: 生体が400匹に達すると解放されます。</div>
               <div class="research-overview" id="research-overview"></div>
               <div class="research-view-toggle" id="research-view-toggle"></div>
               <div class="research-branch-list" id="research-branch-list"></div>
@@ -3240,7 +3240,7 @@
   const COOKIE_ROOM_COST_BASE = 30;    // クッキー室初期コスト（🍪）
   const COOKIE_ROOM_COST_GROWTH = 2.5; // クッキー室コスト倍率
   const RESEARCH_UNLOCK_FOOD = 10000;
-  const RESEARCH_UNLOCK_POP = 200;    // 研究解放条件: 生体（個体数 G.tot）がこの匹数に達すると解放
+  const RESEARCH_UNLOCK_POP = 400;    // 研究解放条件: 生体（個体数 G.tot）がこの匹数に達すると解放
   const HYGIENE_WORKER_CLEAN_NODE = 'hygiene_3';
   const FERMENT_ROOM_UNLOCK_NODE = 'ferment_unlock';
   const FERMENT_ROOM_COST = 2000;
@@ -3462,6 +3462,12 @@
     rewardCookieMin: 6,
     rewardCookieMax: 12
   };
+  const RAID_MIN_POP = 50;
+  const RAID_INTERVAL_MIN_SEC = 10 * 60;
+  const RAID_INTERVAL_MAX_SEC = 20 * 60;
+  function getNextRaidIntervalSec() {
+    return RAID_INTERVAL_MIN_SEC + Math.random() * (RAID_INTERVAL_MAX_SEC - RAID_INTERVAL_MIN_SEC);
+  }
 
   // ===== Phase 7B-1: レイド敵HP =====
   // 敵にHPを持たせる準備。現時点ではHPは見た目（HPバー）と将来の兵隊攻撃接続用で、
@@ -3480,10 +3486,10 @@
   // Phase 7.5: 敵HP追従の基準兵隊数。表示上限(RENDER_MAX)とは独立に、論理的な軍の強さで
   // 敵HPを決めるための分母。これにより表示兵数を増減しても戦闘の長さ・難度が変わらない。
   const RAID_ENEMY_HP_REF_SOLDIERS = 24;
-  // Phase 7.5: 敵の「描画体数」。難度(総敵HP)は RAID_CFG の体数基準で算出し、これで割って各個体へ
-  // 分配するので、描画体数を増やしても難度・戦闘の長さは不変（兵隊weightの敵版）。乱戦の物量用に多め。
+  // Phase 7.5: 敵の「描画体数」。後半も敵数が伸びるよう上限を高めに取る。
+  // 1体あたりHPは spawnEnemies() 側で維持し、敵数増加が総戦力にも反映されるようにする。
   const RAID_ENEMY_RENDER_UNIT_POWER = 12;  // enemyPower をこの値で割って描画体数を決める（小さいほど多い）
-  const RAID_ENEMY_RENDER_COUNT_MAX = 80;   // 描画体数の上限（vector負荷は軽いので大きめ）
+  const RAID_ENEMY_RENDER_COUNT_MAX = 240;  // 描画体数の上限（後半向けに旧80から拡張）
   // Phase 7B-2 の地表兵隊定数は dp() を使うため、dp 定義後（下部の移動定数付近）でまとめて定義する。
   let _raidEnemyIdSeq = 0; // レイド敵の一意ID採番（dp非依存なのでここで定義）
   // ===== 地下侵略者（害虫）システム =====
@@ -11125,11 +11131,10 @@ function expandMap(forcedType, isEmergency) {
     const enemyPower = getEnemyPower();
     // 描画体数（乱戦の物量）。多めに出して2陣営のぶつかり合いを見せる。
     const n = clamp(Math.floor(enemyPower / RAID_ENEMY_RENDER_UNIT_POWER), RAID_CFG.enemyCountMin, RAID_ENEMY_RENDER_COUNT_MAX);
-    // 難度: 総敵HP予算は旧来の体数基準(RAID_CFG)で算出し、描画体数 n で割って各個体へ分配する。
-    // → 体数を増やしても総HP=難度・戦闘の長さは不変。突破判定は割合(30%)ベースなので体数非依存。
+    // 難度: 表示体数が増えても1体あたりHPは基本維持する。
+    // → 後半で敵数が伸びたぶん、総敵HPも伸びる。
     const nBudget = clamp(Math.floor(enemyPower / RAID_CFG.enemyUnitPower), RAID_CFG.enemyCountMin, RAID_CFG.enemyCountMax);
-    const totalHpBudget = getRaidEnemyBaseHp(enemyPower, nBudget) * nBudget;
-    const perEnemyHp = Math.max(1, totalHpBudget / Math.max(1, n));
+    const perEnemyHp = getRaidEnemyBaseHp(enemyPower, nBudget);
     const sy = S.full.sy;
     const ex = ENX();
 
@@ -11703,7 +11708,7 @@ function expandMap(forcedType, isEmergency) {
     }
     showRaidResultModal(modalOut);
 
-    G.raidTimer = 120 + Math.random()*120;
+    G.raidTimer = getNextRaidIntervalSec();
     S.raidVis.state = "result";
     S.raidVis.timer = 0;
     delete S.raidVis._pendingOutcome;
@@ -12985,7 +12990,7 @@ function expandMap(forcedType, isEmergency) {
       const remain = Math.max(0, RESEARCH_UNLOCK_POP - Math.floor(G.tot || 0));
       researchUI.lock.style.display = rs.unlocked ? 'none' : '';
       if(!rs.unlocked) {
-        researchUI.lock.textContent = `🔒 研究未解放: 生体が200匹に達すると解放されます（あと ${remain}匹）。`;
+        researchUI.lock.textContent = `🔒 研究未解放: 生体が${RESEARCH_UNLOCK_POP}匹に達すると解放されます（あと ${remain}匹）。`;
       }
     }
     if(researchUI.overview) {
@@ -16189,15 +16194,11 @@ function syncFermenterUnlockUI() {
 
     if(G.ants.soldier > 0) {
       if(G.raidTimer === -1 && S.raidVis.state === "none") {
-        // 改善: 序盤救済（50匹以下はレイドなし）
-        if(G.tot < 50) {
+        // 改善: 序盤救済（一定個体数まではレイドなし）
+        if(G.tot < RAID_MIN_POP) {
           G.raidTimer = -1;
         } else {
-          G.raidTimer = RAID_COUNTDOWN_SEC;
-          S.raidVis.state = "countdown";
-          _raidPrevPhase = '';
-          toast("👁️ 遠くに影が見える…外敵が接近中？");
-          setRaidUI(true, "👁️ 警戒警報", "遠くに影が見える。兵隊を準備せよ。", `${Math.ceil(G.raidTimer)}s`);
+          G.raidTimer = getNextRaidIntervalSec();
         }
       }
 
