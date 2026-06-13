@@ -3476,8 +3476,8 @@
   const RAID_RALLY_MAX     = 6;   // 応援時間の上限(秒)
   const RAID_RALLY_BONUS   = 0.6; // 応援中の兵隊ダメージ加算(+60%)
   // v2: 兵隊の可死化 / 足止め調整（「買えば必ず勝つ」を解消）。数値は実機で要調整。
-  const RAID_SOLDIER_BASE_HP = 24;  // 兵隊1体(代表=weight匹ぶん)の基準HP。兵隊Lvで増える。下げると戦死が増える
-  const RAID_ENEMY_ATK_BASE  = 0.8; // 敵が交戦中の兵隊に与える毎秒ダメージの基準。上げると戦死が増える
+  const RAID_SOLDIER_BASE_HP = 20;  // 兵隊1体(代表=weight匹ぶん)の基準HP。兵隊Lvで増える。下げると戦死が増える（v2.1: 24→20 ひりひり調整）
+  const RAID_ENEMY_ATK_BASE  = 1.0; // 敵が交戦中の兵隊に与える毎秒ダメージの基準。上げると戦死が増える（v2.1: 0.8→1.0 ひりひり調整）
   const RAID_MIN_POP = 50;
   const RAID_INTERVAL_MIN_SEC = 10 * 60;
   const RAID_INTERVAL_MAX_SEC = 20 * 60;

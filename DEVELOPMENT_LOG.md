@@ -1,5 +1,13 @@
 # Development Log
 
+## 2026-06-13 Raid balance v2.1: more attrition (tenser fights)
+
+- Playtest feedback: soldiers died too rarely — wanted more "ひりひり" tension. Raised soldier attrition ~1.5×:
+  - `RAID_SOLDIER_BASE_HP` 24 → 20 (soldiers frailer; yellow low-HP bar shows sooner = more visible danger).
+  - `RAID_ENEMY_ATK_BASE` 0.8 → 1.0 (engaged soldiers take more damage/s; brute at ×2.4 = 2.4/s now genuinely deadly).
+- Combined effect on time-to-kill a soldier (HP/atk): ×(24/20)×(0.8/1.0) ≈ **0.66 → ~1.5× faster deaths**. Win/lose math (breach ratio, `computeRaidOutcome` fallback) and stall/`pushThrough` unchanged — this only dials per-soldier survivability.
+- Headless: loads, no console errors. Death-rate *feel* is device-only (rAF combat can't run headless) — dial `RAID_ENEMY_ATK_BASE` up / `RAID_SOLDIER_BASE_HP` down for more, opposite for less.
+
 ## 2026-06-13 Large surface food → image sprites (assets/large_food)
 
 - Large surface food now renders as one of 6 image sprites (`LARGE_FOOD_TYPES`: dead_fly / dead_beetle / caterpillar_piece / seed_cluster / bread_crumb / fruit_scrap), weighted-random per spawn, preloaded from `assets/large_food/*.png` via `preloadLargeFoodSprites()`. `S.largeFood` gains `kind`/`label`; the spawn toast and on-canvas label use the food's name. If a sprite isn't loaded/failed, `drawLargeFood` falls back to the previous procedural polygon tinted per type (`tintFallback`), so the event always renders.
