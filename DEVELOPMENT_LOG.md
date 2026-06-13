@@ -1,5 +1,17 @@
 # Development Log
 
+## 2026-06-13 Large surface food → image sprites (assets/large_food)
+
+- Large surface food now renders as one of 6 image sprites (`LARGE_FOOD_TYPES`: dead_fly / dead_beetle / caterpillar_piece / seed_cluster / bread_crumb / fruit_scrap), weighted-random per spawn, preloaded from `assets/large_food/*.png` via `preloadLargeFoodSprites()`. `S.largeFood` gains `kind`/`label`; the spawn toast and on-canvas label use the food's name. If a sprite isn't loaded/failed, `drawLargeFood` falls back to the previous procedural polygon tinted per type (`tintFallback`), so the event always renders.
+- New binary assets: `assets/large_food/{dead_fly,dead_beetle,caterpillar_piece,seed_cluster,bread_crumb,fruit_scrap}.png` (~1.6 MB total).
+- (Authored separately, not part of the raid work below; bundled into the same commit per request. Live sprite rendering is device-only to verify — headless can't run the rAF draw loop.)
+
+## 2026-06-13 Raid tweaks: remove recovery buff + add soldier HP bars
+
+- **Removed the post-defeat recovery system** (`S.recoveryT`, `RAID_RECOVERY_SEC`/`RAID_RECOVERY_MUL`, the food-production buff + main-loop decay + result/toast/UI notes) per request — defeat is just the loss now (toast/UI reverted to pre-overhaul wording). Verified by grep that **no `RAID_RECOVERY` / `recoveryT` / `.recovery` references remain** (a dangling ref would only throw at runtime in the rAF loop, which headless can't catch — so the grep is the real check).
+- **Soldier HP bars**: added `drawRaidSoldierHpBar(ctx, s)` (mirror of the enemy bar; blue, amber at low HP, shown only when wounded to avoid clutter), called per soldier in `drawRaidSoldiers` after the body draw (world coords, unrotated). The LOD crowd path (huge armies) keeps no individual bars for perf.
+- Loads with no console errors. Live combat still device-only to verify/tune.
+
 ## 2026-06-13 Raid balance: soldier mortality + weaker stall (fix "buy soldiers = always win")
 
 Purpose:

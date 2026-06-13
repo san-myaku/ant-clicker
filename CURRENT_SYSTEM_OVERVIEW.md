@@ -774,12 +774,12 @@ Invaders:
 - Surface raid system uses `S.raidVis` and `resolveRaid()`.
 - Raid phases are warning/countdown -> attack -> result.
 
-Raid overhaul v1 (enemy variety / rally / recovery):
+Raid overhaul (enemy variety / rally / soldier mortality):
 - **Enemy kinds** (`RAID_ENEMY_KINDS`): worker / scout (fast, frail, small) / brute (slow, tanky, big) — rival-colony castes. `pickRaidEnemyKind()` is weighted; brute share scales with `G.raidWins` (+3/win, cap +40). `spawnEnemies` applies `spdMul`/`hpMul` and stores `kind`/`sizeMul`/`tint`; the enemy draw applies `ctx.scale(sizeMul)` + body `tint`.
 - **応援フェロモン (rally)**: tapping during the attack phase (`tryLayEgg` → `addRaidRally`) extends `S.rallyT` (`+RAID_RALLY_PER_TAP 0.5`/tap, cap `RAID_RALLY_MAX 6`); `getRaidSurfaceSoldierDamage()` ×`(1+RAID_RALLY_BONUS 0.6)` while `S.rallyT>0`. Reset in `beginRaidAttack`, decays in the main loop.
-- **復興 (recovery)**: on defeat, `S.recoveryT = RAID_RECOVERY_SEC 180` and food `prodPerSec ×RAID_RECOVERY_MUL 1.5` while active (anti-spiral). Decays in the main loop.
+- **Soldier HP bars**: `drawRaidSoldierHpBar(ctx, s)` (mirror of the enemy bar; blue, turns amber at low HP, shown only when wounded to avoid clutter) is drawn per soldier in `drawRaidSoldiers` (world coords). The LOD crowd path for huge armies keeps no individual bars.
 - **Soldier mortality / stall (balance pass)**: surface soldiers have HP (`getRaidSurfaceSoldierHp` = `RAID_SOLDIER_BASE_HP 24` × lvMul × `weight`); engaging enemies deal `enemy.atk`/s, a fallen soldier fades and its `weight` adds to `S.raidVis.casualtyWeight`, which reduces `G.ants.soldier` at resolve. Enemy kinds gained `atk` + `pushThrough`; stall weakened (`RAID_ENEMY_ENGAGED_SLOW_PER 0.94→0.6`, `MIN_FACTOR 0.01→0.12`) and `pushThrough` lets brutes bull through — so under-defended raids breach and even wins cost troops (no more free auto-win). Tunable via those constants.
-- Result modal shows the enemy-kind tally + 戦死 count + rally/recovery notes. Cadence/interval stays owned by `getNextRaidIntervalSec` / `RAID_INTERVAL_*` (Codex's pacing). v2/v3: intra-raid waves, seasonal-predator bosses.
+- Result modal shows the enemy-kind tally + 戦死 count + rally note. (The post-defeat recovery buff was removed by request — defeat is just the loss now.) Cadence/interval stays owned by `getNextRaidIntervalSec` / `RAID_INTERVAL_*` (Codex's pacing). v2/v3: intra-raid waves, seasonal-predator bosses.
 
 Raid outcome timing (Phase 7A):
 
@@ -833,7 +833,7 @@ A lightweight surface event (MVP). A single large food appears on the surface, i
 State:
 
 - Runtime-only `S.largeFood` (one event at a time) and `S.largeFoodTimer`. Neither is saved or restored.
-- `S.largeFood` fields: `id`, `x`, `y`, `state`, `requiredWorkers`, `assignedWorkers`, `arrivedWorkers`, `rewardFood`, `progress`, `rewarded`, `r`, `sizeFactor`, `carrySpeed`, `seed`, `shape`, `life`, `carryStartX`, `t`, `doneT`, `spawnTime`.
+- `S.largeFood` fields: `id`, `kind`, `label`, `x`, `y`, `state`, `requiredWorkers`, `assignedWorkers`, `arrivedWorkers`, `rewardFood`, `progress`, `rewarded`, `r`, `sizeFactor`, `carrySpeed`, `seed`, `shape`, `life`, `carryStartX`, `t`, `doneT`, `spawnTime`. (`kind`/`label` come from `LARGE_FOOD_TYPES`, picked at spawn.)
 - `state` machine: `waiting -> gathering -> carrying -> done`.
 
 Spawn conditions (`maybeSpawnLargeFood`):
@@ -860,7 +860,7 @@ Reward:
 Rendering (`drawLargeFood`, before the raid-enemy draw):
 
 - Carrying bob amplitude is intentionally subtle: `dp(1.5)` while carrying, `dp(1.2)` while waiting/gathering.
-- Irregular green polygon with a shadow on the same surface line as workers, plus an `arrived/required` (e.g. `3/5`) or `搬送中` label. Workers draw on top, so they appear to gather around and escort it.
+- Renders as one of 6 image sprites (`LARGE_FOOD_TYPES`: dead_fly / dead_beetle / caterpillar_piece / seed_cluster / bread_crumb / fruit_scrap), weighted-random per spawn (`S.largeFood.kind`), preloaded from `assets/large_food/*.png` via `preloadLargeFoodSprites()`. Shadow on the same surface line as workers, plus an `arrived/required` (e.g. `3/5`) or `搬送中` label; the spawn toast/label use the food's name. **Fallback:** if the sprite isn't loaded yet (or failed to load), draws the previous irregular polygon tinted per type (`tintFallback`), so the event always renders. Workers draw on top, so they appear to gather around and escort it.
 - `shiftWorldX(dx)` also offsets `S.largeFood.x` so the event stays aligned when the world shifts.
 
 Phase 4 integration:
