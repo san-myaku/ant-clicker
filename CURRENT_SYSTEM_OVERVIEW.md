@@ -774,6 +774,12 @@ Invaders:
 - Surface raid system uses `S.raidVis` and `resolveRaid()`.
 - Raid phases are warning/countdown -> attack -> result.
 
+Raid overhaul v1 (enemy variety / rally / recovery):
+- **Enemy kinds** (`RAID_ENEMY_KINDS`): worker / scout (fast, frail, small) / brute (slow, tanky, big) — rival-colony castes. `pickRaidEnemyKind()` is weighted; brute share scales with `G.raidWins` (+3/win, cap +40). `spawnEnemies` applies `spdMul`/`hpMul` and stores `kind`/`sizeMul`/`tint`; the enemy draw applies `ctx.scale(sizeMul)` + body `tint`.
+- **応援フェロモン (rally)**: tapping during the attack phase (`tryLayEgg` → `addRaidRally`) extends `S.rallyT` (`+RAID_RALLY_PER_TAP 0.5`/tap, cap `RAID_RALLY_MAX 6`); `getRaidSurfaceSoldierDamage()` ×`(1+RAID_RALLY_BONUS 0.6)` while `S.rallyT>0`. Reset in `beginRaidAttack`, decays in the main loop.
+- **復興 (recovery)**: on defeat, `S.recoveryT = RAID_RECOVERY_SEC 180` and food `prodPerSec ×RAID_RECOVERY_MUL 1.5` while active (anti-spiral). Decays in the main loop.
+- Result modal shows the enemy-kind tally + rally/recovery notes. Cadence/interval stays owned by `getNextRaidIntervalSec` / `RAID_INTERVAL_*` (Codex's pacing). v2/v3: intra-raid waves, seasonal-predator bosses.
+
 Raid outcome timing (Phase 7A):
 
 - The win/lose outcome is decided at the END of combat, when `resolveRaid()` runs, not when the attack starts.

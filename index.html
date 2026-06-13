@@ -3462,6 +3462,21 @@
     rewardCookieMin: 6,
     rewardCookieMax: 12
   };
+
+  // ===== レイド本格化 v1: 敵種多様化 / 応援フェロモン / 復興 =====
+  // 敵の兵種（リアル志向＝他コロニーのアリの編成）。worker を基準に倍率で表現。
+  const RAID_ENEMY_KINDS = [
+    { id:'worker', label:'働きアリ', spdMul:1.0, hpMul:1.0, sizeMul:1.0,  tint:'#7f1d1d', weight:50 },
+    { id:'scout',  label:'斥候アリ', spdMul:1.7, hpMul:0.5, sizeMul:0.8,  tint:'#b45309', weight:32 },
+    { id:'brute',  label:'大顎アリ', spdMul:0.6, hpMul:2.4, sizeMul:1.45, tint:'#4c1d1d', weight:18 },
+  ];
+  // 応援フェロモン（攻撃フェーズ中のタップで兵隊を一時強化＝観るだけ→参加）
+  const RAID_RALLY_PER_TAP = 0.5; // 1タップで延びる応援時間(秒)
+  const RAID_RALLY_MAX     = 6;   // 応援時間の上限(秒)
+  const RAID_RALLY_BONUS   = 0.6; // 応援中の兵隊ダメージ加算(+60%)
+  // 復興（敗北後の立て直しブースト。負け→スパイラルを防ぐ）
+  const RAID_RECOVERY_SEC  = 180; // 復興期の長さ(秒)
+  const RAID_RECOVERY_MUL  = 1.5; // 復興中の食料生産倍率
   const RAID_MIN_POP = 50;
   const RAID_INTERVAL_MIN_SEC = 10 * 60;
   const RAID_INTERVAL_MAX_SEC = 20 * 60;
@@ -11057,12 +11072,21 @@ function expandMap(forcedType, isEmergency) {
       const repLine = repW > 1.01
         ? `兵隊: ${Math.floor(G.ants.soldier || 0)}匹 → 代表${getRaidSurfaceSoldierRenderCount()}体（1体=${repW.toFixed(1)}匹ぶん）\n`
         : '';
+      // v1: 敵編成の内訳（兵種多様化を結果でも見せる）
+      let compLine = '';
+      if(Array.isArray(S.enemies) && S.enemies.length) {
+        const tally = {};
+        for(const en of S.enemies){ if(!en) continue; const k = en.kind || 'worker'; tally[k] = (tally[k]||0)+1; }
+        const parts = RAID_ENEMY_KINDS.filter(k => tally[k.id]).map(k => `${k.label}×${tally[k.id]}`);
+        if(parts.length) compLine = `敵編成: ${parts.join(' / ')}\n`;
+      }
       combatLines =
-        repLine +
+        repLine + compLine +
         `撃破: ${sr.killedEnemies}/${sr.totalEnemies}\n` +
         `突破: ${sr.breachedEnemies}\n` +
         `残存: ${sr.livingEnemies}\n` +
-        `判定: ${reasonText}\n`;
+        `判定: ${reasonText}\n` +
+        (S._rallyUsedThisRaid ? `⚡ 応援の士気が兵を後押しした\n` : '');
     }
     if(out.win) {
       raidResultTitleEl.textContent = '✅ 防衛成功';
@@ -11075,6 +11099,7 @@ function expandMap(forcedType, isEmergency) {
       raidResultBodyEl.textContent =
         combatLines +
         `被害: 働きアリ -${Math.floor(out.loseWorkers || 0)}\n` +
+        (out.recovery ? `🌱 復興期: しばらく食料生産が上がり、立て直せる\n` : '') +
         `兵隊アリは兵舎へ帰還中`;
     }
     raidResultModal.classList.add('show');
@@ -11126,6 +11151,30 @@ function expandMap(forcedType, isEmergency) {
     return false;
   }
 
+  // レイド敵の兵種を重み付き抽選。勝つほど大顎アリ(brute)の比率が上がる。
+  function pickRaidEnemyKind() {
+    const wins = Math.max(0, G.raidWins || 0);
+    const bruteBoost = Math.min(40, wins * 3); // 勝利数で重装が増える(上限+40)
+    let total = 0;
+    const weights = RAID_ENEMY_KINDS.map(k => {
+      const w = Math.max(0, k.weight + (k.id === 'brute' ? bruteBoost : 0));
+      total += w; return w;
+    });
+    let r = Math.random() * total;
+    for(let i=0; i<RAID_ENEMY_KINDS.length; i++){ r -= weights[i]; if(r <= 0) return RAID_ENEMY_KINDS[i]; }
+    return RAID_ENEMY_KINDS[0];
+  }
+
+  // 応援フェロモン: 攻撃フェーズ中のタップで兵隊を一時強化（観るだけ→参加へ）
+  function addRaidRally() {
+    if(!S.raidVis || S.raidVis.state !== 'attack') return;
+    const before = S.rallyT || 0;
+    S.rallyT = Math.min(RAID_RALLY_MAX, before + RAID_RALLY_PER_TAP);
+    S._rallyUsedThisRaid = true;
+    if(before <= 0 && !S._rallyToastedThisRaid) { S._rallyToastedThisRaid = true; toast('⚡ 応援フェロモン！兵隊が奮い立つ'); }
+    if(S.full) fx(ENX() + (Math.random()-0.5)*dp(20), S.full.sy - dp(6), '応援!', '#fcd34d');
+  }
+
   function spawnEnemies() {
     S.enemies = [];
     const enemyPower = getEnemyPower();
@@ -11139,11 +11188,12 @@ function expandMap(forcedType, isEmergency) {
     const ex = ENX();
 
     for(let i=0; i<n; i++) {
+      const kind = pickRaidEnemyKind(); // v1: 兵種多様化
       const side = (Math.random()<0.5) ? -1 : 1;
       const x0 = side < 0 ? -dp(30) - Math.random()*dp(80) : (S.full.w + dp(30) + Math.random()*dp(80));
-      const speed = dp(90 + Math.random()*60);
+      const speed = dp(90 + Math.random()*60) * kind.spdMul;
       const hpVar = RAID_ENEMY_HP_RANDOM_MIN + Math.random()*(RAID_ENEMY_HP_RANDOM_MAX - RAID_ENEMY_HP_RANDOM_MIN);
-      const hp = Math.max(1, Math.floor(perEnemyHp * hpVar));
+      const hp = Math.max(1, Math.floor(perEnemyHp * hpVar * kind.hpMul));
       S.enemies.push({
         id: _raidEnemyIdSeq++, // Phase 7B-2: 兵隊の追尾ターゲット用 一意ID
         x: x0,
@@ -11154,11 +11204,13 @@ function expandMap(forcedType, isEmergency) {
         t: Math.random()*10,
         targetX: ex + (Math.random()-0.5)*dp(12),
         fade: 1,
-        // Phase 7B-1: HP状態（勝敗判定にはまだ未使用）
+        // Phase 7B-1: HP状態
         hp,
         maxHp: hp,
         dead: false,
-        hitFlash: 0
+        hitFlash: 0,
+        // v1: 兵種（描画の大きさ・色・編成集計に使用）
+        kind: kind.id, sizeMul: kind.sizeMul, tint: kind.tint
       });
     }
   }
@@ -11535,7 +11587,8 @@ function expandMap(forcedType, isEmergency) {
     const lvMul = (typeof getSoldierPowerMul === "function")
       ? getSoldierPowerMul(G.sLv || 0)
       : (1 + (G.sLv || 0) * RAID_SURFACE_SOLDIER_DAMAGE_LV_MUL) * (hasSoldierJaw2x() ? 2 : 1);
-    return RAID_SURFACE_SOLDIER_DAMAGE_BASE * lvMul;
+    const rally = (S.rallyT && S.rallyT > 0) ? (1 + RAID_RALLY_BONUS) : 1; // 応援フェロモン中は火力UP
+    return RAID_SURFACE_SOLDIER_DAMAGE_BASE * lvMul * rally;
   }
 
   // まだ戦っている敵（死亡でも突破でもない）
@@ -11631,6 +11684,7 @@ function expandMap(forcedType, isEmergency) {
     closeRaidResultModal();
     S.raidVis.state = "attack";
     S.raidVis.timer = 0;
+    S.rallyT = 0; S._rallyToastedThisRaid = false; S._rallyUsedThisRaid = false; // v1: 応援フェロモンの状態リセット
     spawnEnemies();
     ensureRaidSoldiers(); // Phase 7B-2: 地表兵隊アリを出撃
     // Phase 7B-3/4: 地表戦闘の集計を初期化
@@ -11693,10 +11747,13 @@ function expandMap(forcedType, isEmergency) {
       G.eggs = Math.floor(G.eggs * out.eggMul);
       G.goldenEggs = Math.min(Math.max(0, Math.floor(G.goldenEggs || 0)), Math.floor(G.eggs || 0));
       modalOut.loseWorkers = out.loseWorkers || 0;
-      toast(`敗北... 働きアリ${out.loseWorkers}匹と資源を失いました`, true);
+      // v1: 復興 — 敗北を死のスパイラルにしない。しばらく食料生産が上がる立て直し期に入る
+      S.recoveryT = RAID_RECOVERY_SEC;
+      modalOut.recovery = true;
+      toast(`敗北... 働きアリ${out.loseWorkers}匹を失った。だが巣は立て直す（🌱復興期：食料生産↑）`, true);
       fx(S.full.nodes[S.full.qid].x, S.full.nodes[S.full.qid].y, "BREACH!", "#ef4444");
       shake(dp(12), 0.6);
-      setRaidUI(true, "❌ 防衛失敗", "資源が奪われた…兵隊と兵舎を整えよ。", "LOSS");
+      setRaidUI(true, "❌ 防衛失敗", "資源を奪われた…だが巣は立て直す（🌱復興ブースト）。兵隊と兵舎を整えよ。", "LOSS");
       normalizeInventories();
     }
 
@@ -15424,6 +15481,7 @@ function syncFermenterUnlockUI() {
 
   // 卵を産む。TAP ボタンまたは女王をタップしたときに実行（女王枝「重ね産み」で複数個）
   function tryLayEgg(source="tap", sx=null, sy=null) {
+    if(S.raidVis && S.raidVis.state === 'attack') addRaidRally(); // レイド中のタップは兵隊を応援
     // 産卵は常に可能（育児室の上限は「孵化」にのみ影響する想定）
     const MAX_EGGS = 1e9; // 過剰な数値での表示崩れ対策（実質無制限）
     const n = getTapEggCount();
@@ -16056,11 +16114,14 @@ function syncFermenterUnlockUI() {
       unlockResearchSystem();
     }
 
+    // v1 レイド: 応援フェロモン/復興タイマーの減衰
+    if(S.rallyT > 0) S.rallyT = Math.max(0, S.rallyT - dt);
+    if(S.recoveryT > 0) S.recoveryT = Math.max(0, S.recoveryT - dt);
     let prodPerSec = G.ants.worker * 0.1 * G.getWorkerProdMul() * getGatherResearchMul();
     const restMul = (S.restMul || 1);
     const legacyMul = 1 + (G.legacyBonus || 0); // 転生ボーナス
     const seasonFoodMul = getSeasonFoodMul(); // 季節+天気の食料倍率
-    prodPerSec *= restMul * getGlobalFoodMul() * legacyMul * seasonFoodMul * (S._cleanMul || 1); // 衛2 清潔ボーナス
+    prodPerSec *= restMul * getGlobalFoodMul() * legacyMul * seasonFoodMul * (S._cleanMul || 1) * ((S.recoveryT > 0) ? RAID_RECOVERY_MUL : 1); // 衛2 清潔 + v1 復興
     const prod = prodPerSec * dt;
     if(G.food < G.caps.food){
       const _foodBefore = G.food;
@@ -18295,8 +18356,9 @@ function syncFermenterUnlockUI() {
         ctx.translate(en.x, en.y);
         const dir = (en.targetX - en.x) >= 0 ? 0 : Math.PI;
         ctx.rotate(dir);
+        if(en.sizeMul && en.sizeMul !== 1) ctx.scale(en.sizeMul, en.sizeMul); // v1: 兵種で体格を変える
 
-        ctx.fillStyle = '#7f1d1d';
+        ctx.fillStyle = en.tint || '#7f1d1d';
         ctx.beginPath(); ctx.ellipse(-dp(6),0,dp(4.8),dp(3.4),0,0,6.28); ctx.fill();
         ctx.beginPath(); ctx.ellipse(0,0,dp(3),dp(3),0,0,6.28); ctx.fill();
         ctx.beginPath(); ctx.ellipse(dp(5),0,dp(3.2),dp(3.2),0,0,6.28); ctx.fill();

@@ -1,5 +1,19 @@
 # Development Log
 
+## 2026-06-13 Raid overhaul v1: enemy variety + rally pheromone + recovery + richer result
+
+Purpose:
+- Make raids 本格的 / participatory (Notion analysis Part 2/3/4). Regular raids were 1 enemy type, watch-only, punishing on loss, thin result. v1 fixes variety + agency + anti-spiral + readability. (Intra-raid waves + seasonal-predator bosses = v2/v3.) Layered on Codex's "Adjust raid pacing and research unlock" (415460c); intentionally left the cadence/interval alone (Codex's area) to avoid conflict.
+
+Changes:
+- **Enemy variety** (`RAID_ENEMY_KINDS`): worker / scout (fast, frail, small) / brute (slow, tanky, big) — realism = rival-colony castes. `pickRaidEnemyKind()` weighted pick; brute share grows with `G.raidWins` (+3/win, cap +40). `spawnEnemies` applies spdMul/hpMul and stores kind/sizeMul/tint; the enemy draw applies `ctx.scale(sizeMul)` + body tint. Reuses all existing surface combat — just composition + per-enemy stats.
+- **応援フェロモン (rally)**: during the attack phase, tapping (via `tryLayEgg`) calls `addRaidRally()` → extends `S.rallyT` (`+0.5s`/tap, cap `6s`); `getRaidSurfaceSoldierDamage()` ×`(1+RAID_RALLY_BONUS 0.6)` while active. First rally toasts, each tap floats a "応援!" fx. Reset in `beginRaidAttack`, decays in the main loop. Watching → participating.
+- **復興 (recovery)**: on defeat, `S.recoveryT = RAID_RECOVERY_SEC (180)` and food production ×`RAID_RECOVERY_MUL (1.5)` while active (folded into `prodPerSec` beside `S._cleanMul`). Loss toast/modal reframed as a comeback, not a spiral. Decays in the main loop.
+- **Richer result modal**: enemy composition tally (働き×N / 斥候×M / 大顎×K), rally-used note, recovery note.
+- All new state defaults undefined → `>0` guards / `||1` make it a no-op until a raid; constants tunable.
+
+Verification (preview): loads, no console errors; G/S healthy; `S.rallyT`/`S.recoveryT` undefined at rest (no behavior change). NOTE: headless preview doesn't run requestAnimationFrame, and raids need soldiers + pop≥50, so the live battle couldn't be exercised. Verified by inspection: all hooks default-safe, reuse the proven combat loop, pure arithmetic. **Must be playtested on device** (dev mode → recruit soldiers → raid; tap during the battle to rally; lose once to see recovery).
+
 ## 2026-06-10 Research C (first cross-branch interaction nodes): queen×golden + gather×ferment
 
 Purpose:
