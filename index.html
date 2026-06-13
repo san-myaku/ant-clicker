@@ -7927,6 +7927,23 @@ function expandMap(forcedType, isEmergency) {
   const RAID_ENEMY_ENGAGED_SLOW_PER = 0.6;              // v2: 0.94→0.6 兵隊1体での足止めを弱める（完璧な静止を解消）
   const RAID_ENEMY_ENGAGED_MIN_FACTOR = 0.12;           // v2: 0.01→0.12 交戦中でも確実に前進（押し切られて突破が起きうる）
 
+  // ===== レイド v2: 巣内波状攻撃（intra-raid waves） =====
+  // 1回のレイドが複数ウェーブで押し寄せる。各波の間に小休止、後半ほど大規模＆重装。
+  // 生存兵は波をまたいで持ち越し（=消耗が蓄積してひりひり）／戦死兵は復活しない。総数は実機で要調整。
+  const RAID_WAVE_LULL_SEC = 2.6;        // 波と波の間の小休止（次の波が来るまでの溜め・秒）
+  const RAID_WAVE_REGROUP_HEAL = 0.35;   // 波間に生存兵が回復する maxHp 割合（0=純消耗戦／上げると優しく）
+  const RAID_WAVE_BRUTE_STEP = 14;       // 後半の波ほど brute 比率を上げる（1波ごとの重み加算）
+  const RAID_WAVE_SCALES = { 1: [1.0], 2: [0.7, 0.9], 3: [0.5, 0.7, 1.0] }; // 各波の規模（enemyPower比）。最終波=主力
+  // ウェーブ数（戦績で開放）: 序盤は1波のまま、勝ち進むと2→3波の本格戦に
+  function getRaidWaveCount() {
+    const w = Math.max(0, G.raidWins || 0);
+    return w >= 6 ? 3 : (w >= 2 ? 2 : 1);
+  }
+  function getRaidWaveScale(idx, count) {
+    const arr = RAID_WAVE_SCALES[count] || RAID_WAVE_SCALES[1];
+    return arr[Math.min(idx, arr.length - 1)] || 1;
+  }
+
   // ノード from から to への経路（node列）を BFS で探索。完成した通路（edgeFrac>=0.99）のみ通れる
   function findNodePath(srcNodeId, dstNodeId) {
     if(srcNodeId === dstNodeId) return [srcNodeId];
@@ -11143,8 +11160,10 @@ function expandMap(forcedType, isEmergency) {
         const parts = RAID_ENEMY_KINDS.filter(k => tally[k.id]).map(k => `${k.label}×${tally[k.id]}`);
         if(parts.length) compLine = `敵編成: ${parts.join(' / ')}\n`;
       }
+      const waveCount = (S.raidVis && S.raidVis.waveCount) || 1;
+      const waveLine = waveCount > 1 ? `🌊 波状攻撃: 全${waveCount}波\n` : '';
       combatLines =
-        repLine + compLine +
+        waveLine + repLine + compLine +
         `撃破: ${sr.killedEnemies}/${sr.totalEnemies}\n` +
         `突破: ${sr.breachedEnemies}\n` +
         `残存: ${sr.livingEnemies}\n` +
@@ -11215,9 +11234,9 @@ function expandMap(forcedType, isEmergency) {
   }
 
   // レイド敵の兵種を重み付き抽選。勝つほど大顎アリ(brute)の比率が上がる。
-  function pickRaidEnemyKind() {
+  function pickRaidEnemyKind(extraBrute) {
     const wins = Math.max(0, G.raidWins || 0);
-    const bruteBoost = Math.min(40, wins * 3); // 勝利数で重装が増える(上限+40)
+    const bruteBoost = Math.min(40, wins * 3) + Math.max(0, extraBrute || 0); // 勝利数で重装が増える(上限+40)＋v2:後半の波で加算
     let total = 0;
     const weights = RAID_ENEMY_KINDS.map(k => {
       const w = Math.max(0, k.weight + (k.id === 'brute' ? bruteBoost : 0));
@@ -11238,9 +11257,13 @@ function expandMap(forcedType, isEmergency) {
     if(S.full) fx(ENX() + (Math.random()-0.5)*dp(20), S.full.sy - dp(6), '応援!', '#fcd34d');
   }
 
-  function spawnEnemies() {
-    S.enemies = [];
-    const enemyPower = getEnemyPower();
+  // opts: { scale=1（enemyPower比）, extraBrute=0（重装の重み加算）, append=false（trueで既存配列に追加＝波状攻撃） }
+  function spawnEnemies(opts) {
+    opts = opts || {};
+    const scale = (opts.scale != null) ? opts.scale : 1;
+    const extraBrute = opts.extraBrute || 0;
+    if(!opts.append) S.enemies = [];
+    const enemyPower = getEnemyPower() * scale; // v2: 波の規模に応じてスケール
     // 描画体数（乱戦の物量）。多めに出して2陣営のぶつかり合いを見せる。
     const n = clamp(Math.floor(enemyPower / RAID_ENEMY_RENDER_UNIT_POWER), RAID_CFG.enemyCountMin, RAID_ENEMY_RENDER_COUNT_MAX);
     // 難度: 表示体数が増えても1体あたりHPは基本維持する。
@@ -11251,7 +11274,7 @@ function expandMap(forcedType, isEmergency) {
     const ex = ENX();
 
     for(let i=0; i<n; i++) {
-      const kind = pickRaidEnemyKind(); // v1: 兵種多様化
+      const kind = pickRaidEnemyKind(extraBrute); // v1: 兵種多様化 / v2: 後半の波ほど重装
       const side = (Math.random()<0.5) ? -1 : 1;
       const x0 = side < 0 ? -dp(30) - Math.random()*dp(80) : (S.full.w + dp(30) + Math.random()*dp(80));
       const speed = dp(90 + Math.random()*60) * kind.spdMul;
@@ -11277,6 +11300,7 @@ function expandMap(forcedType, isEmergency) {
         atk: RAID_ENEMY_ATK_BASE * (kind.atk || 1), pushThrough: kind.pushThrough || 0
       });
     }
+    return n; // v2: このウェーブで出した体数（累計集計用）
   }
 
   // Phase 7B-1: 敵頭上のHPバー描画（ワールド座標。死亡敵には出さない）
@@ -11789,9 +11813,13 @@ function expandMap(forcedType, isEmergency) {
     S.raidVis.state = "attack";
     S.raidVis.timer = 0;
     S.rallyT = 0; S._rallyToastedThisRaid = false; S._rallyUsedThisRaid = false; S.raidVis.casualtyWeight = 0; // v1/v2: 応援・戦死カウントのリセット
-    spawnEnemies();
+    // v2: 波状攻撃 — この襲撃のウェーブ数を確定し、第1波だけ先に出す
+    S.raidVis.waveCount = getRaidWaveCount();
+    S.raidVis.waveIndex = 0;
+    S.raidVis.waveLull = null;
+    spawnEnemies({ scale: getRaidWaveScale(0, S.raidVis.waveCount) }); // 第1波（append無し＝配列リセット）
     ensureRaidSoldiers(); // Phase 7B-2: 地表兵隊アリを出撃
-    // Phase 7B-3/4: 地表戦闘の集計を初期化
+    // Phase 7B-3/4: 地表戦闘の集計を初期化（v2: totalEnemies は波ごとに累計していく）
     S.raidVis.totalEnemies = S.enemies.length;
     S.raidVis.killedEnemies = 0;
     S.raidVis.breachedEnemies = 0;
@@ -11803,7 +11831,32 @@ function expandMap(forcedType, isEmergency) {
     // 古い途中状態が残っていると誤判定の元になるため、攻撃開始時に消しておく。
     delete S.raidVis._pendingOutcome;
 
-    setRaidUI(true, "⚔️ 襲撃開始", "地表から敵アリが雪崩れ込む…！", "ATTACK");
+    const wc = S.raidVis.waveCount;
+    setRaidUI(true, "⚔️ 襲撃開始", wc > 1 ? `敵アリが波状に押し寄せる…全${wc}波！` : "地表から敵アリが雪崩れ込む…！", wc > 1 ? `波 1/${wc}` : "ATTACK");
+  }
+
+  // v2: 次のウェーブを投入（波間の小休止明けに呼ぶ）。生存兵は持ち越し＋小回復、戦死兵は復活しない。
+  function beginNextRaidWave() {
+    if(!S.raidVis) return;
+    S.raidVis.waveIndex = (S.raidVis.waveIndex || 0) + 1;
+    const idx = S.raidVis.waveIndex;
+    const count = S.raidVis.waveCount || 1;
+    const added = spawnEnemies({ scale: getRaidWaveScale(idx, count), extraBrute: idx * RAID_WAVE_BRUTE_STEP, append: true });
+    S.raidVis.totalEnemies = (S.raidVis.totalEnemies || 0) + (added || 0); // 累計
+    // 生存兵は隊列を整える（小回復）。戦死兵(s.dead)は対象外＝消耗は蓄積する。
+    if(RAID_WAVE_REGROUP_HEAL > 0 && Array.isArray(S.raidSoldiers)) {
+      for(const s of S.raidSoldiers) {
+        if(!s || s.dead || !s.maxHp) continue;
+        s.hp = Math.min(s.maxHp, (s.hp || 0) + s.maxHp * RAID_WAVE_REGROUP_HEAL);
+      }
+    }
+    const isFinal = (idx >= count - 1);
+    setRaidUI(true, isFinal ? "⚔️ 最終波！" : `⚔️ 第${idx + 1}波`,
+      isFinal ? "敵の主力が突っ込んでくる…ここが正念場！" : "新手の増援が雪崩れ込む…！",
+      `波 ${idx + 1}/${count}`);
+    if(isFinal) addQueenWhisper('敵の本隊が来るわ…ここを凌げば勝てる！');
+    if(S.full) fx(ENX(), S.full.sy - dp(10), isFinal ? "最終波!" : `第${idx + 1}波!`, "#fca5a5");
+    shake(dp(6), 0.4);
   }
 
   function resolveRaid() {
@@ -16431,10 +16484,29 @@ function syncFermenterUnlockUI() {
 
         // Phase 7B-4: 終了判定。時間上限はなく、全敵が死亡/突破してから決着する。
         // 片側が先に突破しても、反対側の戦闘が残っている間はレイドを続ける。
+        // v2: 場が片付いても次の波が残っていれば、小休止して次波を出す（resolveしない）。
         const livingNow = getLivingRaidEnemyCount();
-        const decided = (livingNow <= 0);
-        if(decided && S.raidVis.finishDelay == null) {
-          S.raidVis.finishDelay = RAID_FINISH_DELAY;
+        const fieldClear = (livingNow <= 0);
+        if(S.raidVis.waveLull != null) {
+          // 波間の小休止：カウントダウン明けに次の波を投入
+          S.raidVis.waveLull -= dt;
+          if(S.raidVis.waveLull <= 0) {
+            S.raidVis.waveLull = null;
+            beginNextRaidWave();
+          }
+        } else if(fieldClear) {
+          const hasMoreWaves = (S.raidVis.waveIndex || 0) < ((S.raidVis.waveCount || 1) - 1);
+          if(hasMoreWaves && S.raidVis.finishDelay == null) {
+            // 次の波へ：小休止に入る（決着は持ち越し）
+            S.raidVis.waveLull = RAID_WAVE_LULL_SEC;
+            const nextNo = (S.raidVis.waveIndex || 0) + 2; // 1-based 次波番号
+            setRaidUI(true, "🌊 増援が来る…", `第${nextNo}波が迫る。隊列を整えよ！`, `波 ${(S.raidVis.waveIndex || 0) + 1}/${S.raidVis.waveCount} 終`);
+            toast(`🌊 第${nextNo}波が来る…！`);
+            shake(dp(4), 0.25);
+          } else if(!hasMoreWaves && S.raidVis.finishDelay == null) {
+            // 最終波も片付いた → 従来通り決着の見せ時間へ
+            S.raidVis.finishDelay = RAID_FINISH_DELAY;
+          }
         }
         if(S.raidVis.finishDelay != null) {
           S.raidVis.finishDelay -= dt;

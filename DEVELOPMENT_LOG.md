@@ -1,5 +1,21 @@
 # Development Log
 
+## 2026-06-13 Raid v2: intra-raid waves (波状攻撃)
+
+Goal: make a single raid feel like a battle with momentum — probe → commit → main force — instead of one clash. Builds on v1 (variety/rally/result) + the v2.1 attrition pass.
+
+Mechanic:
+- **Wave count by progress** (`getRaidWaveCount`): 1 wave at raidWins ≤1 (early game unchanged), 2 at ≥2, 3 at ≥6. Surfaces by the 3rd win.
+- **Per-wave scale** (`RAID_WAVE_SCALES` {1:[1.0], 2:[0.7,0.9], 3:[0.5,0.7,1.0]}): each wave is a fraction of `enemyPower`; final wave = full-size "main force" climax. Total enemy budget for a 3-wave raid ≈ 2.2× a single raid — a real step up, gated behind 6 wins.
+- `spawnEnemies` refactored to `spawnEnemies({scale, extraBrute, append})` (backward-compatible — no-arg = old behavior). Wave 0 resets `S.enemies`; later waves **append**, so killed/breached tallies and `S.raidVis.totalEnemies` stay cumulative across the whole raid. Returns the spawned count.
+- **Seam** (attack tick): when `getLivingRaidEnemyCount()<=0`, if more waves remain → set `S.raidVis.waveLull = RAID_WAVE_LULL_SEC 2.6`s, announce "🌊 第N波が来る…", then `beginNextRaidWave()` (NOT `resolveRaid`). Final wave → `finishDelay`→`resolveRaid` exactly as before. `waveLull` / `finishDelay` are mutually exclusive paths.
+- **Attrition compounds**: `ensureRaidSoldiers` is NOT re-called between waves, so wounded soldiers stay wounded and the dead stay dead → the ひりひり the user asked for. A modest regroup heal (`RAID_WAVE_REGROUP_HEAL 0.35` of maxHp to living soldiers) in `beginNextRaidWave` keeps it from being an automatic death-spiral. Later waves more brute-heavy (`pickRaidEnemyKind(extraBrute)`, `extraBrute = idx × RAID_WAVE_BRUTE_STEP 14`).
+- UI: wave badge in the raid HUD (`波 N/M`), inter-wave toast + shake, "最終波！" + queen whisper on the last wave, fx pop. Result modal gains a `🌊 波状攻撃: 全N波` line.
+
+Win/lose math (cumulative breach ratio 30%, all-killed win, `computeRaidOutcome` fallback) is unchanged — it just evaluates over the grand total once the final wave clears.
+
+Verification: loads, no console errors/warnings; G/S/canvas/`__forceRaid` present (full IIFE parsed). rAF doesn't run headless so the wave loop can't be exercised here — **device playtest required** to tune `RAID_WAVE_SCALES` / `RAID_WAVE_REGROUP_HEAL` / `RAID_WAVE_LULL_SEC` (lower scales or raise heal if too brutal; opposite if too soft). Next: v3 seasonal-predator bosses.
+
 ## 2026-06-13 Raid balance v2.1: more attrition (tenser fights)
 
 - Playtest feedback: soldiers died too rarely — wanted more "ひりひり" tension. Raised soldier attrition ~1.5×:
