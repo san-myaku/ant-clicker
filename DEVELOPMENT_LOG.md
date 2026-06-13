@@ -1,5 +1,22 @@
 # Development Log
 
+## 2026-06-14 Raid v3 boss #1: サムライアリの奴隷狩り (Amazon-ant slave raid)
+
+First of the v3 seasonal-predator bosses. Real ecology: サムライアリ (Polyergus) raid host-ant nests in summer and carry off brood (pupae/larvae) to raise as slaves. Game translation (2-layer rule): a summer special raid that **steals eggs** on breach. Reuses the whole v1/v2 raid+wave pipeline — additive, low new-surface.
+
+Trigger / identity:
+- `decideRaidBossType()` (called in `beginRaidAttack`, stored as `S.raidVis.bossType`): returns `'samurai'` when `getCurrentSeason().id==='summer'` && `G.raidWins ≥ RAID_SAMURAI_MIN_WINS 2` && `rand < RAID_SAMURAI_CHANCE 0.35`, OR when forced. Otherwise `'normal'`.
+- `RAID_SAMURAI_KIND` (elite raider: spd 1.3 / hp 1.6 / atk 2.0 / pushThrough 0.4 / crimson `#9f1239`, `weight:0` so it never enters the normal weighted pool). `spawnEnemies` swaps the *entire* roster to it when `isSamuraiRaid()`, across all waves. Enemy draw gives `kind==='samurai'` curved **sickle mandibles**.
+
+Signature mechanic — brood theft (`resolveRaid`):
+- `eggsStolen = floor(G.eggs × clamp(breachRatio × RAID_SAMURAI_STEAL_MUL 1.1, 0, RAID_SAMURAI_STEAL_CAP 0.6))`, `breachRatio = breachedEnemies/totalEnemies`. **Independent of win/lose** — you can win the battle but still lose brood if any breached; a perfect (0-breach) defense loses zero eggs.
+- `out.eggMul` forced to 1 for samurai raids so theft is the *only* egg loss (no double penalty with the normal lose-branch egg reduction). Food/worker losses on a loss still apply. `goldenEggs` re-clamped after theft.
+- Win bonus: +15–25 cookies + queen whisper. Distinct intro (queen whisper "卵を奪いに来たわ…"), HUD "略奪", per-breach `🥚 卵を奪われる!` fx, result modal "⚔️ サムライアリの奴隷狩り" + `🥚 奪われた卵: N` (or "卵を完全に守り切った！"), samurai-specific result titles.
+
+State is runtime-only (`S.raidVis.bossType`/`eggsStolen`, `S._forceRaidKind`) — no save migration. Debug: `window.__forceRaid('samurai')` (bypasses the summer/gating roll).
+
+Verification: loads, no console errors/warnings; G/S/canvas/`__forceRaid` present (full IIFE parsed — a syntax error in any of the ~10 edits would've thrown). Currently winter in the test save, so a natural samurai raid won't fire — **device playtest required** (rAF doesn't run the raid loop headless). Tune `RAID_SAMURAI_CHANCE` (frequency), `RAID_SAMURAI_KIND` atk/hp (difficulty), `RAID_SAMURAI_STEAL_MUL`/`_CAP` (theft severity). Next v3: モグラ (underground boss), 梅雨の浸水 (flood disaster).
+
 ## 2026-06-13 Raid v2: intra-raid waves (波状攻撃)
 
 Goal: make a single raid feel like a battle with momentum — probe → commit → main force — instead of one clash. Builds on v1 (variety/rally/result) + the v2.1 attrition pass.

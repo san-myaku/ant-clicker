@@ -7944,6 +7944,22 @@ function expandMap(forcedType, isEmergency) {
     return arr[Math.min(idx, arr.length - 1)] || 1;
   }
 
+  // ===== レイド v3: サムライアリの奴隷狩り（季節の天敵ボス・第1弾） =====
+  // 実在: サムライアリ(Polyergus)は夏にホストアリ(クロヤマアリ等)の巣を襲い、蛹/幼虫を奪って奴隷にする。
+  // ゲーム化(2層ルール): 夏の特別レイド。精鋭の略奪者＋「突破されると卵を奪われる」。素早く守れば被害ゼロ。
+  const RAID_SAMURAI_MIN_WINS  = 2;    // この戦績以上で出現しうる（序盤は通常レイドのみ）
+  const RAID_SAMURAI_CHANCE    = 0.35; // 夏のレイドがサムライアリ襲撃になる確率（実機で要調整）
+  const RAID_SAMURAI_STEAL_MUL = 1.1;  // 突破率→卵の強奪率の係数
+  const RAID_SAMURAI_STEAL_CAP = 0.6;  // 1回の襲撃で奪われる卵の上限割合
+  // サムライアリ（精鋭の略奪者）。通常の兵種プール(RAID_ENEMY_KINDS)には入れず、奴隷狩り時のみ出す。
+  const RAID_SAMURAI_KIND = { id:'samurai', label:'サムライアリ', spdMul:1.3, hpMul:1.6, sizeMul:1.18, tint:'#9f1239', weight:0, atk:2.0, pushThrough:0.4 };
+  function isSamuraiRaid() { return !!(S.raidVis && S.raidVis.bossType === 'samurai'); }
+  function decideRaidBossType() {
+    if(S._forceRaidKind) { const k = S._forceRaidKind; S._forceRaidKind = null; return k; } // デバッグ強制
+    if(getCurrentSeason().id === 'summer' && (G.raidWins || 0) >= RAID_SAMURAI_MIN_WINS && Math.random() < RAID_SAMURAI_CHANCE) return 'samurai';
+    return 'normal';
+  }
+
   // ノード from から to への経路（node列）を BFS で探索。完成した通路（edgeFrac>=0.99）のみ通れる
   function findNodePath(srcNodeId, dstNodeId) {
     if(srcNodeId === dstNodeId) return [srcNodeId];
@@ -11162,8 +11178,11 @@ function expandMap(forcedType, isEmergency) {
       }
       const waveCount = (S.raidVis && S.raidVis.waveCount) || 1;
       const waveLine = waveCount > 1 ? `🌊 波状攻撃: 全${waveCount}波\n` : '';
+      const samuraiLine = (out.bossType === 'samurai')
+        ? `⚔️ サムライアリの奴隷狩り\n` + ((out.eggsStolen || 0) > 0 ? `🥚 奪われた卵: ${out.eggsStolen}\n` : `🥚 卵を完全に守り切った！\n`)
+        : '';
       combatLines =
-        waveLine + repLine + compLine +
+        samuraiLine + waveLine + repLine + compLine +
         `撃破: ${sr.killedEnemies}/${sr.totalEnemies}\n` +
         `突破: ${sr.breachedEnemies}\n` +
         `残存: ${sr.livingEnemies}\n` +
@@ -11172,13 +11191,13 @@ function expandMap(forcedType, isEmergency) {
         (S._rallyUsedThisRaid ? `⚡ 応援の士気が兵を後押しした\n` : '');
     }
     if(out.win) {
-      raidResultTitleEl.textContent = '✅ 防衛成功';
+      raidResultTitleEl.textContent = (out.bossType === 'samurai') ? '🛡️ 奴隷狩りを撃退！' : '✅ 防衛成功';
       raidResultBodyEl.textContent =
         combatLines +
         `戦利品: 食料 +${Math.floor(out.rewardFood || 0)} / クッキー +${Math.floor(out.rewardCookie || 0)}\n` +
         `兵隊アリは兵舎へ帰還中`;
     } else {
-      raidResultTitleEl.textContent = '❌ 防衛失敗';
+      raidResultTitleEl.textContent = (out.bossType === 'samurai') ? '❌ 卵を奪われた…' : '❌ 防衛失敗';
       raidResultBodyEl.textContent =
         combatLines +
         `被害: 働きアリ -${Math.floor(out.loseWorkers || 0)}\n` +
@@ -11274,7 +11293,7 @@ function expandMap(forcedType, isEmergency) {
     const ex = ENX();
 
     for(let i=0; i<n; i++) {
-      const kind = pickRaidEnemyKind(extraBrute); // v1: 兵種多様化 / v2: 後半の波ほど重装
+      const kind = isSamuraiRaid() ? RAID_SAMURAI_KIND : pickRaidEnemyKind(extraBrute); // v1: 兵種多様化 / v2: 後半の波ほど重装 / v3: 奴隷狩りは全員サムライアリ
       const side = (Math.random()<0.5) ? -1 : 1;
       const x0 = side < 0 ? -dp(30) - Math.random()*dp(80) : (S.full.w + dp(30) + Math.random()*dp(80));
       const speed = dp(90 + Math.random()*60) * kind.spdMul;
@@ -11813,6 +11832,9 @@ function expandMap(forcedType, isEmergency) {
     S.raidVis.state = "attack";
     S.raidVis.timer = 0;
     S.rallyT = 0; S._rallyToastedThisRaid = false; S._rallyUsedThisRaid = false; S.raidVis.casualtyWeight = 0; // v1/v2: 応援・戦死カウントのリセット
+    // v3: この襲撃の種別（通常 / サムライアリの奴隷狩り）を確定。spawnEnemies が参照するので先に決める
+    S.raidVis.bossType = decideRaidBossType();
+    S.raidVis.eggsStolen = 0;
     // v2: 波状攻撃 — この襲撃のウェーブ数を確定し、第1波だけ先に出す
     S.raidVis.waveCount = getRaidWaveCount();
     S.raidVis.waveIndex = 0;
@@ -11832,7 +11854,14 @@ function expandMap(forcedType, isEmergency) {
     delete S.raidVis._pendingOutcome;
 
     const wc = S.raidVis.waveCount;
-    setRaidUI(true, "⚔️ 襲撃開始", wc > 1 ? `敵アリが波状に押し寄せる…全${wc}波！` : "地表から敵アリが雪崩れ込む…！", wc > 1 ? `波 1/${wc}` : "ATTACK");
+    if(isSamuraiRaid()) {
+      addQueenWhisper('サムライアリの奴隷狩りよ…卵を奪いに来たわ。守って、お願い！');
+      setRaidUI(true, "⚔️ サムライアリの奴隷狩り！",
+        wc > 1 ? `卵を狙う略奪者が波状に来る…全${wc}波！突破させると卵を奪われる！` : "卵を狙う略奪者だ。突破させるな…卵を奪われるぞ！",
+        wc > 1 ? `波 1/${wc}` : "略奪");
+    } else {
+      setRaidUI(true, "⚔️ 襲撃開始", wc > 1 ? `敵アリが波状に押し寄せる…全${wc}波！` : "地表から敵アリが雪崩れ込む…！", wc > 1 ? `波 1/${wc}` : "ATTACK");
+    }
   }
 
   // v2: 次のウェーブを投入（波間の小休止明けに呼ぶ）。生存兵は持ち越し＋小回復、戦死兵は復活しない。
@@ -11870,6 +11899,9 @@ function expandMap(forcedType, isEmergency) {
     if(hasResearchUnlock('earlyWarning') && out.loseWorkers > 0){
       out.loseWorkers = Math.floor(out.loseWorkers * (1 - EARLY_WARNING_REDUCE));
     }
+    // v3: サムライアリの奴隷狩りは「卵の強奪」で被害を表す。通常の卵倍率減を切って二重減算を防ぐ
+    const samurai = isSamuraiRaid();
+    if(samurai) out.eggMul = 1;
     const modalOut = { win: !!out.win, rewardFood: 0, rewardCookie: 0, loseWorkers: 0, winProb: out.winProb || 0, surfaceResult: out.surfaceResult || null };
 
     // 改善: レイド勝敗カウント
@@ -11890,13 +11922,19 @@ function expandMap(forcedType, isEmergency) {
       }
       G.food = G.food + rewardFood;
       if(rewardCookie) addCookie(rewardCookie);
+      // v3: 奴隷狩りを撃退すると、略奪者から余分の戦利品を奪い返す
+      if(samurai) {
+        const bonus = 15 + Math.floor(Math.random() * 11);
+        addCookie(bonus); rewardCookie += bonus;
+        addQueenWhisper('サムライアリを追い返したわ！誇らしい子たち');
+      }
       modalOut.rewardFood = rewardFood;
       modalOut.rewardCookie = rewardCookie;
       const cookieMsg = (rewardCookie > 0) ? ` クッキー+${rewardCookie}` : "";
-      toast(`防衛成功！敵を撃退しました。(食料+${rewardFood}${cookieMsg})` + (isFirstWin ? ' 🏆初勝利ボーナス!' : ''));
-      fx(ENX(), S.full.sy - dp(10), "DEFENDED!", "#fff");
+      toast((samurai ? `🛡️ 奴隷狩りを撃退！略奪者から戦利品を奪い返した。(食料+${rewardFood}${cookieMsg})` : `防衛成功！敵を撃退しました。(食料+${rewardFood}${cookieMsg})`) + (isFirstWin ? ' 🏆初勝利ボーナス!' : ''));
+      fx(ENX(), S.full.sy - dp(10), samurai ? "REPELLED!" : "DEFENDED!", "#fff");
       shake(dp(4), 0.25);
-      setRaidUI(true, "✅ 防衛成功", "巣は守られた。次の襲撃に備えよ。", "OK");
+      setRaidUI(true, samurai ? "🛡️ 奴隷狩りを撃退！" : "✅ 防衛成功", samurai ? "略奪者を退けた。卵の被害は結果で確認を。" : "巣は守られた。次の襲撃に備えよ。", "OK");
     } else {
       G.ants.worker = Math.max(0, G.ants.worker - out.loseWorkers);
       clampGoldenCount();
@@ -11910,6 +11948,25 @@ function expandMap(forcedType, isEmergency) {
       setRaidUI(true, "❌ 防衛失敗", "資源が奪われた…兵隊と兵舎を整えよ。", "LOSS");
       normalizeInventories();
     }
+
+    // v3: サムライアリの奴隷狩り — 突破された数に応じて卵を奪われる（勝っても突破されれば被害／完全防衛なら被害0）
+    if(samurai) {
+      const sr = out.surfaceResult;
+      const breachRatio = (sr && sr.totalEnemies > 0) ? (sr.breachedEnemies / sr.totalEnemies) : (out.win ? 0 : 1);
+      const stealFrac = clamp(breachRatio * RAID_SAMURAI_STEAL_MUL, 0, RAID_SAMURAI_STEAL_CAP);
+      const eggsStolen = Math.floor(Math.max(0, G.eggs || 0) * stealFrac);
+      if(eggsStolen > 0) {
+        G.eggs = Math.max(0, Math.floor(G.eggs) - eggsStolen);
+        G.goldenEggs = Math.min(Math.max(0, Math.floor(G.goldenEggs || 0)), Math.floor(G.eggs || 0));
+        toast(`🥚 サムライアリに卵を${eggsStolen}個 奪われた…！`, true);
+        if(S.full) fx(ENX(), S.full.sy - dp(14), `卵 -${eggsStolen}`, "#fca5a5");
+      } else if(out.win) {
+        addQueenWhisper('卵をひとつも渡さなかった…本当によく守ってくれたわ');
+      }
+      S.raidVis.eggsStolen = eggsStolen;
+      modalOut.eggsStolen = eggsStolen;
+    }
+    modalOut.bossType = S.raidVis ? S.raidVis.bossType : 'normal';
 
     // v2: 地表戦闘で戦死した兵隊を兵力(G.ants.soldier)に反映（勝っても犠牲が出る）
     const soldierLost = Math.min(Math.floor(G.ants.soldier || 0), Math.round((S.raidVis && S.raidVis.casualtyWeight) || 0));
@@ -14993,15 +15050,17 @@ function syncFermenterUnlockUI() {
   //  - スマホ  : 個体数ボックス(#pop-box)を約0.9秒 長押し
   //  - コンソール: window.__forceRaid()
   // ※兵隊アリが0だと巣の更新ループがレイドを毎フレーム即キャンセルするため、兵隊が必要。
-  function debugForceRaid() {
+  function debugForceRaid(kind) {
     if(!S.full) return;
     if(S.raidVis.state !== 'none') { toast('レイドは既に進行中です'); return; }
     if((G.ants.soldier || 0) <= 0) { toast('テスト用レイドには兵隊アリが必要です（兵舎建設→兵隊雇用）', true); return; }
+    // v3: 種別を強制したい場合（'samurai' など）。beginRaidAttack の decideRaidBossType が読む
+    S._forceRaidKind = (kind === 'samurai' || kind === 'normal') ? kind : null;
     // 予告（10秒）で 予告→攻撃→結果 を確認できる（準備時間を取りやすい長さ）
     G.raidTimer = 10;
     S.raidVis.state = 'countdown';
     _raidPrevPhase = '';
-    toast('🧪 テスト用レイドを発生させました（予告→攻撃→結果）');
+    toast(kind === 'samurai' ? '🧪 テスト用：サムライアリの奴隷狩りを発生させました' : '🧪 テスト用レイドを発生させました（予告→攻撃→結果）');
     setRaidUI(true, '👁️ 警戒警報', '遠くに影が見える。兵隊を準備せよ。', `${Math.ceil(G.raidTimer)}s`);
   }
   window.__forceRaid = debugForceRaid;
@@ -16477,6 +16536,7 @@ function syncFermenterUnlockUI() {
               en.breachCounted = true;
               S.raidVis.breachedEnemies = (S.raidVis.breachedEnemies || 0) + 1;
               shake(dp(4), 0.18);
+              if(isSamuraiRaid() && S.full) fx(ex, sy - dp(8), "卵を奪われる!", "#fca5a5"); // v3: 略奪者が侵入
             }
           }
           en.fade = clamp(en.fade, 0, 1);
@@ -18543,10 +18603,18 @@ function syncFermenterUnlockUI() {
         ctx.beginPath(); ctx.ellipse(0,0,dp(3),dp(3),0,0,6.28); ctx.fill();
         ctx.beginPath(); ctx.ellipse(dp(5),0,dp(3.2),dp(3.2),0,0,6.28); ctx.fill();
 
-        ctx.strokeStyle = 'rgba(254, 202, 202, 0.8)';
-        ctx.lineWidth = dp(1);
-        ctx.beginPath(); ctx.moveTo(dp(8), -dp(1)); ctx.lineTo(dp(12), -dp(4)); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(dp(8), dp(1)); ctx.lineTo(dp(12), dp(4)); ctx.stroke();
+        if(en.kind === 'samurai') {
+          // v3: サムライアリ — 大きく湾曲した鎌状の大顎（戦闘特化の見た目）
+          ctx.strokeStyle = 'rgba(254, 226, 226, 0.95)';
+          ctx.lineWidth = dp(1.5);
+          ctx.beginPath(); ctx.moveTo(dp(7), -dp(1.6)); ctx.quadraticCurveTo(dp(14), -dp(5), dp(16.5), -dp(1)); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(dp(7),  dp(1.6)); ctx.quadraticCurveTo(dp(14),  dp(5), dp(16.5),  dp(1)); ctx.stroke();
+        } else {
+          ctx.strokeStyle = 'rgba(254, 202, 202, 0.8)';
+          ctx.lineWidth = dp(1);
+          ctx.beginPath(); ctx.moveTo(dp(8), -dp(1)); ctx.lineTo(dp(12), -dp(4)); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(dp(8), dp(1)); ctx.lineTo(dp(12), dp(4)); ctx.stroke();
+        }
 
         // Phase 7B-1: 被弾閃光（ダメージ時の白フラッシュ）
         if(en.hitFlash > 0) {
