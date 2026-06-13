@@ -7954,8 +7954,25 @@ function expandMap(forcedType, isEmergency) {
   // サムライアリ（精鋭の略奪者）。通常の兵種プール(RAID_ENEMY_KINDS)には入れず、奴隷狩り時のみ出す。
   const RAID_SAMURAI_KIND = { id:'samurai', label:'サムライアリ', spdMul:1.3, hpMul:1.6, sizeMul:1.18, tint:'#9f1239', weight:0, atk:2.0, pushThrough:0.4 };
   function isSamuraiRaid() { return !!(S.raidVis && S.raidVis.bossType === 'samurai'); }
+
+  // ===== レイド v3: クモの大型ボス（季節の天敵ボス・第2弾） =====
+  // 実在: クモはアリの代表的な天敵（カニグモ/アシダカ類等が地表の採餌アリを待ち伏せ・捕食）。
+  // ゲーム化: 稀に地表へ現れる単体の巨大ボス。HP特大・低速だが押し込み、噛みつき(範囲攻撃)で兵を一掃。
+  const RAID_SPIDER_MIN_WINS       = 3;    // 出現しうる戦績
+  const RAID_SPIDER_CHANCE         = 0.12; // 1回のレイドがクモになる確率（稀・季節問わず・実機で要調整）
+  const RAID_SPIDER_HP_MUL         = 1.6;  // 通常レイド総HPに対するボス1体のHP倍率
+  const RAID_SPIDER_LUNGE_CD       = 3.5;  // 噛みつきの間隔(秒)
+  const RAID_SPIDER_LUNGE_DMG      = 14;   // 噛みつき1回で各兵に与えるダメージ
+  const RAID_SPIDER_LUNGE_RADIUS   = 34;   // 噛みつきの範囲(dp適用前)
+  const RAID_SPIDER_LUNGE_MAX_HITS = 4;    // 1回の噛みつきで巻き込む最大兵数
+  const RAID_SPIDER_KIND = { id:'spider', label:'クモ', spdMul:0.7, sizeMul:2.2, tint:'#4a3528', atk:0.35, pushThrough:0.45 };
+  function isSpiderRaid() { return !!(S.raidVis && S.raidVis.bossType === 'spider'); }
+
   function decideRaidBossType() {
     if(S._forceRaidKind) { const k = S._forceRaidKind; S._forceRaidKind = null; return k; } // デバッグ強制
+    // v3: クモの大型ボス（稀・季節問わず）。サムライアリより優先で判定
+    if((G.raidWins || 0) >= RAID_SPIDER_MIN_WINS && Math.random() < RAID_SPIDER_CHANCE) return 'spider';
+    // v3: サムライアリの奴隷狩り（夏のみ）
     if(getCurrentSeason().id === 'summer' && (G.raidWins || 0) >= RAID_SAMURAI_MIN_WINS && Math.random() < RAID_SAMURAI_CHANCE) return 'samurai';
     return 'normal';
   }
@@ -11181,8 +11198,9 @@ function expandMap(forcedType, isEmergency) {
       const samuraiLine = (out.bossType === 'samurai')
         ? `⚔️ サムライアリの奴隷狩り\n` + ((out.eggsStolen || 0) > 0 ? `🥚 奪われた卵: ${out.eggsStolen}\n` : `🥚 卵を完全に守り切った！\n`)
         : '';
+      const spiderLine = (out.bossType === 'spider') ? `🕷️ 大型ボス: クモの襲撃\n` : '';
       combatLines =
-        samuraiLine + waveLine + repLine + compLine +
+        spiderLine + samuraiLine + waveLine + repLine + compLine +
         `撃破: ${sr.killedEnemies}/${sr.totalEnemies}\n` +
         `突破: ${sr.breachedEnemies}\n` +
         `残存: ${sr.livingEnemies}\n` +
@@ -11191,13 +11209,13 @@ function expandMap(forcedType, isEmergency) {
         (S._rallyUsedThisRaid ? `⚡ 応援の士気が兵を後押しした\n` : '');
     }
     if(out.win) {
-      raidResultTitleEl.textContent = (out.bossType === 'samurai') ? '🛡️ 奴隷狩りを撃退！' : '✅ 防衛成功';
+      raidResultTitleEl.textContent = (out.bossType === 'spider') ? '🕷️ クモを討伐！' : (out.bossType === 'samurai') ? '🛡️ 奴隷狩りを撃退！' : '✅ 防衛成功';
       raidResultBodyEl.textContent =
         combatLines +
         `戦利品: 食料 +${Math.floor(out.rewardFood || 0)} / クッキー +${Math.floor(out.rewardCookie || 0)}\n` +
         `兵隊アリは兵舎へ帰還中`;
     } else {
-      raidResultTitleEl.textContent = (out.bossType === 'samurai') ? '❌ 卵を奪われた…' : '❌ 防衛失敗';
+      raidResultTitleEl.textContent = (out.bossType === 'spider') ? '🕷️ 巣を荒らされた…' : (out.bossType === 'samurai') ? '❌ 卵を奪われた…' : '❌ 防衛失敗';
       raidResultBodyEl.textContent =
         combatLines +
         `被害: 働きアリ -${Math.floor(out.loseWorkers || 0)}\n` +
@@ -11276,12 +11294,116 @@ function expandMap(forcedType, isEmergency) {
     if(S.full) fx(ENX() + (Math.random()-0.5)*dp(20), S.full.sy - dp(6), '応援!', '#fcd34d');
   }
 
+  // v3: クモの大型ボスを単体スポーン（巨大HP。getRaidEnemyBaseHp で兵力に追従）
+  function spawnSpiderBoss() {
+    const enemyPower = getEnemyPower();
+    const nBudget = clamp(Math.floor(enemyPower / RAID_CFG.enemyUnitPower), RAID_CFG.enemyCountMin, RAID_CFG.enemyCountMax);
+    const perEnemyHp = getRaidEnemyBaseHp(enemyPower, nBudget);
+    const bossHp = Math.max(1, Math.floor(perEnemyHp * nBudget * RAID_SPIDER_HP_MUL));
+    const sy = S.full.sy;
+    const ex = ENX();
+    const side = (Math.random() < 0.5) ? -1 : 1;
+    const x0 = side < 0 ? -dp(50) : (S.full.w + dp(50));
+    const k = RAID_SPIDER_KIND;
+    S.enemies.push({
+      id: _raidEnemyIdSeq++,
+      x: x0, y: sy, side,
+      sp: dp(55) * k.spdMul,           // 低速ボス
+      phase: "approach", t: Math.random() * 10,
+      targetX: ex, fade: 1,
+      hp: bossHp, maxHp: bossHp, dead: false, hitFlash: 0,
+      kind: k.id, sizeMul: k.sizeMul, tint: k.tint,
+      atk: RAID_ENEMY_ATK_BASE * (k.atk || 1), pushThrough: k.pushThrough || 0,
+      lungeCd: RAID_SPIDER_LUNGE_CD, lungeFlash: 0, isBoss: true
+    });
+  }
+
+  // v3: クモの噛みつき（範囲攻撃）。数秒ごとに周囲の生存兵を最大 N 体まとめて負傷/戦死させる。
+  function tickSpiderLunge(en, dt) {
+    if(en.lungeFlash > 0) en.lungeFlash = Math.max(0, en.lungeFlash - dt * 2.5);
+    en.lungeCd = (en.lungeCd == null ? RAID_SPIDER_LUNGE_CD : en.lungeCd) - dt;
+    if(en.lungeCd > 0) return;
+    en.lungeCd = RAID_SPIDER_LUNGE_CD;
+    en.lungeFlash = 1;
+    if(!Array.isArray(S.raidSoldiers) || !S.raidSoldiers.length) return;
+    const r = dp(RAID_SPIDER_LUNGE_RADIUS);
+    const r2 = r * r;
+    let hits = 0;
+    for(const s of S.raidSoldiers) {
+      if(hits >= RAID_SPIDER_LUNGE_MAX_HITS) break;
+      if(!s || s.dead) continue;
+      const dx = s.x - en.x, dy = s.y - en.y;
+      if(dx * dx + dy * dy > r2) continue;
+      s.hp = (s.hp == null ? 0 : s.hp) - RAID_SPIDER_LUNGE_DMG;
+      hits++;
+      if(s.hp <= 0 && !s.dead) {
+        s.dead = true; s.targetEnemyId = null;
+        if(S.raidVis) S.raidVis.casualtyWeight = (S.raidVis.casualtyWeight || 0) + (s.weight || 1);
+      }
+    }
+    if(hits > 0) {
+      shake(dp(7), 0.3);
+      if(S.full) fx(en.x, en.y - dp(10), "ガブッ!", "#ef4444");
+    }
+  }
+
+  // v3: クモボスの描画（8本脚。antボディの代わり。translate/rotate/scale 済みのローカル座標で描く）
+  function drawRaidSpiderBody(ctx, en) {
+    const t = en.t || 0;
+    const col = en.tint || '#4a3528';
+    // 脚（左右4本ずつ）。歩行で軽く上下に揺れる。
+    ctx.strokeStyle = col;
+    ctx.lineWidth = dp(1.6);
+    ctx.lineCap = 'round';
+    for(let i = 0; i < 4; i++) {
+      const baseX = dp(-2 + i * 2.2);
+      const sway = Math.sin(t * 8 + i) * dp(1.3);
+      const reach = dp(9 + ((i === 1 || i === 2) ? 2 : 0));
+      ctx.beginPath();
+      ctx.moveTo(baseX, -dp(1.6));
+      ctx.lineTo(baseX + dp(3), -dp(5) - sway);
+      ctx.lineTo(baseX + dp(2), -reach - sway);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(baseX, dp(1.6));
+      ctx.lineTo(baseX + dp(3), dp(5) + sway);
+      ctx.lineTo(baseX + dp(2), reach + sway);
+      ctx.stroke();
+    }
+    // 腹部（後方・大きい）
+    ctx.fillStyle = col;
+    ctx.beginPath(); ctx.ellipse(dp(-5), 0, dp(6.5), dp(5.5), 0, 0, 6.28); ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.lineWidth = dp(0.8);
+    ctx.beginPath(); ctx.moveTo(dp(-8.5), 0); ctx.lineTo(dp(-2.5), 0); ctx.stroke();
+    // 頭胸部（前方・小さい）
+    ctx.fillStyle = col;
+    ctx.beginPath(); ctx.ellipse(dp(3), 0, dp(4), dp(3.6), 0, 0, 6.28); ctx.fill();
+    // 牙（前方）
+    ctx.strokeStyle = 'rgba(20,16,14,0.9)'; ctx.lineWidth = dp(1.4);
+    ctx.beginPath(); ctx.moveTo(dp(6), -dp(1.3)); ctx.lineTo(dp(8.6), -dp(0.3)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(dp(6),  dp(1.3)); ctx.lineTo(dp(8.6),  dp(0.3)); ctx.stroke();
+    // 眼
+    ctx.fillStyle = 'rgba(250,240,230,0.9)';
+    ctx.beginPath(); ctx.arc(dp(4.4), -dp(1.2), dp(0.7), 0, 6.28); ctx.fill();
+    ctx.beginPath(); ctx.arc(dp(4.4),  dp(1.2), dp(0.7), 0, 6.28); ctx.fill();
+    // 噛みつき中の赤フラッシュ
+    if(en.lungeFlash > 0) {
+      ctx.save();
+      ctx.globalAlpha *= clamp(en.lungeFlash, 0, 1);
+      ctx.fillStyle = 'rgba(239,68,68,0.45)';
+      ctx.beginPath(); ctx.ellipse(dp(-2), 0, dp(9), dp(7), 0, 0, 6.28); ctx.fill();
+      ctx.restore();
+    }
+  }
+
   // opts: { scale=1（enemyPower比）, extraBrute=0（重装の重み加算）, append=false（trueで既存配列に追加＝波状攻撃） }
   function spawnEnemies(opts) {
     opts = opts || {};
     const scale = (opts.scale != null) ? opts.scale : 1;
     const extraBrute = opts.extraBrute || 0;
     if(!opts.append) S.enemies = [];
+    // v3: クモの大型ボスは単体スポーン（巨大HPの1体。波・編成ロジックは通らない）
+    if(isSpiderRaid()) { spawnSpiderBoss(); return 1; }
     const enemyPower = getEnemyPower() * scale; // v2: 波の規模に応じてスケール
     // 描画体数（乱戦の物量）。多めに出して2陣営のぶつかり合いを見せる。
     const n = clamp(Math.floor(enemyPower / RAID_ENEMY_RENDER_UNIT_POWER), RAID_CFG.enemyCountMin, RAID_ENEMY_RENDER_COUNT_MAX);
@@ -11328,9 +11450,10 @@ function expandMap(forcedType, isEmergency) {
     const alpha = clamp(en.fade == null ? 1 : en.fade, 0, 1);
     if(alpha <= 0) return;
     const ratio = clamp((en.hp || 0) / en.maxHp, 0, 1);
-    const w = dp(18), h = dp(3);
+    const boss = !!en.isBoss; // v3: 大型ボスは目立つ大きなHPバー
+    const w = boss ? dp(52) : dp(18), h = boss ? dp(5) : dp(3);
     const x = en.x - w / 2;
-    const y = en.y - dp(18);
+    const y = en.y - (boss ? dp(38) : dp(18));
     ctx.save();
     ctx.globalAlpha *= alpha;
     ctx.fillStyle = "rgba(15,23,42,0.85)";
@@ -11835,8 +11958,8 @@ function expandMap(forcedType, isEmergency) {
     // v3: この襲撃の種別（通常 / サムライアリの奴隷狩り）を確定。spawnEnemies が参照するので先に決める
     S.raidVis.bossType = decideRaidBossType();
     S.raidVis.eggsStolen = 0;
-    // v2: 波状攻撃 — この襲撃のウェーブ数を確定し、第1波だけ先に出す
-    S.raidVis.waveCount = getRaidWaveCount();
+    // v2: 波状攻撃 — この襲撃のウェーブ数を確定し、第1波だけ先に出す（v3: クモは単体ボス＝1波固定）
+    S.raidVis.waveCount = isSpiderRaid() ? 1 : getRaidWaveCount();
     S.raidVis.waveIndex = 0;
     S.raidVis.waveLull = null;
     spawnEnemies({ scale: getRaidWaveScale(0, S.raidVis.waveCount) }); // 第1波（append無し＝配列リセット）
@@ -11859,6 +11982,9 @@ function expandMap(forcedType, isEmergency) {
       setRaidUI(true, "⚔️ サムライアリの奴隷狩り！",
         wc > 1 ? `卵を狙う略奪者が波状に来る…全${wc}波！突破させると卵を奪われる！` : "卵を狙う略奪者だ。突破させるな…卵を奪われるぞ！",
         wc > 1 ? `波 1/${wc}` : "略奪");
+    } else if(isSpiderRaid()) {
+      addQueenWhisper('大きな影が…クモよ！採餌のアリが狙われてる。兵隊で討ち取って！');
+      setRaidUI(true, "🕷️ 巨大なクモが現れた！", "地表に大型の捕食者。兵隊で群がって討伐せよ！", "BOSS");
     } else {
       setRaidUI(true, "⚔️ 襲撃開始", wc > 1 ? `敵アリが波状に押し寄せる…全${wc}波！` : "地表から敵アリが雪崩れ込む…！", wc > 1 ? `波 1/${wc}` : "ATTACK");
     }
@@ -11901,6 +12027,7 @@ function expandMap(forcedType, isEmergency) {
     }
     // v3: サムライアリの奴隷狩りは「卵の強奪」で被害を表す。通常の卵倍率減を切って二重減算を防ぐ
     const samurai = isSamuraiRaid();
+    const spider = isSpiderRaid();
     if(samurai) out.eggMul = 1;
     const modalOut = { win: !!out.win, rewardFood: 0, rewardCookie: 0, loseWorkers: 0, winProb: out.winProb || 0, surfaceResult: out.surfaceResult || null };
 
@@ -11928,13 +12055,21 @@ function expandMap(forcedType, isEmergency) {
         addCookie(bonus); rewardCookie += bonus;
         addQueenWhisper('サムライアリを追い返したわ！誇らしい子たち');
       }
+      // v3: クモの大型ボス討伐は大報酬（稀＝高難度に見合う）
+      if(spider) {
+        const fb = Math.floor((out.rewardFood || 0) * 0.5);
+        const cb = 30 + Math.floor(Math.random() * 21);
+        G.food += fb; rewardFood += fb; addCookie(cb); rewardCookie += cb;
+        addQueenWhisper('やったわ…！あの大グモを討ち取った。あなたたちは本当に強い');
+      }
       modalOut.rewardFood = rewardFood;
       modalOut.rewardCookie = rewardCookie;
       const cookieMsg = (rewardCookie > 0) ? ` クッキー+${rewardCookie}` : "";
-      toast((samurai ? `🛡️ 奴隷狩りを撃退！略奪者から戦利品を奪い返した。(食料+${rewardFood}${cookieMsg})` : `防衛成功！敵を撃退しました。(食料+${rewardFood}${cookieMsg})`) + (isFirstWin ? ' 🏆初勝利ボーナス!' : ''));
-      fx(ENX(), S.full.sy - dp(10), samurai ? "REPELLED!" : "DEFENDED!", "#fff");
-      shake(dp(4), 0.25);
-      setRaidUI(true, samurai ? "🛡️ 奴隷狩りを撃退！" : "✅ 防衛成功", samurai ? "略奪者を退けた。卵の被害は結果で確認を。" : "巣は守られた。次の襲撃に備えよ。", "OK");
+      const winHead = spider ? "🕷️ 大グモを討伐！" : samurai ? "🛡️ 奴隷狩りを撃退！略奪者から戦利品を奪い返した。" : "防衛成功！敵を撃退しました。";
+      toast(`${winHead}(食料+${rewardFood}${cookieMsg})` + (isFirstWin ? ' 🏆初勝利ボーナス!' : ''));
+      fx(ENX(), S.full.sy - dp(10), spider ? "SLAIN!" : samurai ? "REPELLED!" : "DEFENDED!", "#fff");
+      shake(spider ? dp(7) : dp(4), spider ? 0.4 : 0.25);
+      setRaidUI(true, spider ? "🕷️ クモを討伐！" : samurai ? "🛡️ 奴隷狩りを撃退！" : "✅ 防衛成功", spider ? "大型の捕食者を退けた。巣は守られた。" : samurai ? "略奪者を退けた。卵の被害は結果で確認を。" : "巣は守られた。次の襲撃に備えよ。", "OK");
     } else {
       G.ants.worker = Math.max(0, G.ants.worker - out.loseWorkers);
       clampGoldenCount();
@@ -11942,10 +12077,10 @@ function expandMap(forcedType, isEmergency) {
       G.eggs = Math.floor(G.eggs * out.eggMul);
       G.goldenEggs = Math.min(Math.max(0, Math.floor(G.goldenEggs || 0)), Math.floor(G.eggs || 0));
       modalOut.loseWorkers = out.loseWorkers || 0;
-      toast(`敗北... 働きアリ${out.loseWorkers}匹と資源を失いました`, true);
-      fx(S.full.nodes[S.full.qid].x, S.full.nodes[S.full.qid].y, "BREACH!", "#ef4444");
+      toast(spider ? `クモに巣を荒らされた…働きアリ${out.loseWorkers}匹が餌食に` : `敗北... 働きアリ${out.loseWorkers}匹と資源を失いました`, true);
+      fx(S.full.nodes[S.full.qid].x, S.full.nodes[S.full.qid].y, spider ? "EATEN!" : "BREACH!", "#ef4444");
       shake(dp(12), 0.6);
-      setRaidUI(true, "❌ 防衛失敗", "資源が奪われた…兵隊と兵舎を整えよ。", "LOSS");
+      setRaidUI(true, spider ? "🕷️ 巣を荒らされた…" : "❌ 防衛失敗", spider ? "大グモが暴れ回った…兵隊を増やして備えよ。" : "資源が奪われた…兵隊と兵舎を整えよ。", "LOSS");
       normalizeInventories();
     }
 
@@ -15055,12 +15190,12 @@ function syncFermenterUnlockUI() {
     if(S.raidVis.state !== 'none') { toast('レイドは既に進行中です'); return; }
     if((G.ants.soldier || 0) <= 0) { toast('テスト用レイドには兵隊アリが必要です（兵舎建設→兵隊雇用）', true); return; }
     // v3: 種別を強制したい場合（'samurai' など）。beginRaidAttack の decideRaidBossType が読む
-    S._forceRaidKind = (kind === 'samurai' || kind === 'normal') ? kind : null;
+    S._forceRaidKind = (kind === 'samurai' || kind === 'normal' || kind === 'spider') ? kind : null;
     // 予告（10秒）で 予告→攻撃→結果 を確認できる（準備時間を取りやすい長さ）
     G.raidTimer = 10;
     S.raidVis.state = 'countdown';
     _raidPrevPhase = '';
-    toast(kind === 'samurai' ? '🧪 テスト用：サムライアリの奴隷狩りを発生させました' : '🧪 テスト用レイドを発生させました（予告→攻撃→結果）');
+    toast(kind === 'spider' ? '🧪 テスト用：クモの大型ボスを発生させました' : kind === 'samurai' ? '🧪 テスト用：サムライアリの奴隷狩りを発生させました' : '🧪 テスト用レイドを発生させました（予告→攻撃→結果）');
     setRaidUI(true, '👁️ 警戒警報', '遠くに影が見える。兵隊を準備せよ。', `${Math.ceil(G.raidTimer)}s`);
   }
   window.__forceRaid = debugForceRaid;
@@ -16517,6 +16652,8 @@ function syncFermenterUnlockUI() {
             en.fade = clamp(en.fade, 0, 1);
             return;
           }
+          // v3: クモボスの噛みつき（範囲攻撃）。生存中のみ毎フレーム判定。
+          if(en.kind === 'spider') tickSpiderLunge(en, dt);
           if(en.phase === "approach" || en.phase === "breach") {
             // Phase 7B-4: 交戦中は前進が鈍る（兵隊が足止め＝膠着感）。複数兵でほぼ停止。
             const held = en.engagedBy || 0;
@@ -18598,6 +18735,9 @@ function syncFermenterUnlockUI() {
         ctx.rotate(dir);
         if(en.sizeMul && en.sizeMul !== 1) ctx.scale(en.sizeMul, en.sizeMul); // v1: 兵種で体格を変える
 
+        if(en.kind === 'spider') {
+          drawRaidSpiderBody(ctx, en); // v3: クモボス（8本脚の捕食者）
+        } else {
         ctx.fillStyle = en.tint || '#7f1d1d';
         ctx.beginPath(); ctx.ellipse(-dp(6),0,dp(4.8),dp(3.4),0,0,6.28); ctx.fill();
         ctx.beginPath(); ctx.ellipse(0,0,dp(3),dp(3),0,0,6.28); ctx.fill();
@@ -18614,6 +18754,7 @@ function syncFermenterUnlockUI() {
           ctx.lineWidth = dp(1);
           ctx.beginPath(); ctx.moveTo(dp(8), -dp(1)); ctx.lineTo(dp(12), -dp(4)); ctx.stroke();
           ctx.beginPath(); ctx.moveTo(dp(8), dp(1)); ctx.lineTo(dp(12), dp(4)); ctx.stroke();
+        }
         }
 
         // Phase 7B-1: 被弾閃光（ダメージ時の白フラッシュ）

@@ -1,5 +1,22 @@
 # Development Log
 
+## 2026-06-14 Raid v3 boss #2: クモの大型ボス (giant spider boss)
+
+User idea: a rare **large surface boss** — a spider (real ecology: spiders are classic ant predators that ambush surface foragers). Chosen framing (user pick): a **special raid** reusing the bossType pipeline, but as a **single boss** rather than a swarm — contrast to the samurai horde.
+
+Trigger / identity:
+- `decideRaidBossType()` now checks spider FIRST: `'spider'` when `G.raidWins ≥ RAID_SPIDER_MIN_WINS 3` && `rand < RAID_SPIDER_CHANCE 0.12` (rare, any season), else the summer samurai check, else normal.
+- `beginRaidAttack` forces `waveCount=1` for spider (no waves of one boss). `spawnEnemies` short-circuits: `if(isSpiderRaid()){ spawnSpiderBoss(); return 1; }`.
+- `spawnSpiderBoss()`: ONE enemy, `RAID_SPIDER_KIND` (spd 0.7 / sizeMul 2.2 / pushThrough 0.45 / atk 0.35 / `#4a3528`, `isBoss:true`), `hp = perEnemyHp × nBudget × RAID_SPIDER_HP_MUL 1.6` (~1.6× a normal raid's total HP, in one body; still army-scaled through `getRaidEnemyBaseHp`).
+- Drawn as an 8-leg spider (`drawRaidSpiderBody`: animated gait, cephalothorax+abdomen, fangs, eyes, red `lungeFlash` pulse) instead of the ant body. HP bar widens for `en.isBoss` (`drawRaidEnemyHpBar`) → a real boss bar.
+
+Signature mechanic — lunge bite (`tickSpiderLunge`, called per-frame for the living spider in the attack tick):
+- Every `RAID_SPIDER_LUNGE_CD 3.5`s, bites up to `RAID_SPIDER_LUNGE_MAX_HITS 4` soldiers within `dp(RAID_SPIDER_LUNGE_RADIUS 34)` for `RAID_SPIDER_LUNGE_DMG 14` each (dead soldiers → `casualtyWeight`), with `ガブッ!` fx + shake + red flash. Continuous atk is deliberately LOW (0.35) so the swarm survives between lunges — the telegraphed burst is the danger, not proximity. (A single high-atk boss engaged by the whole army would otherwise shred it instantly, since every engager takes its atk/s.)
+
+Resolve: reuses standard single-enemy win/lose (kill = all_killed win; breach = loss → existing breach-ratio worker loss reads as the spider rampaging). Win = big reward (food +50% of base, cookies +30–50) + queen whisper; distinct intro/result/titles for both outcomes.
+
+Runtime-only state (`S.raidVis.bossType`, spider enemy fields) — no save migration. Debug: `window.__forceRaid('spider')` (any season). Verification: loads, no console errors/warnings; G/S/canvas/`__forceRaid` present (full IIFE parsed — incl. the manual brace-wrap in the enemy draw). rAF can't run the raid loop headless → **device playtest required**; tune `RAID_SPIDER_HP_MUL` / `_KIND.atk` / `_LUNGE_*` (boss too tanky→lower HP mul; army melts→lower lunge dmg or raise CD). Next v3: モグラ (underground boss), 梅雨の浸水 (flood disaster).
+
 ## 2026-06-14 Raid v3 boss #1: サムライアリの奴隷狩り (Amazon-ant slave raid)
 
 First of the v3 seasonal-predator bosses. Real ecology: サムライアリ (Polyergus) raid host-ant nests in summer and carry off brood (pupae/larvae) to raise as slaves. Game translation (2-layer rule): a summer special raid that **steals eggs** on breach. Reuses the whole v1/v2 raid+wave pipeline — additive, low new-surface.
