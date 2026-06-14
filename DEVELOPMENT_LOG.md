@@ -1,5 +1,19 @@
 # Development Log
 
+## 2026-06-14 モグラ v2: digging approach + realistic redraw + room-collapse on loss
+
+User feedback on the mole: make it more realistic, have it **dig in** (kick up dust, advance steadily toward the room), fight hard, and **destroy the room** if you lose. All in `index.html`, runtime/visual only.
+
+**Dig approach (two phases).** The mole now spawns **offset in the soil** (`MOLE_DIG_OFFSET 210`dp to the outer/queen-away side of the target room, clamped to world) in a new `phase:'dig'`, and tunnels toward the room at `MOLE_DIG_SPEED 34`dp/s — kicking up `dust()` (土埃) front+back each frame + a faint `shake` (地響き), facing its travel direction. On arrival it switches to `phase:'raid'` (resets `lifeT`/`dmgTimer`), bursts dust, "部屋に侵入！" toast + shake, and the in-room fight begins. The timeout clock (`lifeT`) only runs during `raid`, so the dig is free prep time to gather soldiers. Soldier DPS (`applyMoleSoldierDPS`, extracted helper) applies in both phases, so soldiers waiting at the room start biting as it breaches. `spawnMole` warning reworded to "地中から接近中".
+
+**Realistic redraw** (`drawMoleInvader`): elongated cylindrical velvety body (radial-gradient volume + horizontal fur-flow highlights + rim fuzz), short tail + hind foot, conical head, **pointed pink snout** (gradient) with two nostrils + whiskers, vestigial eye, and **large pale spade-shaped digging paws** with 5 claws that scratch faster/harder while digging (`t*13` vs `t*7`). Faster body bob during dig. Time-left gauge only shows in `raid` phase.
+
+**Room collapse on loss** (the big new penalty). On timeout, `collapseMoleRoom(room)`: subtracts the room's held eggs/larvae/food/cookie from the `G` totals (truly lost), zeroes its inventory, sets `_origType` + `type='rubble'` + `collapsed=true`, re-clamps golden eggs, `G.recalc()` + `normalizeInventories()`. `rubble` is excluded from `isCountedRoomType` (no caps/room-count contribution) and labeled 崩落跡 — the room stops functioning. **Passage is kept** (no node/edge removal) so the nest never strands. Rendered by `drawCollapsedRoom` (early-out in the node draw loop): the chamber is filled with dark dirt (`fillBlobPath`) + rubble dots + cracks over the cached cave, reading as caved-in.
+
+**Critical fix found in testing.** Force-collapsing every room let the mole target & collapse the **queen room** → the worker-AI target query (`food||queen` visible rooms) went empty → `t.id` on undefined crashed `updateAnts` every frame. Fixes: (1) `spawnMole` fallback candidates now exclude `queen`/`rubble`; (2) `collapseMoleRoom` hard-guards `queen`/`entrance`/`shaft`; (3) defensive `if(t)` at the worker target site. Verified: a mole collapses a food/nursery room into rubble with the queen untouched and **no crash**; recovered the corrupted preview save via `_origType`.
+
+Verification (preview): dig phase spawns offset and tunnels in with dust; realistic mole renders (snout/claws/fur clear); collapse turns the room to rubble, queen protected, `caps.food` drops on recalc, no console errors post-fix. Tunables: `MOLE_DIG_SPEED`/`_OFFSET`, collapse severity (it's a whole room — may be too harsh; dial via gating or by sparing the last food/nursery if needed). Device playtest for feel. Next v3: 梅雨の浸水 (flood disaster).
+
 ## 2026-06-14 Raid v3 boss #3: モグラ (mole — underground predator boss)
 
 Third v3 boss, and the first **underground** one (spider/samurai are surface raids). Real ecology: moles are major subterranean predators that devour ants + brood and wreck chambers. Framing (user pick): an underground boss fought with **soldiers auto-swarming + player taps**. Built by extending the existing 地下侵入者 (centipede/mite) pipeline rather than the surface-raid pipeline — the mole lives in `S.invaders` with `isBoss:true`, which gives it the pests' soldier-pathing and tap-targeting for free.
