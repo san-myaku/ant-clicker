@@ -3540,15 +3540,15 @@
   const MOLE_SPAWN_MAX       = 480;  // 〃 最長
   const MOLE_CHANCE          = 0.6;  // タイマー満了時に実際に出現する確率(外れたら再抽選)
   const MOLE_DURATION        = 28;   // 滞在秒(これを超えると大食いして去る=防衛失敗)
-  const MOLE_DMG_INTERVAL    = 2.4;  // 捕食の間隔(秒)
-  const MOLE_EAT_ANTS        = 3;    // 1回の捕食で食う働きアリ
-  const MOLE_EAT_EGGS        = 5;    // 〃 卵
-  const MOLE_EAT_LARVAE      = 1;    // 〃 幼虫
+  const MOLE_DMG_INTERVAL    = 1.2;  // 捕食の間隔(秒・倍速)
+  const MOLE_EAT_ANTS        = 6;    // 1回の捕食で食う働きアリ
+  const MOLE_EAT_EGGS        = 10;   // 〃 卵
+  const MOLE_EAT_LARVAE      = 2;    // 〃 幼虫
   const MOLE_ESCAPE_EAT_MUL  = 3;    // 時間切れで去る時の最終大食い倍率
   const MOLE_TAP_DMG         = 3;    // タップ1回のダメージ
   const MOLE_SOLDIER_DPS     = 1.6;  // 近接兵隊1体あたりの毎秒ダメージ
   const MOLE_ENGAGE_RADIUS   = 72;   // 兵隊が齧りつく距離(dp適用前)
-  const MOLE_HP_BASE         = 96;   // 基本HP（倍）
+  const MOLE_HP_BASE         = 192;  // 基本HP（さらに倍）
   const MOLE_HP_PER_SOLDIER  = 2.2;  // 兵隊数に応じたHP加算(兵が多いほど強いモグラ=撃破時間をほぼ一定に)
   const MOLE_REWARD_FOOD     = 260;  // 撃退報酬: 食料
   const MOLE_REWARD_COOKIE   = 22;   // 撃退報酬: クッキー
