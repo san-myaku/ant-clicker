@@ -1,5 +1,27 @@
 # Development Log
 
+## 2026-06-14 Raid v3 boss #3: モグラ (mole — underground predator boss)
+
+Third v3 boss, and the first **underground** one (spider/samurai are surface raids). Real ecology: moles are major subterranean predators that devour ants + brood and wreck chambers. Framing (user pick): an underground boss fought with **soldiers auto-swarming + player taps**. Built by extending the existing 地下侵入者 (centipede/mite) pipeline rather than the surface-raid pipeline — the mole lives in `S.invaders` with `isBoss:true`, which gives it the pests' soldier-pathing and tap-targeting for free.
+
+Trigger / identity:
+- Spawn roll in `updateInvaders`: when no boss is active and `visRooms ≥ MOLE_MIN_ROOMS 6` && `band.index ≥ MOLE_MIN_DEPTH 4` && `raidWins ≥ MOLE_MIN_WINS 1`, a `S.moleTimer` (`MOLE_SPAWN_MIN 240`–`MOLE_SPAWN_MAX 480`s) counts down; on fire, `Math.random() < MOLE_CHANCE 0.6` → `spawnMole()` (else re-roll). One mole at a time.
+- `spawnMole(force)` erupts from the deepest visible nursery/food room (fallback any visible room). `hp = MOLE_HP_BASE 48 + soldiers × MOLE_HP_PER_SOLDIER 2.2` (HP scales with the army so kill-time stays ~flat regardless of size), `size 4`, faces the queen. Warning toast + queen whisper + big shake. Runtime-only (`S.invaders` isn't serialized) — no save migration.
+
+Combat — **soldiers + tap** (hybrid the user chose):
+- Soldiers: reuse the existing `hunt_invader` task to path to the mole's room; on arrival, if `inv.isBoss` they switch to a new `engage_mole` task that keeps them clustered on the mole (instead of the pests' hit-and-leave). `idle` soldiers now prefer the mole (50% vs the 15% pest hunt). Damage is applied **centrally** in `updateMoleInvader`: it counts soldiers within `dp(MOLE_ENGAGE_RADIUS 72)` and does `near × MOLE_SOLDIER_DPS 1.6 × dt` (+ occasional `ガジッ` fx). This avoids per-soldier attack plumbing and scales smoothly with the swarm.
+- Tap: `hitInvader` branches on `isBoss` → `MOLE_TAP_DMG 3` per tap (vs 1 for pests) via the existing `tryHitInvaderAt` pointer path.
+
+Threat (`moleEat`, every `MOLE_DMG_INTERVAL 2.4`s): devours `MOLE_EAT_ANTS 3` workers (+`clampGoldenCount`), `MOLE_EAT_EGGS 5` eggs, `MOLE_EAT_LARVAE 1` larva, and gnaws room food, with `アリ-N`/`卵-N` fx + shake.
+
+Resolve (`updateMoleInvader` returns true → spliced from `S.invaders`):
+- **Driven off** (hp ≤ 0): `+MOLE_REWARD_FOOD 260` / `+MOLE_REWARD_COOKIE 22`, queen whisper, burrows away in a dust burst.
+- **Timeout** (`lifeT ≥ MOLE_DURATION 28`s): a final `MOLE_ESCAPE_EAT_MUL 3`× chomp, "巣を食い荒らして去った" toast/whisper + `normalizeInventories()`. Heavy but recoverable (not game-over).
+
+Render: `drawMoleInvader` (early-out at the top of the invader draw loop) — side-profile mole (dark fur body, pink pointed snout + nostrils + whiskers, tiny eye, big pale scratching digging claws, soil mound, danger aura, hit flash), `ctx.scale(face,1)` for facing. Boss HP bar + a yellow **time-left** gauge drawn in world space above it.
+
+Debug: dev-mode `🦫モグラ` button (`#dev-mole`, wired in `_activateDevMode`) + `window.__forceMole()` (both bypass gating). Verification: forced a mole in preview — renders correctly, soldiers stream in and swarm it, eat fx + HP/timer bars fire, and a 15–18-soldier army killed it in seconds (reward path ran). Note: `S.timeScale=0` does NOT freeze the game (`dtRaw * (S.timeScale || 1)` treats 0 as 1) — used huge HP to hold it for the screenshot instead. Numbers (`MOLE_*`) are first-pass; device playtest to tune HP/DPS/eat-rate/duration. Next v3: 梅雨の浸水 (flood disaster).
+
 ## 2026-06-14 Dev-mode raid triggers + FPS overlay, samurai result-text fixes, spider visual rework (3× side-profile)
 
 Three polish passes (all `index.html`, runtime/visual only — no save migration):

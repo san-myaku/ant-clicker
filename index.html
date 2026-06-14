@@ -2749,6 +2749,7 @@
           <button class="btn-up-sm" id="btn-dev-raid-normal" style="width:60px;">🐜<br>通常</button>
           <button class="btn-up-sm" id="btn-dev-raid-samurai" style="width:60px;">⚔️<br>奴隷狩り</button>
           <button class="btn-up-sm" id="btn-dev-raid-spider" style="width:60px;">🕷️<br>クモ</button>
+          <button class="btn-up-sm" id="btn-dev-mole" style="width:60px;">🦫<br>モグラ</button>
         </div>
         <div class="row-group" id="normal-tools">
           <button class="btn" id="btn-render-settings-pub" style="flex:1;">描画設定</button>
@@ -3526,6 +3527,31 @@
   ];
   const INVADER_MAX_ACTIVE = 3;
   const INVADER_DMG_INTERVAL = 2.0; // 秒ごとにダメージ
+
+  // ===== レイドv3 ボス#3: モグラ（地下の捕食者ボス） =====
+  // 実在: モグラは地中の捕食者でアリ・卵・幼虫を大量に食べ、巣のチャンバーを掘り崩す代表的な天敵。
+  // ゲーム化(2層ルール): 地表レイド(クモ/サムライ)とは別系統の「地下ボス」。土壁を破って侵入し、
+  // 滞在中アリ・卵・幼虫をむさぼる。兵隊が自動で群がって齧りつき＋プレイヤーのタップで追加ダメージ。
+  // 撃退できれば報酬、時間切れなら大量に食って土へ去る(全滅ではなく回復可能)。S.invaders に isBoss で格納。
+  const MOLE_MIN_ROOMS       = 6;    // 解放: 可視部屋数
+  const MOLE_MIN_DEPTH       = 4;    // 解放: 深度(band.index)
+  const MOLE_MIN_WINS        = 1;    // 解放: レイド勝利回数(中盤以降)
+  const MOLE_SPAWN_MIN       = 240;  // 出現抽選の最短間隔(秒・稀)
+  const MOLE_SPAWN_MAX       = 480;  // 〃 最長
+  const MOLE_CHANCE          = 0.6;  // タイマー満了時に実際に出現する確率(外れたら再抽選)
+  const MOLE_DURATION        = 28;   // 滞在秒(これを超えると大食いして去る=防衛失敗)
+  const MOLE_DMG_INTERVAL    = 2.4;  // 捕食の間隔(秒)
+  const MOLE_EAT_ANTS        = 3;    // 1回の捕食で食う働きアリ
+  const MOLE_EAT_EGGS        = 5;    // 〃 卵
+  const MOLE_EAT_LARVAE      = 1;    // 〃 幼虫
+  const MOLE_ESCAPE_EAT_MUL  = 3;    // 時間切れで去る時の最終大食い倍率
+  const MOLE_TAP_DMG         = 3;    // タップ1回のダメージ
+  const MOLE_SOLDIER_DPS     = 1.6;  // 近接兵隊1体あたりの毎秒ダメージ
+  const MOLE_ENGAGE_RADIUS   = 72;   // 兵隊が齧りつく距離(dp適用前)
+  const MOLE_HP_BASE         = 48;   // 基本HP
+  const MOLE_HP_PER_SOLDIER  = 2.2;  // 兵隊数に応じたHP加算(兵が多いほど強いモグラ=撃破時間をほぼ一定に)
+  const MOLE_REWARD_FOOD     = 260;  // 撃退報酬: 食料
+  const MOLE_REWARD_COOKIE   = 22;   // 撃退報酬: クッキー
 
   const MILESTONES = [10, 25, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000];
   const TOAST_MILESTONE_COOLDOWN = 2.0;
@@ -6200,8 +6226,9 @@ function ensureRestSlots(n){
     antCrowd: null, antCrowdAtlas: null,
     enemies: [],
     raidSoldiers: [],    // Phase 7B-2: 地表レイドの兵隊アリ（表示演出用・ランタイム専用・非保存）
-    invaders: [],        // 地下侵略者（害虫）
+    invaders: [],        // 地下侵略者（害虫）。モグラ(ボス)も isBoss:true でここに入る
     invaderTimer: 60,    // 次の害虫出現までのカウントダウン
+    moleTimer: 200,      // 次のモグラ(地下ボス)出現抽選までのカウントダウン
     // 大物運搬イベント（ランタイム専用・非保存）
     largeFood: null,     // 出現中の大きな餌（1個まで）。null=なし
     largeFoodTimer: 30,  // 次の出現抽選までのカウントダウン秒（初回は短め）
@@ -11104,9 +11131,11 @@ function expandMap(forcedType, isEmergency) {
         else if(a.task==='hunt_invader') {
           move(a,dt);
           if(a.phase==='done') {
-            // 部屋に到着 → 害虫を攻撃
+            // 部屋に到着 → 害虫を攻撃（モグラ=ボスなら齧りつき続ける）
             const inv = S.invaders.find(v => v.roomId === a.node);
-            if(inv) {
+            if(inv && inv.isBoss) {
+              a.task = 'engage_mole';
+            } else if(inv) {
               hitInvader(inv);
               a.task = 'idle'; // 次フレームでまた判定
             } else {
@@ -11114,9 +11143,29 @@ function expandMap(forcedType, isEmergency) {
             }
           }
         }
+        else if(a.task==='engage_mole') {
+          // モグラに張り付いて齧りつく（実ダメージは updateMoleInvader が近接兵を集計）
+          const mole = S.invaders.find(v => v.isBoss);
+          if(!mole) { a.task='idle'; }
+          else if(Math.hypot(mole.x - a.x, mole.y - a.y) > dp(MOLE_ENGAGE_RADIUS)) {
+            a.path = getPath(a.node, mole.roomId);
+            if(a.path) { a.task='hunt_invader'; a.pIdx=0; a.phase='path'; }
+            else a.task='idle';
+          } else {
+            a.x += (mole.x - a.x) * 0.6 * dt + (Math.random()-0.5) * dp(5) * dt;
+            a.y += (mole.y - a.y) * 0.6 * dt + (Math.random()-0.5) * dp(5) * dt;
+          }
+        }
         else if(a.task==='idle') {
+          // モグラ(ボス)がいれば最優先で群がる
+          const mole = S.invaders.find(v => v.isBoss);
+          if(mole && mole.roomId != null && Math.random() < 0.5) {
+            a.path = getPath(a.node, mole.roomId);
+            if(a.path) { a.task='hunt_invader'; a.pIdx=0; a.phase='path'; }
+            else wander(a);
+          }
           // 害虫がいれば駆除に向かう
-          if(S.invaders.length > 0 && Math.random() < 0.15) {
+          else if(S.invaders.length > 0 && Math.random() < 0.15) {
             const inv = S.invaders[Math.floor(Math.random() * S.invaders.length)];
             if(inv && inv.roomId != null) {
               a.path = getPath(a.node, inv.roomId);
@@ -12484,9 +12533,24 @@ function expandMap(forcedType, isEmergency) {
         S.invaderTimer *= seasonMul;
       }
     }
+    // モグラ(地下ボス)の出現抽選（1体まで・中盤以降・稀）
+    if(!S.invaders.some(v => v.isBoss)) {
+      const moleOk = visRooms >= MOLE_MIN_ROOMS
+        && (S.band && S.band.index >= MOLE_MIN_DEPTH)
+        && (G.raidWins || 0) >= MOLE_MIN_WINS;
+      if(moleOk) {
+        S.moleTimer -= dt;
+        if(S.moleTimer <= 0) {
+          if(Math.random() < MOLE_CHANCE) spawnMole();
+          S.moleTimer = MOLE_SPAWN_MIN + Math.random() * (MOLE_SPAWN_MAX - MOLE_SPAWN_MIN);
+        }
+      }
+    }
     // 各侵略者のダメージ処理
     for(let i = S.invaders.length - 1; i >= 0; i--) {
       const inv = S.invaders[i];
+      // モグラ(ボス)は専用ロジック。trueが返ったら撃退/逃走で除去
+      if(inv.isBoss) { if(updateMoleInvader(inv, dt)) S.invaders.splice(i, 1); continue; }
       inv.anim += dt;
       if(inv._hitFlash > 0) inv._hitFlash = Math.max(0, inv._hitFlash - dt * 3);
       inv.dmgTimer += dt;
@@ -12535,6 +12599,15 @@ function expandMap(forcedType, isEmergency) {
 
   function hitInvader(inv) {
     if(!inv) return;
+    // モグラ(ボス)はタップで大きめダメージ
+    if(inv.isBoss) {
+      inv.hp -= MOLE_TAP_DMG;
+      inv._hitFlash = 0.6;
+      shake(dp(2), 0.15);
+      fx(inv.x + (Math.random()-0.5)*dp(20), inv.y - dp(8), `-${MOLE_TAP_DMG}`, '#ef4444');
+      for(let j = 0; j < 4; j++) dust(inv.x + (Math.random()-0.5)*dp(20), inv.y + (Math.random()-0.5)*dp(14));
+      return;
+    }
     inv.hp--;
     inv._hitFlash = 0.6; // ダメージフラッシュ
     shake(dp(2), 0.15);
@@ -12552,6 +12625,206 @@ function expandMap(forcedType, isEmergency) {
       }
     }
     return false;
+  }
+
+  // ===== モグラ(地下ボス) =====
+  function spawnMole(force) {
+    if(!S.full) return;
+    if(S.invaders.some(v => v.isBoss)) { if(force) toast('モグラは既に出現中です'); return; }
+    // 出現部屋: 可視の育児室/食料庫の深い方を優先（なければ任意の可視部屋）
+    let candidates = S.full.nodes.filter((n,i) => S.nodeVis[i] && (n.type === 'nursery' || n.type === 'food'));
+    if(candidates.length === 0) candidates = S.full.nodes.filter((n,i) => S.nodeVis[i] && n.type !== 'shaft' && n.type !== 'entrance');
+    if(candidates.length === 0) return;
+    candidates.sort((a,b) => b.y - a.y); // 深い順
+    const room = candidates[Math.floor(Math.random() * Math.min(3, candidates.length))];
+    const soldiers = Math.max(0, Math.floor(G.ants.soldier || 0));
+    const hp = Math.max(1, Math.round(MOLE_HP_BASE + soldiers * MOLE_HP_PER_SOLDIER));
+    const qx = (S.full.nodes[S.full.qid] || room).x;
+    S.invaders.push({
+      id: S.t + Math.random(),
+      type: 'mole', isBoss: true, label: 'モグラ', icon: '🦫',
+      hp, maxHp: hp, roomId: room.id,
+      x: room.x, y: room.y,
+      face: (room.x > qx) ? -1 : 1,    // 女王の方を向く
+      dmgTimer: 0, lifeT: 0, anim: Math.random() * 10, digT: 0,
+      color: '#4b4038', size: 4, _hitFlash: 0,
+    });
+    toast(`🦫 モグラが${roomLabel(room.type)}を破って侵入！兵隊で追い払え！`, true);
+    addQueenWhisper('モグラよ…！巣を掘り荒らされる。みんな、追い払って！', 'mole');
+    shake(dp(8), 0.5);
+  }
+  window.__forceMole = function(){ spawnMole(true); };
+
+  // モグラの捕食（mul=倍率。時間切れの大食いで >1）
+  function moleEat(inv, mul) {
+    mul = mul || 1;
+    const room = S.full.nodes[inv.roomId];
+    const eatAnts = Math.min(Math.floor(G.ants.worker || 0), MOLE_EAT_ANTS * mul);
+    if(eatAnts > 0) {
+      G.ants.worker = Math.max(0, Math.floor(G.ants.worker) - eatAnts);
+      clampGoldenCount();
+      fx(inv.x + (Math.random()-0.5)*dp(24), inv.y - dp(10), `アリ-${eatAnts}`, '#fca5a5');
+    }
+    const eatEggs = Math.min(Math.floor(G.eggs || 0), MOLE_EAT_EGGS * mul);
+    if(eatEggs > 0) {
+      G.eggs = Math.max(0, Math.floor(G.eggs) - eatEggs);
+      G.goldenEggs = Math.min(Math.max(0, Math.floor(G.goldenEggs || 0)), Math.floor(G.eggs || 0));
+      fx(inv.x + (Math.random()-0.5)*dp(24), inv.y - dp(18), `卵-${eatEggs}`, '#ef4444');
+    }
+    const eatLarvae = Math.min(Math.floor(G.larvae || 0), MOLE_EAT_LARVAE * mul);
+    if(eatLarvae > 0) {
+      G.larvae = Math.max(0, Math.floor(G.larvae) - eatLarvae);
+      if(room && (room.invLarva || 0) > 0) room.invLarva = Math.max(0, (room.invLarva || 0) - eatLarvae);
+    }
+    if(room && room.type === 'food' && (room.invFood || 0) > 0) {
+      const eatFood = 10 * mul;
+      room.invFood = Math.max(0, (room.invFood || 0) - eatFood);
+      G.food = Math.max(0, G.food - eatFood);
+    }
+    shake(dp(3), 0.2);
+  }
+
+  // モグラの毎フレーム更新。trueを返したら撃退/逃走で除去。
+  function updateMoleInvader(inv, dt) {
+    inv.anim += dt; inv.lifeT += dt; inv.digT += dt;
+    if(inv._hitFlash > 0) inv._hitFlash = Math.max(0, inv._hitFlash - dt * 3);
+
+    // 撃退(HP0): 報酬を出して土へ逃走
+    if(inv.hp <= 0) {
+      fx(inv.x, inv.y - dp(14), '🦫 撃退！', '#fcd34d');
+      G.food = clamp(G.food + MOLE_REWARD_FOOD, 0, G.caps.food);
+      addCookie(MOLE_REWARD_COOKIE);
+      fx(inv.x, inv.y - dp(26), `+${MOLE_REWARD_FOOD}🍃 +${MOLE_REWARD_COOKIE}🍪`, '#4ade80');
+      addQueenWhisper('モグラを追い払ったわ…！よく耐えてくれた', 'mole_win');
+      shake(dp(6), 0.4);
+      for(let j=0;j<10;j++) dust(inv.x + (Math.random()-0.5)*dp(40), inv.y + (Math.random()-0.5)*dp(20));
+      return true;
+    }
+
+    // 部屋内をゆっくりうろつく
+    const room = S.full.nodes[inv.roomId];
+    if(room) {
+      inv.x += (Math.random() - 0.5) * dp(5) * dt;
+      inv.y += (Math.random() - 0.5) * dp(4) * dt;
+      if(Math.hypot(inv.x - room.x, inv.y - room.y) > room.r * 0.5) { inv.x = room.x; inv.y = room.y; }
+    }
+    if(inv.digT > 0.4) { inv.digT = 0; dust(inv.x + (Math.random()-0.5)*dp(34), inv.y + dp(10)); }
+
+    // 近接兵隊が齧りつく（数に比例したDPS）
+    let near = 0;
+    if(Array.isArray(S.ants)) {
+      const r2 = dp(MOLE_ENGAGE_RADIUS) * dp(MOLE_ENGAGE_RADIUS);
+      for(const a of S.ants) {
+        if(!a || a.role !== 'soldier') continue;
+        const ddx = a.x - inv.x, ddy = a.y - inv.y;
+        if(ddx*ddx + ddy*ddy < r2) near++;
+      }
+    }
+    if(near > 0) {
+      inv.hp -= near * MOLE_SOLDIER_DPS * dt;
+      if(Math.random() < dt * Math.min(near, 4) * 0.35) fx(inv.x + (Math.random()-0.5)*dp(32), inv.y - dp(4), 'ガジッ', '#fca5a5');
+    }
+
+    // 捕食
+    inv.dmgTimer += dt;
+    if(inv.dmgTimer >= MOLE_DMG_INTERVAL) { inv.dmgTimer = 0; moleEat(inv, 1); }
+
+    // 時間切れ: 大食いして土へ去る（防衛失敗）
+    if(inv.lifeT >= MOLE_DURATION) {
+      moleEat(inv, MOLE_ESCAPE_EAT_MUL);
+      fx(inv.x, inv.y - dp(14), '🦫 巣を食い荒らして去った…', '#ef4444');
+      toast('🦫 モグラを追い払えず、巣を食い荒らされた…', true);
+      addQueenWhisper('モグラに巣を荒らされた…次は追い払いましょう', 'mole_loss');
+      shake(dp(10), 0.6);
+      normalizeInventories();
+      return true;
+    }
+    return false;
+  }
+
+  // モグラの描画（地下の横向きプロフィール。translate/scale を内部で行う）
+  function drawMoleInvader(ctx, inv) {
+    const sz = dp(6) * (inv.size || 4);
+    const t = inv.anim || 0;
+    const bob = Math.sin(t * 3) * dp(1.5);
+    ctx.save();
+    ctx.translate(inv.x, inv.y + bob);
+
+    // 掘り返した土の山（背後）
+    ctx.fillStyle = 'rgba(60,42,28,0.9)';
+    ctx.beginPath(); ctx.ellipse(0, sz * 0.6, sz * 1.9, sz * 0.7, 0, 0, 6.28); ctx.fill();
+    ctx.fillStyle = 'rgba(40,28,18,0.8)';
+    for(let i=0;i<5;i++){ const a=i/5*6.28; ctx.beginPath(); ctx.arc(Math.cos(a)*sz*1.4, sz*0.55+Math.sin(a)*sz*0.3, dp(2.5), 0, 6.28); ctx.fill(); }
+
+    ctx.scale(inv.face || -1, 1); // 顔の向き
+
+    // 危険オーラ
+    const pulse = (Math.sin(t*4)+1)*0.5;
+    const grd = ctx.createRadialGradient(0,0,sz*0.6,0,0,sz*2.4);
+    grd.addColorStop(0, `rgba(220,38,38,${0.10+0.08*pulse})`);
+    grd.addColorStop(1, 'rgba(220,38,38,0)');
+    ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(0,0,sz*2.4,0,6.28); ctx.fill();
+
+    // 体（ふっくらした濃い灰茶）
+    const body = ctx.createLinearGradient(0,-sz,0,sz);
+    body.addColorStop(0,'#5c5048'); body.addColorStop(1,'#3a322c');
+    ctx.fillStyle = body;
+    ctx.beginPath(); ctx.ellipse(-sz*0.15, 0, sz*1.5, sz*1.05, 0, 0, 6.28); ctx.fill();
+    // 毛並み
+    ctx.strokeStyle = 'rgba(20,16,12,0.35)'; ctx.lineWidth = dp(0.6);
+    for(let i=0;i<10;i++){ const a=i/10*6.28; const ex=Math.cos(a)*sz*1.4, ey=Math.sin(a)*sz*0.95; ctx.beginPath(); ctx.moveTo(ex,ey); ctx.lineTo(ex+Math.cos(a)*dp(3), ey+Math.sin(a)*dp(3)); ctx.stroke(); }
+
+    // 頭＋鼻先（前方=+x）
+    ctx.fillStyle = '#4a4038';
+    ctx.beginPath(); ctx.ellipse(sz*1.1, -sz*0.1, sz*0.62, sz*0.56, 0, 0, 6.28); ctx.fill();
+    ctx.fillStyle = '#d98a8a'; // ピンクの尖った鼻
+    ctx.beginPath(); ctx.moveTo(sz*1.55, -sz*0.25); ctx.lineTo(sz*1.95, -sz*0.02); ctx.lineTo(sz*1.55, sz*0.2); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(60,20,20,0.85)';
+    ctx.beginPath(); ctx.arc(sz*1.82, -sz*0.02, dp(1.2), 0, 6.28); ctx.fill();
+    // ひげ
+    ctx.strokeStyle = 'rgba(230,220,210,0.5)'; ctx.lineWidth = dp(0.5);
+    for(let i=0;i<3;i++){ ctx.beginPath(); ctx.moveTo(sz*1.5, sz*0.05 + i*dp(1.5)); ctx.lineTo(sz*1.98, sz*0.12 + i*dp(3.2)); ctx.stroke(); }
+    // 小さな目
+    ctx.fillStyle = '#0a0807';
+    ctx.beginPath(); ctx.arc(sz*0.95, -sz*0.22, dp(1.3), 0, 6.28); ctx.fill();
+
+    // 前脚の大きな掘り爪（引っかくアニメ）
+    const scratch = Math.sin(t*7) * 0.5;
+    ctx.save();
+    ctx.translate(sz*0.85, sz*0.78); ctx.rotate(scratch);
+    ctx.fillStyle = '#e7dcc8';
+    ctx.beginPath(); ctx.ellipse(0,0, sz*0.5, sz*0.32, 0.2, 0, 6.28); ctx.fill();
+    ctx.strokeStyle = '#cdbfa3'; ctx.lineWidth = dp(1.4); ctx.lineCap='round';
+    for(let c=0;c<4;c++){ const cx=sz*0.35; ctx.beginPath(); ctx.moveTo(cx, -sz*0.18 + c*sz*0.12); ctx.lineTo(cx+sz*0.42, -sz*0.16 + c*sz*0.12); ctx.stroke(); }
+    ctx.restore();
+
+    // 被弾フラッシュ
+    if(inv._hitFlash > 0) {
+      ctx.globalAlpha *= clamp(inv._hitFlash, 0, 1);
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.ellipse(-sz*0.1, 0, sz*1.5, sz*1.05, 0, 0, 6.28); ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+    ctx.restore();
+
+    // HPバー（大型ボス・ワールド座標で水平）＋残り時間
+    const ratio = clamp(inv.hp / inv.maxHp, 0, 1);
+    const barW = sz * 2.6, barH = dp(4);
+    const barY = inv.y - sz * 1.6;
+    ctx.save();
+    ctx.fillStyle = 'rgba(15,23,42,0.85)';
+    ctx.fillRect(inv.x - barW/2, barY, barW, barH);
+    ctx.fillStyle = ratio > 0.45 ? 'rgba(248,113,113,0.95)' : 'rgba(251,146,60,0.95)';
+    ctx.fillRect(inv.x - barW/2, barY, barW * ratio, barH);
+    ctx.strokeStyle = 'rgba(0,0,0,0.45)'; ctx.lineWidth = Math.max(1, dp(0.75));
+    ctx.strokeRect(inv.x - barW/2, barY, barW, barH);
+    // 残り時間の細ゲージ（黄色・尽きるとモグラが大食いして去る）
+    const tleft = clamp(1 - (inv.lifeT || 0) / MOLE_DURATION, 0, 1);
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillRect(inv.x - barW/2, barY - dp(2.4), barW, dp(1.6));
+    ctx.fillStyle = 'rgba(250,204,21,0.9)';
+    ctx.fillRect(inv.x - barW/2, barY - dp(2.4), barW * tleft, dp(1.6));
+    ctx.restore();
   }
 
   function normalizeInventories() {
@@ -15158,6 +15431,8 @@ function syncFermenterUnlockUI() {
       const btn = document.getElementById(id);
       if(btn && !btn._devWired) { btn._devWired = true; btn.addEventListener('click', () => debugForceRaid(kind)); }
     });
+    const moleBtn = document.getElementById('btn-dev-mole');
+    if(moleBtn && !moleBtn._devWired) { moleBtn._devWired = true; moleBtn.addEventListener('click', () => spawnMole(true)); }
   }
   (function(){
     if(location.search.includes('dev=1')) {
@@ -19257,6 +19532,7 @@ function syncFermenterUnlockUI() {
     // ===== 地下侵略者（害虫）描画 =====
     if(S.invaders.length > 0) {
       S.invaders.forEach(inv => {
+        if(inv.type === 'mole') { drawMoleInvader(ctx, inv); return; } // モグラ(地下ボス)は専用描画
         const sz = dp(6) * (inv.size || 1);
         const wobble = Math.sin(inv.anim * 5) * dp(1.5);
         // 向き（うろうろに応じて回転）
