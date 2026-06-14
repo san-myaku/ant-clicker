@@ -11362,12 +11362,13 @@ function expandMap(forcedType, isEmergency) {
 
   // v3改2: クモの大型ボス描画（Gemini2案ベースの横向き歩行クモ）。
   // 呼び出し側で translate＋左右反転(scale)＋sizeMul を適用済み。ローカル座標は +x=前方(頭側) / +y=下(地面側)。
-  // 添付HTMLの「腹部+頭胸部+IK風の8本脚」をゲーム用に縮尺し、状態を持たない周期アニメへ落とし込む。
+  // 添付HTMLの「腹部+頭胸部+脚ごとのステップ状態」をゲーム用に縮尺して描画する。
   function drawRaidSpiderBody(ctx, en) {
     const t = en.t || 0;
     const k = dp(0.18);
     const bodyBob = Math.sin(t * 8) * dp(0.55);
-    const spiderY = -dp(12.5) + bodyBob;
+    const spiderBaseY = -dp(12.5);
+    const spiderY = spiderBaseY + bodyBob;
     const bodyMid = '#7d5c41', bodyDark = '#3b2515', bodyLite = '#a88667';
     const cephMid = '#6b4b33', cephLite = '#8c6b4e';
     const legFront = '#9c7a5c', legBack = '#785f47', bandCol = '#3d2b1f';
@@ -11375,17 +11376,18 @@ function expandMap(forcedType, isEmergency) {
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
 
     const legsBack = [
-      { ox: 25, oy: 0,  tx: 80,  ty: 50, ph: -20 },
-      { ox: 15, oy: 5,  tx: 30,  ty: 60, ph: 20 },
-      { ox: 5,  oy: 5,  tx: -30, ty: 60, ph: -30 },
-      { ox: -5, oy: 0,  tx: -80, ty: 50, ph: 10 }
+      { ox: 25, oy: 0,  tx: 80,  ty: 50, l1: 70, l2: 70, ph: -20, layer: 'back' },
+      { ox: 15, oy: 5,  tx: 30,  ty: 60, l1: 60, l2: 60, ph: 20,  layer: 'back' },
+      { ox: 5,  oy: 5,  tx: -30, ty: 60, l1: 60, l2: 60, ph: -30, layer: 'back' },
+      { ox: -5, oy: 0,  tx: -80, ty: 50, l1: 75, l2: 75, ph: 10,  layer: 'back' }
     ];
     const legsFront = [
-      { ox: 30, oy: 5,  tx: 100, ty: 70, ph: 25 },
-      { ox: 20, oy: 10, tx: 40,  ty: 80, ph: -15 },
-      { ox: 10, oy: 10, tx: -20, ty: 80, ph: 30 },
-      { ox: 0,  oy: 5,  tx: -100,ty: 70, ph: -25 }
+      { ox: 30, oy: 5,  tx: 100, ty: 70, l1: 80, l2: 80, ph: 25,  layer: 'front' },
+      { ox: 20, oy: 10, tx: 40,  ty: 80, l1: 65, l2: 65, ph: -15, layer: 'front' },
+      { ox: 10, oy: 10, tx: -20, ty: 80, l1: 65, l2: 65, ph: 30,  layer: 'front' },
+      { ox: 0,  oy: 5,  tx: -100,ty: 70, l1: 85, l2: 85, ph: -25, layer: 'front' }
     ];
+    const allLegDefs = legsBack.concat(legsFront);
 
     const drawSegment = (x1, y1, x2, y2, lineWidth, baseColor, isTarsus, dashPhase) => {
       ctx.strokeStyle = shadowCol;
@@ -11417,34 +11419,119 @@ function expandMap(forcedType, isEmergency) {
       }
     };
 
-    const drawLeg = (L, baseColor, depthMul) => {
-      const hipX = L.ox * k;
-      const hipY = spiderY + L.oy * k;
-      const phase = t * 5.6 + L.ph * 0.12;
-      const step = Math.sin(phase);
-      const lift = Math.max(0, step) * 18 * k * depthMul;
-      const footX = L.tx * k + Math.cos(phase) * 7 * k;
-      const footY = spiderY + L.ty * k - lift;
-      const kneeX = hipX + (footX - hipX) * 0.47;
-      const kneeY = Math.min(hipY, footY) - (34 + Math.abs(L.tx - L.ox) * 0.05) * k * depthMul;
-      const femurW = 10 * k * depthMul;
-      const tibiaW = 7 * k * depthMul;
-      const tarsusW = 4 * k * depthMul;
-      const tarsusDir = footX >= hipX ? 1 : -1;
-      const toeX = footX + tarsusDir * 15 * k;
-      const toeY = footY + 5 * k;
-      drawSegment(hipX, hipY, kneeX, kneeY, femurW, baseColor, false, L.ph * 0.08);
-      drawSegment(kneeX, kneeY, footX, footY, tibiaW, baseColor, false, L.ph * 0.11);
-      drawSegment(footX, footY, toeX, toeY, tarsusW, baseColor, true, 0);
+    if(!Array.isArray(en._spiderLegs) || en._spiderLegs.length !== allLegDefs.length) {
+      en._spiderLegs = allLegDefs.map((L, i) => ({
+        ...L,
+        footOffset: L.ph,
+        isStepping: false,
+        stepProgress: 0,
+        stepStartX: L.tx + L.ph,
+        stepStartY: L.ty,
+        stepTargetX: L.tx + L.ph,
+        stepTargetY: L.ty,
+        dashFemur: 6 + i * 2.3,
+        dashTibia: 11 + i * 1.7
+      }));
+      en._spiderLegT = t;
+    }
+    const rawLegDt = Math.max(0, Math.min(0.08, t - (en._spiderLegT == null ? t : en._spiderLegT)));
+    en._spiderLegT = t;
+    const frameMul = rawLegDt > 0 ? rawLegDt * 60 : 1;
+    const bodyOffsetUnits = bodyBob / k;
+
+    const startSpiderLegStep = (L, targetOffset) => {
+      L.isStepping = true;
+      L.stepProgress = 0;
+      L.stepStartX = L.tx + L.footOffset;
+      L.stepStartY = L.ty;
+      L.stepTargetX = L.tx + targetOffset;
+      L.stepTargetY = L.ty;
+    };
+
+    const updateSpiderLegState = (L) => {
+      L.idealX = L.tx;
+      L.idealY = L.ty;
+      if(L.isStepping) {
+        L.stepProgress += 0.06 * frameMul;
+        if(L.stepProgress >= 1) {
+          L.isStepping = false;
+          L.stepProgress = 1;
+          L.footOffset = L.stepTargetX - L.idealX;
+        }
+      } else {
+        L.footOffset += 1.2 * frameMul;
+        if(L.footOffset > 35) startSpiderLegStep(L, -35);
+      }
+    };
+
+    const currentSpiderFoot = (L) => {
+      if(L.isStepping) {
+        const tt = clamp(L.stepProgress, 0, 1);
+        const easeT = tt * (2 - tt);
+        return {
+          x: L.stepStartX + (L.stepTargetX - L.stepStartX) * easeT,
+          y: L.stepStartY + (L.stepTargetY - L.stepStartY) * easeT - Math.sin(tt * Math.PI) * 35
+        };
+      }
+      return { x: L.idealX + L.footOffset, y: L.idealY };
+    };
+
+    const toLocalY = (unitY) => spiderBaseY + unitY * k;
+    const drawSegmentUnits = (x1, y1, x2, y2, lineWidth, baseColor, isTarsus, dashPhase) => {
+      drawSegment(x1 * k, toLocalY(y1), x2 * k, toLocalY(y2), lineWidth * k, baseColor, isTarsus, dashPhase);
+    };
+
+    const drawLegState = (L) => {
+      updateSpiderLegState(L);
+      const baseColor = L.layer === 'back' ? legBack : legFront;
+      const depthMul = L.layer === 'back' ? 0.85 : 1.0;
+      const bx = L.ox;
+      const by = bodyOffsetUnits + L.oy;
+      const foot = currentSpiderFoot(L);
+      if(!L.isStepping) {
+        ctx.fillStyle = 'rgba(0,0,0,0.09)';
+        ctx.beginPath();
+        ctx.ellipse(foot.x * k, toLocalY(foot.y + 5), 8 * k, 3 * k, 0, 0, 6.28);
+        ctx.fill();
+      }
+
+      const dx = foot.x - bx;
+      const dy = foot.y - by;
+      const d = Math.max(0.0001, Math.hypot(dx, dy));
+      let angle1, angle2;
+      if(d >= L.l1 + L.l2) {
+        angle1 = Math.atan2(dy, dx);
+        angle2 = angle1;
+      } else {
+        const cosAlpha = (L.l1 * L.l1 + d * d - L.l2 * L.l2) / (2 * L.l1 * d);
+        const alpha = Math.acos(Math.max(-1, Math.min(1, cosAlpha)));
+        const baseAngle = Math.atan2(dy, dx);
+        const sign = L.tx > 0 ? -1 : 1; // 添付案を左右反転したため、膝の曲がる向きも反転
+        angle1 = baseAngle + sign * alpha;
+        const jx0 = bx + Math.cos(angle1) * L.l1;
+        const jy0 = by + Math.sin(angle1) * L.l1;
+        angle2 = Math.atan2(foot.y - jy0, foot.x - jx0);
+      }
+
+      const jx = bx + Math.cos(angle1) * L.l1;
+      const jy = by + Math.sin(angle1) * L.l1;
+      const fx = jx + Math.cos(angle2) * L.l2;
+      const fy = jy + Math.sin(angle2) * L.l2;
+      drawSegmentUnits(bx, by, jx, jy, 10 * depthMul, baseColor, false, L.dashFemur);
+      drawSegmentUnits(jx, jy, fx, fy, 7 * depthMul, baseColor, false, L.dashTibia);
+
+      const isFrontLeg = L.tx > 0;
+      const angle3 = angle2 + (isFrontLeg ? 0.2 : -0.2);
+      const px = fx + Math.cos(angle3) * 15;
+      const py = fy + Math.sin(angle3) * 15;
+      drawSegmentUnits(fx, fy, px, py, 4 * depthMul, baseColor, true, 0);
 
       ctx.strokeStyle = '#2a1a10';
-      ctx.lineWidth = dp(0.25);
-      ctx.beginPath(); ctx.moveTo(toeX, toeY); ctx.lineTo(toeX + tarsusDir * 4 * k, toeY + 1.5 * k); ctx.stroke();
-
-      if(lift <= dp(0.35)) {
-        ctx.fillStyle = 'rgba(0,0,0,0.09)';
-        ctx.beginPath(); ctx.ellipse(toeX, toeY + dp(1.0), 8 * k, 2.8 * k, 0, 0, 6.28); ctx.fill();
-      }
+      ctx.lineWidth = 1.5 * k * depthMul;
+      ctx.beginPath();
+      ctx.moveTo(px * k, toLocalY(py));
+      ctx.lineTo((px + Math.cos(angle3) * 4) * k, toLocalY(py + Math.sin(angle3) * 4));
+      ctx.stroke();
     };
 
     ctx.save();
@@ -11452,7 +11539,7 @@ function expandMap(forcedType, isEmergency) {
     ctx.beginPath(); ctx.ellipse(dp(-1), dp(2.3), dp(18), dp(3.9), 0, 0, 6.28); ctx.fill();
     ctx.restore();
 
-    legsBack.forEach(L => drawLeg(L, legBack, 0.85));
+    en._spiderLegs.filter(L => L.layer === 'back').forEach(drawLegState);
 
     // 腹部（添付案を左右反転し、+xを頭側にそろえる）
     ctx.save();
@@ -11541,7 +11628,7 @@ function expandMap(forcedType, isEmergency) {
     ctx.beginPath(); ctx.moveTo(17 * k, 5 * k); ctx.quadraticCurveTo(25 * k, 14 * k, 22 * k, 22 * k); ctx.stroke();
     ctx.restore();
 
-    legsFront.forEach(L => drawLeg(L, legFront, 1.0));
+    en._spiderLegs.filter(L => L.layer === 'front').forEach(drawLegState);
 
     // --- 被弾フラッシュ（白：兵に攻撃された時） ---
     if(en.hitFlash > 0) {
