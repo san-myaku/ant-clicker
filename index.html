@@ -3548,12 +3548,13 @@
   const MOLE_TAP_DMG         = 3;    // タップ1回のダメージ
   const MOLE_SOLDIER_DPS     = 1.6;  // 近接兵隊1体あたりの毎秒ダメージ
   const MOLE_ENGAGE_RADIUS   = 72;   // 兵隊が齧りつく距離(dp適用前)
-  const MOLE_HP_BASE         = 48;   // 基本HP
+  const MOLE_HP_BASE         = 96;   // 基本HP（倍）
   const MOLE_HP_PER_SOLDIER  = 2.2;  // 兵隊数に応じたHP加算(兵が多いほど強いモグラ=撃破時間をほぼ一定に)
   const MOLE_REWARD_FOOD     = 260;  // 撃退報酬: 食料
   const MOLE_REWARD_COOKIE   = 22;   // 撃退報酬: クッキー
-  const MOLE_DIG_SPEED       = 34;   // 掘削フェーズの前進速度(dp/秒・ずんずん)
+  const MOLE_DIG_SPEED       = 17;   // 掘削フェーズの前進速度(dp/秒・ゆっくりずんずん)
   const MOLE_DIG_OFFSET      = 210;  // 出現位置の部屋からの横オフセット(dp・地中から掘ってくる距離)
+  const MOLE_COUNTER_DPS     = 0.28; // モグラの反撃DPS: 近接兵隊を倒す速度(体/秒)
 
   const MILESTONES = [10, 25, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000];
   const TOAST_MILESTONE_COOLDOWN = 2.0;
@@ -11272,7 +11273,14 @@ function expandMap(forcedType, isEmergency) {
         `戦死: 兵隊アリ ${(out.soldierLost || 0) > 0 ? '-' + out.soldierLost : 'なし'}\n` +
         (S._rallyUsedThisRaid ? `⚡ 応援の士気が兵を後押しした\n` : '');
     }
-    if(out.win) {
+    if(out.bossType === 'mole') {
+      raidResultTitleEl.textContent = out.win ? '🦫 モグラを撃退！' : '🦫 部屋を破壊された…';
+      raidResultBodyEl.textContent = (out._moleBody || '') +
+        (out.win
+          ? `戦利品: 食料 +${Math.floor(out.rewardFood || 0)} / クッキー +${Math.floor(out.rewardCookie || 0)}\n`
+          : '') +
+        `兵隊アリは巣へ帰還中`;
+    } else if(out.win) {
       raidResultTitleEl.textContent = (out.bossType === 'spider') ? '🕷️ クモを討伐！' : (out.bossType === 'samurai') ? '🛡️ 奴隷狩りを撃退！' : '✅ 防衛成功';
       raidResultBodyEl.textContent =
         combatLines +
@@ -12553,6 +12561,7 @@ function expandMap(forcedType, isEmergency) {
       const inv = S.invaders[i];
       // モグラ(ボス)は専用ロジック。trueが返ったら撃退/逃走で除去
       if(inv.isBoss) { if(updateMoleInvader(inv, dt)) S.invaders.splice(i, 1); continue; }
+
       inv.anim += dt;
       if(inv._hitFlash > 0) inv._hitFlash = Math.max(0, inv._hitFlash - dt * 3);
       inv.dmgTimer += dt;
@@ -12597,6 +12606,11 @@ function expandMap(forcedType, isEmergency) {
         S.invaders.splice(i, 1);
       }
     }
+    // モグラが消えた後、掘削トレイルをゆっくりフェードアウト（約14秒）
+    if(_moleTrail.alpha > 0 && !S.invaders.some(v => v.isBoss)) {
+      _moleTrail.alpha = Math.max(0, _moleTrail.alpha - dt * 0.07);
+      if(_moleTrail.alpha <= 0) _moleTrail.points = [];
+    }
   }
 
   function hitInvader(inv) {
@@ -12630,6 +12644,8 @@ function expandMap(forcedType, isEmergency) {
   }
 
   // ===== モグラ(地下ボス) =====
+  let _moleTrail = { points: [], alpha: 0.0 }; // 掘削トレイル（モグラ消滅後もゆっくり消える）
+
   function spawnMole(force) {
     if(!S.full) return;
     if(S.invaders.some(v => v.isBoss)) { if(force) toast('モグラは既に出現中です'); return; }
@@ -12646,6 +12662,7 @@ function expandMap(forcedType, isEmergency) {
     const outward = (room.x < qx) ? -1 : 1;
     let startX = clamp(room.x + outward * dp(MOLE_DIG_OFFSET), dp(24), S.full.w - dp(24));
     if(Math.abs(startX - room.x) < dp(70)) startX = clamp(room.x - outward * dp(MOLE_DIG_OFFSET), dp(24), S.full.w - dp(24));
+    _moleTrail = { points: [], alpha: 1.0 }; // 新規出現でトレイルをリセット
     S.invaders.push({
       id: S.t + Math.random(),
       type: 'mole', isBoss: true, label: 'モグラ', icon: '🦫',
@@ -12654,6 +12671,7 @@ function expandMap(forcedType, isEmergency) {
       phase: 'dig',                       // dig=掘削で接近 → raid=部屋で戦闘
       face: (room.x >= startX) ? 1 : -1,  // 進行方向(部屋の方)を向く
       dmgTimer: 0, lifeT: 0, anim: Math.random() * 10, digT: 0,
+      trailT: 0, soldierKillAccum: 0, _soldierLost: 0,
       color: '#4b4038', size: 4, _hitFlash: 0,
     });
     toast(`🦫 モグラが地中から接近中！${roomLabel(room.type)}が狙われている。兵隊を集めろ！`, true);
@@ -12689,6 +12707,44 @@ function expandMap(forcedType, isEmergency) {
       G.food = Math.max(0, G.food - eatFood);
     }
     shake(dp(3), 0.2);
+  }
+
+  // モグラが兵隊アリに反撃して1体倒す
+  function killMoleSoldier(inv) {
+    if(!(G.ants.soldier > 0)) return;
+    let target = null;
+    if(Array.isArray(S.ants)) {
+      const r2 = (dp(MOLE_ENGAGE_RADIUS) * 2) * (dp(MOLE_ENGAGE_RADIUS) * 2);
+      for(const a of S.ants) {
+        if(!a || a.role !== 'soldier') continue;
+        const ddx = a.x - inv.x, ddy = a.y - inv.y;
+        if(ddx*ddx + ddy*ddy < r2) { target = a; break; }
+      }
+    }
+    if(target) {
+      const idx = S.ants.indexOf(target);
+      if(idx !== -1) S.ants.splice(idx, 1);
+      fx(target.x, target.y - dp(6), '💀', '#fca5a5');
+      for(let j=0;j<3;j++) dust(target.x+(Math.random()-0.5)*dp(12), target.y+(Math.random()-0.5)*dp(8));
+    }
+    G.ants.soldier = Math.max(0, Math.floor(G.ants.soldier || 0) - 1);
+    inv._soldierLost = (inv._soldierLost || 0) + 1;
+  }
+
+  // モグラ戦闘のリザルト画面表示
+  function showMoleResult(inv, win, collapsedRoom) {
+    const soldierLost = inv._soldierLost || 0;
+    const moleLine = `🦫 地下ボス: モグラの襲撃\n`;
+    const soldierLine = soldierLost > 0 ? `戦死: 兵隊アリ -${soldierLost}\n` : `戦死: なし\n`;
+    if(win) {
+      showRaidResultModal({ bossType: 'mole', win: true,
+        rewardFood: MOLE_REWARD_FOOD, rewardCookie: MOLE_REWARD_COOKIE,
+        soldierLost, _moleBody: moleLine + soldierLine });
+    } else {
+      const roomName = (collapsedRoom && collapsedRoom._origType) ? roomLabel(collapsedRoom._origType) : '部屋';
+      showRaidResultModal({ bossType: 'mole', win: false, soldierLost,
+        _moleBody: moleLine + soldierLine + `被害: ${roomName}が崩落した\n` });
+    }
   }
 
   // 近接している兵隊アリの数に比例してモグラHPを削る（齧りつき）。掘削/戦闘どちらでも使用。
@@ -12749,6 +12805,7 @@ function expandMap(forcedType, isEmergency) {
       addQueenWhisper('モグラを追い払ったわ…！よく耐えてくれた', 'mole_win');
       shake(dp(6), 0.4);
       for(let j=0;j<10;j++) dust(inv.x + (Math.random()-0.5)*dp(40), inv.y + (Math.random()-0.5)*dp(20));
+      showMoleResult(inv, true, null);
       return true;
     }
 
@@ -12763,6 +12820,7 @@ function expandMap(forcedType, isEmergency) {
         const step = dp(MOLE_DIG_SPEED) * dt;
         if(dist <= step + dp(8)) {
           // 到達 → 部屋に突入、戦闘フェーズへ
+          _moleTrail.points.push({ x: inv.x, y: inv.y }); // 最終地点も記録
           inv.x = room.x; inv.y = room.y;
           inv.phase = 'raid'; inv.lifeT = 0; inv.dmgTimer = 0;
           for(let j=0;j<16;j++) dust(inv.x + (Math.random()-0.5)*dp(52), inv.y + (Math.random()-0.5)*dp(30));
@@ -12772,6 +12830,13 @@ function expandMap(forcedType, isEmergency) {
         } else {
           inv.x += dx / dist * step; inv.y += dy / dist * step;
           inv.face = (dx >= 0) ? 1 : -1;
+          // 掘削トレイルの記録（0.18秒ごとに座標を追加）
+          inv.trailT += dt;
+          if(inv.trailT >= 0.18) {
+            inv.trailT = 0;
+            _moleTrail.points.push({ x: inv.x, y: inv.y });
+            if(_moleTrail.points.length > 80) _moleTrail.points.shift();
+          }
           // 土埃（掘り進む土ぼこりを前方と背後に撒く）
           dust(inv.x + (Math.random()-0.5)*dp(26), inv.y + dp(4) + (Math.random()-0.5)*dp(16));
           dust(inv.x + (Math.random()-0.5)*dp(20), inv.y + (Math.random()-0.5)*dp(18));
@@ -12780,6 +12845,9 @@ function expandMap(forcedType, isEmergency) {
         }
       }
       applyMoleSoldierDPS(inv, dt); // 突入前でも接近兵はかじれる
+      // 掘削中も弱めに兵隊に反撃
+      inv.soldierKillAccum += MOLE_COUNTER_DPS * 0.4 * dt;
+      if(inv.soldierKillAccum >= 1) { inv.soldierKillAccum -= 1; killMoleSoldier(inv); }
       return false;
     }
 
@@ -12795,6 +12863,10 @@ function expandMap(forcedType, isEmergency) {
 
     applyMoleSoldierDPS(inv, dt);
 
+    // モグラの反撃: 近くの兵隊アリを倒す
+    inv.soldierKillAccum += MOLE_COUNTER_DPS * dt;
+    if(inv.soldierKillAccum >= 1) { inv.soldierKillAccum -= 1; killMoleSoldier(inv); }
+
     // 捕食
     inv.dmgTimer += dt;
     if(inv.dmgTimer >= MOLE_DMG_INTERVAL) { inv.dmgTimer = 0; moleEat(inv, 1); }
@@ -12806,6 +12878,7 @@ function expandMap(forcedType, isEmergency) {
       fx(inv.x, inv.y - dp(14), '🦫 部屋を破壊して去った…', '#ef4444');
       addQueenWhisper('モグラに部屋を崩された…次は守り抜きましょう', 'mole_loss');
       shake(dp(12), 0.7);
+      showMoleResult(inv, false, room);
       return true;
     }
     return false;
@@ -19632,6 +19705,28 @@ function syncFermenterUnlockUI() {
         ctx.fillStyle = tr.c + alpha.toFixed(3) + ')';
         ctx.beginPath(); ctx.arc(tr.x, tr.y, dp(2.2), 0, 6.28); ctx.fill();
       });
+    }
+
+    // ===== モグラ掘削トレイル（本体より先に描画して本体に隠れる）=====
+    if(_moleTrail.alpha > 0.01 && _moleTrail.points.length > 1) {
+      ctx.save();
+      for(let i = 1; i < _moleTrail.points.length; i++) {
+        const p0 = _moleTrail.points[i-1], p1 = _moleTrail.points[i];
+        const a = _moleTrail.alpha;
+        // トンネル外壁（暗い土の輪郭）
+        ctx.strokeStyle = `rgba(28,18,10,${(a * 0.72).toFixed(3)})`;
+        ctx.lineWidth = dp(22); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        ctx.beginPath(); ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); ctx.stroke();
+        // トンネル内壁（やや明るい土で空洞感）
+        ctx.strokeStyle = `rgba(68,48,30,${(a * 0.82).toFixed(3)})`;
+        ctx.lineWidth = dp(13);
+        ctx.beginPath(); ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); ctx.stroke();
+        // 中心線（最も明るい。空洞のハイライト）
+        ctx.strokeStyle = `rgba(90,65,40,${(a * 0.55).toFixed(3)})`;
+        ctx.lineWidth = dp(5);
+        ctx.beginPath(); ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); ctx.stroke();
+      }
+      ctx.restore();
     }
 
     // ===== 地下侵略者（害虫）描画 =====
