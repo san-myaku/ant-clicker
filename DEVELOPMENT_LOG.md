@@ -1,5 +1,17 @@
 # Development Log
 
+## 2026-06-14 Dev-mode raid triggers + FPS overlay, samurai result-text fixes, spider visual rework (3× side-profile)
+
+Three polish passes (all `index.html`, runtime/visual only — no save migration):
+
+**1. Dev-mode raid triggers + FPS overlay.** Dev mode (long-press 描画設定 5s, or `?dev=1`) now shows an in-game raid-trigger row (`#dev-raid-tools`: 🐜通常 / ⚔️奴隷狩り / 🕷️クモ) wired to `debugForceRaid('normal'|'samurai'|'spider')` — no more console-only `window.__forceRaid`. Activation refactored into `_activateDevMode(showToast)` (shared by `?dev=1` and the long-press) which also sets `S._devMode=true` and wires the buttons once (`btn._devWired` guard). FPS overlay: when `S._devMode`, `render()` draws `Math.round(S.perf.fps)` top-right in screen space (green ≥55 / amber ≥30 / red below) — reusing the rolling `S.perf.fps` already kept in the rAF loop.
+
+**2. Samurai result-modal text fixes.** Playtest showed contradictory wording: title said "卵を奪われた…" even with 0 eggs stolen; body said "守り切った！" on a breach-loss that only stole 0 because the colony *had* 0 eggs; soldier deaths weren't shown when 0. Now — loss title is "❌ 卵を奪われた…" only when `eggsStolen>0`, else "❌ 突破された（卵の被害なし）"; the egg line distinguishes a real defense (win or 0-breach → "卵を完全に守り切った！") from a breach with 0 eggs on hand ("卵の被害なし（卵0個）"); the 戦死 line always shows ("-N" or "なし"). Logic only — `eggsStolen` math (breachRatio × steal mul/cap) unchanged.
+
+**3. Spider visual rework — side-profile wolf spider, ~3× size** (user request w/ reference image). `RAID_SPIDER_KIND.sizeMul` 2.2 → 5.5 (+ slightly larger intrinsic geometry ≈ 3× on-screen); tint → warm brown `#6b5038`. `drawRaidSpiderBody` fully rewritten as a hairy side-profile コモリグモ: large abdomen with a forward chevron folium + highlight + edge fuzz, smaller cephalothorax with dorsal stripe, eyes (2 big + 4 small) + chelicerae/fangs + pedipalps, and **8 legs in two depth layers** (far = light/small-gait, near = dark/large-gait), each anchor→knee(arched above the back)→foot(ground)→tarsus with dark joint bands + bristles, animated via `sin(en.t*6 + phase)`. **Orientation fix**: the generic enemy transform uses `rotate(dir)`, which would flip the now-asymmetric profile upside-down when facing left — so the spider branch uses a horizontal flip (`scale(faceLeft?-sm:sm, sm)`) instead, keeping legs always pointing down (verified both facings). Body sits on the surface line with legs reaching the ground (center raised in local −y). Spider HP bar widened/raised (`drawRaidEnemyHpBar`: w `dp(80)`, y `dp(94)`) to clear the taller body; hit/lunge flashes moved into `drawRaidSpiderBody` (body-centered) so the generic 0,0 flash doesn't mis-place on the big sprite.
+
+Verification: loads, no console errors; forced a spider raid in preview and screenshotted both facings — profile reads correctly, legs point down both ways, HP bar clears the body, lunge `ガブッ!` fires. Leg gait is rAF-driven (preview tab throttles to ~8fps headless → animation is device-confirmable). Tunables: `RAID_SPIDER_KIND.sizeMul`, the HP-bar offsets, leg `legDefs`.
+
 ## 2026-06-14 Raid v3 boss #2: クモの大型ボス (giant spider boss)
 
 User idea: a rare **large surface boss** — a spider (real ecology: spiders are classic ant predators that ambush surface foragers). Chosen framing (user pick): a **special raid** reusing the bossType pipeline, but as a **single boss** rather than a swarm — contrast to the samurai horde.

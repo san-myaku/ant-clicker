@@ -2744,6 +2744,12 @@
           <button class="btn-up-sm" id="btn-speed-30">x30</button>
           <div id="speed-ind">x1</div>
         </div>
+        <div class="row-group" id="dev-raid-tools" style="display:none; align-items:center;">
+          <span style="font-size:10px; color:#94a3b8; white-space:nowrap; align-self:center;">強制レイド:</span>
+          <button class="btn-up-sm" id="btn-dev-raid-normal" style="width:60px;">🐜<br>通常</button>
+          <button class="btn-up-sm" id="btn-dev-raid-samurai" style="width:60px;">⚔️<br>奴隷狩り</button>
+          <button class="btn-up-sm" id="btn-dev-raid-spider" style="width:60px;">🕷️<br>クモ</button>
+        </div>
         <div class="row-group" id="normal-tools">
           <button class="btn" id="btn-render-settings-pub" style="flex:1;">描画設定</button>
         </div>
@@ -6251,6 +6257,7 @@ function ensureRestSlots(n){
     restMul: 1,
 
     shake: { t: 0, amp: 0 },
+    _devMode: false,
 
     raidVis: {
       state: "none", // none | countdown | attack | result
@@ -7965,7 +7972,7 @@ function expandMap(forcedType, isEmergency) {
   const RAID_SPIDER_LUNGE_DMG      = 14;   // 噛みつき1回で各兵に与えるダメージ
   const RAID_SPIDER_LUNGE_RADIUS   = 34;   // 噛みつきの範囲(dp適用前)
   const RAID_SPIDER_LUNGE_MAX_HITS = 4;    // 1回の噛みつきで巻き込む最大兵数
-  const RAID_SPIDER_KIND = { id:'spider', label:'クモ', spdMul:0.7, sizeMul:2.2, tint:'#4a3528', atk:0.35, pushThrough:0.45 };
+  const RAID_SPIDER_KIND = { id:'spider', label:'クモ', spdMul:0.7, sizeMul:5.5, tint:'#6b5038', atk:0.35, pushThrough:0.45 };
   function isSpiderRaid() { return !!(S.raidVis && S.raidVis.bossType === 'spider'); }
 
   function decideRaidBossType() {
@@ -11196,7 +11203,13 @@ function expandMap(forcedType, isEmergency) {
       const waveCount = (S.raidVis && S.raidVis.waveCount) || 1;
       const waveLine = waveCount > 1 ? `🌊 波状攻撃: 全${waveCount}波\n` : '';
       const samuraiLine = (out.bossType === 'samurai')
-        ? `⚔️ サムライアリの奴隷狩り\n` + ((out.eggsStolen || 0) > 0 ? `🥚 奪われた卵: ${out.eggsStolen}\n` : `🥚 卵を完全に守り切った！\n`)
+        ? `⚔️ サムライアリの奴隷狩り\n` + (
+            (out.eggsStolen || 0) > 0
+              ? `🥚 奪われた卵: ${out.eggsStolen}\n`
+              : (out.win || !((out.surfaceResult && out.surfaceResult.breachedEnemies > 0))
+                  ? `🥚 卵を完全に守り切った！\n`
+                  : `🥚 卵の被害なし（卵0個）\n`)
+          )
         : '';
       const spiderLine = (out.bossType === 'spider') ? `🕷️ 大型ボス: クモの襲撃\n` : '';
       combatLines =
@@ -11205,7 +11218,7 @@ function expandMap(forcedType, isEmergency) {
         `突破: ${sr.breachedEnemies}\n` +
         `残存: ${sr.livingEnemies}\n` +
         `判定: ${reasonText}\n` +
-        (out.soldierLost ? `戦死: 兵隊アリ -${out.soldierLost}\n` : '') +
+        `戦死: 兵隊アリ ${(out.soldierLost || 0) > 0 ? '-' + out.soldierLost : 'なし'}\n` +
         (S._rallyUsedThisRaid ? `⚡ 応援の士気が兵を後押しした\n` : '');
     }
     if(out.win) {
@@ -11215,7 +11228,7 @@ function expandMap(forcedType, isEmergency) {
         `戦利品: 食料 +${Math.floor(out.rewardFood || 0)} / クッキー +${Math.floor(out.rewardCookie || 0)}\n` +
         `兵隊アリは兵舎へ帰還中`;
     } else {
-      raidResultTitleEl.textContent = (out.bossType === 'spider') ? '🕷️ 巣を荒らされた…' : (out.bossType === 'samurai') ? '❌ 卵を奪われた…' : '❌ 防衛失敗';
+      raidResultTitleEl.textContent = (out.bossType === 'spider') ? '🕷️ 巣を荒らされた…' : (out.bossType === 'samurai') ? ((out.eggsStolen || 0) > 0 ? '❌ 卵を奪われた…' : '❌ 突破された（卵の被害なし）') : '❌ 防衛失敗';
       raidResultBodyEl.textContent =
         combatLines +
         `被害: 働きアリ -${Math.floor(out.loseWorkers || 0)}\n` +
@@ -11347,51 +11360,159 @@ function expandMap(forcedType, isEmergency) {
     }
   }
 
-  // v3: クモボスの描画（8本脚。antボディの代わり。translate/rotate/scale 済みのローカル座標で描く）
+  // v3改: クモの大型ボス描画（横向きプロフィール／毛深いコモリグモ風）。
+  // 呼び出し側で translate＋左右反転(scale)＋sizeMul を適用済み。ローカル座標は +x=前方(頭側) / +y=下(地面側)。
+  // 体の中心を上方(-y)に置き、脚を地面(0付近)まで伸ばすことで「地表に立つ」見た目にする。
   function drawRaidSpiderBody(ctx, en) {
     const t = en.t || 0;
-    const col = en.tint || '#4a3528';
-    // 脚（左右4本ずつ）。歩行で軽く上下に揺れる。
-    ctx.strokeStyle = col;
-    ctx.lineWidth = dp(1.6);
-    ctx.lineCap = 'round';
-    for(let i = 0; i < 4; i++) {
-      const baseX = dp(-2 + i * 2.2);
-      const sway = Math.sin(t * 8 + i) * dp(1.3);
-      const reach = dp(9 + ((i === 1 || i === 2) ? 2 : 0));
+    // 実在のウルフスパイダー風の茶系パレット
+    const bodyMid = '#6b5038', bodyDark = '#3a2a1c', bodyLite = '#917054';
+    const legNear = '#5e4631', legFar = '#735840', bandCol = '#33241a';
+    const hairCol = 'rgba(30,21,13,0.42)';
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+
+    // 1本の脚（付け根→膝→足先）。膝は体の上(-y)へ持ち上がり、足先は地面(0付近)へ降りる。
+    const drawLeg = (ax, ay, fx, kneeY, lift, baseW, col) => {
+      const kx = ax + (fx - ax) * 0.5;
+      const fy = -lift; // 歩行で足先が地面からわずかに浮く
+      ctx.strokeStyle = col; ctx.lineWidth = baseW;
       ctx.beginPath();
-      ctx.moveTo(baseX, -dp(1.6));
-      ctx.lineTo(baseX + dp(3), -dp(5) - sway);
-      ctx.lineTo(baseX + dp(2), -reach - sway);
-      ctx.stroke();
+      ctx.moveTo(ax, ay); ctx.lineTo(kx, kneeY); ctx.lineTo(fx, fy); ctx.stroke();
+      // 跗節（細い足先）
+      ctx.lineWidth = baseW * 0.55;
+      ctx.beginPath(); ctx.moveTo(fx, fy);
+      ctx.lineTo(fx + (fx >= 0 ? dp(2.2) : -dp(2.2)), fy + dp(1.4)); ctx.stroke();
+      // 暗色のバンド（節の縞）
+      ctx.fillStyle = bandCol;
+      const bx1 = ax + (kx - ax) * 0.62, by1 = ay + (kneeY - ay) * 0.62;
+      const bx2 = kx + (fx - kx) * 0.5,  by2 = kneeY + (fy - kneeY) * 0.5;
+      ctx.beginPath(); ctx.arc(bx1, by1, baseW * 0.5, 0, 6.28); ctx.fill();
+      ctx.beginPath(); ctx.arc(bx2, by2, baseW * 0.45, 0, 6.28); ctx.fill();
+      // 剛毛（femur上の短い毛）
+      ctx.strokeStyle = hairCol; ctx.lineWidth = dp(0.4);
+      for(let h = 0; h < 3; h++) {
+        const u = 0.3 + h * 0.22;
+        const hx = ax + (kx - ax) * u, hy = ay + (kneeY - ay) * u;
+        ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(hx - dp(1.0), hy - dp(1.7)); ctx.stroke();
+      }
+    };
+
+    // 脚の配置（前方=大きいfx、後方=負のfx）。歩行アニメは位相phで分散。
+    const legDefs = [
+      { ax: dp(5.0), fx: dp(14.5), knee: dp(13.8), ph: 0.0 },
+      { ax: dp(4.0), fx: dp(8.0),  knee: dp(13.4), ph: 1.7 },
+      { ax: dp(2.6), fx: dp(-1.0), knee: dp(13.0), ph: 3.3 },
+      { ax: dp(1.2), fx: dp(-8.0), knee: dp(12.6), ph: 4.9 },
+    ];
+
+    // 地面の影（接地感）
+    ctx.save();
+    ctx.fillStyle = 'rgba(0,0,0,0.22)';
+    ctx.beginPath(); ctx.ellipse(dp(-2), dp(1.5), dp(12), dp(2.6), 0, 0, 6.28); ctx.fill();
+    ctx.restore();
+
+    // --- 奥側の脚（体の後ろ。明るめ・小さく動かしてレイヤー感） ---
+    legDefs.forEach(L => {
+      const lift = Math.max(0, Math.sin(t * 6 + L.ph + 0.9)) * dp(1.5);
+      drawLeg(L.ax + dp(0.4), -dp(5.4), L.fx + dp(1.4), -(L.knee - dp(1.6)), lift, dp(1.5), legFar);
+    });
+
+    // --- 腹部（後方・大きい。前向きのシェブロン模様＝folium） ---
+    const arx = dp(7.8), ary = dp(6.6);
+    ctx.save();
+    ctx.translate(dp(-6.5), dp(-7.0)); ctx.rotate(-0.12);
+    ctx.fillStyle = bodyMid;
+    ctx.beginPath(); ctx.ellipse(0, 0, arx, ary, 0, 0, 6.28); ctx.fill();
+    ctx.save();
+    ctx.beginPath(); ctx.ellipse(0, 0, arx, ary, 0, 0, 6.28); ctx.clip();
+    // 上面の明るいハイライト
+    ctx.fillStyle = bodyLite;
+    ctx.beginPath(); ctx.ellipse(-arx * 0.08, -ary * 0.38, arx * 0.82, ary * 0.5, 0, 0, 6.28); ctx.fill();
+    // 前向きのシェブロン帯（暗色）
+    ctx.strokeStyle = bodyDark; ctx.lineWidth = dp(1.7);
+    for(let b = 0; b < 4; b++) {
+      const u = b / 3;
+      const cxx = -arx * 0.55 + u * arx * 1.05;
+      const amp = ary * 0.74 * (1 - u * 0.12);
+      const apex = cxx + arx * 0.22;
       ctx.beginPath();
-      ctx.moveTo(baseX, dp(1.6));
-      ctx.lineTo(baseX + dp(3), dp(5) + sway);
-      ctx.lineTo(baseX + dp(2), reach + sway);
+      ctx.moveTo(cxx, -amp);
+      ctx.quadraticCurveTo(apex, -amp * 0.3, apex, 0);
+      ctx.quadraticCurveTo(apex, amp * 0.3, cxx, amp);
       ctx.stroke();
     }
-    // 腹部（後方・大きい）
-    ctx.fillStyle = col;
-    ctx.beginPath(); ctx.ellipse(dp(-5), 0, dp(6.5), dp(5.5), 0, 0, 6.28); ctx.fill();
-    ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.lineWidth = dp(0.8);
-    ctx.beginPath(); ctx.moveTo(dp(-8.5), 0); ctx.lineTo(dp(-2.5), 0); ctx.stroke();
-    // 頭胸部（前方・小さい）
-    ctx.fillStyle = col;
-    ctx.beginPath(); ctx.ellipse(dp(3), 0, dp(4), dp(3.6), 0, 0, 6.28); ctx.fill();
-    // 牙（前方）
-    ctx.strokeStyle = 'rgba(20,16,14,0.9)'; ctx.lineWidth = dp(1.4);
-    ctx.beginPath(); ctx.moveTo(dp(6), -dp(1.3)); ctx.lineTo(dp(8.6), -dp(0.3)); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(dp(6),  dp(1.3)); ctx.lineTo(dp(8.6),  dp(0.3)); ctx.stroke();
-    // 眼
-    ctx.fillStyle = 'rgba(250,240,230,0.9)';
-    ctx.beginPath(); ctx.arc(dp(4.4), -dp(1.2), dp(0.7), 0, 6.28); ctx.fill();
-    ctx.beginPath(); ctx.arc(dp(4.4),  dp(1.2), dp(0.7), 0, 6.28); ctx.fill();
-    // 噛みつき中の赤フラッシュ
+    // 正中の暗線
+    ctx.strokeStyle = 'rgba(40,28,18,0.55)'; ctx.lineWidth = dp(1.0);
+    ctx.beginPath(); ctx.moveTo(-arx * 0.86, 0); ctx.lineTo(arx * 0.62, 0); ctx.stroke();
+    ctx.restore(); // clip解除
+    // 腹部の毛羽立ち（外周の短い毛）
+    ctx.strokeStyle = hairCol; ctx.lineWidth = dp(0.5);
+    for(let a = 0; a < 16; a++) {
+      const ang = a / 16 * 6.28;
+      const ex = Math.cos(ang) * arx, ey = Math.sin(ang) * ary;
+      ctx.beginPath(); ctx.moveTo(ex, ey);
+      ctx.lineTo(ex + Math.cos(ang) * dp(1.8), ey + Math.sin(ang) * dp(1.8)); ctx.stroke();
+    }
+    ctx.restore();
+
+    // --- 腹柄（pedicel：腹部と頭胸部のつなぎ） ---
+    ctx.fillStyle = bodyDark;
+    ctx.beginPath(); ctx.ellipse(dp(-0.6), dp(-6.5), dp(1.6), dp(2.0), 0, 0, 6.28); ctx.fill();
+
+    // --- 頭胸部（前方・やや小さい） ---
+    const cx = dp(4.6), cy = dp(-6.5), crx = dp(4.7), cry = dp(4.1);
+    ctx.save();
+    ctx.fillStyle = bodyMid;
+    ctx.beginPath(); ctx.ellipse(cx, cy, crx, cry, 0, 0, 6.28); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(cx, cy, crx, cry, 0, 0, 6.28); ctx.clip();
+    ctx.fillStyle = bodyLite; // 背の明色ストライプ
+    ctx.beginPath(); ctx.ellipse(cx, cy - cry * 0.25, crx * 0.55, cry * 0.85, 0, 0, 6.28); ctx.fill();
+    ctx.fillStyle = 'rgba(40,28,18,0.35)'; // 側面の暗がり
+    ctx.beginPath(); ctx.ellipse(cx, cy + cry * 0.55, crx * 0.95, cry * 0.5, 0, 0, 6.28); ctx.fill();
+    ctx.restore();
+
+    // --- 触肢（pedipalps：口元の短い肢） ---
+    ctx.strokeStyle = legNear; ctx.lineWidth = dp(1.3);
+    const palpSwing = Math.sin(t * 5) * dp(0.8);
+    ctx.beginPath(); ctx.moveTo(dp(7.2), dp(-5.5));
+    ctx.lineTo(dp(9.5), dp(-3.0)); ctx.lineTo(dp(9.8) + palpSwing, dp(-0.6)); ctx.stroke();
+
+    // --- 鋏角・牙（前方下向き） ---
+    ctx.strokeStyle = '#241811'; ctx.lineWidth = dp(1.5);
+    ctx.beginPath(); ctx.moveTo(dp(7.4), dp(-5.2)); ctx.quadraticCurveTo(dp(9.2), dp(-2.4), dp(8.4), dp(-0.4)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(dp(6.6), dp(-5.0)); ctx.quadraticCurveTo(dp(8.2), dp(-2.6), dp(7.6), dp(-0.8)); ctx.stroke();
+
+    // --- 眼（前上の小さな眼群＋大きい2眼） ---
+    ctx.fillStyle = '#15100b';
+    ctx.beginPath(); ctx.arc(dp(7.0), dp(-9.0), dp(1.1), 0, 6.28); ctx.fill();
+    ctx.beginPath(); ctx.arc(dp(8.3), dp(-8.4), dp(0.9), 0, 6.28); ctx.fill();
+    for(let e = 0; e < 4; e++) {
+      ctx.beginPath(); ctx.arc(dp(5.6) + e * dp(0.9), dp(-8.6), dp(0.45), 0, 6.28); ctx.fill();
+    }
+    ctx.fillStyle = 'rgba(255,255,255,0.6)'; // 眼のハイライト
+    ctx.beginPath(); ctx.arc(dp(6.7), dp(-9.3), dp(0.35), 0, 6.28); ctx.fill();
+    ctx.beginPath(); ctx.arc(dp(8.1), dp(-8.6), dp(0.3), 0, 6.28); ctx.fill();
+
+    // --- 手前側の脚（体の前。濃いめ・大きく動かす） ---
+    legDefs.forEach(L => {
+      const lift = Math.max(0, Math.sin(t * 6 + L.ph)) * dp(2.0);
+      drawLeg(L.ax, -dp(6.0), L.fx, -L.knee, lift, dp(1.9), legNear);
+    });
+
+    // --- 被弾フラッシュ（白：兵に攻撃された時） ---
+    if(en.hitFlash > 0) {
+      ctx.save();
+      ctx.globalAlpha *= clamp(en.hitFlash / 0.15, 0, 1) * 0.7;
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.ellipse(dp(-2), dp(-6.5), dp(10), dp(7.5), 0, 0, 6.28); ctx.fill();
+      ctx.restore();
+    }
+    // --- 噛みつきの赤フラッシュ（範囲攻撃の瞬間） ---
     if(en.lungeFlash > 0) {
       ctx.save();
       ctx.globalAlpha *= clamp(en.lungeFlash, 0, 1);
-      ctx.fillStyle = 'rgba(239,68,68,0.45)';
-      ctx.beginPath(); ctx.ellipse(dp(-2), 0, dp(9), dp(7), 0, 0, 6.28); ctx.fill();
+      ctx.fillStyle = 'rgba(239,68,68,0.42)';
+      ctx.beginPath(); ctx.ellipse(dp(-1), dp(-6), dp(12), dp(9), 0, 0, 6.28); ctx.fill();
       ctx.restore();
     }
   }
@@ -11451,9 +11572,10 @@ function expandMap(forcedType, isEmergency) {
     if(alpha <= 0) return;
     const ratio = clamp((en.hp || 0) / en.maxHp, 0, 1);
     const boss = !!en.isBoss; // v3: 大型ボスは目立つ大きなHPバー
-    const w = boss ? dp(52) : dp(18), h = boss ? dp(5) : dp(3);
+    const spider = en.kind === 'spider'; // v3改: クモは特大化したのでバーを高く＆広く
+    const w = spider ? dp(80) : boss ? dp(52) : dp(18), h = (boss || spider) ? dp(5) : dp(3);
     const x = en.x - w / 2;
-    const y = en.y - (boss ? dp(38) : dp(18));
+    const y = en.y - (spider ? dp(94) : boss ? dp(38) : dp(18));
     ctx.save();
     ctx.globalAlpha *= alpha;
     ctx.fillStyle = "rgba(15,23,42,0.85)";
@@ -14888,17 +15010,33 @@ function syncFermenterUnlockUI() {
   // ============================================================
   // ===== Phase 4: 開発者モード =====
   // ============================================================
+  function _activateDevMode(showToast) {
+    const dt = document.getElementById('dev-tools'); if(dt) dt.style.display = '';
+    const drt = document.getElementById('dev-raid-tools'); if(drt) drt.style.display = '';
+    const nt = document.getElementById('normal-tools'); if(nt) nt.style.display = 'none';
+    S._devMode = true;
+    if(typeof unlockResearchSystem === 'function') unlockResearchSystem();
+    if(typeof updateResearchUI === 'function') updateResearchUI();
+    if(showToast) toast('⚙️ 開発者モード ON（研究も解放）');
+    const raidKinds = [
+      { id: 'btn-dev-raid-normal',  kind: 'normal'  },
+      { id: 'btn-dev-raid-samurai', kind: 'samurai' },
+      { id: 'btn-dev-raid-spider',  kind: 'spider'  },
+    ];
+    raidKinds.forEach(({ id, kind }) => {
+      const btn = document.getElementById(id);
+      if(btn && !btn._devWired) { btn._devWired = true; btn.addEventListener('click', () => debugForceRaid(kind)); }
+    });
+  }
   (function(){
     if(location.search.includes('dev=1')) {
-      const dt = document.getElementById('dev-tools'); if(dt) dt.style.display = '';
-      const nt = document.getElementById('normal-tools'); if(nt) nt.style.display = 'none';
-      if(typeof unlockResearchSystem === 'function') unlockResearchSystem(); // 開発モードは研究も解放
+      _activateDevMode(false);
       return;
     }
     const pubBtn = renderUI.pubBtn;
     if(pubBtn) {
       let _devTimer = null;
-      pubBtn.addEventListener('pointerdown', () => { _devTimer = setTimeout(() => { const dt=document.getElementById('dev-tools'); if(dt) dt.style.display=''; const nt=document.getElementById('normal-tools'); if(nt) nt.style.display='none'; if(typeof unlockResearchSystem === 'function') unlockResearchSystem(); if(typeof updateResearchUI === 'function') updateResearchUI(); toast('⚙️ 開発者モード ON（研究も解放）'); }, 5000); });
+      pubBtn.addEventListener('pointerdown', () => { _devTimer = setTimeout(() => _activateDevMode(true), 5000); });
       pubBtn.addEventListener('pointerup', () => clearTimeout(_devTimer));
       pubBtn.addEventListener('pointercancel', () => clearTimeout(_devTimer));
     }
@@ -18731,13 +18869,18 @@ function syncFermenterUnlockUI() {
         // Phase 7B-1: 死亡敵は少し暗く見せる
         ctx.globalAlpha = en.fade * (isDead ? 0.6 : 1);
         ctx.translate(en.x, en.y);
+
+        if(en.kind === 'spider') {
+          // v3改: 横向きプロフィールのクモ。rotate(PI)だと上下が反転してしまうため、
+          // 向きは左右反転(scale x)だけで表現し、脚は常に下(地面側)へ伸ばす。
+          const sm = en.sizeMul || 1;
+          const faceLeft = (en.targetX - en.x) < 0;
+          ctx.scale(faceLeft ? -sm : sm, sm);
+          drawRaidSpiderBody(ctx, en); // 被弾/噛みつきフラッシュもこの中で処理
+        } else {
         const dir = (en.targetX - en.x) >= 0 ? 0 : Math.PI;
         ctx.rotate(dir);
         if(en.sizeMul && en.sizeMul !== 1) ctx.scale(en.sizeMul, en.sizeMul); // v1: 兵種で体格を変える
-
-        if(en.kind === 'spider') {
-          drawRaidSpiderBody(ctx, en); // v3: クモボス（8本脚の捕食者）
-        } else {
         ctx.fillStyle = en.tint || '#7f1d1d';
         ctx.beginPath(); ctx.ellipse(-dp(6),0,dp(4.8),dp(3.4),0,0,6.28); ctx.fill();
         ctx.beginPath(); ctx.ellipse(0,0,dp(3),dp(3),0,0,6.28); ctx.fill();
@@ -18755,13 +18898,13 @@ function syncFermenterUnlockUI() {
           ctx.beginPath(); ctx.moveTo(dp(8), -dp(1)); ctx.lineTo(dp(12), -dp(4)); ctx.stroke();
           ctx.beginPath(); ctx.moveTo(dp(8), dp(1)); ctx.lineTo(dp(12), dp(4)); ctx.stroke();
         }
-        }
 
-        // Phase 7B-1: 被弾閃光（ダメージ時の白フラッシュ）
+        // Phase 7B-1: 被弾閃光（ダメージ時の白フラッシュ。クモはdrawRaidSpiderBody内で処理）
         if(en.hitFlash > 0) {
           ctx.globalAlpha = en.fade * clamp(en.hitFlash / 0.15, 0, 1) * 0.7;
           ctx.fillStyle = '#ffffff';
           ctx.beginPath(); ctx.ellipse(0, 0, dp(6), dp(4.4), 0, 0, 6.28); ctx.fill();
+        }
         }
 
         ctx.restore();
@@ -19157,6 +19300,17 @@ function syncFermenterUnlockUI() {
       ctx.fillStyle=e.c; ctx.globalAlpha=e.l; ctx.fillText(e.t,e.x,e.y);
     });
     ctx.globalAlpha=1;
+
+    // FPS overlay (dev mode only)
+    if(S._devMode && S.perf) {
+      const fps = Math.round(S.perf.fps);
+      ctx.setTransform(1,0,0,1,0,0);
+      ctx.font = 'bold 13px monospace';
+      ctx.textAlign = 'right';
+      ctx.fillStyle = fps >= 55 ? '#4ade80' : fps >= 30 ? '#fbbf24' : '#f87171';
+      ctx.fillText(`${fps} fps`, canvas.width - 8, 18);
+      ctx.globalAlpha = 1;
+    }
   }
 
   // ===== リサイズ・初期化・ロード =====
