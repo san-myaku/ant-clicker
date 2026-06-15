@@ -20520,6 +20520,44 @@ function syncFermenterUnlockUI() {
         S.perf.antsDrawn = antsDrawn;
       }
     } else {
+    // 相互作用（触角コンタクト/口移し）: 近接して向かい合う個体のペアを軽量グリッドで拾う。
+    // ベクター近景のみ・上限ありで負荷を抑える（大量表示時はsprite/dotに切替わるので走らない）。
+    const _contactMap = new Map();
+    if(antRender.mode !== 'sprite' && antRender.mode !== 'dot' && drawAnts.length <= 700){
+      const CR = dp(13), cell = Math.max(1, dp(13));
+      const grid = new Map();
+      for(const a of drawAnts){
+        if(!a) continue;
+        const k = Math.floor(a.x/cell)+','+Math.floor(a.y/cell);
+        let b = grid.get(k); if(!b){ b=[]; grid.set(k,b); } b.push(a);
+      }
+      const CR2 = CR*CR;
+      for(const a of drawAnts){
+        if(!a || _contactMap.has(a)) continue;
+        const cx = Math.floor(a.x/cell), cy = Math.floor(a.y/cell);
+        let best=null, bestD=CR2;
+        for(let gx=cx-1; gx<=cx+1; gx++) for(let gy=cy-1; gy<=cy+1; gy++){
+          const bucket = grid.get(gx+','+gy); if(!bucket) continue;
+          for(const o of bucket){
+            if(o===a || _contactMap.has(o)) continue;
+            const dx=o.x-a.x, dy=o.y-a.y, d2=dx*dx+dy*dy;
+            if(d2<bestD){ bestD=d2; best=o; }
+          }
+        }
+        if(best){
+          const dx=best.x-a.x, dy=best.y-a.y, angTo=Math.atan2(dy,dx);
+          const facingA = Math.cos(angTo - (a.rot||0));
+          const facingB = Math.cos((angTo+Math.PI) - (best.rot||0));
+          // 周期的に短時間だけ接触（常時ベタベタしない）
+          const gate = (((S.t*0.7 + (a.anim||0)*3 + (best.anim||0)*3) % 3)+3)%3 < 1.0;
+          if(facingA>0.2 && facingB>0.2 && gate){
+            const troph = (a.cargo==='food' || best.cargo==='food');
+            _contactMap.set(a, { ang: angTo, troph });
+            _contactMap.set(best, { ang: angTo+Math.PI, troph });
+          }
+        }
+      }
+    }
     drawAnts.forEach(a=>{
       if(antRender.mode === 'sprite') {
         drawAntSprite(a);
@@ -20551,10 +20589,21 @@ function syncFermenterUnlockUI() {
         ctx.lineWidth = dp(1);
         ctx.beginPath(); ctx.arc(0,0,dp(7) + pulse*dp(1.4),0,6.28); ctx.stroke();
       }
-      const sw = Math.sin(S.t*20 + a.anim) * dp(1.8) * (isResting ? 0.35 : 1);
-      const swFront = sw;
-      const swMid = sw * 0.45;
-      const swRear = -sw * 0.7;
+      // 実際の移動量から歩行を駆動（止まっている個体は脚も止まる＝「ムーンウォーク」防止）
+      const _adt = (S.perf && S.perf.dt) || 0.016;
+      let _spd = 0;
+      if(a._px != null) _spd = Math.hypot(pose.x - a._px, pose.y - a._py) / Math.max(0.001, _adt);
+      a._px = pose.x; a._py = pose.y;
+      const moveAmt = clamp(_spd / dp(45), 0, 1); // 0=静止 / 1=しっかり移動
+      // たまに立ち止まって毛づくろい（静止中・非運搬・非休憩の個体が、個体ごとにずれた周期で）
+      const groomPhase = (((S.t / 9.0) + (a.anim || 0) * 0.37) % 1 + 1) % 1;
+      const grooming = !isResting && !a.cargo && !a.carryType && moveAmt < 0.06 && groomPhase < 0.14;
+      const groomSweep = grooming ? (Math.sin(S.t * 17 + a.anim) * 0.5 + 0.5) : 0; // 0..1 前脚で頭をこする
+      // 三脚歩行: 2群が逆位相。移動時は大きく、静止時は微小な待機ゆらぎ。
+      const gaitFreq = 16 + moveAmt * 12;
+      const stride = (dp(0.45) + dp(1.7) * moveAmt) * (isResting ? 0.3 : 1);
+      const phA = Math.sin(S.t * gaitFreq + (a.anim || 0)) * stride;
+      const phB = Math.sin(S.t * gaitFreq + (a.anim || 0) + Math.PI) * stride;
       // 6 legs (front/mid/rear) per ant, 2 segments with wider spread
       // legs: darker + thinner
       const legSeg = (sx, sy, kx, ky, fx, fy) => {
@@ -20593,10 +20642,20 @@ function syncFermenterUnlockUI() {
         ctx.save();
         ctx.globalAlpha *= alpha;
 
+        // 三脚歩行: front/rear と mid を逆位相にし、左右で入れ替える（対角の脚が揃う）
+        const pf = (side < 0) ? phA : phB; // front
+        const pm = (side < 0) ? phB : phA; // mid
+        const pr = (side < 0) ? phA : phB; // rear
         // rear -> mid -> front
-        drawLeg(side, -1.2,  1.4,  2.1,  3.1,  4.6,  4.1, swRear);
-        drawLeg(side, -0.1,  0.3,  2.6,  0.7,  5.0,  1.6, swMid);
-        drawLeg(side,  1.2, -1.2,  2.3, -2.8,  4.7, -3.9, swFront);
+        drawLeg(side, -1.2,  1.4,  2.1,  3.1,  4.6,  4.1, pr * -0.7);
+        drawLeg(side, -0.1,  0.3,  2.6,  0.7,  5.0,  1.6, pm * 0.45);
+        if(grooming){
+          // 毛づくろい: 前脚を頭の方へ持ち上げて拭う
+          const lift = dp(2.4) * groomSweep;
+          drawLeg(side, 1.2, -1.2, 3.4, -2.6 - lift*0.3, 5.8, -1.6 - lift, 0);
+        } else {
+          drawLeg(side,  1.2, -1.2,  2.3, -2.8,  4.7, -3.9, pf * 1.0);
+        }
 
         ctx.restore();
       };
@@ -20618,7 +20677,9 @@ function syncFermenterUnlockUI() {
       ctx.strokeStyle = 'rgba(15, 23, 42, 0.75)';
       ctx.lineWidth = dp(0.95);
       ctx.lineCap = 'round';
-      const antSw = Math.sin(S.t*10 + a.anim) * dp(0.5) * (isResting ? 0.25 : 1);
+      const antSw = grooming
+        ? Math.sin(S.t*22 + a.anim) * dp(1.2)
+        : Math.sin(S.t*10 + a.anim) * dp(0.5) * (isResting ? 0.25 : (0.6 + moveAmt*0.7));
       const hx = dp(5.8);
       ctx.beginPath();
       ctx.moveTo(hx, -dp(0.5));
@@ -20628,6 +20689,26 @@ function syncFermenterUnlockUI() {
       ctx.moveTo(hx, dp(0.5));
       ctx.quadraticCurveTo(hx + dp(2.2) + antSw, dp(2.0), hx + dp(4.2), dp(3.3));
       ctx.stroke();
+
+      // 相互作用: 近接して向かい合う相手へ片方の触角を伸ばして触れ合う（＋食料があれば口移し）
+      const _ct = _contactMap.get(a);
+      if(_ct){
+        const la = _ct.ang - (a._drawRot || 0);          // 相手方向（ローカル角）
+        const quiver = Math.sin(S.t*18 + a.anim) * dp(0.6);
+        const rx = Math.cos(la) * dp(8.6), ry = Math.sin(la) * dp(8.6) + quiver;
+        ctx.strokeStyle = 'rgba(15, 23, 42, 0.8)';
+        ctx.lineWidth = dp(0.95);
+        ctx.beginPath();
+        ctx.moveTo(hx, 0);
+        ctx.quadraticCurveTo(hx*0.5 + rx*0.5, ry*0.5, rx, ry);
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(253, 224, 71, 0.75)';
+        ctx.beginPath(); ctx.arc(rx, ry, dp(0.95), 0, 6.28); ctx.fill();
+        if(_ct.troph){ // 口移し（栄養交換）の食料玉
+          ctx.fillStyle = '#4ade80';
+          ctx.beginPath(); ctx.arc(rx*0.66, ry*0.66, dp(1.7), 0, 6.28); ctx.fill();
+        }
+      }
 
       // 追加: 幼虫運搬(larva)のアイコン表示対応
       const carry = a.cargo || a.carryType;
