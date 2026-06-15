@@ -828,6 +828,7 @@
       touch-action: pan-x pan-y;
       overscroll-behavior: contain;
       border-radius: 10px;
+      cursor: grab;
       background:
         radial-gradient(240px 170px at 16% 0%, rgba(120, 82, 40, 0.22), transparent 70%),
         radial-gradient(300px 220px at 84% 100%, rgba(80, 52, 26, 0.26), transparent 72%),
@@ -842,6 +843,7 @@
       cursor: pointer; display: flex; align-items: center; justify-content: center;
     }
     .rtree-zoom-btn:active { transform: scale(0.94); }
+    .rtree-modal-body.is-panning { cursor: grabbing; }
     .room-pending-row {
       display: flex;
       align-items: center;
@@ -9133,6 +9135,7 @@ function expandMap(forcedType, isEmergency) {
         : Math.max(0, Math.ceil((S.roomTotal || 0) * REST_MAX_RATIO));
       const restCount = (typeof S.restCount === 'number') ? S.restCount : 0;
       const canAddRest = restCount < restLimit;
+      const canAddWaste = (G.wasteRoomPending || 0) > 0;
       // ゴミ室は予約制（上の予約処理で建設）。自動建築はしない。
       const popRatio = G.tot / popCap;
       const foodRatio = G.food / foodCap;
@@ -15181,6 +15184,19 @@ function expandMap(forcedType, isEmergency) {
     stage.style.height = Math.ceil((S._rtreeCanvasH || scaler.offsetHeight) * sc) + 'px';
   }
   function setRtreeZoom(z){ S._rtreeZoom = clamp(z, RTREE_ZOOM_MIN, RTREE_ZOOM_MAX); applyRtreeZoom(); }
+  function setRtreeZoomAtPoint(z, cx, cy) {
+    const body = researchTreeModalBody;
+    if(!body) { setRtreeZoom(z); return; }
+    const fit = S._rtreeFitScale || 1;
+    const oldScale = fit * clamp(S._rtreeZoom || 1, RTREE_ZOOM_MIN, RTREE_ZOOM_MAX);
+    const wx = (body.scrollLeft + cx) / oldScale;
+    const wy = (body.scrollTop + cy) / oldScale;
+    S._rtreeZoom = clamp(z, RTREE_ZOOM_MIN, RTREE_ZOOM_MAX);
+    applyRtreeZoom();
+    const newScale = (S._rtreeFitScale || 1) * S._rtreeZoom;
+    body.scrollLeft = wx * newScale - cx;
+    body.scrollTop = wy * newScale - cy;
+  }
 
   function updateResearchUI(){
     const rs = ensureResearchState();
@@ -15452,25 +15468,47 @@ function expandMap(forcedType, isEmergency) {
   if(researchTreeModal) {
     researchTreeModal.addEventListener('click', (e) => { if(e.target === researchTreeModal) closeResearchTreeModal(); });
   }
+  let _rtreeDragged = false;
   if(researchTreeModalBody) {
     researchTreeModalBody.addEventListener('click', (e) => {
+      if(_rtreeDragged) { _rtreeDragged = false; return; }
       const btn = e.target.closest('[data-research-buy]');
       if(!btn) return;
       tryBuyResearchFromTree(btn.getAttribute('data-research-buy'));
     });
   }
   { const _rtClose = document.getElementById('btn-research-tree-close'); if(_rtClose) _rtClose.addEventListener('click', closeResearchTreeModal); }
-  // ズーム操作（±ボタン / Ctrl+ホイール / ピンチ）。基準fitに対する倍率 S._rtreeZoom を操作。
+  // ズーム操作（±ボタン / ホイール / ピンチ / ドラッグパン）。基準fitに対する倍率 S._rtreeZoom を操作。
   { const _zi = document.getElementById('btn-rtree-zoom-in'); if(_zi) _zi.addEventListener('click', () => setRtreeZoom((S._rtreeZoom || 1) * 1.25)); }
   { const _zo = document.getElementById('btn-rtree-zoom-out'); if(_zo) _zo.addEventListener('click', () => setRtreeZoom((S._rtreeZoom || 1) / 1.25)); }
   { const _zr = document.getElementById('btn-rtree-zoom-reset'); if(_zr) _zr.addEventListener('click', () => setRtreeZoom(1)); }
   if(researchTreeModalBody) {
-    // Ctrl/⌘+ホイールでズーム（素のホイールはスクロールに残す）
+    // ホイールでズーム（カーソル位置中心）
     researchTreeModalBody.addEventListener('wheel', (e) => {
-      if(!(e.ctrlKey || e.metaKey)) return;
       e.preventDefault();
-      setRtreeZoom((S._rtreeZoom || 1) * (e.deltaY < 0 ? 1.12 : 1/1.12));
+      const r = researchTreeModalBody.getBoundingClientRect();
+      setRtreeZoomAtPoint((S._rtreeZoom || 1) * (e.deltaY < 0 ? 1.12 : 1/1.12), e.clientX - r.left, e.clientY - r.top);
     }, { passive: false });
+    // ドラッグでパン
+    let _rtreeDrag = null;
+    researchTreeModalBody.addEventListener('mousedown', (e) => {
+      if(e.button !== 0) return;
+      _rtreeDrag = { x: e.clientX, y: e.clientY, sx: researchTreeModalBody.scrollLeft, sy: researchTreeModalBody.scrollTop };
+      _rtreeDragged = false;
+      researchTreeModalBody.classList.add('is-panning');
+    });
+    window.addEventListener('mousemove', (e) => {
+      if(!_rtreeDrag) return;
+      const dx = e.clientX - _rtreeDrag.x, dy = e.clientY - _rtreeDrag.y;
+      if(Math.hypot(dx, dy) > 4) _rtreeDragged = true;
+      researchTreeModalBody.scrollLeft = _rtreeDrag.sx - dx;
+      researchTreeModalBody.scrollTop = _rtreeDrag.sy - dy;
+    });
+    window.addEventListener('mouseup', () => {
+      if(!_rtreeDrag) return;
+      _rtreeDrag = null;
+      researchTreeModalBody.classList.remove('is-panning');
+    });
     // ピンチズーム（2本指）
     let _pinchD0 = 0, _pinchZ0 = 1;
     researchTreeModalBody.addEventListener('touchstart', (e) => {
