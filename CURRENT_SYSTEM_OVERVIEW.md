@@ -760,19 +760,20 @@ Worker cookie chance:
 
 - Worker cookie acquisition is rolled when a worker returns from surface gathering and switches from `surf` to `ret`.
 - Base chance is `0.005` (`0.5%`) per returning worker.
-- Effective chance is `clamp((0.005 * workerCookieMul + globalCookieAdd) * cookieFind2x * activeCookieBoost * cookieRoomMul, 0, 1)`.
+- Effective chance is `clamp((0.005 * workerCookieMul + globalCookieAdd + cookieRoomAdd) * cookieFind2x * activeCookieBoost, 0, 1)`.
 - `workerCookieMul` comes from worker level (`G.getWorkerCookieMul()`).
 - `globalCookieAdd` comes from the active golden/global buff (`getGlobalCookieAdd()`).
+- `cookieRoomAdd` = `cookieRoomCount × COOKIE_ROOM_FIND_ADD (0.01)` — **each cookie room adds +1% to the find chance** (added inside the base term, so `cookie_find_2x` etc. also amplify it). Replaced the old multiplicative `cookieRoomMul`.
 - `cookieFind2x` is `2` after research node `cookie_find_2x`, otherwise `1`.
 - `activeCookieBoost` is `100` while the cookie boost active major is active, otherwise `1`.
-- `cookieRoomMul` is `S.cookieRoomMul`, currently `1.5 ^ cookieRoomCount`.
+- Cookies are only gained **while the game is open** (workers don't gather offline). The only offline cookie comes from opt-in research (`fermentOffline` 自動発酵 / `cookieMature` 熟成).
 - If the worker delivers to a cookie room, delivery storage uses `invCookie` and separately has a `20%` chance to add one extra cookie.
 
 Cookie room:
 
 - Unlock condition: builder level `3`
 - Built via the unified blueprint flow (Rooms tab `クッキー室建設` button → `G.cookieRoomPending` reservation → builder AI places and digs it), NOT auto-built; the old `canAddCookieRoom` auto-build was removed. No hard room cap; cost is power-scaling `getCookieRoomCost()` = `COOKIE_ROOM_COST_BASE (30 cookie) * COOKIE_ROOM_COST_GROWTH (2.5)^(built + pending)`.
-- Each room contributes to `S.cookieRoomMul` = `COOKIE_ROOM_MUL_PER_ROOM (1.5)^cookieRoomCount` (no longer capped at 3 rooms).
+- Each room adds **+1% to the worker cookie-find chance** (`COOKIE_ROOM_FIND_ADD`, additive; see above). The old multiplicative `S.cookieRoomMul`/`COOKIE_ROOM_MUL_PER_ROOM` constants remain defined for compatibility but are no longer used in the find calculation.
 - If a cookie room has already been placed but is still hidden, builder AI detects it from all room nodes and resumes it with reserved priority.
 - Workers prefer delivering cookies to cookie rooms, then queen room, then food rooms.
 - Delivery to a cookie room stores `invCookie` and has a bonus chance to add an extra cookie.

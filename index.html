@@ -2995,7 +2995,7 @@
                 <div class="dock-meta">
                   <div class="dock-name">クッキー室建設</div>
                   <div class="dock-cost">🍪 <span id="c-build-cookieroom">30</span></div>
-                  <div class="dock-desc">発見率×1.5/室 納品+1(20%)</div>
+                  <div class="dock-desc">クッキー発見率+1%/室 納品+1(20%)</div>
                 </div>
                 <span class="dock-badge new" data-badge="new">NEW</span>
                 <span class="dock-badge lock" data-badge="lock">🔒</span>
@@ -3282,7 +3282,8 @@
   // クッキーの部屋
   const COOKIE_ROOM_UNLOCK_LV = 3;    // 解禁に必要な建築Lv
   const COOKIE_ROOM_MAX = 3;          // 自動建築の最大数（参照があるため残す）
-  const COOKIE_ROOM_MUL_PER_ROOM = 1.5; // 1部屋あたりのクッキー収集倍率
+  const COOKIE_ROOM_MUL_PER_ROOM = 1.5; // (旧)倍率方式。発見率計算では未使用。表示互換のため残す
+  const COOKIE_ROOM_FIND_ADD = 0.01;   // クッキー室1室あたり、働きアリのクッキー発見率に加算する量(+1%/室)
   const COOKIE_ROOM_COST_BASE = 30;    // クッキー室初期コスト（🍪）
   const COOKIE_ROOM_COST_GROWTH = 2.5; // クッキー室コスト倍率
   const RESEARCH_UNLOCK_FOOD = 10000;
@@ -9921,8 +9922,8 @@ function expandMap(forcedType, isEmergency) {
     const base = 0.005 * G.getWorkerCookieMul();
     const majorMul = hasCookieFind2x() ? 2 : 1;
     const actMul = isMajorActActive('cookie') ? MAJOR_ACT_COOKIE_MUL : 1;
-    const roomMul = (S.cookieRoomMul || 1); // クッキー室による倍率
-    return clamp((base + getGlobalCookieAdd()) * majorMul * actMul * roomMul, 0, 1);
+    const roomAdd = (S.cookieRoomCount || 0) * COOKIE_ROOM_FIND_ADD; // クッキー室: 発見率 +1%/室（甘味探索等の乗数とも相乗）
+    return clamp((base + getGlobalCookieAdd() + roomAdd) * majorMul * actMul, 0, 1);
   }
 
   function getGoldenFingerLevel(){
@@ -15593,13 +15594,13 @@ function syncFermenterUnlockUI() {
     const roomCount = Math.max(0, Math.floor(S.cookieRoomCount || 0));
     const unlocked = G.bLv >= COOKIE_ROOM_UNLOCK_LV;
     const invCookie = getCookieRoomStoredCount();
-    const discoverMul = (S.cookieRoomMul || 1).toFixed(2);
+    const findBonusPct = roomCount * Math.round(COOKIE_ROOM_FIND_ADD * 100);
     const lock = unlocked ? '' : `\n解放条件: 建築Lv${COOKIE_ROOM_UNLOCK_LV}`;
     const state = roomCount > 0 ? `${roomCount}部屋稼働中` : (unlocked ? '解放済み（未建設）' : '未解放');
     const pending = G.cookieRoomPending || 0;
     const pendingStr = pending > 0 ? ` (予約中: ${pending})` : '';
     const nextCost = getCookieRoomCost();
-    return `クッキー室\n状態: ${state}${lock}${pendingStr}\n現在在庫: ${invCookie}\n発見率補正: x${discoverMul}\n保存/加工ボーナス: 納品時20%で+1\n次の建設コスト: 🍪${nextCost}`;
+    return `クッキー室\n状態: ${state}${lock}${pendingStr}\n現在在庫: ${invCookie}\nクッキー発見率: +1%/室（現在 +${findBonusPct}%・開いている間）\n保存/加工ボーナス: 納品時20%で+1\n次の建設コスト: 🍪${nextCost}`;
   }
 
   function getFermentRoomTipText() {
@@ -17554,7 +17555,7 @@ function syncFermenterUnlockUI() {
     G.cookie -= cost;
     G.cookieRoomPending = (G.cookieRoomPending || 0) + 1;
     toast('🍪 クッキー室の建設を予約した。建築アリが場所を探します');
-    addQueenWhisper('クッキー室が増えれば、もっと甘いものが集まるわ', 'cookieroom_build');
+    addQueenWhisper('クッキー室が増えれば、開いている間に甘い匂いを見つけやすくなるわ', 'cookieroom_build');
     updateUI();
   };
 
