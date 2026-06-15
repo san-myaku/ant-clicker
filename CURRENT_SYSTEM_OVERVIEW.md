@@ -478,6 +478,7 @@ Waste:
 - Nurses can clean waste even without a waste room.
 - Without waste room: waste is carried to the entrance and discarded.
 - With waste room: waste is carried to the nearest waste room with larger haul amounts.
+- **Waste rooms are reservation-built and repeatable** (like ferment/cookie rooms), up to `WASTE_ROOM_MAX (8)`. The Rooms-tab `ゴミ室建設` button (`#btn-unlock-waste`) charges `getWasteRoomCost()` = `WASTE_ROOM_COST_BASE (1500) × WASTE_ROOM_COST_GROWTH (1.7)^(built + pending)` food and increments `G.wasteRoomPending` (saved); the builder AI digs reserved waste rooms via `forceExpandRoom('waste')` at score `9780` (mirrors the cookie/ferment reservation flow) — no more auto-building. The first build also sets `G.unlockWasteRoom = true`. More waste rooms = faster cleanup = key defense against the garbage-disease mechanic. (Legacy `WASTE_ROOM_UNLOCK_COST` is kept but unused.)
 - Waste room unlock also unlocks the `hygiene_3` / `お掃除はおまかせ` research condition.
 - `hygiene_3` improves cleaner thresholds, cleaner share, and haul amount.
 - After `hygiene_3`, some workers also join low-priority waste cleanup: `8%` of workers, capped at `8` simultaneous worker cleaners.

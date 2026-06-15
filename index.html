@@ -2993,13 +2993,13 @@
                 <span class="dock-badge new" data-badge="new">NEW</span>
                 <span class="dock-badge lock" data-badge="lock">🔒</span>
               </button>
-              <!-- ゴミ室解禁（Part7A） -->
+              <!-- ゴミ室建設（Part7A・予約制） -->
               <button class="dock-item" type="button" id="btn-unlock-waste" data-upkey="waste">
                 <div class="dock-icon">🗑️</div>
                 <div class="dock-meta">
-                  <div class="dock-name">ゴミ室</div>
-                  <div class="dock-cost">🍃 <span id="c-unlock-waste">5000</span></div>
-                  <div class="dock-desc">ゴミ搬入+1 / 清掃研究解禁</div>
+                  <div class="dock-name">ゴミ室建設</div>
+                  <div class="dock-cost">🍃 <span id="c-unlock-waste">1500</span></div>
+                  <div class="dock-desc">清掃を強化・病気予防 / 複数建設可</div>
                 </div>
                 <span class="dock-badge new" data-badge="new">NEW</span>
                 <span class="dock-badge lock" data-badge="lock">🔒</span>
@@ -3304,10 +3304,12 @@
   const WASTE_RECYCLE_FOOD = 3;       // 衛1: ゴミ1単位あたりに戻る食料
   const CLEAN_THRESHOLD = 0.25;       // 衛2: 幼虫室のゴミ比率がこれ未満なら「清潔」とみなす
   const CLEAN_BONUS = 0.20;           // 衛2: 清潔時の食料収集ボーナス(+20%)
-  // ゴミ室（Part7A）
-  const WASTE_ROOM_UNLOCK_LV = 2;     // 解禁に必要な建築Lv
-  const WASTE_ROOM_UNLOCK_COST = 5000;// 解禁コスト（食料）
-  const WASTE_ROOM_MAX = 1;           // 自動建築の最大数
+  // ゴミ室（Part7A）。予約制（発酵室・クッキー室と同様）。複数建てるほど清掃が進み病気を防げる。
+  const WASTE_ROOM_UNLOCK_LV = 2;     // 建設に必要な建築Lv
+  const WASTE_ROOM_UNLOCK_COST = 5000;// （旧）一括解禁コスト。互換のため残置
+  const WASTE_ROOM_MAX = 8;           // 建設上限（コスト増が主な制限）
+  const WASTE_ROOM_COST_BASE = 1500;  // ゴミ室1室目のコスト（食料）
+  const WASTE_ROOM_COST_GROWTH = 1.7; // 室ごとのコスト倍率
   // クッキーの部屋
   const COOKIE_ROOM_UNLOCK_LV = 3;    // 解禁に必要な建築Lv
   const COOKIE_ROOM_MAX = 3;          // 自動建築の最大数（参照があるため残す）
@@ -4434,6 +4436,14 @@ function getFermentRoomCost() {
 function getCookieRoomCost() {
   const n = (S.cookieRoomCount || 0) + (G.cookieRoomPending || 0);
   return Math.round(COOKIE_ROOM_COST_BASE * Math.pow(COOKIE_ROOM_COST_GROWTH, n));
+}
+function getWasteRoomCount() { return (typeof S.wasteCount === 'number') ? S.wasteCount : 0; }
+function getWasteRoomCost() {
+  const n = getWasteRoomCount() + (G.wasteRoomPending || 0);
+  return Math.round(WASTE_ROOM_COST_BASE * Math.pow(WASTE_ROOM_COST_GROWTH, n));
+}
+function canBuildMoreWasteRooms() {
+  return (getWasteRoomCount() + (G.wasteRoomPending || 0)) < WASTE_ROOM_MAX;
 }
 function getBarracksCost() {
   const n = (S.barracksCount || 0) + (G.barracksPending || 0);
@@ -6051,6 +6061,7 @@ function ensureRestSlots(n){
     _fermentCookieMade: false,
     fermentRoomPending: 0,   // 発酵室の「建設予約」数。食料支払い済み・建設待ち。
     cookieRoomPending: 0,   // クッキー室の「建設予約」数
+    wasteRoomPending: 0,    // ゴミ室の「建設予約」数
     barracksPending: 0,     // 兵舎の「建設予約」数
     expeditions: [],         // 進行中・帰還済みの遠征記録
     soldierCaste: { scout: 0, heavy: 0 },  // 兵種比率(%)。標準=100-scout-heavy。研究で解放
@@ -6209,6 +6220,7 @@ function ensureRestSlots(n){
         fermentCookieMade: !!this._fermentCookieMade,
         fermentRoomPending: Math.max(0, Math.floor(this.fermentRoomPending || 0)),
         cookieRoomPending: Math.max(0, Math.floor(this.cookieRoomPending || 0)),
+        wasteRoomPending: Math.max(0, Math.floor(this.wasteRoomPending || 0)),
         barracksPending: Math.max(0, Math.floor(this.barracksPending || 0)),
         expeditions: Array.isArray(this.expeditions) ? this.expeditions : [],
         soldierCaste: this.soldierCaste || { scout: 0, heavy: 0 },
@@ -6312,6 +6324,7 @@ function ensureRestSlots(n){
         this._fermentCookieMade = !!d.fermentCookieMade;
         this.fermentRoomPending = Math.max(0, Math.floor(+d.fermentRoomPending || 0));
         this.cookieRoomPending = Math.max(0, Math.floor(+d.cookieRoomPending || 0));
+        this.wasteRoomPending = Math.max(0, Math.floor(+d.wasteRoomPending || 0));
         this.barracksPending = Math.max(0, Math.floor(+d.barracksPending || 0));
         this.expeditions = Array.isArray(d.expeditions) ? d.expeditions : [];
         this.soldierCaste = (d.soldierCaste && typeof d.soldierCaste === 'object')
@@ -8976,6 +8989,36 @@ function expandMap(forcedType, isEmergency) {
         }
       }
 
+      // ゴミ室の建設予約処理（発酵室・クッキー室と同構造）
+      if(G.unlockWasteRoom){
+        const wastePlaced = getRoomNodeCountByType('waste', true);
+        const wasteVisible = getRoomNodeCountByType('waste', false);
+        const hasUnbuiltWaste = wastePlaced > wasteVisible;
+        if((G.wasteRoomPending || 0) > 0 || hasUnbuiltWaste) {
+          if(hasUnbuiltWaste) {
+            for(let _wi = 0; _wi < S.full.edges.length; _wi++) {
+              if((S.edgeFrac[_wi] || 0) >= 1) continue;
+              const _we = S.full.edges[_wi];
+              const _wuv = S.nodeVis[_we.u], _wvv = S.nodeVis[_we.v];
+              if(_wuv === _wvv) continue;
+              const _whiIdx = _wuv ? _we.v : _we.u;
+              const _whi = S.full.nodes[_whiIdx];
+              if(!_whi || _whi.type !== 'waste') continue;
+              if(isNodeAboveGround(_whi)) continue;
+              if(!isDigTargetReservable(_wi, _whiIdx, 'waste:reserved')) continue;
+              return decorateDigTarget({ eid: _wi, to: _whiIdx, dir: _wuv ? 1 : -1, score: 9780, reason: 'waste:reserved' });
+            }
+          }
+          if((G.wasteRoomPending || 0) > 0) {
+            const weid = forceExpandRoom('waste');
+            if(weid != null) {
+              G.wasteRoomPending = Math.max(0, (G.wasteRoomPending || 0) - 1);
+              return decorateDigTarget({ eid: weid, to: S.full.edges[weid].v, dir: 1, score: 9780, reason: 'waste:reserved' });
+            }
+          }
+        }
+      }
+
       // 兵舎の建設予約処理
       if(hasBarracksBlueprint()) {
         const barPlaced = getRoomNodeCountByType('soldier', true);
@@ -9069,9 +9112,7 @@ function expandMap(forcedType, isEmergency) {
         : Math.max(0, Math.ceil((S.roomTotal || 0) * REST_MAX_RATIO));
       const restCount = (typeof S.restCount === 'number') ? S.restCount : 0;
       const canAddRest = restCount < restLimit;
-      // ゴミ室（解禁済み & 最大1部屋）
-      const wasteCount = (typeof S.wasteCount === 'number') ? S.wasteCount : 0;
-      const canAddWaste = (G.unlockWasteRoom && builderLv >= WASTE_ROOM_UNLOCK_LV && wasteCount < WASTE_ROOM_MAX);
+      // ゴミ室は予約制（上の予約処理で建設）。自動建築はしない。
       const popRatio = G.tot / popCap;
       const foodRatio = G.food / foodCap;
       const soldierRatio = needFirstBarracks ? 1 : ((soldierCap > 0) ? (G.ants.soldier / soldierCap) : 0);
@@ -9082,7 +9123,6 @@ function expandMap(forcedType, isEmergency) {
       else if(foodRatio > 0.70) forcedType = 'food';
       else if(soldierRatio > 0.70) forcedType = 'soldier';
       else if(builderLv >= 2 && canAddRest) forcedType = 'rest';
-      else if(canAddWaste) forcedType = 'waste';
       else forcedType = 'shaft';
 
       const span = bandSpanInfo();
@@ -15874,7 +15914,12 @@ function syncFermenterUnlockUI() {
     setDockInlineEffect('btn-up-nurse', getNurseInlineEffect());
     setDockInlineEffect('btn-up-builder', getBuilderInlineEffect());
     setDockInlineEffect('btn-up-soldier', getSoldierInlineEffect());
-    setDockInlineEffect('btn-unlock-waste', G.unlockWasteRoom ? '解禁済み: ゴミ搬入+1 / 清掃研究' : `解放: ゴミ搬入+1 / 清掃研究`);
+    {
+      const wc = getWasteRoomCount(), wp = (G.wasteRoomPending || 0);
+      const wasteEff = !canBuildMoreWasteRooms() ? `稼働 ${wc}室 (上限)`
+        : (wp > 0 ? `建設予約中 (${wc}室+予約${wp})` : (wc > 0 ? `稼働 ${wc}室・増設可` : 'ゴミ室を建設して清掃強化'));
+      setDockInlineEffect('btn-unlock-waste', wasteEff);
+    }
     setDockInlineEffect('btn-build-ferment', getFermentRoomInlineEffect());
     {
       const lv = getGoldenFingerLevel();
@@ -15976,12 +16021,14 @@ function syncFermenterUnlockUI() {
       return `建築LvUP\n効果: 掘削速度 +${curSpeedPct}% → +${nextSpeedPct}%\n次の解放: ${nextUnlock}\n現在: Lv.${lv} → 次: Lv.${nextLv}\nコスト: 🍃 ${G.getUpCost('builder')}`;
     });
 
-    // ゴミ室解禁のツールチップ
+    // ゴミ室建設のツールチップ（予約制）
     bindTip(document.getElementById('btn-unlock-waste'), () => {
-      const body = '効果: 育児アリが入口ではなくゴミ室へ運ぶ\n運搬: ゴミ室へ搬入すると1回のゴミ運搬量 +1\n研究: 「お掃除はおまかせ」が研究可能になる';
-      if(G.unlockWasteRoom) return `ゴミ室は解禁済み\n${body}`;
-      const lock = (G.bLv >= WASTE_ROOM_UNLOCK_LV) ? '' : `\n※建築Lv${WASTE_ROOM_UNLOCK_LV}で解禁`;
-      return `ゴミ室 解禁\nコスト: 🍃 ${WASTE_ROOM_UNLOCK_COST}${lock}\n${body}`;
+      const wc = getWasteRoomCount(), wp = (G.wasteRoomPending || 0);
+      const body = '効果: ゴミを効率よく搬出し、巣のゴミ総量を下げる（病気の予防）\n運搬: ゴミ室へ搬入すると1回の運搬量 +1\n研究: 「お掃除はおまかせ」が研究可能\n複数建てるほど清掃が速くなる';
+      const stateStr = `現在: ${wc}室${wp > 0 ? `（予約${wp}）` : ''} / 上限${WASTE_ROOM_MAX}`;
+      if(!canBuildMoreWasteRooms()) return `ゴミ室建設\n${stateStr}（上限）\n${body}`;
+      const lock = (G.bLv >= WASTE_ROOM_UNLOCK_LV) ? '' : `\n※建築Lv${WASTE_ROOM_UNLOCK_LV}で建設可`;
+      return `ゴミ室建設（予約制）\n${stateStr}\n次の建設コスト: 🍃 ${getWasteRoomCost()}${lock}\n${body}`;
     });
     bindTip(document.getElementById('btn-build-ferment'), () => getFermentRoomTipText());
     bindTip(document.getElementById('btn-build-cookieroom'), () => getCookieRoomTipText());
@@ -17183,13 +17230,14 @@ function syncFermenterUnlockUI() {
     setText(el.c_up_n, (G.nLv >= NURSE_LV_MAX) ? 'MAX' : G.getUpCost('nurse'));
     setText(el.l_slv, `Lv.${G.sLv}`);
     setText(el.c_up_s, (G.sLv >= SOLDIER_LV_MAX) ? 'MAX' : G.getUpCost('soldier'));
-    // ゴミ室解禁ボタンの表示更新
+    // ゴミ室建設ボタンの表示更新（予約制）
+    const wasteFull = !canBuildMoreWasteRooms();
     if(el.wasteUnlockCost) {
-      el.wasteUnlockCost.textContent = G.unlockWasteRoom ? '解禁済' : String(WASTE_ROOM_UNLOCK_COST);
+      el.wasteUnlockCost.textContent = wasteFull ? '上限' : String(getWasteRoomCost());
     }
     const wasteBtn = document.getElementById('btn-unlock-waste');
     if(wasteBtn) {
-      wasteBtn.classList.toggle('disabled', G.unlockWasteRoom); // 解禁済みのみ操作不可
+      wasteBtn.classList.toggle('disabled', wasteFull); // 上限到達時のみ操作不可
     }
     const fermentBtn = document.getElementById('btn-build-ferment');
     if(el.fermentBuildCost) {
@@ -17704,12 +17752,16 @@ function syncFermenterUnlockUI() {
   // ゴミ室解禁（Part7A）
   const btnUnlockWaste = document.getElementById('btn-unlock-waste');
   if(btnUnlockWaste) btnUnlockWaste.onclick = function() {
-    if(G.unlockWasteRoom) { toast("ゴミ室は解禁済みです"); return; }
-    if(G.bLv < WASTE_ROOM_UNLOCK_LV) { toast(`建築Lv${WASTE_ROOM_UNLOCK_LV}で解禁`, true); return; }
-    if(G.food < WASTE_ROOM_UNLOCK_COST) { toast("食料が足りません", true); return; }
-    G.food -= WASTE_ROOM_UNLOCK_COST;
-    G.unlockWasteRoom = true;
-    toast("ゴミ室を解禁しました");
+    if(G.bLv < WASTE_ROOM_UNLOCK_LV) { toast(`建築Lv${WASTE_ROOM_UNLOCK_LV}で建設可能`, true); return; }
+    if(!canBuildMoreWasteRooms()) { toast(`ゴミ室は最大${WASTE_ROOM_MAX}室までです`, true); return; }
+    const cost = getWasteRoomCost();
+    if(G.food < cost) { toast(`食料が足りません (必要: ${cost})`, true); return; }
+    G.food -= cost;
+    const first = !G.unlockWasteRoom;
+    G.unlockWasteRoom = true; // 清掃研究(衛3)の条件＆予約建設の解放
+    G.wasteRoomPending = (G.wasteRoomPending || 0) + 1;
+    toast('🗑️ ゴミ室の建設を予約した。建築アリが場所を探します');
+    if(first) addQueenWhisper('ゴミ室を掘り始めたわ。これで巣を清潔に保てる', 'waste_build');
     updateUpgradeDock();
     updateUI();
   };

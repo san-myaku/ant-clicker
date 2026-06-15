@@ -1,5 +1,16 @@
 # Development Log
 
+## 2026-06-15 ゴミ室を予約制・複数建設可に
+
+ゴミ病気システムに合わせ、ゴミ室を発酵室・クッキー室と同じ予約制へ。1部屋自動建築だった旧仕様を廃止し、複数建てて清掃を強化できるように（病気対策の主軸）。
+
+- 定数: `WASTE_ROOM_MAX 1→8`、`WASTE_ROOM_COST_BASE 1500`/`WASTE_ROOM_COST_GROWTH 1.7` 追加。`getWasteRoomCost()`/`canBuildMoreWasteRooms()`/`getWasteRoomCount()` 追加。
+- 状態: `G.wasteRoomPending` 追加（セーブ対応）。
+- 建設ボタン(`#btn-unlock-waste`)を「解禁1回」→「予約建設（複数可）」に。初回建設で `unlockWasteRoom=true`(衛3研究条件＆予約解放)も立てる。
+- 建築AI: ゴミ室の予約処理ブロックを追加（cookie/fermentと同型、score 9780、`forceExpandRoom('waste')`）。`forcedType='waste'` の自動建築を撤去。
+- UI: ドック名「ゴミ室建設」、コスト/インライン/ツリップを室数・予約・次コスト・上限表示に更新。
+- 検証(preview): 建設1回目=食料1500・予約1・unlock成立、2回目=2550(×1.7)・予約2。コンソールエラー0。建設はAI予約処理で実施(既存パターン流用)。
+
 ## 2026-06-15 「生きてる巣」蟻アニメーション（基礎＋相互作用）
 
 近景(ベクターLOD)の蟻にリアルな動きを追加。実在のアリ生態に準拠 ([[ari-clicker-design-realism]] / [[ari-clicker-living-nest-animations]])。大量表示時はsprite/dotに切替わるので追加負荷は近景のみ。
