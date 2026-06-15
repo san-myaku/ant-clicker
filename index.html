@@ -752,6 +752,10 @@
       background: radial-gradient(circle at 38% 32%, color-mix(in srgb, var(--branch-color, #38bdf8) 50%, #6b4a1f), #2e1d0f 80%);
     }
     .rtree-node.is-maxed .rtree-node-mk { color: #fcd34d; border-color: rgba(245,158,11,0.7); }
+    .rtree-node.is-repeatable .rtree-node-lv {
+      background: linear-gradient(180deg, rgba(81, 58, 25, 0.98), rgba(24, 17, 9, 0.96));
+      color: #ffe8a3;
+    }
     /* A2: 全節目達成「極」ノードの金色グロー */
     .rtree-node.is-mastered .rtree-node-dot {
       border-color: #fcd34d;
@@ -776,11 +780,48 @@
     }
     /* ===== 放射状（蜘蛛の巣）研究ツリー: 拡大モーダル専用 ===== */
     .rtree-radial { position: relative; }
-    .rtree-radial .rtree-web-ring { fill: none; stroke: rgba(170,135,92,0.13); stroke-width: 1.5; }
-    .rtree-radial .rtree-web-thread { stroke: rgba(170,135,92,0.11); stroke-width: 1.5; }
+    .rtree-radial .rtree-web-ring { fill: none; stroke: rgba(170,135,92,0.12); stroke-width: 1.5; }
+    .rtree-radial .rtree-web-ring.is-major { stroke: rgba(214,164,86,0.25); stroke-width: 2.25; }
+    .rtree-radial .rtree-web-thread { stroke: rgba(170,135,92,0.12); stroke-width: 1.5; }
+    .rtree-radial .rtree-link { stroke-width: 4; opacity: 0.72; }
+    .rtree-radial .rtree-node { width: 86px; gap: 2px; }
+    .rtree-radial .rtree-node-dot { width: 46px; height: 46px; }
+    .rtree-radial .rtree-node-nm {
+      max-width: 82px;
+      font-size: 9px;
+      line-height: 1.15;
+      text-shadow: 0 1px 2px #000, 0 0 4px #000;
+    }
+    .rtree-radial .rtree-node-ct { display: none; }
+    .rtree-radial .rtree-node.is-breakthrough .rtree-node-dot {
+      border-radius: 12px;
+      transform: rotate(45deg);
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.18), 0 0 12px rgba(245, 158, 11, 0.28), inset 0 0 7px rgba(0,0,0,0.55);
+    }
+    .rtree-radial .rtree-node.is-breakthrough .rtree-node-ic,
+    .rtree-radial .rtree-node.is-breakthrough .rtree-node-mk,
+    .rtree-radial .rtree-node.is-breakthrough .rtree-node-lv {
+      transform: rotate(-45deg);
+    }
+    .rtree-radial .rtree-node.is-breakthrough .rtree-node-lv { left: -10px; top: -2px; }
+    .rtree-ring-label {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      padding: 2px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(214,164,86,0.36);
+      background: rgba(25, 16, 8, 0.82);
+      color: #e9c995;
+      font-size: 10px;
+      font-weight: 800;
+      line-height: 1.1;
+      white-space: nowrap;
+      pointer-events: none;
+      text-shadow: 0 1px 2px #000;
+    }
     .rtree-queen-hub {
       position: absolute; transform: translate(-50%, -50%);
-      width: 88px; height: 88px; border-radius: 999px;
+      width: 98px; height: 98px; border-radius: 999px;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       background: radial-gradient(circle at 40% 34%, #6a3f9c, #2a1740 80%);
       border: 3px solid rgba(217,70,239,0.7);
@@ -788,11 +829,62 @@
       font-size: 32px; line-height: 1; color: #f3e0ff;
     }
     .rtree-queen-hub span { font-size: 10px; font-weight: 800; color: #e9c7ff; margin-top: 1px; }
+    .rtree-queen-hub small {
+      display: block;
+      margin-top: 3px;
+      color: #f6d1ff;
+      font-size: 9px;
+      font-weight: 800;
+      line-height: 1.15;
+    }
     .rtree-spoke-label {
       position: absolute; transform: translate(-50%, -50%);
       font-size: 11px; font-weight: 800; white-space: nowrap;
       color: var(--branch-color, #cbb48b); opacity: 0.9; pointer-events: none;
       text-shadow: 0 1px 2px #000, 0 0 4px #000;
+    }
+    .rtree-gate {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      min-width: 86px;
+      padding: 5px 8px;
+      border-radius: 8px;
+      border: 1px solid rgba(147, 118, 77, 0.72);
+      background: linear-gradient(180deg, rgba(36, 25, 14, 0.94), rgba(18, 12, 7, 0.94));
+      color: #d9c3a5;
+      font-size: 10px;
+      font-weight: 800;
+      line-height: 1.2;
+      text-align: center;
+      pointer-events: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+    }
+    .rtree-gate b { display: block; color: #f8d08a; font-size: 11px; }
+    .rtree-gate.is-done {
+      border-color: rgba(132, 204, 22, 0.72);
+      color: #d9f99d;
+      box-shadow: 0 0 10px rgba(132, 204, 22, 0.22), 0 2px 8px rgba(0,0,0,0.35);
+    }
+    .rtree-gate.is-next {
+      border-color: rgba(245, 158, 11, 0.82);
+      color: #fde68a;
+      box-shadow: 0 0 14px rgba(245, 158, 11, 0.24), 0 2px 8px rgba(0,0,0,0.35);
+    }
+    .rtree-gate-thread { fill: none; stroke: rgba(245, 183, 78, 0.48); stroke-width: 2.5; stroke-dasharray: 6 7; }
+    .rtree-synergy { fill: none; stroke: rgba(251,191,36,0.55); stroke-width: 2.2; stroke-dasharray: 5 8; }
+    .rtree-synergy-badge {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      padding: 3px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(251,191,36,0.5);
+      background: rgba(32, 21, 9, 0.9);
+      color: #fde68a;
+      font-size: 9px;
+      font-weight: 800;
+      white-space: nowrap;
+      pointer-events: none;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.35);
     }
     @media (max-width: 520px) {
       /* モバイル: ツリーを「高さ制限付き 2D スクロール領域」にする。
@@ -821,6 +913,12 @@
     .rtree-modal-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; flex: 0 0 auto; }
     .rtree-modal-title { font-size: 14px; font-weight: 800; color: #f0ddbe; }
     .rtree-modal-head .modal-btn { margin-top: 0; }
+    .rtree-modal-content {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      gap: 10px;
+    }
     .rtree-modal-body {
       flex: 1 1 auto; min-height: 0;
       overflow: auto;
@@ -834,6 +932,92 @@
         radial-gradient(300px 220px at 84% 100%, rgba(80, 52, 26, 0.26), transparent 72%),
         linear-gradient(180deg, #2a1d12, #160f08);
     }
+    .rtree-modal-info {
+      flex: 0 0 330px;
+      min-width: 0;
+      overflow: auto;
+      border: 1px solid rgba(86, 60, 33, 0.62);
+      border-radius: 10px;
+      background:
+        radial-gradient(120px 80px at 16% 0%, rgba(217,70,239,0.10), transparent 72%),
+        linear-gradient(180deg, rgba(16, 23, 30, 0.94), rgba(12, 17, 22, 0.96));
+      padding: 10px;
+      color: #d9c3a5;
+    }
+    .rtree-info-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+    .rtree-info-title { font-size: 13px; font-weight: 900; color: #f3e8ff; }
+    .rtree-info-chip {
+      flex: 0 0 auto;
+      padding: 3px 7px;
+      border: 1px solid rgba(217,70,239,0.35);
+      border-radius: 999px;
+      background: rgba(88, 28, 135, 0.22);
+      color: #f0abfc;
+      font-size: 10px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .rtree-info-stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .rtree-info-stat {
+      min-width: 0;
+      border: 1px solid rgba(86, 60, 33, 0.55);
+      border-radius: 8px;
+      background: rgba(23, 31, 39, 0.72);
+      padding: 7px;
+    }
+    .rtree-info-stat span { display: block; font-size: 9px; color: #94a3b8; font-weight: 800; }
+    .rtree-info-stat b { display: block; margin-top: 2px; font-size: 16px; color: #f8d08a; }
+    .rtree-gate-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+    .rtree-gate-row {
+      display: grid;
+      grid-template-columns: 22px 1fr auto;
+      gap: 7px;
+      align-items: center;
+      border: 1px solid rgba(86, 60, 33, 0.5);
+      border-radius: 8px;
+      background: rgba(20, 27, 34, 0.72);
+      padding: 7px;
+    }
+    .rtree-gate-row.is-done { border-color: rgba(132,204,22,0.42); background: rgba(26, 43, 24, 0.52); }
+    .rtree-gate-row.is-next { border-color: rgba(245,158,11,0.55); background: rgba(48, 35, 18, 0.62); }
+    .rtree-gate-row-icon {
+      width: 20px; height: 20px; border-radius: 999px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      font-size: 11px; font-weight: 900; color: #cbd5e1;
+    }
+    .rtree-gate-row.is-done .rtree-gate-row-icon { color: #bef264; border-color: rgba(132,204,22,0.55); }
+    .rtree-gate-row.is-next .rtree-gate-row-icon { color: #fcd34d; border-color: rgba(245,158,11,0.7); }
+    .rtree-gate-row-body b { display: block; color: #f1e2c6; font-size: 11px; line-height: 1.2; }
+    .rtree-gate-row-body span { display: block; margin-top: 1px; color: #9ca3af; font-size: 9px; line-height: 1.25; }
+    .rtree-gate-row-state { font-size: 10px; font-weight: 900; color: #f8d08a; white-space: nowrap; }
+    .rtree-next-card {
+      border: 1px solid rgba(245, 158, 11, 0.38);
+      border-radius: 8px;
+      background: linear-gradient(180deg, rgba(47, 31, 14, 0.82), rgba(22, 18, 14, 0.86));
+      padding: 8px;
+    }
+    .rtree-next-card h4 { margin: 0 0 5px; font-size: 11px; color: #fde68a; }
+    .rtree-next-card p { margin: 0; font-size: 10px; line-height: 1.35; color: #cbd5e1; }
+    .rtree-next-card .cost { margin-top: 6px; color: #fcd34d; font-weight: 800; font-size: 10px; }
+    .rtree-info-tabs { display: flex; gap: 5px; margin-top: 9px; }
+    .rtree-info-tabs span {
+      flex: 1;
+      text-align: center;
+      padding: 5px 4px;
+      border-radius: 7px;
+      border: 1px solid rgba(86, 60, 33, 0.5);
+      background: rgba(18, 25, 31, 0.72);
+      font-size: 10px;
+      font-weight: 800;
+      color: #a8b3c2;
+    }
+    .rtree-info-tabs span:first-child { color: #f8d08a; border-color: rgba(245,158,11,0.48); }
     .rtree-modal-stage { position: relative; margin: 0 auto; }
     .rtree-modal-scaler { position: relative; transform-origin: top left; }
     .rtree-zoom-ctrls { display: flex; gap: 4px; margin-left: auto; margin-right: 8px; }
@@ -844,6 +1028,45 @@
     }
     .rtree-zoom-btn:active { transform: scale(0.94); }
     .rtree-modal-body.is-panning { cursor: grabbing; }
+    @media (max-width: 720px) {
+      .modal-box.rtree-modal-box {
+        width: 100vw;
+        height: 100dvh;
+        max-width: none;
+        max-height: none;
+        border-radius: 0;
+        padding: 8px;
+      }
+      .rtree-modal-head { margin-bottom: 8px; }
+      .rtree-modal-title { font-size: 13px; }
+      .rtree-zoom-ctrls { margin-right: 0; gap: 3px; }
+      .rtree-zoom-btn { width: 28px; height: 28px; border-radius: 7px; font-size: 14px; }
+      .rtree-modal-close {
+        min-width: 44px;
+        padding: 6px 8px;
+        font-size: 11px;
+      }
+      .rtree-modal-content {
+        flex-direction: column;
+        gap: 8px;
+      }
+      .rtree-modal-body {
+        flex: 1 1 62%;
+        min-height: 0;
+        border-radius: 10px;
+      }
+      .rtree-modal-info {
+        flex: 0 0 35%;
+        border-radius: 12px 12px 0 0;
+        padding: 9px;
+      }
+      .rtree-info-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .rtree-info-stat { padding: 6px; }
+      .rtree-info-stat b { font-size: 13px; }
+      .rtree-gate-list { gap: 5px; }
+      .rtree-gate-row { grid-template-columns: 20px 1fr auto; padding: 6px; }
+      .rtree-next-card { padding: 7px; }
+    }
     .room-pending-row {
       display: flex;
       align-items: center;
@@ -3258,7 +3481,10 @@
       </div>
       <button class="modal-btn rtree-modal-close" id="btn-research-tree-close" type="button">閉じる</button>
     </div>
-    <div class="rtree-modal-body" id="research-tree-modal-body"></div>
+    <div class="rtree-modal-content">
+      <div class="rtree-modal-body" id="research-tree-modal-body"></div>
+      <aside class="rtree-modal-info" id="research-tree-modal-info" aria-label="女王と研究の連動"></aside>
+    </div>
   </div>
 </div>
 
@@ -14603,6 +14829,7 @@ function expandMap(forcedType, isEmergency) {
   };
   const researchTreeModal = document.getElementById('modal-research-tree');
   const researchTreeModalBody = document.getElementById('research-tree-modal-body');
+  const researchTreeModalInfo = document.getElementById('research-tree-modal-info');
 
   const fermentPanelUI = {
     summary: document.getElementById('ferment-room-summary'),
@@ -14966,6 +15193,7 @@ function expandMap(forcedType, isEmergency) {
     else if(status === 'ready') st = canResearch ? 'is-ready' : 'is-wait';
     cls.push(st);
     if(def.breakthrough) cls.push('is-breakthrough');
+    if(repeatable) cls.push('is-repeatable');
     if(isResearchMastered(def)) cls.push('is-mastered');  // A2: 全節目達成=極
     const mark = getResearchStatusMark(status, canResearch);
     const icon = getResearchBranchDef(def.branch).icon || '•';
@@ -14974,7 +15202,7 @@ function expandMap(forcedType, isEmergency) {
     // フッター: 完了=済 / 上限=上限 / それ以外=次レベルのコスト
     const footer = (status === 'done') ? '済' : (status === 'maxed') ? '上限' : cost;
     // レベルバッジ（反復ノードで取得済みのとき）
-    const lvBadge = (repeatable && lv > 0) ? `<span class="rtree-node-lv">Lv${lv}</span>` : '';
+    const lvBadge = repeatable ? `<span class="rtree-node-lv">${lv > 0 ? `Lv${lv}` : 'Lv+'}</span>` : '';
     const lvTip = repeatable ? `\nレベル: ${lv}${getResearchNodeMaxLevel(def) === Infinity ? '' : '/' + getResearchNodeMaxLevel(def)}` : '';
     const effPreview = getResearchEffectPreviewText(def);
     const msText = getResearchMilestoneText(def);
@@ -15028,9 +15256,92 @@ function expandMap(forcedType, isEmergency) {
     return `<div class="rtree-scroll">${buildResearchTreeInner(rs).inner}</div>`;
   }
 
+  function getResearchDoneCount(){
+    return RESEARCH_NODE_DEFS.reduce((acc, def) => acc + (hasResearchNode(def.id) ? 1 : 0), 0);
+  }
+
+  function getResearchTotalLevels(){
+    return RESEARCH_NODE_DEFS.reduce((acc, def) => acc + Math.max(0, researchLevel(def.id)), 0);
+  }
+
+  function getQueenResearchGates(){
+    const qlv = Math.floor(G.qLv || 0);
+    const done = getResearchDoneCount();
+    const workers = Math.floor((G.ants && G.ants.worker) || 0);
+    const highResearchTarget = 18;
+    const researchDone = isResearchSystemUnlocked();
+    const expeditionDone = isResearchBranchUnlocked('expedition');
+    const gates = [
+      {
+        id: 'research',
+        lv: RESEARCH_UNLOCK_QLV,
+        title: '研究解放',
+        sub: researchDone ? '研究センター稼働中' : `生体 ${fmtCount(Math.min(G.tot || 0, RESEARCH_UNLOCK_POP))}/${fmtCount(RESEARCH_UNLOCK_POP)}`,
+        done: researchDone,
+        ring: '基礎'
+      },
+      {
+        id: 'expedition',
+        lv: EXPED_BRANCH_QLV,
+        title: '遠征枝',
+        sub: expeditionDone ? '遠征枝解放済み' : `働きアリ ${fmtCount(Math.min(workers, EXPED_BRANCH_WORKERS))}/${fmtCount(EXPED_BRANCH_WORKERS)}`,
+        done: expeditionDone,
+        ring: '発展'
+      },
+      {
+        id: 'advanced',
+        lv: 12,
+        title: '高等研究の目標',
+        sub: `研究済み ${done}/${highResearchTarget}`,
+        done: qlv >= 12 && done >= highResearchTarget,
+        ring: '熟達',
+        soft: true
+      }
+    ];
+    const next = gates.find(g => !g.done);
+    return gates.map(g => Object.assign({}, g, { next: next && next.id === g.id }));
+  }
+
+  function renderQueenResearchLinkPanel(rs){
+    const qlv = Math.floor(G.qLv || 0);
+    const done = getResearchDoneCount();
+    const total = RESEARCH_NODE_DEFS.length;
+    const totalLv = getResearchTotalLevels();
+    const ready = RESEARCH_NODE_DEFS.filter(def => getResearchStatus(def) === 'ready');
+    const next = ready.find(canAffordResearch) || ready[0] || null;
+    const gates = getQueenResearchGates();
+    const gateRows = gates.map(g => {
+      const cls = g.done ? ' is-done' : (g.next ? ' is-next' : '');
+      const mark = g.done ? '✓' : (g.next ? '!' : '•');
+      const state = g.done ? '達成' : (g.next ? '次' : (g.soft ? '目標' : '未達'));
+      return `<div class="rtree-gate-row${cls}">`
+        + `<span class="rtree-gate-row-icon">${mark}</span>`
+        + `<span class="rtree-gate-row-body"><b>女王Lv${g.lv} ${g.title}</b><span>${g.sub} / ${g.ring}</span></span>`
+        + `<span class="rtree-gate-row-state">${state}</span>`
+        + `</div>`;
+    }).join('');
+    const nextHtml = next
+      ? `<div class="rtree-next-card"><h4>次に伸ばせる研究</h4><p>${getResearchBranchDef(next.branch).icon || '•'} ${getResearchBranchDef(next.branch).label} / ${next.name}</p><p>${getResearchNodeReason(next, getResearchStatus(next), canAffordResearch(next)) || next.desc}</p><div class="cost">${formatResearchCost(next)}</div></div>`
+      : `<div class="rtree-next-card"><h4>次の研究候補</h4><p>${rs.unlocked ? '前提条件か資源を整えると、新しい研究が開きます。' : `研究解放には生体${RESEARCH_UNLOCK_POP}匹＋女王Lv${RESEARCH_UNLOCK_QLV}が必要です。`}</p></div>`;
+    return `
+      <div class="rtree-info-head">
+        <div class="rtree-info-title">女王と研究の連動</div>
+        <div class="rtree-info-chip">女王Lv ${qlv}</div>
+      </div>
+      <div class="rtree-info-stats">
+        <div class="rtree-info-stat"><span>研究済み</span><b>${done}/${total}</b></div>
+        <div class="rtree-info-stat"><span>累計研究Lv</span><b>${totalLv}</b></div>
+        <div class="rtree-info-stat"><span>研究可能</span><b>${ready.length}</b></div>
+      </div>
+      <div class="rtree-gate-list">${gateRows}</div>
+      ${nextHtml}
+      <div class="rtree-info-tabs"><span>全体</span><span>枝</span><span>条件</span></div>
+    `;
+  }
+
   // ===== 放射状（蜘蛛の巣）レイアウト: 拡大モーダル専用。女王枝を中心ハブに、他8枝をスポークに =====
   // 横長モーダルを活かすため横に広い楕円(ASPECT)で配置＝大きく・余白少なく表示できる。
-  const RADIAL_CONST = { NODE_R:24, QUEEN_R0:92, QUEEN_RSTEP:80, SPOKE_R0:300, RING_STEP:120, ROW_SEP:78, MARGIN:58, ASPECT_X:1.46, ASPECT_Y:0.60 };
+  const RADIAL_CONST = { NODE_R:24, QUEEN_R0:100, QUEEN_RSTEP:84, SPOKE_R0:300, RING_STEP:122, ROW_SEP:82, MARGIN:72, ASPECT_X:1.46, ASPECT_Y:0.60 };
   function computeRadialResearchLayout(){
     const C = RADIAL_CONST;
     const AX = C.ASPECT_X, AY = C.ASPECT_Y;
@@ -15043,6 +15354,18 @@ function expandMap(forcedType, isEmergency) {
       return { nodes, colMap, maxD };
     };
     const placements = [], posById = {}, hubs = [], ringSet = new Set(), spokeAngles = [];
+    const ringLabelsRaw = [
+      { r: C.QUEEN_R0, label: '女王枝' },
+      { r: C.SPOKE_R0, label: '基礎' },
+      { r: C.SPOKE_R0 + C.RING_STEP, label: '突破' },
+      { r: C.SPOKE_R0 + C.RING_STEP * 2, label: '発展' },
+      { r: C.SPOKE_R0 + C.RING_STEP * 3, label: '熟達 / Lv+' }
+    ];
+    const gateRaw = [
+      { id:'research', lv: RESEARCH_UNLOCK_QLV, label:'研究解放', r:C.SPOKE_R0 - 58, ang:-0.18 },
+      { id:'expedition', lv: EXPED_BRANCH_QLV, label:'遠征枝', r:C.SPOKE_R0 + C.RING_STEP * 1.35, ang:-2.62 },
+      { id:'advanced', lv:12, label:'研究深化', r:C.SPOKE_R0 + C.RING_STEP * 2.48, ang:0.35 }
+    ];
     let maxAbsX = C.QUEEN_R0*AX, maxAbsY = C.QUEEN_R0*AY;
     // 円座標→横長楕円に写像して配置（位置だけ伸縮、ノード自体は丸のまま）
     const place = (def, ang, r, off, accent) => {
@@ -15089,23 +15412,45 @@ function expandMap(forcedType, isEmergency) {
       spokeAngles.push({ branch, ang, outerR: labelR });
       maxAbsX = Math.max(maxAbsX, Math.abs(lx)); maxAbsY = Math.max(maxAbsY, Math.abs(ly));
     }
+    for(const g of gateRaw){
+      const gx = Math.cos(g.ang) * g.r * AX, gy = Math.sin(g.ang) * g.r * AY;
+      maxAbsX = Math.max(maxAbsX, Math.abs(gx) + 80);
+      maxAbsY = Math.max(maxAbsY, Math.abs(gy) + 30);
+    }
     const cx0 = maxAbsX + C.NODE_R + C.MARGIN + 40;
     const cy0 = maxAbsY + C.NODE_R + C.MARGIN;
     const width = cx0*2, height = cy0*2;
     for(const p of placements){ p.cx = p.x + cx0; p.cy = p.y + cy0; }
     for(const id in posById){ posById[id].cx = posById[id].x + cx0; posById[id].cy = posById[id].y + cy0; }
     for(const h of hubs){ h.cx = h.x + cx0; h.cy = h.y + cy0; }
-    return { placements, posById, hubs, rings:[...ringSet], spokeAngles, width, height, cx0, cy0, ax:AX, ay:AY };
+    const ringLabels = ringLabelsRaw.map((r, idx) => {
+      const ang = (-82 + idx * 4) * Math.PI / 180;
+      return Object.assign({}, r, { cx: cx0 + Math.cos(ang) * r.r * AX, cy: cy0 + Math.sin(ang) * r.r * AY });
+    });
+    const gates = gateRaw.map(g => Object.assign({}, g, {
+      cx: cx0 + Math.cos(g.ang) * g.r * AX,
+      cy: cy0 + Math.sin(g.ang) * g.r * AY
+    }));
+    return { placements, posById, hubs, rings:[...ringSet], ringLabels, gates, spokeAngles, width, height, cx0, cy0, ax:AX, ay:AY };
   }
 
   function buildRadialResearchInner(rs){
     const L = computeRadialResearchLayout();
     const C = RADIAL_CONST;
     const web = [];
-    for(const r of L.rings) web.push(`<ellipse class="rtree-web-ring" cx="${L.cx0}" cy="${L.cy0}" rx="${(r*L.ax).toFixed(1)}" ry="${(r*L.ay).toFixed(1)}" />`);
+    const majorRings = new Set(L.ringLabels.map(r => Math.round(r.r)));
+    for(const r of L.rings) web.push(`<ellipse class="rtree-web-ring${majorRings.has(Math.round(r)) ? ' is-major' : ''}" cx="${L.cx0}" cy="${L.cy0}" rx="${(r*L.ax).toFixed(1)}" ry="${(r*L.ay).toFixed(1)}" />`);
     for(const sa of L.spokeAngles){
       const ex = L.cx0 + Math.cos(sa.ang)*sa.outerR*L.ax, ey = L.cy0 + Math.sin(sa.ang)*sa.outerR*L.ay;
       web.push(`<line class="rtree-web-thread" x1="${L.cx0}" y1="${L.cy0}" x2="${ex.toFixed(1)}" y2="${ey.toFixed(1)}" />`);
+    }
+    const gateState = {};
+    getQueenResearchGates().forEach(g => { gateState[g.id] = g; });
+    for(const g of L.gates){
+      const s = gateState[g.id] || {};
+      if(s.next || s.done) {
+        web.push(`<path class="rtree-gate-thread" d="M${L.cx0},${L.cy0} Q${((L.cx0 + g.cx) / 2).toFixed(1)},${(L.cy0 - 58).toFixed(1)} ${g.cx.toFixed(1)},${g.cy.toFixed(1)}" />`);
+      }
     }
     const links = [];
     for(const p of L.placements){
@@ -15116,12 +15461,35 @@ function expandMap(forcedType, isEmergency) {
         links.push(`<line class="rtree-link ${linkCls}" x1="${pp.cx.toFixed(1)}" y1="${pp.cy.toFixed(1)}" x2="${p.cx.toFixed(1)}" y2="${p.cy.toFixed(1)}" />`);
       }
     }
-    const hub = `<div class="rtree-queen-hub" style="left:${L.cx0}px;top:${L.cy0}px;">👸<span>女王</span></div>`;
+    const synergies = [
+      { a:'queen_vitality', b:'golden_queen_synergy', label:'女王×黄金' },
+      { a:'gather_2', b:'ferment_surplus', label:'採集×発酵' },
+      { a:'caste_unlock', b:'exped_party', label:'防衛×遠征' }
+    ];
+    const synergyPaths = [];
+    const synergyBadges = [];
+    for(const s of synergies){
+      const a = L.posById[s.a], b = L.posById[s.b];
+      if(!a || !b) continue;
+      const mx = (a.cx + b.cx) / 2, my = (a.cy + b.cy) / 2;
+      const cx = mx + (L.cx0 - mx) * 0.22, cy = my + (L.cy0 - my) * 0.22;
+      synergyPaths.push(`<path class="rtree-synergy" d="M${a.cx.toFixed(1)},${a.cy.toFixed(1)} Q${cx.toFixed(1)},${cy.toFixed(1)} ${b.cx.toFixed(1)},${b.cy.toFixed(1)}" />`);
+      synergyBadges.push(`<div class="rtree-synergy-badge" style="left:${cx}px;top:${cy}px">${s.label}</div>`);
+    }
+    const done = getResearchDoneCount();
+    const total = RESEARCH_NODE_DEFS.length;
+    const hub = `<div class="rtree-queen-hub" style="left:${L.cx0}px;top:${L.cy0}px;">👸<span>女王</span><small>Lv${Math.floor(G.qLv||0)} / 研究 ${done}/${total}</small></div>`;
     const labels = L.hubs.map(h => `<div class="rtree-spoke-label" style="left:${h.cx}px;top:${h.cy}px;--branch-color:${h.branch.accent||'#38bdf8'}">${h.branch.icon||'•'} ${h.branch.label}</div>`).join('');
+    const ringLabels = L.ringLabels.map(r => `<div class="rtree-ring-label" style="left:${r.cx}px;top:${r.cy}px">${r.label}</div>`).join('');
+    const gateLabels = L.gates.map(g => {
+      const s = gateState[g.id] || {};
+      const cls = s.done ? ' is-done' : (s.next ? ' is-next' : '');
+      return `<div class="rtree-gate${cls}" style="left:${g.cx}px;top:${g.cy}px"><b>女王Lv${g.lv}</b>${g.label}</div>`;
+    }).join('');
     const nodeEls = L.placements.map(p => renderResearchTreeNode(p.def, p.cx, p.cy, p.accent)).join('');
     const inner = `<div class="rtree rtree-radial" style="width:${L.width}px;height:${L.height}px">`
-      + `<svg class="rtree-links-svg" width="${L.width}" height="${L.height}" viewBox="0 0 ${L.width} ${L.height}" aria-hidden="true">${web.join('')}${links.join('')}</svg>`
-      + hub + labels + nodeEls
+      + `<svg class="rtree-links-svg" width="${L.width}" height="${L.height}" viewBox="0 0 ${L.width} ${L.height}" aria-hidden="true">${web.join('')}${synergyPaths.join('')}${links.join('')}</svg>`
+      + hub + ringLabels + labels + gateLabels + synergyBadges.join('') + nodeEls
       + `</div>`;
     return { inner, width: L.width, height: L.height };
   }
@@ -15155,7 +15523,8 @@ function expandMap(forcedType, isEmergency) {
     bh = Math.max(260, bh - 16);
     const t = buildRadialResearchInner(rs);
     // 横長楕円なのでモーダル幅をしっかり使える。読みやすさ優先で下限を高め（収まらない分はスクロール）。
-    const fitScale = Math.max(0.62, Math.min(1.5, Math.min(bw / Math.max(1, t.width), bh / Math.max(1, t.height))));
+    const minFit = (window.innerWidth <= 720) ? 0.76 : 0.62;
+    const fitScale = Math.max(minFit, Math.min(1.5, Math.min(bw / Math.max(1, t.width), bh / Math.max(1, t.height))));
     // ユーザーズーム（±ボタン/ピンチ/Ctrlホイール）。fitを基準倍率にして掛ける。
     const zoom = clamp(S._rtreeZoom || 1, RTREE_ZOOM_MIN, RTREE_ZOOM_MAX);
     const scale = fitScale * zoom;
@@ -15245,6 +15614,10 @@ function expandMap(forcedType, isEmergency) {
     if(S.researchTreeModalOpen && researchTreeModalBody) {
       const mHtml = renderResearchTreeModal(rs);
       if(!S._researchInteracting && researchTreeModalBody.innerHTML !== mHtml) researchTreeModalBody.innerHTML = mHtml;
+      if(researchTreeModalInfo) {
+        const infoHtml = renderQueenResearchLinkPanel(rs);
+        if(researchTreeModalInfo.innerHTML !== infoHtml) researchTreeModalInfo.innerHTML = infoHtml;
+      }
     }
 
     // innerHTML の不要な置き換えを防ぐ。
@@ -15454,12 +15827,25 @@ function expandMap(forcedType, isEmergency) {
   }
 
   // 研究ツリー拡大モーダルの開閉
+  function centerResearchTreeOnQueen(){
+    const body = researchTreeModalBody;
+    if(!body) return;
+    const hub = body.querySelector('.rtree-queen-hub');
+    if(!hub) return;
+    const scale = (S._rtreeFitScale || 1) * clamp(S._rtreeZoom || 1, RTREE_ZOOM_MIN, RTREE_ZOOM_MAX);
+    const x = parseFloat(hub.style.left || '0') * scale;
+    const y = parseFloat(hub.style.top || '0') * scale;
+    body.scrollLeft = Math.max(0, x - body.clientWidth * 0.48);
+    body.scrollTop = Math.max(0, y - body.clientHeight * 0.42);
+  }
+
   function openResearchTreeModal(){
     if(getResearchView() === 'classic') setResearchView('tree');
     S.researchTreeModalOpen = true;
     S._rtreeZoom = 1; // 開くたびにfit倍率へリセット
     if(researchTreeModal) researchTreeModal.classList.add('show');
     updateResearchUI();
+    setTimeout(centerResearchTreeOnQueen, 0);
   }
   function closeResearchTreeModal(){
     S.researchTreeModalOpen = false;
@@ -15527,7 +15913,12 @@ function expandMap(forcedType, isEmergency) {
     researchTreeModalBody.addEventListener('touchend', (e) => { if(e.touches.length < 2) _pinchD0 = 0; }, { passive: true });
   }
   window.addEventListener('keydown', (e) => { if(e.key === 'Escape' && S.researchTreeModalOpen) closeResearchTreeModal(); });
-  window.addEventListener('resize', () => { if(S.researchTreeModalOpen) updateResearchUI(); });
+  window.addEventListener('resize', () => {
+    if(S.researchTreeModalOpen) {
+      updateResearchUI();
+      setTimeout(centerResearchTreeOnQueen, 0);
+    }
+  });
 
   // マウスホイールでの縦スクロールが、ツリーの横スクロール領域(.rtree-scroll)上で止まる問題の対策。
   // touch-action はホイールに効かないため、縦ホイール時は親の縦スクロール領域を手動でスクロールする。
