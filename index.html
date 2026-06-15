@@ -14923,9 +14923,11 @@ function expandMap(forcedType, isEmergency) {
   }
 
   // ===== 放射状（蜘蛛の巣）レイアウト: 拡大モーダル専用。女王枝を中心ハブに、他8枝をスポークに =====
-  const RADIAL_CONST = { NODE_R:24, QUEEN_R0:78, QUEEN_RSTEP:70, SPOKE_R0:250, RING_STEP:104, ROW_SEP:64, MARGIN:60 };
+  // 横長モーダルを活かすため横に広い楕円(ASPECT)で配置＝大きく・余白少なく表示できる。
+  const RADIAL_CONST = { NODE_R:24, QUEEN_R0:92, QUEEN_RSTEP:80, SPOKE_R0:300, RING_STEP:120, ROW_SEP:78, MARGIN:58, ASPECT_X:1.46, ASPECT_Y:0.60 };
   function computeRadialResearchLayout(){
     const C = RADIAL_CONST;
+    const AX = C.ASPECT_X, AY = C.ASPECT_Y;
     const spokeBranches = RESEARCH_BRANCH_DEFS.filter(b => b.id !== 'queen');
     const queenBranch = RESEARCH_BRANCH_DEFS.find(b => b.id === 'queen');
     const groupByDepth = (branchId) => {
@@ -14934,27 +14936,28 @@ function expandMap(forcedType, isEmergency) {
       for(const def of nodes){ const d = getResearchNodeDepth(def); (colMap[d]=colMap[d]||[]).push(def); if(d>maxD) maxD=d; }
       return { nodes, colMap, maxD };
     };
-    const placements = [];   // {def, x, y, accent}
-    const posById = {};
-    const hubs = [];         // スポーク端のラベル
-    const ringSet = new Set();
-    const spokeAngles = [];
-    let maxRadius = C.QUEEN_R0;
+    const placements = [], posById = {}, hubs = [], ringSet = new Set(), spokeAngles = [];
+    let maxAbsX = C.QUEEN_R0*AX, maxAbsY = C.QUEEN_R0*AY;
+    // 円座標→横長楕円に写像して配置（位置だけ伸縮、ノード自体は丸のまま）
+    const place = (def, ang, r, off, accent) => {
+      const px = -Math.sin(ang), py = Math.cos(ang);
+      const x = (Math.cos(ang)*r + px*off) * AX;
+      const y = (Math.sin(ang)*r + py*off) * AY;
+      placements.push({ def, x, y, accent });
+      posById[def.id] = { x, y };
+      maxAbsX = Math.max(maxAbsX, Math.abs(x)); maxAbsY = Math.max(maxAbsY, Math.abs(y));
+    };
 
-    // 女王枝: 中心ハブ周りの内側リング（深さ別）
+    // 女王枝: 中心ハブ周りの内側リング（深さ別・全周に散らす）
     if(queenBranch){
       const qg = groupByDepth('queen');
-      const depths = Object.keys(qg.colMap).map(Number).sort((a,b)=>a-b);
-      for(const d of depths){
+      for(const d of Object.keys(qg.colMap).map(Number).sort((a,b)=>a-b)){
         const arr = qg.colMap[d];
         const r = C.QUEEN_R0 + d * C.QUEEN_RSTEP;
         ringSet.add(r);
         for(let s=0;s<arr.length;s++){
-          const ang = ((-90 + (360/arr.length)*s) * Math.PI/180) + d*0.35;
-          const x = Math.cos(ang)*r, y = Math.sin(ang)*r;
-          placements.push({ def: arr[s], x, y, accent: queenBranch.accent });
-          posById[arr[s].id] = { x, y };
-          maxRadius = Math.max(maxRadius, r);
+          const ang = ((-90 + (360/arr.length)*s) * Math.PI/180) + d*0.4;
+          place(arr[s], ang, r, 0, queenBranch.accent);
         }
       }
     }
@@ -14963,42 +14966,39 @@ function expandMap(forcedType, isEmergency) {
     for(let i=0;i<n;i++){
       const branch = spokeBranches[i];
       const ang = (-90 + (360/n)*i) * Math.PI/180;
-      spokeAngles.push({ branch, ang });
-      const px = -Math.sin(ang), py = Math.cos(ang); // 垂直単位ベクトル
       const g = groupByDepth(branch.id);
-      const depths = Object.keys(g.colMap).map(Number).sort((a,b)=>a-b);
-      for(const d of depths){
+      for(const d of Object.keys(g.colMap).map(Number).sort((a,b)=>a-b)){
         const arr = g.colMap[d];
-        const baseR = C.SPOKE_R0 + d * C.RING_STEP;
-        ringSet.add(baseR);
-        const bx = Math.cos(ang)*baseR, by = Math.sin(ang)*baseR;
+        const r = C.SPOKE_R0 + d * C.RING_STEP;
+        ringSet.add(r);
         for(let s=0;s<arr.length;s++){
           const off = (s - (arr.length-1)/2) * C.ROW_SEP;
-          const x = bx + px*off, y = by + py*off;
-          placements.push({ def: arr[s], x, y, accent: branch.accent });
-          posById[arr[s].id] = { x, y };
-          maxRadius = Math.max(maxRadius, Math.hypot(x,y));
+          place(arr[s], ang, r, off, branch.accent);
         }
       }
-      const labelR = C.SPOKE_R0 - 70;
-      hubs.push({ branch, x: Math.cos(ang)*labelR, y: Math.sin(ang)*labelR });
+      // ラベルはスポーク外端（最外ノードの少し外）に置き、ノードと重ねない
+      const labelR = C.SPOKE_R0 + (g.maxD + 0.9) * C.RING_STEP;
+      const lx = Math.cos(ang)*labelR*AX, ly = Math.sin(ang)*labelR*AY;
+      hubs.push({ branch, x: lx, y: ly });
+      spokeAngles.push({ branch, ang, outerR: labelR });
+      maxAbsX = Math.max(maxAbsX, Math.abs(lx)); maxAbsY = Math.max(maxAbsY, Math.abs(ly));
     }
-    const R = maxRadius + C.NODE_R + C.MARGIN;
-    const size = R*2, cx0 = R, cy0 = R;
+    const cx0 = maxAbsX + C.NODE_R + C.MARGIN + 40;
+    const cy0 = maxAbsY + C.NODE_R + C.MARGIN;
+    const width = cx0*2, height = cy0*2;
     for(const p of placements){ p.cx = p.x + cx0; p.cy = p.y + cy0; }
     for(const id in posById){ posById[id].cx = posById[id].x + cx0; posById[id].cy = posById[id].y + cy0; }
     for(const h of hubs){ h.cx = h.x + cx0; h.cy = h.y + cy0; }
-    return { placements, posById, hubs, rings:[...ringSet], spokeAngles, width:size, height:size, cx0, cy0 };
+    return { placements, posById, hubs, rings:[...ringSet], spokeAngles, width, height, cx0, cy0, ax:AX, ay:AY };
   }
 
   function buildRadialResearchInner(rs){
     const L = computeRadialResearchLayout();
     const C = RADIAL_CONST;
     const web = [];
-    for(const r of L.rings) web.push(`<circle class="rtree-web-ring" cx="${L.cx0}" cy="${L.cy0}" r="${r.toFixed(1)}" />`);
-    const threadR = L.width/2 - C.MARGIN*0.5;
+    for(const r of L.rings) web.push(`<ellipse class="rtree-web-ring" cx="${L.cx0}" cy="${L.cy0}" rx="${(r*L.ax).toFixed(1)}" ry="${(r*L.ay).toFixed(1)}" />`);
     for(const sa of L.spokeAngles){
-      const ex = L.cx0 + Math.cos(sa.ang)*threadR, ey = L.cy0 + Math.sin(sa.ang)*threadR;
+      const ex = L.cx0 + Math.cos(sa.ang)*sa.outerR*L.ax, ey = L.cy0 + Math.sin(sa.ang)*sa.outerR*L.ay;
       web.push(`<line class="rtree-web-thread" x1="${L.cx0}" y1="${L.cy0}" x2="${ex.toFixed(1)}" y2="${ey.toFixed(1)}" />`);
     }
     const links = [];
@@ -15048,8 +15048,8 @@ function expandMap(forcedType, isEmergency) {
     bw = Math.max(260, bw - 16);
     bh = Math.max(260, bh - 16);
     const t = buildRadialResearchInner(rs);
-    // 放射ツリーは大きいので最小倍率を低めに許可（収まりきらない時はモーダル側スクロール）
-    const scale = Math.max(0.28, Math.min(1.3, Math.min(bw / Math.max(1, t.width), bh / Math.max(1, t.height))));
+    // 横長楕円なのでモーダル幅をしっかり使える。読みやすさ優先で下限を高め（収まらない分はスクロール）。
+    const scale = Math.max(0.62, Math.min(1.5, Math.min(bw / Math.max(1, t.width), bh / Math.max(1, t.height))));
     const sw = Math.ceil(t.width * scale);
     const sh = Math.ceil(t.height * scale);
     return `<div class="rtree-modal-stage" style="width:${sw}px;height:${sh}px">`
