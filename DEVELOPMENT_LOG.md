@@ -29,6 +29,14 @@
 - UI: 遠征モーダルに「兵種編成（コロニー全体）」セクション(`renderCasteSection`)。±5%ステッパー(`adjustCasteRatio`、scout+heavy≤100)。casteSystem解放時のみ表示。
 - 検証(preview): セーブ→リロードでノード反映。斥候15%+重装10%→標準75%、加重平均が防衛火力×1.01/遠征適性×1.04(理論値一致)、兵隊数按分75/15/10を確認。
 
+### Phase 4 — 遠征パーティ編成
+
+- 遠征枝ノード追加: `exped_party`「遠征編成」(flag expedParty・派遣規模UI解放) / `exped_lore`「遠征の心得」(expedSuccess +4%/Lv無限) / `exped_supply`「補給路」(expedReward +20%/Lv無限)。
+- 派遣規模: カードごとに ×1/1.5/2/3 ステッパー(`_expedScale`、非セーブ)。`getExpedParty` が必要数を規模倍。`getExpeditionSuccessRate` に over-provision(+15%/倍, 上限+20%)＋`getResearchBonusRaw('expedSuccess')` を加算。
+- `startExpedition` を規模対応に。出発時に successRate と heavyRatio をレコードに確定保存(出払い中にカーストを変えても在隊中の確率は不変)。
+- `resolveExpedition` は exp.successRate で判定、報酬に `getResearchBonus('expedReward')` を乗算、失敗時の働きアリ損耗を重装比率で軽減。
+- 検証(preview): 規模×2で林床が働き80/兵隊30に、開始でその数を消費・レコードに scale2/successRate0.98 を保存を確認。
+
 ## 2026-06-14 モグラ v2: digging approach + realistic redraw + room-collapse on loss
 
 User feedback on the mole: make it more realistic, have it **dig in** (kick up dust, advance steadily toward the room), fight hard, and **destroy the room** if you lose. All in `index.html`, runtime/visual only.

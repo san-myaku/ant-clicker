@@ -3904,7 +3904,12 @@ const RESEARCH_BRANCH_DEFS = [
   { id: 'queen_double_lay', branch: 'queen', name: '重ね産み', desc: 'タップ1回で産まれる卵 +1個/Lv（最大+3）。', costCookie: 16, costFood: 0, costGrowth: 2.2, max: 3, prereq: ['queen_vitality'], breakthrough: false, effects:[{kind:'mul',key:'tapEggBonus',perLevel:1}] },
   { id: 'queen_embrace', branch: 'queen', name: '女王の包容力', desc: '個体数の上限 +8%/Lv（無限）', costCookie: 15, costFood: 0, costGrowth: 1.6, max: Infinity, prereq: ['queen_vitality'], breakthrough: false, effects:[{kind:'mul',key:'popCap',perLevel:0.08}] },
   { id: 'queen_majesty', branch: 'queen', name: '女王の威厳', desc: '季節による自動産卵の落ち込みを無効化する（どの季節でも産卵速度は最低でも等倍）。', costCookie: 30, costFood: 3500, prereq: ['queen_fertile'], breakthrough: true, effects:[{kind:'flag',flag:'queenAllSeasonLay'}] },
-  { id: 'queen_pheromone', branch: 'queen', name: '女王フェロモン', desc: '女王の匂いがコロニー全体を活気づけ、働きアリの食料収集効率 +20%。', costCookie: 35, costFood: 4000, prereq: ['queen_embrace'], breakthrough: true, effects:[{kind:'mul',key:'gatherFood',perLevel:0.20}] }
+  { id: 'queen_pheromone', branch: 'queen', name: '女王フェロモン', desc: '女王の匂いがコロニー全体を活気づけ、働きアリの食料収集効率 +20%。', costCookie: 35, costFood: 4000, prereq: ['queen_embrace'], breakthrough: true, effects:[{kind:'mul',key:'gatherFood',perLevel:0.20}] },
+
+  // ===== 遠征枝 =====
+  { id: 'exped_party', branch: 'expedition', name: '遠征編成', desc: '遠征に送り出す規模を自分で決められるようになる。多めに送るほど成功率が上がる。', costCookie: 20, costFood: 2000, prereq: [], breakthrough: true, effects:[{kind:'flag',flag:'expedParty'}] },
+  { id: 'exped_lore', branch: 'expedition', name: '遠征の心得', desc: '遠征隊の経験が蓄積し、成功率 +4%/Lv（無限）。', costCookie: 10, costFood: 0, costGrowth: 1.5, max: Infinity, prereq: ['exped_party'], breakthrough: false, effects:[{kind:'mul',key:'expedSuccess',perLevel:0.04}] },
+  { id: 'exped_supply', branch: 'expedition', name: '補給路', desc: '遠征先との補給路を確立し、持ち帰る報酬 +20%/Lv（無限）。', costCookie: 12, costFood: 0, costGrowth: 1.6, max: Infinity, prereq: ['exped_party'], breakthrough: false, effects:[{kind:'mul',key:'expedReward',perLevel:0.20}] }
 ];
 
 const RESEARCH_NODE_BY_ID = {};
@@ -11425,8 +11430,8 @@ function expandMap(forcedType, isEmergency) {
     return m > 0 ? `${m}分${s > 0 ? s + '秒' : ''}` : `${s}秒`;
   }
 
-  // 成功率の実効値。基礎値＋兵種カースト補正（斥候比率が高いほど成功↑）。
-  // party省略時はコロニー全体の比率を使う（Phase4でparty指定の比率に差し替え）。
+  // 成功率の実効値。基礎値＋兵種カースト補正＋派遣規模(over-provision)＋研究「遠征の心得」。
+  // party省略時はコロニー全体の比率・規模×1を使う。
   function getExpeditionSuccessRate(def, party) {
     let rate = def ? def.successRate : 0;
     // 兵隊を伴う遠征のみ、斥候/重装の遠征適性が効く
@@ -11436,6 +11441,11 @@ function expandMap(forcedType, isEmergency) {
         : getCasteWeightedMul('expeditionMul');
       rate += (expedMul - 1) * 0.25;
     }
+    // 派遣規模（多めに送るほど成功↑、+15%/倍, 最大+20%）
+    const scale = (party && party.scale) ? party.scale : 1;
+    if(scale > 1) rate += Math.min(0.2, (scale - 1) * 0.15);
+    // 研究「遠征の心得」（加算・effUpなし）
+    rate += (getResearchBonusRaw('expedSuccess') - 1);
     return clamp(rate, 0.05, 0.98);
   }
 
@@ -11556,18 +11566,46 @@ function expandMap(forcedType, isEmergency) {
     return parts.join(' ／ ') || '—';
   }
 
+  // 派遣規模（研究「遠征編成」解放後のみ可変）。transient UI状態（非セーブ）。
+  const EXPED_SCALES = [1, 1.5, 2, 3];
+  let _expedScale = {};
+  function getExpedScale(destId) {
+    const s = _expedScale[destId];
+    return (hasResearchUnlock('expedParty') && s) ? s : 1;
+  }
+  function cycleExpedScale(destId, dir) {
+    if(!hasResearchUnlock('expedParty')) return;
+    let idx = EXPED_SCALES.indexOf(getExpedScale(destId));
+    if(idx < 0) idx = 0;
+    idx = clamp(idx + dir, 0, EXPED_SCALES.length - 1);
+    _expedScale[destId] = EXPED_SCALES[idx];
+    renderExpeditionModal();
+  }
+  // 実際に送り出す編成（規模ぶん必要数を増やす）＋カースト由来の遠征適性・重装比率を同梱
+  function getExpedParty(def) {
+    const scale = getExpedScale(def.id);
+    return {
+      workers: Math.ceil(def.reqWorker * scale),
+      soldiers: Math.ceil(def.reqSoldier * scale),
+      scale,
+      expeditionMul: getCasteWeightedMul('expeditionMul'),
+      heavyRatio: getCasteRatio().heavy / 100
+    };
+  }
+
   function startExpedition(destId) {
     const def = getExpeditionDef(destId);
     if(!def || !isExpeditionUnlocked()) return;
     if((G.expeditions || []).some(e => !e.resolved && e.destId === destId)) {
       toast('すでにこの遠征は進行中です', true); return;
     }
-    if((G.ants.worker || 0) < def.reqWorker) { toast(`働きアリが${def.reqWorker}匹必要です`, true); return; }
-    if((G.ants.soldier || 0) < def.reqSoldier) { toast(`兵隊アリが${def.reqSoldier}匹必要です`, true); return; }
+    const party = getExpedParty(def);
+    if((G.ants.worker || 0) < party.workers) { toast(`働きアリが${party.workers}匹必要です`, true); return; }
+    if((G.ants.soldier || 0) < party.soldiers) { toast(`兵隊アリが${party.soldiers}匹必要です`, true); return; }
     if(G.food < def.reqFood) { toast(`食料が${def.reqFood}必要です`, true); return; }
 
-    G.ants.worker  = Math.max(0, (G.ants.worker  || 0) - def.reqWorker);
-    G.ants.soldier = Math.max(0, (G.ants.soldier || 0) - def.reqSoldier);
+    G.ants.worker  = Math.max(0, (G.ants.worker  || 0) - party.workers);
+    G.ants.soldier = Math.max(0, (G.ants.soldier || 0) - party.soldiers);
     G.food         = Math.max(0, G.food - def.reqFood);
 
     if(!G.expeditions) G.expeditions = [];
@@ -11576,8 +11614,11 @@ function expandMap(forcedType, isEmergency) {
     G.expeditions.push({
       id: 'exp_' + now.toString(36),
       destId,
-      workers: def.reqWorker,
-      soldiers: def.reqSoldier,
+      workers: party.workers,
+      soldiers: party.soldiers,
+      scale: party.scale,
+      successRate: getExpeditionSuccessRate(def, party),  // 出発時に成功率を確定
+      heavyRatio: party.heavyRatio,
       startMs: now,
       returnMs: now + dur * 1000,
       resolved: false,
@@ -11587,21 +11628,26 @@ function expandMap(forcedType, isEmergency) {
       workerReturn: 0
     });
 
-    addQueenWhisper(`${def.name}へ${def.reqWorker}匹の働きアリを送り出したわ`, 'expedition_start');
+    addQueenWhisper(`${def.name}へ働きアリ${party.workers}匹を送り出したわ`, 'expedition_start');
     renderExpeditionModal();
   }
 
   function resolveExpedition(exp) {
     const def = getExpeditionDef(exp.destId);
     if(!def) return;
-    const win = Math.random() < def.successRate;
+    const rate = (typeof exp.successRate === 'number') ? exp.successRate : def.successRate;
+    const win = Math.random() < rate;
+    const rewardMul = getResearchBonus('expedReward'); // 研究「補給路」
     const reward = { food: 0, cookie: 0 };
     if(win) {
-      reward.food = Math.floor(def.reward.food[0] + Math.random() * (def.reward.food[1] - def.reward.food[0]));
+      reward.food = Math.floor((def.reward.food[0] + Math.random() * (def.reward.food[1] - def.reward.food[0])) * rewardMul);
       if(def.reward.cookie[1] > 0)
-        reward.cookie = Math.round(def.reward.cookie[0] + Math.random() * (def.reward.cookie[1] - def.reward.cookie[0]));
+        reward.cookie = Math.round((def.reward.cookie[0] + Math.random() * (def.reward.cookie[1] - def.reward.cookie[0])) * rewardMul);
     }
-    const workerReturn = win ? exp.workers : Math.ceil(exp.workers * (0.6 + Math.random() * 0.3));
+    // 失敗時の働きアリ損耗は重装比率で軽減（重装兵が撤退を守る）
+    const heavyRatio = exp.heavyRatio || 0;
+    const returnFrac = clamp(0.6 + Math.random() * 0.3 + heavyRatio * 0.3, 0, 1);
+    const workerReturn = win ? exp.workers : Math.ceil(exp.workers * returnFrac);
     G.ants.worker  = (G.ants.worker  || 0) + workerReturn;
     G.ants.soldier = (G.ants.soldier || 0) + exp.soldiers;
     if(win) {
@@ -11688,23 +11734,40 @@ function expandMap(forcedType, isEmergency) {
       html += '</div>';
     }
 
+    const partyUnlocked = hasResearchUnlock('expedParty');
     html += '<div class="exped-section"><div class="exped-section-title">遠征先を選ぶ</div>';
     for(const def of EXPEDITION_DEFS) {
       const isActive   = (G.expeditions || []).some(e => !e.resolved && e.destId === def.id);
-      const canWorker  = (G.ants.worker  || 0) >= def.reqWorker;
-      const canSoldier = (G.ants.soldier || 0) >= def.reqSoldier;
+      const party      = getExpedParty(def); // 規模を反映した実派遣数
+      const canWorker  = (G.ants.worker  || 0) >= party.workers;
+      const canSoldier = (G.ants.soldier || 0) >= party.soldiers;
       const canFood    = G.food >= def.reqFood;
       const canStart   = !isActive && canWorker && canSoldier && canFood;
       const costParts  = [];
-      if(def.reqWorker  > 0) costParts.push(`働き ${def.reqWorker}匹`);
-      if(def.reqSoldier > 0) costParts.push(`兵隊 ${def.reqSoldier}匹`);
+      if(party.workers  > 0) costParts.push(`働き ${party.workers}匹`);
+      if(party.soldiers > 0) costParts.push(`兵隊 ${party.soldiers}匹`);
       if(def.reqFood    > 0) costParts.push(`食料 ${def.reqFood}`);
-      const tier = expedSuccessTier(getExpeditionSuccessRate(def, null));
+      const tier = expedSuccessTier(getExpeditionSuccessRate(def, party));
       const rewardHint = expedRewardHint(def);
       let btnLabel = isActive ? '遠征中' : canStart ? '遠征を始める' : '出発不可';
-      if(!isActive && !canWorker)  btnLabel += ` (働き${def.reqWorker}匹必要)`;
-      if(!isActive && !canSoldier) btnLabel += ` (兵隊${def.reqSoldier}匹必要)`;
+      if(!isActive && !canWorker)  btnLabel += ` (働き${party.workers}匹必要)`;
+      if(!isActive && !canSoldier) btnLabel += ` (兵隊${party.soldiers}匹必要)`;
       if(!isActive && !canFood)    btnLabel += ` (食料${def.reqFood}必要)`;
+
+      // 派遣規模コントロール（研究「遠征編成」解放後のみ）
+      let scaleRow = '';
+      if(partyUnlocked) {
+        const sc = getExpedScale(def.id);
+        const atMin = sc <= EXPED_SCALES[0];
+        const atMax = sc >= EXPED_SCALES[EXPED_SCALES.length - 1];
+        scaleRow = `<div style="display:flex;align-items:center;gap:8px;margin-top:6px;">`
+          + `<span style="font-size:11px;color:#94a3b8;">派遣規模</span>`
+          + `<button class="exped-scale" data-exped-scale="${def.id}:-1" ${atMin ? 'disabled' : ''} style="width:22px;height:22px;border:none;border-radius:5px;background:${atMin ? '#1e293b' : '#334155'};color:#e2e8f0;font-weight:700;cursor:${atMin ? 'default' : 'pointer'};">−</button>`
+          + `<span style="font-size:12px;color:#5eead4;font-weight:700;min-width:30px;text-align:center;">×${sc.toFixed(1)}</span>`
+          + `<button class="exped-scale" data-exped-scale="${def.id}:1" ${atMax ? 'disabled' : ''} style="width:22px;height:22px;border:none;border-radius:5px;background:${atMax ? '#1e293b' : '#14b8a6'};color:#0f172a;font-weight:700;cursor:${atMax ? 'default' : 'pointer'};">＋</button>`
+          + `<span style="font-size:10px;color:#64748b;">多く送るほど成功↑</span>`
+          + `</div>`;
+      }
 
       html += `<div class="exped-card">
         <div class="exped-card-head">
@@ -11715,6 +11778,7 @@ function expandMap(forcedType, isEmergency) {
         <div class="exped-card-desc">${def.desc}</div>
         <div class="exped-card-cost">派遣: ${costParts.join(' ＋ ')}</div>
         <div class="exped-card-reward">報酬: ${rewardHint}　成功率: <b style="color:${tier.color}">${tier.label}</b></div>
+        ${scaleRow}
         <button class="exped-btn" data-exped-dest="${def.id}" ${!canStart ? 'disabled' : ''}>${btnLabel}</button>
       </div>`;
     }
@@ -17619,6 +17683,12 @@ function syncFermenterUnlockUI() {
       if(casteBtn) {
         const [id, d] = casteBtn.dataset.casteAdj.split(':');
         adjustCasteRatio(id, parseInt(d, 10));
+        return;
+      }
+      const scaleBtn = e.target.closest('[data-exped-scale]');
+      if(scaleBtn && !scaleBtn.disabled) {
+        const [id, d] = scaleBtn.dataset.expedScale.split(':');
+        cycleExpedScale(id, parseInt(d, 10));
         return;
       }
       const btn = e.target.closest('[data-exped-dest]');
