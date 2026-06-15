@@ -2710,6 +2710,10 @@
           <div class="res-lbl">休憩室</div>
           <div class="res-val" id="v-rest" style="font-size:11px;">0/0</div>
         </div>
+        <div class="res-box" id="hygiene-box" title="巣のゴミ総量。満タンになると病気でアリが減る。ゴミ室と清掃で下げよう">
+          <div class="res-lbl">ゴミ</div>
+          <div class="res-val" id="v-hygiene" style="font-size:11px;">0%</div>
+        </div>
         <div class="res-box" id="season-box">
           <div class="res-lbl">季節</div>
           <div class="res-val" id="v-season" style="font-size:11px;">🌸 春</div>
@@ -3270,6 +3274,11 @@
   const WASTE_RATE_PER_LARVA = 0.02;  // 幼虫1匹あたりのゴミ増加量/秒
   const WASTE_FULL_PER_LARVA = 5;     // ゴミ満タン基準（幼虫1匹あたり）
   const WASTE_SLOW_MAX = 0.40;        // 最大遅延率（40%）
+  // ゴミ過剰による病気（衛生を怠るとペナルティ）。ゴミ室＋清掃で総量を下げれば回復。
+  const DISEASE_WASTE_ON = 1.0;       // ゴミ比率がこれ以上で病気が発生
+  const DISEASE_WASTE_OFF = 0.7;      // ゴミ比率がこれ未満で病気が治まる（ヒステリシス）
+  const DISEASE_LOSS_INTERVAL = 60;   // 病気中、この秒数ごとに個体が減る
+  const DISEASE_LOSS_COUNT = 1;       // 1回の減少数
   // B1 衛生の資源化（衛1 廃棄物リサイクル / 衛2 清潔ボーナス）。数値は調整可。
   const WASTE_RECYCLE_RATE = 0.12;    // 衛1: 1秒あたりに食料へ変換する部屋ゴミの割合
   const WASTE_RECYCLE_FOOD = 3;       // 衛1: ゴミ1単位あたりに戻る食料
@@ -11589,6 +11598,54 @@ function expandMap(forcedType, isEmergency) {
     return 1;
   }
 
+  // ===== ゴミ過剰による病気 =====
+  // 病気で1体失う。働きアリ優先、いなければ他職から。
+  function killSickAnt() {
+    const order = ['worker', 'nurse', 'builder', 'soldier', 'fermenter'];
+    for(const role of order) {
+      if((G.ants[role] || 0) > 0) {
+        G.ants[role] = Math.max(0, Math.floor(G.ants[role]) - DISEASE_LOSS_COUNT);
+        if(role === 'worker' && typeof clampGoldenCount === 'function') clampGoldenCount();
+        return role;
+      }
+    }
+    return null;
+  }
+
+  // ゴミ比率(S._wasteRatio)がしきい値を超えると病気が発生し、未解消なら一定間隔で個体が減る。
+  // ゴミ室＋清掃で総量を下げる(<OFF)と治まる。ゴミ室が無いと清掃が追いつかず慢性化しやすい。
+  function tickDisease(dt) {
+    if(!S.full) return;
+    const wr = S._wasteRatio || 0;
+    if(!S._disease) S._disease = { active: false, lossT: 0, warned: false };
+    const dz = S._disease;
+    if(!dz.active && wr >= DISEASE_WASTE_ON) {
+      dz.active = true; dz.lossT = 0;
+      if(!dz.warned) {
+        dz.warned = true;
+        toast('🦠 ゴミが溢れ、病気のアリが出始めた…！ゴミ室を作って清掃を', true);
+        addQueenWhisper('巣が汚れすぎて病気が広がっているわ…ゴミ室を作って、お願い', 'disease');
+      }
+    } else if(dz.active && wr < DISEASE_WASTE_OFF) {
+      dz.active = false; dz.lossT = 0; dz.warned = false;
+      addQueenWhisper('巣が清潔になってきたわ。病気も治まりそう', 'disease_clear');
+    }
+    if(dz.active) {
+      dz.lossT += dt;
+      if(dz.lossT >= DISEASE_LOSS_INTERVAL) {
+        dz.lossT -= DISEASE_LOSS_INTERVAL;
+        const role = killSickAnt();
+        if(role) {
+          if(typeof G.recalc === 'function') G.recalc();
+          const noWaste = getRoomCache().wasteRoomIds.length === 0;
+          if(S.full && S.full.nodes[S.full.qid]) fx(S.full.nodes[S.full.qid].x, S.full.nodes[S.full.qid].y, 'アリ -1', '#a3e635');
+          shake(dp(3), 0.3);
+          toast(noWaste ? '🦠 病気でアリが1匹死んだ…ゴミ室が必要！' : '🦠 病気でアリが1匹死んだ…清掃を急いで', true);
+        }
+      }
+    }
+  }
+
   // 報酬を質的表現に（具体数字は出さない）。期待値の大きさでざっくり段階化。
   function expedRewardHint(def) {
     if(!def || !def.reward) return '';
@@ -14090,6 +14147,7 @@ function expandMap(forcedType, isEmergency) {
     pop: document.getElementById('v-pop'),
     rate: document.getElementById('v-rate'),
     rest: document.getElementById('v-rest'),
+    hygiene: document.getElementById('v-hygiene'),
     season: document.getElementById('v-season'),
     depth: document.getElementById('v-depth'),
     eggsTop: document.getElementById('v-eggs-top'),
@@ -16818,6 +16876,19 @@ function syncFermenterUnlockUI() {
       el.rest.title = `休憩室比率: ${restCount}/${roomTotal}（上限 ${maxPct}%）`;
     }
 
+    // ゴミ総量ゲージ（病気の危険度を色で示す）
+    if(el.hygiene) {
+      const wr = clamp(S._wasteRatio || 0, 0, 1);
+      const pct = Math.round(wr * 100);
+      const diseased = !!(S._disease && S._disease.active);
+      setText(el.hygiene, diseased ? `🦠 ${pct}%` : `${pct}%`);
+      // 緑(清潔)→黄→赤(危険/病気)
+      const color = diseased ? '#f87171' : (wr >= 0.7 ? '#fb923c' : (wr >= 0.4 ? '#fbbf24' : '#4ade80'));
+      el.hygiene.style.color = color;
+      const box = document.getElementById('hygiene-box');
+      if(box) box.style.borderColor = diseased ? 'rgba(248,113,113,0.7)' : '';
+    }
+
     // 季節・天気表示
     if(el.season) {
       const sn = getCurrentSeason();
@@ -18091,7 +18162,9 @@ function syncFermenterUnlockUI() {
     {
       const _wr = (larvaTotal > 0) ? (larvaWasteTotal / (larvaTotal * WASTE_FULL_PER_LARVA)) : 0;
       S._cleanMul = (hasResearchUnlock('cleanBonus') && _wr < CLEAN_THRESHOLD) ? (1 + CLEAN_BONUS) : 1;
+      S._wasteRatio = _wr;  // ゴミ総量ゲージ・病気判定で参照
     }
+    tickDisease(dt);
     if(larvaTotal > 0 && G.tot < G.caps.pop) {
       const need = larvaTotal * LARVA_FOOD_NEED;
       // 給餌ゼロでも進行するが、給餌があるほど加速
