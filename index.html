@@ -3096,7 +3096,7 @@
   <div class="cookie-box">
     <span class="cookie-emoji">🍪</span>
     <div class="cookie-title">クッキーを発見！</div>
-    <div class="cookie-desc">黄金アリが地表から持ち帰る特別なお菓子。<br>女王のアップグレードや特殊能力の解放に使える。<br>大切に集めよう！</div>
+    <div class="cookie-desc">働きアリが地表から持ち帰る特別なお菓子。<br>女王のアップグレードや特殊能力の解放に使える。<br><b style="color:#fcd34d;">クッキーは巣を開いている間に集まる</b>（一部の研究を取ればお留守番中も少しだけ）。<br>クッキー室を作ると見つけやすくなるよ！</div>
     <button class="cookie-ok" id="cookie-ok-btn">わかった！</button>
   </div>
 </div>
@@ -11583,14 +11583,9 @@ function expandMap(forcedType, isEmergency) {
     renderExpeditionModal();
   }
 
-  // 遠征中は巣の守りが手薄＝レイド予兆が早まる。出払う兵隊が多いほど加速。
+  // 遠征中の襲撃加速は廃止（ユーザー判断）。兵隊が出払うぶん守りが弱るのは自然に効くので、レイド頻度は等速のまま。
   function getExpeditionRaidAccel() {
-    let accel = 1;
-    for(const e of (G.expeditions || [])) {
-      if(e.resolved || (e.soldiers || 0) <= 0) continue;
-      accel += 0.4 + (e.soldiers || 0) / 200;
-    }
-    return Math.min(accel, 2.2);
+    return 1;
   }
 
   // 報酬を質的表現に（具体数字は出さない）。期待値の大きさでざっくり段階化。
@@ -11742,7 +11737,7 @@ function expandMap(forcedType, isEmergency) {
 
     const deployedSoldiers = getDeployedSoldiers();
     if(deployedSoldiers > 0) {
-      html += `<div style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.4);border-radius:8px;padding:8px 10px;margin-bottom:12px;font-size:11px;color:#fca5a5;line-height:1.4;">⚠ 兵隊アリ ${deployedSoldiers}匹 が外に出ています。巣の守りが手薄になり、襲撃が早まります。</div>`;
+      html += `<div style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.4);border-radius:8px;padding:8px 10px;margin-bottom:12px;font-size:11px;color:#fca5a5;line-height:1.4;">⚠ 兵隊アリ ${deployedSoldiers}匹 が外に出ています。その間は巣の守りが手薄になります。</div>`;
     }
 
     // 毒嚢の所持と捕食者誘引（毒牙系/誘引が解放されているか毒嚢所持時のみ）
@@ -14239,11 +14234,19 @@ function expandMap(forcedType, isEmergency) {
     for(const u of units) {
       if(num >= u.v) {
         const val = num / u.v;
-        const str = (val >= 100) ? val.toFixed(0) : (val >= 10 ? val.toFixed(1) : val.toFixed(2));
-        return str.replace(/\.?0+$/, '') + u.s;
+        let str = (val >= 100) ? val.toFixed(0) : (val >= 10 ? val.toFixed(1) : val.toFixed(2));
+        // 小数点以下の末尾0だけ削る（"1.50"→"1.5"）。整数部の0は消さない（"150"→"150" のまま）
+        if(str.indexOf('.') >= 0) str = str.replace(/\.?0+$/, '');
+        return str + u.s;
       }
     }
     return String(num);
+  }
+
+  // 食料表示: 10万未満は素の整数、10万以上は K/M 表記（トップバーが間延びしないように）
+  function fmtFood(n) {
+    const num = Math.floor(n || 0);
+    return (num >= 100000) ? fmtCount(num) : String(num);
   }
 
   const upgradeDock = {
@@ -16794,7 +16797,7 @@ function syncFermenterUnlockUI() {
   }
 
   function updateUI() {
-    setText(el.food, Math.floor(G.food)+"/"+G.caps.food);
+    setText(el.food, fmtFood(G.food)+"/"+fmtFood(G.caps.food));
     setText(el.cookie, Math.floor(G.cookie));
     setText(el.pop, G.tot+"/"+G.caps.pop);
 
@@ -18238,8 +18241,7 @@ function syncFermenterUnlockUI() {
           setRaidUI(false);
         }
       } else if(S.raidVis.state === "none") {
-        // 遠征で兵隊が出払っていると予兆が早まる（ハラハラ感）
-        if(G.raidTimer > 0) G.raidTimer -= dt * getExpeditionRaidAccel();
+        if(G.raidTimer > 0) G.raidTimer -= dt;
         if(G.raidTimer <= 0 && G.raidTimer !== -1) {
           G.raidTimer = RAID_COUNTDOWN_SEC; // 第二波も同じ予告秒数
           S.raidVis.state = "countdown";
