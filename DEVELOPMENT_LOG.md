@@ -46,6 +46,13 @@
 - 毒嚢の所持を遠征モーダル(毒牙/誘引解放 or 所持>0時)と統計モーダル防衛節に表示。
 - 検証(preview): venomSacのセーブ往復(新コードで3が永続)、毒牙・誘引セクション/毒嚢数表示、誘引ボタンでクモ予兆発生・食料2000消費・CD設定を確認。
 
+### Phase 6 — 敵の毒牙持ちとギ酸
+
+- 毒牙持ちの敵: `spawnEnemies` で `getRaidVenomChance()`(勝利<3で0/中盤0.10/強毒集団0.6)により `venom` 付与。毒々しい緑にtint、HP+20%/攻撃+15%。接敵中の兵隊にクモと同じ毒(`s.poisoned`/`RAID_SPIDER_VENOM_SECS`)を付与。`beginRaidAttack` で `_venomSwarm`(勝利5+・通常レイドのみ・8%)を抽選、☠️警告。
+- ギ酸: 防衛枝 `formic_acid`「ギ酸噴射」(flag formicAcid＋formicDmg+100%)→`formic_conc`「ギ酸の濃縮」(formicDmg+20%/Lv無限)。レイド中 `FORMIC_ACID_INTERVAL`(1.5秒)ごとに交戦中の敵全体へ `兵隊1撃×FORMIC_ACID_MUL(0.6)×formicDmg` の範囲ダメージ＋💧演出。毒ティック直後に実装。
+- 研究効果ラベルに formicDmg/expedReward/expedSuccess を登録。
+- 検証(preview): 研究パネルに毒牙/ギ酸/兵種/遠征の新ノードが描画、毒牙系に🧪コスト表示、コンソールエラー0。戦闘中効果はrAF停止のため実戦未確認だが既存の毒DoT/damageRaidEnemy流用。
+
 ## 2026-06-14 モグラ v2: digging approach + realistic redraw + room-collapse on loss
 
 User feedback on the mole: make it more realistic, have it **dig in** (kick up dust, advance steadily toward the room), fight hard, and **destroy the room** if you lose. All in `index.html`, runtime/visual only.

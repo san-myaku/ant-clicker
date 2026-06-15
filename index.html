@@ -3888,6 +3888,8 @@ const RESEARCH_BRANCH_DEFS = [
   { id: 'numbers_win', branch: 'defense', name: '数は何にも勝る', desc: '兵隊アリの雇用コスト -40%、以後 -10%/Lv。ただし各兵隊の兵力 -20%、以後 -5%/Lv（無限）。', costCookie: 25, costFood: 0, costGrowth: 1.6, max: Infinity, prereq: [SOLDIER_JAW_2X_NODE], breakthrough: true, effects:[{kind:'mul',key:'soldierCost',firstLevel:-0.40,perLevel:-0.10},{kind:'mul',key:'soldierPower',firstLevel:-0.20,perLevel:-0.05}] },
   { id: 'raid_spoils', branch: 'defense', name: '戦果', desc: '撃退した襲撃者から奪う戦果が増える。防衛勝利時の食料・クッキー報酬 +30%/Lv（無限）。守りが収入源になる。', costCookie: 8, costFood: 0, costGrowth: 1.6, max: Infinity, prereq: [SOLDIER_JAW_2X_NODE], breakthrough: false, effects:[{kind:'mul',key:'raidSpoils',perLevel:0.30}] },
   { id: 'early_warning', branch: 'defense', name: '早期警戒', desc: '偵察と備えで奇襲に強くなる。襲撃で失う働きアリを40%減らす。', costCookie: 25, costFood: 3000, prereq: [SOLDIER_JAW_2X_NODE], breakthrough: true, effects:[{kind:'flag',flag:'earlyWarning'}] },
+  { id: 'formic_acid', branch: 'defense', name: 'ギ酸噴射', desc: '兵隊が腹部からギ酸を噴射する（実在のヤマアリの防御）。交戦中の敵全体に定期的な範囲ダメージ。', costCookie: 28, costFood: 3000, prereq: [SOLDIER_JAW_2X_NODE], breakthrough: true, effects:[{kind:'flag',flag:'formicAcid'},{kind:'mul',key:'formicDmg',firstLevel:1.0}] },
+  { id: 'formic_conc', branch: 'defense', name: 'ギ酸の濃縮', desc: 'ギ酸の濃度を高める。範囲ダメージ +20%/Lv（無限）。', costCookie: 8, costFood: 0, costGrowth: 1.6, max: Infinity, prereq: ['formic_acid'], breakthrough: false, effects:[{kind:'mul',key:'formicDmg',perLevel:0.20}] },
   { id: 'caste_unlock', branch: 'defense', name: '兵種分化', desc: '兵隊アリを多型化し、コロニーの兵種比率を設定できるようにする。比率は防衛と遠征の両方に影響する。', costCookie: 30, costFood: 3500, prereq: [SOLDIER_JAW_2X_NODE], breakthrough: true, effects:[{kind:'flag',flag:'casteSystem'}] },
   { id: 'caste_scout', branch: 'defense', name: '斥候兵の分化', desc: '小型で俊敏な斥候兵を編成可能に。遠征の成功率を大きく上げるが、前線の火力・耐久は低い。', costCookie: 18, costFood: 2000, prereq: ['caste_unlock'], breakthrough: false },
   { id: 'caste_heavy', branch: 'defense', name: '重装兵の分化', desc: '大型の大顎を持つ重装兵を編成可能に。防衛の火力・耐久が高いが、遠征には不向き。', costCookie: 18, costFood: 2000, prereq: ['caste_unlock'], breakthrough: false },
@@ -8067,6 +8069,8 @@ function expandMap(forcedType, isEmergency) {
   const RAID_SURFACE_SOLDIER_DAMAGE_LV_MUL = 0.12;      // フォールバック用Lv係数
   const RAID_SURFACE_SOLDIER_HIT_FLASH_TIME = 0.12;     // 被弾閃光の長さ
   const RAID_POISON_BASE_PCT = 0.02;                    // 毒顎(研究): 接敵中の敵に毎秒 maxHp×この割合 の毒（研究'poisonDmg'で濃度強化）
+  const FORMIC_ACID_INTERVAL = 1.5;                     // ギ酸噴射(研究): 範囲ダメージの発射間隔(秒)
+  const FORMIC_ACID_MUL = 0.6;                          // ギ酸1噴射の威力 = 兵隊1撃ダメージ × この値 ×研究'formicDmg'
   const RAID_BREACH_LOSE_RATIO = 0.30;                  // この割合以上が突破したら敗北
   const RAID_FINISH_DELAY = 0.6;                        // 決着が付いてから resolve するまでの見せ時間
   const RAID_ENEMY_ENGAGED_SLOW_PER = 0.6;              // v2: 0.94→0.6 兵隊1体での足止めを弱める（完璧な静止を解消）
@@ -11904,6 +11908,13 @@ function expandMap(forcedType, isEmergency) {
     return false;
   }
 
+  // 毒牙持ちの敵が出る確率。序盤(勝利<3)は0、中盤以降は少し、強毒集団のときは高い。
+  function getRaidVenomChance() {
+    if((G.raidWins || 0) < 3) return 0;
+    if(S.raidVis && S.raidVis._venomSwarm) return 0.6;
+    return 0.10;
+  }
+
   // レイド敵の兵種を重み付き抽選。勝つほど大顎アリ(brute)の比率が上がる。
   function pickRaidEnemyKind(extraBrute) {
     const wins = Math.max(0, G.raidWins || 0);
@@ -12345,7 +12356,9 @@ function expandMap(forcedType, isEmergency) {
       const x0 = side < 0 ? -dp(30) - Math.random()*dp(80) : (S.full.w + dp(30) + Math.random()*dp(80));
       const speed = dp(90 + Math.random()*60) * kind.spdMul;
       const hpVar = RAID_ENEMY_HP_RANDOM_MIN + Math.random()*(RAID_ENEMY_HP_RANDOM_MAX - RAID_ENEMY_HP_RANDOM_MIN);
-      const hp = Math.max(1, Math.floor(perEnemyHp * hpVar * kind.hpMul));
+      // 毒牙持ち: 接敵中の兵隊に毒を付与する強敵。少しHP・攻撃が高い。サムライ/ボスには付与しない。
+      const venom = (kind.id !== 'spider' && kind.id !== 'samurai') && (Math.random() < getRaidVenomChance());
+      const hp = Math.max(1, Math.floor(perEnemyHp * hpVar * kind.hpMul * (venom ? 1.2 : 1)));
       S.enemies.push({
         id: _raidEnemyIdSeq++, // Phase 7B-2: 兵隊の追尾ターゲット用 一意ID
         x: x0,
@@ -12362,8 +12375,10 @@ function expandMap(forcedType, isEmergency) {
         dead: false,
         hitFlash: 0,
         // v1: 兵種（描画の大きさ・色・編成集計に使用）/ v2: atk(対兵隊DPS) pushThrough(足止め押し破り)
-        kind: kind.id, sizeMul: kind.sizeMul, tint: kind.tint,
-        atk: RAID_ENEMY_ATK_BASE * (kind.atk || 1), pushThrough: kind.pushThrough || 0
+        kind: kind.id, sizeMul: kind.sizeMul,
+        tint: venom ? '#15803d' : kind.tint,  // 毒牙持ちは毒々しい緑で識別
+        atk: RAID_ENEMY_ATK_BASE * (kind.atk || 1) * (venom ? 1.15 : 1), pushThrough: kind.pushThrough || 0,
+        venom
       });
     }
     return n; // v2: このウェーブで出した体数（累計集計用）
@@ -12669,6 +12684,11 @@ function expandMap(forcedType, isEmergency) {
           target.engagedBy = (target.engagedBy || 0) + 1; // 交戦中：この敵を引き留める
           // v2: 交戦中は敵から反撃を受ける。HPが尽きた兵隊は戦死（代表倍率ぶん兵力が減る）
           s.hp = (s.hp == null ? 0 : s.hp) - (target.atk || RAID_ENEMY_ATK_BASE) * dt;
+          // 毒牙持ちの敵は接敵中の兵隊に毒を付与（クモと同じ毒システムを流用）
+          if(target.venom && !s.poisoned && Math.random() < dt * 0.8) {
+            s.poisoned = true; s.poisonSecs = RAID_SPIDER_VENOM_SECS;
+            if(S.full) fx(s.x, s.y - dp(12), '☠', '#c084fc');
+          }
           if(s.hp <= 0 && !s.dead) {
             s.dead = true;
             s.targetEnemyId = null;
@@ -12759,6 +12779,26 @@ function expandMap(forcedType, isEmergency) {
             en._poisonT = (en._poisonT || 0) + dt;
             if(en._poisonT >= 0.7){ en._poisonT = 0; fx(en.x, en.y - dp(12), '☠', '#c084fc'); }
           }
+        }
+      }
+    }
+
+    // ギ酸噴射（研究 formicAcid）: 交戦中の敵全体に定期的な範囲ダメージ（実在のヤマアリの化学防御）。
+    if(hasResearchUnlock('formicAcid') && S.enemies && S.enemies.length){
+      S.raidVis._formicT = (S.raidVis._formicT || 0) + dt;
+      if(S.raidVis._formicT >= FORMIC_ACID_INTERVAL){
+        S.raidVis._formicT = 0;
+        const burst = getRaidSurfaceSoldierDamage() * FORMIC_ACID_MUL * getResearchBonus('formicDmg');
+        if(burst > 0){
+          let sprayed = false;
+          for(const en of S.enemies){
+            if(!en || en.dead || en.phase === 'dead' || en.breached) continue;
+            if((en.engagedBy || 0) <= 0) continue;
+            damageRaidEnemy(en, burst);
+            if(S.full) fx(en.x, en.y - dp(10), '💧', '#fde047'); // ギ酸の飛沫
+            sprayed = true;
+          }
+          if(sprayed && S.full) fx(ENX(), S.full.sy - dp(20), 'ギ酸噴射!', '#fde047');
         }
       }
     }
@@ -12976,6 +13016,8 @@ function expandMap(forcedType, isEmergency) {
     // v3: この襲撃の種別（通常 / サムライアリの奴隷狩り）を確定。spawnEnemies が参照するので先に決める
     S.raidVis.bossType = decideRaidBossType();
     S.raidVis.eggsStolen = 0;
+    // 毒牙持ちの敵: 序盤(勝利<3)はなし。中盤以降に少し混じり、稀に「強い毒集団」が来る。
+    S.raidVis._venomSwarm = (G.raidWins >= 5) && S.raidVis.bossType !== 'spider' && S.raidVis.bossType !== 'samurai' && Math.random() < 0.08;
     // v2: 波状攻撃 — この襲撃のウェーブ数を確定し、第1波だけ先に出す（v3: クモは単体ボス＝1波固定）
     S.raidVis.waveCount = isSpiderRaid() ? 1 : getRaidWaveCount();
     S.raidVis.waveIndex = 0;
@@ -13003,6 +13045,9 @@ function expandMap(forcedType, isEmergency) {
     } else if(isSpiderRaid()) {
       addQueenWhisper('大きな影が…クモよ！採餌のアリが狙われてる。兵隊で討ち取って！');
       setRaidUI(true, "🕷️ 巨大なクモが現れた！", "地表に大型の捕食者。兵隊で群がって討伐せよ！", "BOSS");
+    } else if(S.raidVis._venomSwarm) {
+      addQueenWhisper('様子がおかしい…あの群れ、毒牙を持っているわ。兵隊が噛まれると毒が回る…！');
+      setRaidUI(true, "☠️ 毒牙の群れ！", "毒を持つ強い敵の群れだ。兵隊が次々と毒に侵される…耐えて！", wc > 1 ? `波 1/${wc}` : "毒");
     } else {
       setRaidUI(true, "⚔️ 襲撃開始", wc > 1 ? `敵アリが波状に押し寄せる…全${wc}波！` : "地表から敵アリが雪崩れ込む…！", wc > 1 ? `波 1/${wc}` : "ATTACK");
     }
@@ -14416,7 +14461,8 @@ function expandMap(forcedType, isEmergency) {
     gatherFood:{label:'採集効率'}, broodEgg:{label:'卵の成長'}, broodLarva:{label:'幼虫の成長'},
     wasteGen:{label:'ゴミ発生'}, goldenEggChance:{label:'黄金卵の確率'}, goldenBuffPower:{label:'黄金バフ'},
     layMul:{label:'自動産卵速度'}, popCap:{label:'個体数上限'}, offlineBuildSpeed:{label:'オフライン建築'}, digSpeed:{label:'掘削速度'}, raidSpoils:{label:'戦果'},
-    roomCapacity:{label:'部屋容量'}, poisonDmg:{label:'毒ダメージ'},
+    roomCapacity:{label:'部屋容量'}, poisonDmg:{label:'毒ダメージ'}, formicDmg:{label:'ギ酸ダメージ'}, expedReward:{label:'遠征報酬'},
+    expedSuccess:{label:'遠征成功率', raw:true},
     // effUp 非適用（本体は getResearchBonusRaw で消費）
     soldierCost:{label:'兵隊コスト', raw:true}, soldierPower:{label:'兵力', raw:true}, blockRadius:{label:'足止め範囲', raw:true},
     // 基準値1からの整数カウント（effUp非適用）

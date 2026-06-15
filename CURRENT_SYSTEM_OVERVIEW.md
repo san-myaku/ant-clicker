@@ -629,7 +629,13 @@ Current implemented nodes:
 - `mineral_vein`: 鉱脈 (geology; breakthrough; flag `mineralVein` — passive cookie trickle `G.getDepthUnlocked() × MINERAL_RATE (0.3)/s`, banked through `S._mineralAcc`; rewards deep nests)
 - `golden_brood`: 英才教育 (brood; breakthrough; `flag goldenBrood` — full global golden-rearing priority + acceleration; also see section 11)
 
-`military_barracks_blueprint` was removed from the research tree (the barracks blueprint is now a Rooms tab dock purchase). Its constant and `G.major.barracks` compatibility plumbing are kept, so old saves that researched it stay valid. The defense branch contains `soldier_jaw_2x` (root) plus `poison_jaw`/`poison_conc`, `oshiai`, `numbers_win`, `raid_spoils`, `early_warning`, and the soldier-caste line `caste_unlock` → `caste_scout`/`caste_heavy` (see Soldier Castes below).
+`military_barracks_blueprint` was removed from the research tree (the barracks blueprint is now a Rooms tab dock purchase). Its constant and `G.major.barracks` compatibility plumbing are kept, so old saves that researched it stay valid. The defense branch contains `soldier_jaw_2x` (root) plus `poison_jaw`/`poison_conc`, `oshiai`, `numbers_win`, `raid_spoils`, `early_warning`, the `formic_acid` → `formic_conc` line, the venom-fang line `venom_fang` → `venom_fang_refine` + `lure_spider`, and the soldier-caste line `caste_unlock` → `caste_scout`/`caste_heavy` (see below).
+
+### Formic acid & venomous enemies (ギ酸・毒牙持ちの敵)
+
+`formic_acid`「ギ酸噴射」(breakthrough, flag `formicAcid` + `formicDmg` +100%) → `formic_conc`「ギ酸の濃縮」(infinite `formicDmg` +20%/Lv). During a raid, every `FORMIC_ACID_INTERVAL` (1.5 s) all engaged enemies take an AoE burst = `getRaidSurfaceSoldierDamage() × FORMIC_ACID_MUL(0.6) × getResearchBonus('formicDmg')`, with 💧 spray fx (real Formica chemical defense). Tick lives right after the poison tick in the soldier-update loop.
+
+Enemies can spawn **venomous (毒牙持ち)**: in `spawnEnemies`, an enemy gets `venom=true` with chance `getRaidVenomChance()` — 0 until `G.raidWins ≥ 3`, then 10%, or 60% during a rare "毒牙の群れ" (`S.raidVis._venomSwarm`, ~8% of raids once `raidWins ≥ 5`, normal raids only). Venom enemies are tinted toxic green, get +20% HP / +15% atk, and on engaging a soldier apply the same poison DoT used by the spider (`s.poisoned`, `RAID_SPIDER_VENOM_SECS`). A swarm shows a dedicated ☠️ warning at raid start.
 
 ### Venom sac & poison-fang line (毒嚢・毒牙)
 
