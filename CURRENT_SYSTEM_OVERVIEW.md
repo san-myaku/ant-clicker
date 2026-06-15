@@ -527,7 +527,9 @@ Golden-branch research effects (data-driven; see section 13 for the nodes):
 
 ## 13. Research System
 
-Research unlocks when the colony population (生体) reaches `200` living ants (`RESEARCH_UNLOCK_POP`, checked against `G.tot` in the live and offline loops). Changed from the old food-`10,000` gate (`RESEARCH_UNLOCK_FOOD` is kept but no longer gates the unlock). The lock note / overview "next" text / not-yet toast all read "生体が200匹…（あと N匹）". Developer mode — a 5 s long-press on the 描画設定 button (`#btn-render-settings-pub`) or `?dev=1` in the URL — also force-unlocks research (calls `unlockResearchSystem()`) alongside revealing `#dev-tools`, so the tab is openable without meeting the gate.
+Research unlocks when **both** the colony population (生体) reaches `400` living ants (`RESEARCH_UNLOCK_POP`, checked against `G.tot`) **and** the queen reaches `Lv5` (`RESEARCH_UNLOCK_QLV`, checked against `G.qLv`) — both conditions in the live and offline loops. Changed from the old food-`10,000` gate (`RESEARCH_UNLOCK_FOOD` is kept but no longer gates the unlock). The lock note / overview "next" text / not-yet toast all read "生体400匹＋女王Lv5…". Developer mode — a 5 s long-press on the 描画設定 button (`#btn-render-settings-pub`) or `?dev=1` in the URL — also force-unlocks research (calls `unlockResearchSystem()`) alongside revealing `#dev-tools`, so the tab is openable without meeting the gate.
+
+The **遠征枝 (expedition branch)** is the one research branch locked at start (`unlockedBranches.expedition = false`). It auto-unlocks once `G.qLv >= EXPED_BRANCH_QLV` (8) **and** `G.ants.worker >= EXPED_BRANCH_WORKERS` (250), via `maybeUnlockExpeditionBranch()` called each `update()`. The expedition feature gate `isExpeditionUnlocked()` reads this branch flag.
 
 Research state lives in `G.research`.
 

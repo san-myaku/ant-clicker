@@ -1,5 +1,17 @@
 # Development Log
 
+## 2026-06-15 遠征・研究・防衛 大型アップデート（複数フェーズ）
+
+遠征MVPを軸に、研究・防衛システムと有機的に接続する大型拡張。設計判断: 解放条件は重め（研究=生体400匹＋女王Lv5 / 遠征枝=女王Lv8＋働き250匹）、放射状ツリーは別セッション、統合カースト制を採用。実在のアリ生態に準拠（カースト多型・ギ酸・捕食者素材）。
+
+### Phase 1 — 解放条件と女王リンク
+
+- 定数追加: `RESEARCH_UNLOCK_QLV 5`、`EXPED_BRANCH_QLV 8`、`EXPED_BRANCH_WORKERS 250`。
+- 研究本体の自動解放(live/offline 両ループ)を `G.tot >= 400 && G.qLv >= 5` の AND 条件に変更。ロック文言・overview "next"・トーストを「生体400匹＋女王Lv5」表記に更新（進捗 `生体あとN匹 / 女王LvX/5` を表示）。
+- 遠征枝(`unlockedBranches.expedition`、初期false)を `maybeUnlockExpeditionBranch()` で `G.qLv>=8 && G.ants.worker>=250` 到達時に一度だけ解放(トースト＋女王つぶやき)。`update()` 毎フレーム判定。
+- `isExpeditionUnlocked()` を旧「兵隊5匹」判定から「遠征枝が解放済み」判定に変更。遠征モーダルのロック文言を女王Lv/働きアリ進捗表示に。遠征枝 `desc` を「外界への遠征」に更新。
+- 検証(preview): 遠征枝フラグ false→モーダルにロック文言＋進捗、true→遠征カード4枚表示を確認。構文 `new Function` OK。
+
 ## 2026-06-14 モグラ v2: digging approach + realistic redraw + room-collapse on loss
 
 User feedback on the mole: make it more realistic, have it **dig in** (kick up dust, advance steadily toward the room), fight hard, and **destroy the room** if you lose. All in `index.html`, runtime/visual only.

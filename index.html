@@ -3287,6 +3287,9 @@
   const COOKIE_ROOM_COST_GROWTH = 2.5; // クッキー室コスト倍率
   const RESEARCH_UNLOCK_FOOD = 10000;
   const RESEARCH_UNLOCK_POP = 400;    // 研究解放条件: 生体（個体数 G.tot）がこの匹数に達すると解放
+  const RESEARCH_UNLOCK_QLV = 5;      // 研究解放条件: 女王Lvがこれ以上（生体400匹と両方満たすと解放）
+  const EXPED_BRANCH_QLV = 8;         // 遠征枝の解放条件: 女王Lv
+  const EXPED_BRANCH_WORKERS = 250;   // 遠征枝の解放条件: 働きアリ数
   const HYGIENE_WORKER_CLEAN_NODE = 'hygiene_3';
   const FERMENT_ROOM_UNLOCK_NODE = 'ferment_unlock';
   const FERMENT_ROOM_COST = 2000;
@@ -3622,7 +3625,7 @@
       successRate: 0.40, reward: { food: [50, 200], cookie: [5, 15] }
     }
   ];
-  const EXPEDITION_UNLOCK_SOLDIERS = 5; // 兵隊アリがこの数以上で遠征解放
+  // (旧)兵隊アリ数での遠征解放は廃止。現在は研究の遠征枝解放(女王Lv＋働きアリ)で判定。
   const EXPEDITION_DEV_DURATION = 30;   // 開発モード時の遠征時間(秒)
 
   const MILESTONES = [10, 25, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000];
@@ -3830,7 +3833,7 @@ const RESEARCH_BRANCH_DEFS = [
   { id: 'defense', label: '防衛枝', icon: '⚔️', accent: '#60a5fa', desc: '襲撃への備え' },
   { id: 'golden', label: '黄金枝', icon: '👑', accent: '#fbbf24', desc: '黄金の卵と祝福' },
   { id: 'queen', label: '女王枝', icon: '👸', accent: '#d946ef', desc: '産卵と女王の威厳' },
-  { id: 'expedition', label: '遠征枝', icon: '🧭', accent: '#14b8a6', desc: '将来の外探索' }
+  { id: 'expedition', label: '遠征枝', icon: '🧭', accent: '#14b8a6', desc: '外界への遠征' }
 ];
 
   const RESEARCH_NODE_DEFS = [
@@ -11378,7 +11381,20 @@ function expandMap(forcedType, isEmergency) {
   // ===== 遠征システム =====
 
   function isExpeditionUnlocked() {
-    return (G.ants.soldier || 0) >= EXPEDITION_UNLOCK_SOLDIERS;
+    return isResearchBranchUnlocked('expedition');
+  }
+
+  // 遠征枝の解放: 女王Lv8＋働きアリ250匹に到達したら一度だけ解放
+  function maybeUnlockExpeditionBranch() {
+    if(isResearchBranchUnlocked('expedition')) return;
+    if((G.qLv || 0) < EXPED_BRANCH_QLV) return;
+    if((G.ants.worker || 0) < EXPED_BRANCH_WORKERS) return;
+    const rs = ensureResearchState();
+    if(!rs.unlockedBranches) rs.unlockedBranches = {};
+    rs.unlockedBranches.expedition = true;
+    toast('🧭 遠征枝が解放された！外界への遠征が可能に');
+    addQueenWhisper('働きアリも増えたわ。そろそろ外の世界を探らせましょう', 'expedition_branch_unlock');
+    if(typeof updateResearchUI === 'function') updateResearchUI();
   }
 
   function getExpeditionDef(id) {
@@ -11478,7 +11494,11 @@ function expandMap(forcedType, isEmergency) {
     if(!el) return;
 
     if(!isExpeditionUnlocked()) {
-      el.innerHTML = `<div class="exped-locked">🔒 兵隊アリが${EXPEDITION_UNLOCK_SOLDIERS}匹以上いると遠征が解放されます</div>`;
+      const qlv = Math.floor(G.qLv || 0);
+      const wk = Math.floor(G.ants.worker || 0);
+      const qPart = qlv >= EXPED_BRANCH_QLV ? '女王Lv✓' : `女王Lv${qlv}/${EXPED_BRANCH_QLV}`;
+      const wPart = wk >= EXPED_BRANCH_WORKERS ? '働きアリ✓' : `働きアリ${wk}/${EXPED_BRANCH_WORKERS}`;
+      el.innerHTML = `<div class="exped-locked">🔒 遠征枝は女王Lv${EXPED_BRANCH_QLV}＋働きアリ${EXPED_BRANCH_WORKERS}匹で解放されます<br><span style="font-size:11px;color:#94a3b8;">（${qPart} / ${wPart}）</span></div>`;
       return;
     }
 
@@ -13561,7 +13581,7 @@ function expandMap(forcedType, isEmergency) {
     const foodHeadroom = Math.max(0, G.caps.food - G.food);
     const addFood = Math.min(foodHeadroom, fRate * sec);
     if(addFood > 0) G.food += addFood;
-    if(!isResearchSystemUnlocked() && G.tot >= RESEARCH_UNLOCK_POP) {
+    if(!isResearchSystemUnlocked() && G.tot >= RESEARCH_UNLOCK_POP && (G.qLv || 0) >= RESEARCH_UNLOCK_QLV) {
       unlockResearchSystem();
     }
     // 発1 熟成（オフライン）: √所持 × RATE × eff × sec ぶん増える
@@ -13996,7 +14016,7 @@ function expandMap(forcedType, isEmergency) {
       if(!btn) return;
       btn.addEventListener('click', () => {
         if(k === 'research' && !isResearchSystemUnlocked()) {
-          toast(`研究は生体${RESEARCH_UNLOCK_POP}匹で解放されます`, true);
+          toast(`研究は生体${RESEARCH_UNLOCK_POP}匹＋女王Lv${RESEARCH_UNLOCK_QLV}で解放されます`, true);
           return;
         }
         setControlTab(k);
@@ -14231,7 +14251,7 @@ function expandMap(forcedType, isEmergency) {
       : 0;
     const next = affordableNodes[0] || readyNodes[0] || null;
     const nextText = !rs.unlocked
-      ? `生体 ${fmtCount(G.tot)}/${fmtCount(RESEARCH_UNLOCK_POP)}`
+      ? `生体 ${fmtCount(G.tot)}/${fmtCount(RESEARCH_UNLOCK_POP)}・女王Lv${Math.floor(G.qLv||0)}/${RESEARCH_UNLOCK_QLV}`
       : (next ? next.name : '前提条件を進行中');
     const nextSub = next
       ? (affordableNodes[0] ? `${getResearchBranchDef(next.branch).label} / 研究可能` : `${getResearchBranchDef(next.branch).label} / ${formatResearchCost(next)}`)
@@ -14509,9 +14529,13 @@ function expandMap(forcedType, isEmergency) {
     }
     if(researchUI.lock) {
       const remain = Math.max(0, RESEARCH_UNLOCK_POP - Math.floor(G.tot || 0));
+      const qlv = Math.floor(G.qLv || 0);
+      const qRemain = Math.max(0, RESEARCH_UNLOCK_QLV - qlv);
       researchUI.lock.style.display = rs.unlocked ? 'none' : '';
       if(!rs.unlocked) {
-        researchUI.lock.textContent = `🔒 研究未解放: 生体が${RESEARCH_UNLOCK_POP}匹に達すると解放されます（あと ${remain}匹）。`;
+        const popPart = remain > 0 ? `生体あと${remain}匹` : '生体✓';
+        const qPart = qRemain > 0 ? `女王Lv${qlv}/${RESEARCH_UNLOCK_QLV}` : '女王Lv✓';
+        researchUI.lock.textContent = `🔒 研究未解放: 生体${RESEARCH_UNLOCK_POP}匹＋女王Lv${RESEARCH_UNLOCK_QLV}で解放（${popPart} / ${qPart}）。`;
       }
     }
     if(researchUI.overview) {
@@ -17609,9 +17633,10 @@ function syncFermenterUnlockUI() {
       if(S.shake.t <= 0) S.shake.amp = 0;
     }
 
-    if(!isResearchSystemUnlocked() && G.tot >= RESEARCH_UNLOCK_POP) {
+    if(!isResearchSystemUnlocked() && G.tot >= RESEARCH_UNLOCK_POP && (G.qLv || 0) >= RESEARCH_UNLOCK_QLV) {
       unlockResearchSystem();
     }
+    maybeUnlockExpeditionBranch();
 
     // v1 レイド: 応援フェロモンの減衰
     if(S.rallyT > 0) S.rallyT = Math.max(0, S.rallyT - dt);
