@@ -11752,14 +11752,7 @@ function expandMap(forcedType, isEmergency) {
 
     en._spiderLegs.filter(L => L.layer === 'front').forEach(drawLegState);
 
-    // --- 被弾フラッシュ（白：兵に攻撃された時） ---
-    if(en.hitFlash > 0) {
-      ctx.save();
-      ctx.globalAlpha *= clamp(en.hitFlash / 0.15, 0, 1) * 0.7;
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath(); ctx.ellipse(dp(-1), spiderY - dp(2), dp(16), dp(12), 0, 0, 6.28); ctx.fill();
-      ctx.restore();
-    }
+    // hitFlash: クモは体が大きいので白楕円は不要 (削除済み)
     // --- 噛みつきの赤フラッシュ（範囲攻撃の瞬間） ---
     if(en.lungeFlash > 0) {
       ctx.save();
@@ -11996,6 +11989,9 @@ function expandMap(forcedType, isEmergency) {
       if(s.poisoned && (s.poisonSecs || 0) > 0) {
         s.poisonSecs -= dt;
         s.hp = (s.hp || 0) - RAID_SPIDER_VENOM_DPS * dt;
+        // 兵隊が毒攻撃した時と同じパーティクル（☠ 紫）
+        s._poisonFxT = (s._poisonFxT || 0) + dt;
+        if(s._poisonFxT >= 0.7) { s._poisonFxT = 0; fx(s.x, s.y - dp(12), '☠', '#c084fc'); }
         if(s.hp <= 0 && !s.dead) {
           s.dead = true; s.targetEnemyId = null;
           if(S.raidVis) S.raidVis.casualtyWeight = (S.raidVis.casualtyWeight || 0) + (s.weight || 1);
@@ -12241,10 +12237,10 @@ function expandMap(forcedType, isEmergency) {
       ctx.translate(s.x, s.y);
       // 振り落とし中: 回転（きりきり舞いで飛ぶ）
       ctx.rotate(s.rot || 0);
-      // 体色（毒なら緑、這い登りは少し明るい青）
-      const bodyCol = isPoisoned ? '#22c55e' : (isClimb ? '#60a5fa' : '#3b82f6');
-      const headCol = isPoisoned ? '#15803d' : (isClimb ? '#2563eb' : '#1d4ed8');
-      const jawCol  = isPoisoned ? 'rgba(134,239,172,0.9)' : 'rgba(191,219,254,0.95)';
+      // 体色（這い登りは少し明るい青、毒は体色変えずにパーティクルで表現）
+      const bodyCol = isClimb ? '#60a5fa' : '#3b82f6';
+      const headCol = isClimb ? '#2563eb' : '#1d4ed8';
+      const jawCol  = 'rgba(191,219,254,0.95)';
       // 這い登り中は少し大きく（奮戦感）
       if(isClimb) ctx.scale(1.15, 1.15);
       ctx.fillStyle = bodyCol;
@@ -12257,13 +12253,7 @@ function expandMap(forcedType, isEmergency) {
       ctx.lineWidth = dp(1.1);
       ctx.beginPath(); ctx.moveTo(dp(7.2), -dp(1.4)); ctx.lineTo(dp(11.5), -dp(3.0)); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(dp(7.2),  dp(1.4)); ctx.lineTo(dp(11.5),  dp(3.0)); ctx.stroke();
-      // 毒: 緑のぼんやりオーラ
-      if(isPoisoned) {
-        const poisonRatio = clamp((s.poisonSecs || 0) / RAID_SPIDER_VENOM_SECS, 0, 1);
-        ctx.globalAlpha *= 0.55 * poisonRatio;
-        ctx.fillStyle = '#86efac';
-        ctx.beginPath(); ctx.ellipse(0, 0, dp(8), dp(7), 0, 0, 6.28); ctx.fill();
-      }
+      // 毒エフェクトはupdateRaidSoldiersのfx()で出すため描画は不要
       ctx.restore();
       // v2: 兵隊HPバー（負傷時のみ・ワールド座標で回転を受けない）
       drawRaidSoldierHpBar(ctx, s);
