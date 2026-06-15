@@ -835,6 +835,13 @@
     }
     .rtree-modal-stage { position: relative; margin: 0 auto; }
     .rtree-modal-scaler { position: relative; transform-origin: top left; }
+    .rtree-zoom-ctrls { display: flex; gap: 4px; margin-left: auto; margin-right: 8px; }
+    .rtree-zoom-btn {
+      width: 30px; height: 30px; border-radius: 7px; border: 1px solid #5b4a33;
+      background: #2a1d12; color: #f0ddbe; font-size: 16px; font-weight: 800; line-height: 1;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .rtree-zoom-btn:active { transform: scale(0.94); }
     .room-pending-row {
       display: flex;
       align-items: center;
@@ -2750,7 +2757,6 @@
           <button class="res-box" id="btn-save" style="cursor:pointer; border-color:#64748b;" data-menu-label="セーブ" aria-label="セーブ">💾</button>
           <button class="res-box" id="btn-save-export" style="cursor:pointer; border-color:#334155; font-size:9px; color:#64748b;" title="セーブデータを書き出し" data-menu-label="エクスポート" aria-label="エクスポート">📤</button>
           <button class="res-box" id="btn-save-import" style="cursor:pointer; border-color:#334155; font-size:9px; color:#64748b;" title="セーブデータを読み込み" data-menu-label="ロード" aria-label="ロード">📥</button>
-          <button class="res-box" id="btn-expedition" style="cursor:pointer; border-color:#14b8a6;" title="遠征" data-menu-label="遠征" aria-label="遠征">🏕️</button>
           <button class="res-box" id="btn-diary" style="cursor:pointer; border-color:#8b5cf6;" title="女王の日記" data-menu-label="日記" aria-label="女王の日記">👑</button>
           <button class="res-box" id="btn-goals" style="cursor:pointer; border-color:#22c55e;" title="コロニーの目標" data-menu-label="目標" aria-label="コロニーの目標">🗺️</button>
           <button class="res-box" id="btn-stats" style="cursor:pointer; border-color:#38bdf8;" title="コロニー統計" data-menu-label="統計" aria-label="コロニー統計">📊</button>
@@ -2758,6 +2764,8 @@
           <button class="res-box" id="btn-fit" style="cursor:pointer; border-color:#22c55e;" title="全体表示" data-menu-label="全体表示" aria-label="全体表示">🧭</button>
           <button class="res-box" id="btn-err" style="cursor:pointer; border-color:#ef4444;" title="エラー詳細" data-menu-label="エラー" aria-label="エラー詳細">⚠</button>
         </div>
+        <button class="res-box" id="btn-soldier" type="button" style="cursor:pointer; border-color:#60a5fa;" title="兵隊パネル" aria-label="兵隊パネル">⚔️</button>
+        <button class="res-box" id="btn-expedition" type="button" style="cursor:pointer; border-color:#14b8a6;" title="遠征" aria-label="遠征">🏕️</button>
         <button class="res-box" id="btn-menu" type="button" aria-expanded="false" aria-controls="mobile-menu-sheet" title="メニュー">⚙</button>
       </div>
 
@@ -3229,10 +3237,24 @@
   </div>
 </div>
 
+<div id="modal-soldier" class="modal-overlay">
+  <div class="modal-box exped-modal-box" style="max-width:480px;">
+    <div style="font-size:18px; font-weight:bold; color:#60a5fa; margin-bottom:2px;">⚔️ 兵隊パネル</div>
+    <div style="font-size:11px; color:#64748b; margin-bottom:12px;">兵隊アリの兵種編成と防衛状況</div>
+    <div id="soldier-content"></div>
+    <button class="modal-btn" id="btn-soldier-close">閉じる</button>
+  </div>
+</div>
+
 <div id="modal-research-tree" class="modal-overlay">
   <div class="modal-box rtree-modal-box">
     <div class="rtree-modal-head">
       <span class="rtree-modal-title">🌳 研究ツリー</span>
+      <div class="rtree-zoom-ctrls">
+        <button class="rtree-zoom-btn" id="btn-rtree-zoom-out" type="button" title="縮小" aria-label="縮小">−</button>
+        <button class="rtree-zoom-btn" id="btn-rtree-zoom-reset" type="button" title="リセット" aria-label="ズームリセット">⤢</button>
+        <button class="rtree-zoom-btn" id="btn-rtree-zoom-in" type="button" title="拡大" aria-label="拡大">＋</button>
+      </div>
       <button class="modal-btn rtree-modal-close" id="btn-research-tree-close" type="button">閉じる</button>
     </div>
     <div class="rtree-modal-body" id="research-tree-modal-body"></div>
@@ -11650,7 +11672,50 @@ function expandMap(forcedType, isEmergency) {
     if(casteId === 'scout') scout = clamp(scout + delta, 0, 100 - heavy);
     if(casteId === 'heavy') heavy = clamp(heavy + delta, 0, 100 - scout);
     G.soldierCaste = { scout, heavy };
-    renderExpeditionModal();
+    renderSoldierModal();
+  }
+
+  // 兵隊パネル（兵種編成＋防衛状況）。専用モーダルに描画。
+  function renderSoldierModal() {
+    const el = document.getElementById('soldier-content');
+    if(!el) return;
+    const total = Math.max(0, Math.floor(G.ants.soldier || 0));
+    const power = (typeof getColonyCombatPower === 'function') ? getColonyCombatPower() : 0;
+    const deployed = getDeployedSoldiers();
+    let html = '';
+    html += `<div class="exped-section"><div class="exped-section-title">兵隊の状況</div>`
+      + `<div style="font-size:12px;color:#cbd5e1;line-height:1.8;">`
+      + `⚔️ 兵隊アリ: <b>${total}</b>匹${deployed > 0 ? `（うち ${deployed}匹 は遠征中）` : ''}<br>`
+      + `🛡️ 防衛力: <b>${fmtCount(Math.round(power))}</b><br>`
+      + `次の兵隊コスト: 🍃 ${fmtCount(G.getCost('soldier'))}`
+      + `</div></div>`;
+    if(isCasteSystemUnlocked()){
+      html += renderCasteSection();
+      html += `<div class="exped-section"><div class="exped-section-title">兵種の特徴</div>`
+        + SOLDIER_CASTE_DEFS.map(d => `<div style="font-size:11px;color:#94a3b8;padding:3px 0;line-height:1.4;"><span style="color:#e2e8f0;font-weight:700;">${d.icon} ${d.name}</span> — ${d.desc}</div>`).join('')
+        + `</div>`;
+    } else {
+      html += `<div class="exped-locked">🔒 研究「兵種分化」(防衛枝) を取ると、斥候・重装などの兵種を編成できます</div>`;
+    }
+    el.innerHTML = html;
+  }
+
+  let _soldierTimerInterval = null;
+  function openSoldierModal() {
+    renderSoldierModal();
+    const m = document.getElementById('modal-soldier');
+    if(m) m.classList.add('show');
+    if(_soldierTimerInterval) clearInterval(_soldierTimerInterval);
+    _soldierTimerInterval = setInterval(() => {
+      const m2 = document.getElementById('modal-soldier');
+      if(!m2 || !m2.classList.contains('show')) { clearInterval(_soldierTimerInterval); _soldierTimerInterval = null; return; }
+      renderSoldierModal();
+    }, 1000);
+  }
+  function closeSoldierModal() {
+    const m = document.getElementById('modal-soldier');
+    if(m) m.classList.remove('show');
+    if(_soldierTimerInterval) { clearInterval(_soldierTimerInterval); _soldierTimerInterval = null; }
   }
 
   // 遠征中の襲撃加速は廃止（ユーザー判断）。兵隊が出払うぶん守りが弱るのは自然に効くので、レイド頻度は等速のまま。
@@ -11782,7 +11847,56 @@ function expandMap(forcedType, isEmergency) {
     });
 
     addQueenWhisper(`${def.name}へ働きアリ${party.workers}匹を送り出したわ`, 'expedition_start');
+    spawnExpedWalkers(party); // 入口から外へ出ていく演出
     renderExpeditionModal();
+  }
+
+  // 遠征出発の演出: 派遣アリが入口からまとめて外へ歩いて出ていく（描画のみ・非セーブ）
+  let _expedWalkers = [];
+  function spawnExpedWalkers(party){
+    if(!S.full) return;
+    const ex = ENX(), ey = S.full.sy;
+    const totalReq = (party.workers || 0) + (party.soldiers || 0);
+    const total = Math.min(18, Math.max(4, totalReq));
+    const soldierShare = totalReq > 0 ? (party.soldiers || 0) / totalReq : 0;
+    const side = (Math.random() < 0.5) ? -1 : 1; // 出ていく向き
+    for(let i=0;i<total;i++){
+      _expedWalkers.push({
+        x: ex + (Math.random()-0.5)*dp(12),
+        vx: side * dp(26 + Math.random()*20),
+        delay: i * 0.11,                 // 列をなして順に出ていく
+        t: 0, life: 3.4,
+        role: ((i+0.5)/total) > (1 - soldierShare) ? 'soldier' : 'worker', // 後尾に兵隊
+        anim: Math.random()*6.28
+      });
+    }
+  }
+  function updateExpedWalkers(dt){
+    if(_expedWalkers.length === 0) return;
+    for(const w of _expedWalkers){
+      w.t += dt;
+      if(w.t >= w.delay) w.x += w.vx * dt;
+    }
+    _expedWalkers = _expedWalkers.filter(w => w.t < w.life);
+  }
+  function drawExpedWalkers(ctx){
+    if(_expedWalkers.length === 0 || !S.full) return;
+    const ey = S.full.sy;
+    for(const w of _expedWalkers){
+      if(w.t < w.delay) continue;
+      const age = w.t - w.delay;
+      const a = clamp(Math.min(age*4, (w.life - w.t)*1.3), 0, 1);
+      if(a <= 0) continue;
+      const bob = Math.abs(Math.sin(age*13 + w.anim)) * dp(1.6);
+      const y = ey - dp(2) - bob;
+      const dir = Math.sign(w.vx) || 1;
+      ctx.save();
+      ctx.globalAlpha = a;
+      ctx.fillStyle = (w.role === 'soldier') ? '#3b82f6' : '#15110b';
+      ctx.beginPath(); ctx.ellipse(w.x, y, dp(2.5), dp(1.7), 0, 0, 6.28); ctx.fill();           // 胴
+      ctx.beginPath(); ctx.ellipse(w.x + dir*dp(2.4), y, dp(1.3), dp(1.1), 0, 0, 6.28); ctx.fill(); // 頭
+      ctx.restore();
+    }
   }
 
   function resolveExpedition(exp) {
@@ -11876,8 +11990,6 @@ function expandMap(forcedType, isEmergency) {
       venomHtml += `</div>`;
       html += venomHtml;
     }
-
-    html += renderCasteSection();
 
     const active   = (G.expeditions || []).filter(e => !e.resolved);
     const resolved = (G.expeditions || []).filter(e => e.resolved);
@@ -15049,7 +15161,11 @@ function expandMap(forcedType, isEmergency) {
     bh = Math.max(260, bh - 16);
     const t = buildRadialResearchInner(rs);
     // 横長楕円なのでモーダル幅をしっかり使える。読みやすさ優先で下限を高め（収まらない分はスクロール）。
-    const scale = Math.max(0.62, Math.min(1.5, Math.min(bw / Math.max(1, t.width), bh / Math.max(1, t.height))));
+    const fitScale = Math.max(0.62, Math.min(1.5, Math.min(bw / Math.max(1, t.width), bh / Math.max(1, t.height))));
+    // ユーザーズーム（±ボタン/ピンチ/Ctrlホイール）。fitを基準倍率にして掛ける。
+    const zoom = clamp(S._rtreeZoom || 1, RTREE_ZOOM_MIN, RTREE_ZOOM_MAX);
+    const scale = fitScale * zoom;
+    S._rtreeFitScale = fitScale; S._rtreeCanvasW = t.width; S._rtreeCanvasH = t.height; // ズーム適用に保持
     const sw = Math.ceil(t.width * scale);
     const sh = Math.ceil(t.height * scale);
     return `<div class="rtree-modal-stage" style="width:${sw}px;height:${sh}px">`
@@ -15057,6 +15173,23 @@ function expandMap(forcedType, isEmergency) {
       + t.inner
       + `</div></div>`;
   }
+
+  // 研究ツリーのズーム（再描画せず transform/サイズだけ更新＝軽い）
+  const RTREE_ZOOM_MIN = 0.5, RTREE_ZOOM_MAX = 3.0;
+  function applyRtreeZoom(){
+    const body = researchTreeModalBody;
+    if(!body) return;
+    const scaler = body.querySelector('.rtree-modal-scaler');
+    const stage = body.querySelector('.rtree-modal-stage');
+    if(!scaler || !stage) return;
+    const fit = S._rtreeFitScale || 1;
+    const zoom = clamp(S._rtreeZoom || 1, RTREE_ZOOM_MIN, RTREE_ZOOM_MAX);
+    const sc = fit * zoom;
+    scaler.style.transform = `scale(${sc.toFixed(3)})`;
+    stage.style.width = Math.ceil((S._rtreeCanvasW || scaler.offsetWidth) * sc) + 'px';
+    stage.style.height = Math.ceil((S._rtreeCanvasH || scaler.offsetHeight) * sc) + 'px';
+  }
+  function setRtreeZoom(z){ S._rtreeZoom = clamp(z, RTREE_ZOOM_MIN, RTREE_ZOOM_MAX); applyRtreeZoom(); }
 
   function updateResearchUI(){
     const rs = ensureResearchState();
@@ -15317,6 +15450,7 @@ function expandMap(forcedType, isEmergency) {
   function openResearchTreeModal(){
     if(getResearchView() === 'classic') setResearchView('tree');
     S.researchTreeModalOpen = true;
+    S._rtreeZoom = 1; // 開くたびにfit倍率へリセット
     if(researchTreeModal) researchTreeModal.classList.add('show');
     updateResearchUI();
   }
@@ -15335,6 +15469,34 @@ function expandMap(forcedType, isEmergency) {
     });
   }
   { const _rtClose = document.getElementById('btn-research-tree-close'); if(_rtClose) _rtClose.addEventListener('click', closeResearchTreeModal); }
+  // ズーム操作（±ボタン / Ctrl+ホイール / ピンチ）。基準fitに対する倍率 S._rtreeZoom を操作。
+  { const _zi = document.getElementById('btn-rtree-zoom-in'); if(_zi) _zi.addEventListener('click', () => setRtreeZoom((S._rtreeZoom || 1) * 1.25)); }
+  { const _zo = document.getElementById('btn-rtree-zoom-out'); if(_zo) _zo.addEventListener('click', () => setRtreeZoom((S._rtreeZoom || 1) / 1.25)); }
+  { const _zr = document.getElementById('btn-rtree-zoom-reset'); if(_zr) _zr.addEventListener('click', () => setRtreeZoom(1)); }
+  if(researchTreeModalBody) {
+    // Ctrl/⌘+ホイールでズーム（素のホイールはスクロールに残す）
+    researchTreeModalBody.addEventListener('wheel', (e) => {
+      if(!(e.ctrlKey || e.metaKey)) return;
+      e.preventDefault();
+      setRtreeZoom((S._rtreeZoom || 1) * (e.deltaY < 0 ? 1.12 : 1/1.12));
+    }, { passive: false });
+    // ピンチズーム（2本指）
+    let _pinchD0 = 0, _pinchZ0 = 1;
+    researchTreeModalBody.addEventListener('touchstart', (e) => {
+      if(e.touches.length === 2){
+        _pinchD0 = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+        _pinchZ0 = S._rtreeZoom || 1;
+      }
+    }, { passive: true });
+    researchTreeModalBody.addEventListener('touchmove', (e) => {
+      if(e.touches.length === 2 && _pinchD0 > 0){
+        const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+        e.preventDefault();
+        setRtreeZoom(_pinchZ0 * (d / _pinchD0));
+      }
+    }, { passive: false });
+    researchTreeModalBody.addEventListener('touchend', (e) => { if(e.touches.length < 2) _pinchD0 = 0; }, { passive: true });
+  }
   window.addEventListener('keydown', (e) => { if(e.key === 'Escape' && S.researchTreeModalOpen) closeResearchTreeModal(); });
   window.addEventListener('resize', () => { if(S.researchTreeModalOpen) updateResearchUI(); });
 
@@ -18023,12 +18185,6 @@ function syncFermenterUnlockUI() {
     if(btnExpClose) btnExpClose.onclick = () => closeExpeditionModal();
     if(mExp) mExp.addEventListener('click', e => { if(e.target === mExp) closeExpeditionModal(); });
     if(expContent) expContent.addEventListener('click', e => {
-      const casteBtn = e.target.closest('[data-caste-adj]');
-      if(casteBtn) {
-        const [id, d] = casteBtn.dataset.casteAdj.split(':');
-        adjustCasteRatio(id, parseInt(d, 10));
-        return;
-      }
       const scaleBtn = e.target.closest('[data-exped-scale]');
       if(scaleBtn && !scaleBtn.disabled) {
         const [id, d] = scaleBtn.dataset.expedScale.split(':');
@@ -18039,6 +18195,24 @@ function syncFermenterUnlockUI() {
       if(lureBtn && !lureBtn.disabled) { lureSpider(); return; }
       const btn = e.target.closest('[data-exped-dest]');
       if(btn && !btn.disabled) startExpedition(btn.dataset.expedDest);
+    });
+  }
+
+  // 兵隊パネル（モーダル）
+  {
+    const btnSol = document.getElementById('btn-soldier');
+    const btnSolClose = document.getElementById('btn-soldier-close');
+    const mSol = document.getElementById('modal-soldier');
+    const solContent = document.getElementById('soldier-content');
+    if(btnSol) btnSol.onclick = () => openSoldierModal();
+    if(btnSolClose) btnSolClose.onclick = () => closeSoldierModal();
+    if(mSol) mSol.addEventListener('click', e => { if(e.target === mSol) closeSoldierModal(); });
+    if(solContent) solContent.addEventListener('click', e => {
+      const casteBtn = e.target.closest('[data-caste-adj]');
+      if(casteBtn) {
+        const [id, d] = casteBtn.dataset.casteAdj.split(':');
+        adjustCasteRatio(id, parseInt(d, 10));
+      }
     });
   }
 
@@ -18491,6 +18665,7 @@ function syncFermenterUnlockUI() {
 
     updateLargeFood(dt);
     tickExpeditions();
+    updateExpedWalkers(dt);
     updateAnts(dt);
 
     updateTrails(dt);
@@ -20476,6 +20651,7 @@ function syncFermenterUnlockUI() {
     }
 
     drawLargeFood(ctx, view);
+    drawExpedWalkers(ctx);
 
     if(S.enemies.length) {
       S.enemies.forEach(en => {

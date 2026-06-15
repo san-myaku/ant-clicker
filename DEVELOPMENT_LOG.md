@@ -1,5 +1,13 @@
 # Development Log
 
+## 2026-06-15 UI改善: ツリーズーム / 遠征・兵隊ボタンの常時表示 / 兵隊パネル / 遠征出発演出
+
+- **研究ツリーのズーム**: 拡大モーダルに ±/⤢ ボタン＋Ctrl(⌘)ホイール＋ピンチを追加。基準fit倍率に `S._rtreeZoom`(0.5〜3.0)を掛ける。再描画せず transform/サイズだけ更新する `applyRtreeZoom()`/`setRtreeZoom()`。開くたびに等倍へリセット。
+- **遠征・兵隊ボタンを常時表示**: 🏕️遠征を折りたたみ式 `#top-actions`(モバイルでハンバーガーに収納)から出し、新規 ⚔️兵隊 とともに `#top-bar` 直下の常時表示位置へ。
+- **兵隊パネル新設**(`#modal-soldier`/`renderSoldierModal`): 兵隊数・防衛力・次コスト＋兵種編成(カースト)＋兵種の特徴説明。カースト編成UIを遠征モーダルから移設(`renderExpeditionModal` から `renderCasteSection` 呼び出しを削除)。`adjustCasteRatio` は兵隊モーダルを再描画。1秒間隔で更新。
+- **遠征出発の演出**: `spawnExpedWalkers(party)` で派遣数ぶん(4〜18)の小さなアリが入口(ENX/`S.full.sy`)から列をなして外へ歩き、バウンドしながらフェード退場。`updateExpedWalkers`/`drawExpedWalkers`(描画のみ・非セーブ、`_expedWalkers`)。update/render に配線。
+- 検証(preview): ズーム ±/リセットで scale 0.62↔0.97↔0.50、ボタンの親が `top-bar`、兵隊モーダルで状況表示＋カースト増減(斥候15/重装10)・遠征モーダルからカースト消滅、遠征開始で walkers 生成・ループ稼働中エラー0。
+
 ## 2026-06-15 放射状研究ツリーの見た目改善（小さい・ゴチャつき解消）
 
 拡大ツリーが横長モーダルの中央で小さく窮屈だった問題を改善。
