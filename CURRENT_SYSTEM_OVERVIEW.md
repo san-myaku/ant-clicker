@@ -629,7 +629,16 @@ Current implemented nodes:
 - `mineral_vein`: 鉱脈 (geology; breakthrough; flag `mineralVein` — passive cookie trickle `G.getDepthUnlocked() × MINERAL_RATE (0.3)/s`, banked through `S._mineralAcc`; rewards deep nests)
 - `golden_brood`: 英才教育 (brood; breakthrough; `flag goldenBrood` — full global golden-rearing priority + acceleration; also see section 11)
 
-`military_barracks_blueprint` was removed from the research tree (the barracks blueprint is now a Rooms tab dock purchase). Its constant and `G.major.barracks` compatibility plumbing are kept, so old saves that researched it stay valid. The defense branch now contains only `soldier_jaw_2x`.
+`military_barracks_blueprint` was removed from the research tree (the barracks blueprint is now a Rooms tab dock purchase). Its constant and `G.major.barracks` compatibility plumbing are kept, so old saves that researched it stay valid. The defense branch contains `soldier_jaw_2x` (root) plus `poison_jaw`/`poison_conc`, `oshiai`, `numbers_win`, `raid_spoils`, `early_warning`, and the soldier-caste line `caste_unlock` → `caste_scout`/`caste_heavy` (see Soldier Castes below).
+
+### Soldier castes (兵種カースト, unified)
+
+`caste_unlock`「兵種分化」(breakthrough, flag `casteSystem`) enables a colony-wide soldier-caste ratio; `caste_scout`/`caste_heavy` unlock the 斥候/重装 castes individually (標準 is always available). `SOLDIER_CASTE_DEFS` gives each caste `powerMul`/`hpMul`/`expeditionMul` — 標準 1.0/1.0/1.0, 斥候 0.6/0.7/1.6 (great for expeditions, weak on the front line), 重装 1.7/1.9/0.5 (defense specialist, poor expedition value). This models real ant polymorphism.
+
+- State: `G.soldierCaste = {scout%, heavy%}` (saved; standard = remainder). `getCasteRatio()` clamps to unlocked castes; `getSoldierCasteCounts()` apportions `G.ants.soldier` (remainder → standard); `getCasteWeightedMul(key)` is the count-weighted average (1.0 if system locked or no soldiers).
+- Raid: `getColonyCombatPower()`, `getRaidSurfaceSoldierDamage()` ×`powerMul`; `getRaidSurfaceSoldierHp()` ×`hpMul`.
+- Expedition: `getExpeditionSuccessRate()` adds `(expeditionMul-1)×0.25` for soldier-bearing routes.
+- UI: a 兵種編成 section in the expedition modal (`renderCasteSection`) with ± steppers (`adjustCasteRatio`, scout+heavy ≤ 100), shown only when `casteSystem` is unlocked.
 
 ### 13.x Expedition system (遠征)
 

@@ -20,6 +20,15 @@
 - 遠征中の襲撃リスク: 進行中遠征に出払う兵隊数で `getExpeditionRaidAccel()`(1.0-2.2×)を算出し、レイド予兆タイマーの "none" 状態減算を加速。モーダル上部に「兵隊が外に出ています…襲撃が早まります」警告バナー(`getDeployedSoldiers`)。
 - 検証(preview): カードに低/中/高＋質的報酬が出て%非表示、危険地帯開始で兵隊50減・警告バナー表示を確認。
 
+### Phase 3 — 統合カースト制
+
+- 兵種カースト導入。実在のアリ多型に準拠: 標準(汎用)/斥候(遠征向き・戦闘弱)/重装(防衛特化・遠征不向き)。`SOLDIER_CASTE_DEFS` に powerMul/hpMul/expeditionMul。
+- 状態 `G.soldierCaste = {scout%, heavy%}`(標準=残り)をセーブ/ロード(旧セーブ→0)。`getCasteRatio`/`getSoldierCasteCounts`/`getCasteWeightedMul`。
+- 研究(防衛枝): `caste_unlock`「兵種分化」(flag casteSystem) → `caste_scout`/`caste_heavy` で各兵種を個別解放。
+- レイド反映: `getColonyCombatPower`・`getRaidSurfaceSoldierDamage` に powerMul、`getRaidSurfaceSoldierHp` に hpMul を乗算。遠征は `getExpeditionSuccessRate` に `(expeditionMul-1)×0.25`。
+- UI: 遠征モーダルに「兵種編成（コロニー全体）」セクション(`renderCasteSection`)。±5%ステッパー(`adjustCasteRatio`、scout+heavy≤100)。casteSystem解放時のみ表示。
+- 検証(preview): セーブ→リロードでノード反映。斥候15%+重装10%→標準75%、加重平均が防衛火力×1.01/遠征適性×1.04(理論値一致)、兵隊数按分75/15/10を確認。
+
 ## 2026-06-14 モグラ v2: digging approach + realistic redraw + room-collapse on loss
 
 User feedback on the mole: make it more realistic, have it **dig in** (kick up dust, advance steadily toward the room), fight hard, and **destroy the room** if you lose. All in `index.html`, runtime/visual only.

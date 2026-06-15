@@ -3626,6 +3626,16 @@
     }
   ];
   // (旧)兵隊アリ数での遠征解放は廃止。現在は研究の遠征枝解放(女王Lv＋働きアリ)で判定。
+
+  // ===== 兵種カースト定義 =====
+  // 実在のアリの多型(polymorphism): 同じコロニーに体格・役割の違う個体が分化する。
+  // 標準=汎用 / 斥候=小型・俊敏で偵察採餌向き(前線戦闘は不得手) / 重装(major)=大型・大顎で防衛特化(遠征の機動には向かない)。
+  // powerMul=近接火力 / hpMul=耐久 / expeditionMul=遠征成功への寄与。コロニー実効値は比率の加重平均。
+  const SOLDIER_CASTE_DEFS = [
+    { id: 'standard', name: '標準', icon: '🐜', powerMul: 1.0, hpMul: 1.0, expeditionMul: 1.0, desc: 'バランス型。どんな場面でも平均的に働く。' },
+    { id: 'scout',    name: '斥候', icon: '🦗', powerMul: 0.6, hpMul: 0.7, expeditionMul: 1.6, desc: '小型で俊敏。遠征の成功率を大きく上げるが、前線戦闘は苦手。' },
+    { id: 'heavy',    name: '重装', icon: '🛡️', powerMul: 1.7, hpMul: 1.9, expeditionMul: 0.5, desc: '大型の大顎兵。防衛の要だが、遠征には不向き。' }
+  ];
   const EXPEDITION_DEV_DURATION = 30;   // 開発モード時の遠征時間(秒)
 
   const MILESTONES = [10, 25, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000];
@@ -3878,6 +3888,9 @@ const RESEARCH_BRANCH_DEFS = [
   { id: 'numbers_win', branch: 'defense', name: '数は何にも勝る', desc: '兵隊アリの雇用コスト -40%、以後 -10%/Lv。ただし各兵隊の兵力 -20%、以後 -5%/Lv（無限）。', costCookie: 25, costFood: 0, costGrowth: 1.6, max: Infinity, prereq: [SOLDIER_JAW_2X_NODE], breakthrough: true, effects:[{kind:'mul',key:'soldierCost',firstLevel:-0.40,perLevel:-0.10},{kind:'mul',key:'soldierPower',firstLevel:-0.20,perLevel:-0.05}] },
   { id: 'raid_spoils', branch: 'defense', name: '戦果', desc: '撃退した襲撃者から奪う戦果が増える。防衛勝利時の食料・クッキー報酬 +30%/Lv（無限）。守りが収入源になる。', costCookie: 8, costFood: 0, costGrowth: 1.6, max: Infinity, prereq: [SOLDIER_JAW_2X_NODE], breakthrough: false, effects:[{kind:'mul',key:'raidSpoils',perLevel:0.30}] },
   { id: 'early_warning', branch: 'defense', name: '早期警戒', desc: '偵察と備えで奇襲に強くなる。襲撃で失う働きアリを40%減らす。', costCookie: 25, costFood: 3000, prereq: [SOLDIER_JAW_2X_NODE], breakthrough: true, effects:[{kind:'flag',flag:'earlyWarning'}] },
+  { id: 'caste_unlock', branch: 'defense', name: '兵種分化', desc: '兵隊アリを多型化し、コロニーの兵種比率を設定できるようにする。比率は防衛と遠征の両方に影響する。', costCookie: 30, costFood: 3500, prereq: [SOLDIER_JAW_2X_NODE], breakthrough: true, effects:[{kind:'flag',flag:'casteSystem'}] },
+  { id: 'caste_scout', branch: 'defense', name: '斥候兵の分化', desc: '小型で俊敏な斥候兵を編成可能に。遠征の成功率を大きく上げるが、前線の火力・耐久は低い。', costCookie: 18, costFood: 2000, prereq: ['caste_unlock'], breakthrough: false },
+  { id: 'caste_heavy', branch: 'defense', name: '重装兵の分化', desc: '大型の大顎を持つ重装兵を編成可能に。防衛の火力・耐久が高いが、遠征には不向き。', costCookie: 18, costFood: 2000, prereq: ['caste_unlock'], breakthrough: false },
   // 黄金枝: 黄金の指/黄金卵/黄金バフ(黄金幼虫→成虫で発動)を強化する。golden_1 は黄金の指 Lv1 が入口条件。
   { id: 'golden_1', branch: 'golden', name: '黄金の輝きI', desc: 'タップ産卵で黄金卵が生まれる確率 ×1.5。', costCookie: 15, costFood: 0, prereq: [], breakthrough: false, effects:[{kind:'mul',key:'goldenEggChance',perLevel:0.5}] },
   { id: 'golden_shine_inf', branch: 'golden', name: '黄金の輝き', desc: '黄金卵の確率 +15%/Lv（無限）', costCookie: 8, costFood: 0, costGrowth: 1.5, max: Infinity, prereq: ['golden_1'], breakthrough: false, effects:[{kind:'mul',key:'goldenEggChance',perLevel:0.15}] },
@@ -5996,6 +6009,7 @@ function ensureRestSlots(n){
     cookieRoomPending: 0,   // クッキー室の「建設予約」数
     barracksPending: 0,     // 兵舎の「建設予約」数
     expeditions: [],         // 進行中・帰還済みの遠征記録
+    soldierCaste: { scout: 0, heavy: 0 },  // 兵種比率(%)。標準=100-scout-heavy。研究で解放
 
     get tot() { return this.ants.worker + this.ants.nurse + this.ants.builder + this.ants.soldier + (this.ants.fermenter || 0); },
     // MAJOR_UPGRADE: 深度解放の段数を返す（depth3はdepth2前提）
@@ -6151,7 +6165,8 @@ function ensureRestSlots(n){
         fermentRoomPending: Math.max(0, Math.floor(this.fermentRoomPending || 0)),
         cookieRoomPending: Math.max(0, Math.floor(this.cookieRoomPending || 0)),
         barracksPending: Math.max(0, Math.floor(this.barracksPending || 0)),
-        expeditions: Array.isArray(this.expeditions) ? this.expeditions : []
+        expeditions: Array.isArray(this.expeditions) ? this.expeditions : [],
+        soldierCaste: this.soldierCaste || { scout: 0, heavy: 0 }
       };
     },
 
@@ -6253,6 +6268,9 @@ function ensureRestSlots(n){
         this.cookieRoomPending = Math.max(0, Math.floor(+d.cookieRoomPending || 0));
         this.barracksPending = Math.max(0, Math.floor(+d.barracksPending || 0));
         this.expeditions = Array.isArray(d.expeditions) ? d.expeditions : [];
+        this.soldierCaste = (d.soldierCaste && typeof d.soldierCaste === 'object')
+          ? { scout: clamp(Math.floor(+d.soldierCaste.scout || 0), 0, 100), heavy: clamp(Math.floor(+d.soldierCaste.heavy || 0), 0, 100) }
+          : { scout: 0, heavy: 0 };
         if(d.research && typeof d.research === 'object') {
           this.research = d.research;
         } else {
@@ -11407,9 +11425,18 @@ function expandMap(forcedType, isEmergency) {
     return m > 0 ? `${m}分${s > 0 ? s + '秒' : ''}` : `${s}秒`;
   }
 
-  // 成功率の実効値（パーティ補正・研究はPhase4で加算）。今は基礎値を返す。
+  // 成功率の実効値。基礎値＋兵種カースト補正（斥候比率が高いほど成功↑）。
+  // party省略時はコロニー全体の比率を使う（Phase4でparty指定の比率に差し替え）。
   function getExpeditionSuccessRate(def, party) {
-    return clamp(def ? def.successRate : 0, 0.05, 0.98);
+    let rate = def ? def.successRate : 0;
+    // 兵隊を伴う遠征のみ、斥候/重装の遠征適性が効く
+    if(def && def.reqSoldier > 0) {
+      const expedMul = (party && typeof party.expeditionMul === 'number')
+        ? party.expeditionMul
+        : getCasteWeightedMul('expeditionMul');
+      rate += (expedMul - 1) * 0.25;
+    }
+    return clamp(rate, 0.05, 0.98);
   }
 
   // 成功率を 低/中/高 のラベル＋色に変換（具体的な%は出さない）
@@ -11424,6 +11451,86 @@ function expandMap(forcedType, isEmergency) {
     let n = 0;
     for(const e of (G.expeditions || [])) if(!e.resolved) n += (e.soldiers || 0);
     return n;
+  }
+
+  // ===== 兵種カースト ヘルパー =====
+  function getSoldierCasteDef(id) { return SOLDIER_CASTE_DEFS.find(c => c.id === id) || SOLDIER_CASTE_DEFS[0]; }
+  function isCasteSystemUnlocked() { return hasResearchUnlock('casteSystem'); }
+  function isCasteUnlocked(casteId) {
+    if(casteId === 'standard') return true;
+    if(casteId === 'scout') return hasResearchNode('caste_scout');
+    if(casteId === 'heavy') return hasResearchNode('caste_heavy');
+    return false;
+  }
+  // 現在の比率設定(%)。未解放カーストは0に丸める。標準=残り。
+  function getCasteRatio() {
+    const c = G.soldierCaste || { scout: 0, heavy: 0 };
+    let scout = isCasteUnlocked('scout') ? clamp(Math.floor(c.scout || 0), 0, 100) : 0;
+    let heavy = isCasteUnlocked('heavy') ? clamp(Math.floor(c.heavy || 0), 0, 100) : 0;
+    if(scout + heavy > 100) { const s = scout + heavy; scout = Math.floor(scout * 100 / s); heavy = 100 - scout; }
+    return { standard: Math.max(0, 100 - scout - heavy), scout, heavy };
+  }
+  // 兵隊総数を比率で按分した実数。端数は標準へ。
+  function getSoldierCasteCounts() {
+    const total = Math.max(0, Math.floor(G.ants.soldier || 0));
+    const r = getCasteRatio();
+    const scout = Math.round(total * r.scout / 100);
+    const heavy = Math.round(total * r.heavy / 100);
+    return { standard: Math.max(0, total - scout - heavy), scout, heavy, total };
+  }
+  // カースト比率で加重平均した倍率(powerMul/hpMul/expeditionMul)。兵種未解放や兵隊0なら1.0。
+  function getCasteWeightedMul(key) {
+    if(!isCasteSystemUnlocked()) return 1;
+    const cnt = getSoldierCasteCounts();
+    if(cnt.total <= 0) return 1;
+    let sum = 0;
+    for(const def of SOLDIER_CASTE_DEFS) sum += (cnt[def.id] || 0) * (def[key] != null ? def[key] : 1);
+    return sum / cnt.total;
+  }
+
+  // 兵種編成UI（コロニー全体）。casteSystem 未解放なら空。
+  function renderCasteSection() {
+    if(!isCasteSystemUnlocked()) return '';
+    const r = getCasteRatio();
+    const counts = getSoldierCasteCounts();
+    const powerMul = getCasteWeightedMul('powerMul');
+    const expedMul = getCasteWeightedMul('expeditionMul');
+    let rows = '';
+    for(const def of SOLDIER_CASTE_DEFS) {
+      const pct = r[def.id] || 0;
+      const cnt = counts[def.id] || 0;
+      const unlocked = isCasteUnlocked(def.id);
+      let controls;
+      if(def.id === 'standard') {
+        controls = `<span style="font-size:12px;color:#cbd5e1;min-width:54px;text-align:right;">${pct}%（残り）</span>`;
+      } else if(!unlocked) {
+        controls = `<span style="font-size:11px;color:#64748b;min-width:54px;text-align:right;">研究で解放</span>`;
+      } else {
+        controls = `<button class="caste-step" data-caste-adj="${def.id}:-5" style="width:24px;height:24px;border:none;border-radius:5px;background:#334155;color:#e2e8f0;font-weight:700;cursor:pointer;">−</button>`
+          + `<span style="font-size:12px;color:#e2e8f0;min-width:34px;text-align:center;font-weight:700;">${pct}%</span>`
+          + `<button class="caste-step" data-caste-adj="${def.id}:5" style="width:24px;height:24px;border:none;border-radius:5px;background:#14b8a6;color:#0f172a;font-weight:700;cursor:pointer;">＋</button>`;
+      }
+      rows += `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;${unlocked ? '' : 'opacity:0.5;'}">`
+        + `<span style="font-size:12px;color:#f1f5f9;flex:1;">${def.icon} ${def.name}<span style="font-size:10px;color:#94a3b8;"> ${cnt}匹</span></span>`
+        + controls + `</div>`;
+    }
+    return `<div class="exped-section">`
+      + `<div class="exped-section-title">兵種編成（コロニー全体）</div>`
+      + `<div style="font-size:11px;color:#94a3b8;margin-bottom:4px;">防衛火力 ×${powerMul.toFixed(2)} ／ 遠征適性 ×${expedMul.toFixed(2)}</div>`
+      + rows + `</div>`;
+  }
+
+  // 兵種比率を増減（scout/heavy。standardは残り。scout+heavy≤100）
+  function adjustCasteRatio(casteId, delta) {
+    if(!isCasteSystemUnlocked() || !isCasteUnlocked(casteId)) return;
+    if(!G.soldierCaste) G.soldierCaste = { scout: 0, heavy: 0 };
+    const c = G.soldierCaste;
+    let scout = clamp(Math.floor(c.scout || 0), 0, 100);
+    let heavy = clamp(Math.floor(c.heavy || 0), 0, 100);
+    if(casteId === 'scout') scout = clamp(scout + delta, 0, 100 - heavy);
+    if(casteId === 'heavy') heavy = clamp(heavy + delta, 0, 100 - scout);
+    G.soldierCaste = { scout, heavy };
+    renderExpeditionModal();
   }
 
   // 遠征中は巣の守りが手薄＝レイド予兆が早まる。出払う兵隊が多いほど加速。
@@ -11551,6 +11658,8 @@ function expandMap(forcedType, isEmergency) {
     if(deployedSoldiers > 0) {
       html += `<div style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.4);border-radius:8px;padding:8px 10px;margin-bottom:12px;font-size:11px;color:#fca5a5;line-height:1.4;">⚠ 兵隊アリ ${deployedSoldiers}匹 が外に出ています。巣の守りが手薄になり、襲撃が早まります。</div>`;
     }
+
+    html += renderCasteSection();
 
     const active   = (G.expeditions || []).filter(e => !e.resolved);
     const resolved = (G.expeditions || []).filter(e => e.resolved);
@@ -12621,7 +12730,7 @@ function expandMap(forcedType, isEmergency) {
     const base = G.ants.soldier * RAID_CFG.soldierBasePower;
     const levelMul = getSoldierPowerMul(G.sLv);
     const indivMul = getSoldierIndividualMul();
-    return base * levelMul * indivMul;
+    return base * levelMul * indivMul * getCasteWeightedMul('powerMul'); // 兵種カースト反映
   }
 
   function getEnemyPower() {
@@ -12642,13 +12751,13 @@ function expandMap(forcedType, isEmergency) {
       ? getSoldierPowerMul(G.sLv || 0)
       : (1 + (G.sLv || 0) * RAID_SURFACE_SOLDIER_DAMAGE_LV_MUL) * (hasSoldierJaw2x() ? 2 : 1);
     const rally = (S.rallyT && S.rallyT > 0) ? (1 + RAID_RALLY_BONUS) : 1; // 応援フェロモン中は火力UP
-    return RAID_SURFACE_SOLDIER_DAMAGE_BASE * lvMul * rally;
+    return RAID_SURFACE_SOLDIER_DAMAGE_BASE * lvMul * rally * getCasteWeightedMul('powerMul'); // 兵種カースト反映
   }
 
   // v2: 兵隊1体(代表)のHP。兵隊Lvで増える＝強化が生存にも効く。weight倍は呼び出し側で乗算。
   function getRaidSurfaceSoldierHp() {
     const lvMul = (typeof getSoldierPowerMul === 'function') ? getSoldierPowerMul(G.sLv || 0) : 1;
-    return RAID_SOLDIER_BASE_HP * lvMul;
+    return RAID_SOLDIER_BASE_HP * lvMul * getCasteWeightedMul('hpMul'); // 兵種カースト反映
   }
 
   // まだ戦っている敵（死亡でも突破でもない）
@@ -17506,6 +17615,12 @@ function syncFermenterUnlockUI() {
     if(btnExpClose) btnExpClose.onclick = () => closeExpeditionModal();
     if(mExp) mExp.addEventListener('click', e => { if(e.target === mExp) closeExpeditionModal(); });
     if(expContent) expContent.addEventListener('click', e => {
+      const casteBtn = e.target.closest('[data-caste-adj]');
+      if(casteBtn) {
+        const [id, d] = casteBtn.dataset.casteAdj.split(':');
+        adjustCasteRatio(id, parseInt(d, 10));
+        return;
+      }
       const btn = e.target.closest('[data-exped-dest]');
       if(btn && !btn.disabled) startExpedition(btn.dataset.expedDest);
     });
