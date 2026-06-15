@@ -631,7 +631,15 @@ Current implemented nodes:
 
 `military_barracks_blueprint` was removed from the research tree (the barracks blueprint is now a Rooms tab dock purchase). Its constant and `G.major.barracks` compatibility plumbing are kept, so old saves that researched it stay valid. The defense branch now contains only `soldier_jaw_2x`.
 
-Expedition branch exists but its nodes are not implemented yet.
+### 13.x Expedition system (遠征)
+
+The expedition feature lets the colony dispatch ants to the outside world for delayed rewards. Opened from the top-bar 🏕️ button (`#btn-expedition` → `#modal-expedition`), gated by `isExpeditionUnlocked()` = the `expedition` research branch flag (see section 13 for the Lv8+250-worker auto-unlock).
+
+- **Routes** (`EXPEDITION_DEFS`): 近場探索 / 林床探索 / 危険地帯 / 古い巣跡, each with `durationSec`, `reqWorker/reqSoldier/reqFood`, `successRate`, and a `reward {food:[min,max], cookie:[min,max]}`. In developer mode all durations are forced to `EXPEDITION_DEV_DURATION` (30 s).
+- **State** (`G.expeditions[]`, saved): each entry has `destId, workers, soldiers, startMs, returnMs, resolved, win, reward, resolvedMs, workerReturn`. Dispatched ants are subtracted from `G.ants.*` immediately; `Date.now()`-based timers continue across reloads/offline.
+- **Resolution** (`tickExpeditions()` each `update()`): on `returnMs`, `resolveExpedition()` rolls `Math.random() < successRate`; success grants food/cookie, failure returns only a fraction of workers (soldiers always return). Resolved cards linger ~30 s then are pruned.
+- **Display**: success rate is shown qualitatively as 低/中/高 (`expedSuccessTier`), rewards as words 控えめ/まずまず/たっぷり/大量 ・ まれに/そこそこ/どっさり (`expedRewardHint`) — never raw numbers (actual gains appear in the return result). `getExpeditionSuccessRate(def, party)` is the single source of the effective rate (party/research bonuses hook here in later phases).
+- **Risk**: while ≥1 expedition with soldiers is out, `getExpeditionRaidAccel()` (1.0–2.2×, scaling with deployed soldiers) speeds the raid pre-warning timer (`update()` "none"-state decrement), and the modal shows a "兵隊が外に出ています…襲撃が早まります" banner. Combined with soldiers being physically away, defense is genuinely weaker during expeditions.
 
 Queen-branch research effects (data-driven; default-unlocked branch):
 

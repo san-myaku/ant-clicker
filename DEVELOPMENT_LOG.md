@@ -12,6 +12,14 @@
 - `isExpeditionUnlocked()` を旧「兵隊5匹」判定から「遠征枝が解放済み」判定に変更。遠征モーダルのロック文言を女王Lv/働きアリ進捗表示に。遠征枝 `desc` を「外界への遠征」に更新。
 - 検証(preview): 遠征枝フラグ false→モーダルにロック文言＋進捗、true→遠征カード4枚表示を確認。構文 `new Function` OK。
 
+### Phase 2 — 遠征UXとリワード調整
+
+- 成功率を %表示から 低/中/高 のラベル＋色に変更(`expedSuccessTier`)。実効成功率は `getExpeditionSuccessRate(def, party)` 経由(Phase4のパーティ補正フック)。
+- 報酬を具体数字から質的表現(🍃 控えめ/まずまず/たっぷり/大量、🍪 まれに/そこそこ/どっさり)に変更(`expedRewardHint`)。帰還リザルトの実獲得数は従来どおり表示。
+- 報酬増量: 近場 食料300-600 / 林床 700-1300+🍪0-2 / 危険 250-500+🍪8-20 / 古い巣跡 食料50-250+🍪15-40。
+- 遠征中の襲撃リスク: 進行中遠征に出払う兵隊数で `getExpeditionRaidAccel()`(1.0-2.2×)を算出し、レイド予兆タイマーの "none" 状態減算を加速。モーダル上部に「兵隊が外に出ています…襲撃が早まります」警告バナー(`getDeployedSoldiers`)。
+- 検証(preview): カードに低/中/高＋質的報酬が出て%非表示、危険地帯開始で兵隊50減・警告バナー表示を確認。
+
 ## 2026-06-14 モグラ v2: digging approach + realistic redraw + room-collapse on loss
 
 User feedback on the mole: make it more realistic, have it **dig in** (kick up dust, advance steadily toward the room), fight hard, and **destroy the room** if you lose. All in `index.html`, runtime/visual only.

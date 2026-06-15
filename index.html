@@ -3604,25 +3604,25 @@
       id: 'nearby', name: '近場探索', icon: '🌿', riskLabel: '低リスク',
       desc: 'すぐそばの草地を調べる。リスクは低いが収穫も控えめ。',
       durationSec: 1800, reqWorker: 25, reqSoldier: 0, reqFood: 50,
-      successRate: 0.90, reward: { food: [150, 300], cookie: [0, 0] }
+      successRate: 0.90, reward: { food: [300, 600], cookie: [0, 0] }
     },
     {
       id: 'forest', name: '林床探索', icon: '🌲', riskLabel: '中リスク',
       desc: '森の奥を探索する。まとまった収穫が期待できるが危険もある。',
       durationSec: 4800, reqWorker: 40, reqSoldier: 15, reqFood: 100,
-      successRate: 0.70, reward: { food: [400, 700], cookie: [0, 1] }
+      successRate: 0.70, reward: { food: [700, 1300], cookie: [0, 2] }
     },
     {
       id: 'danger', name: '危険地帯', icon: '⚠️', riskLabel: '高リスク',
       desc: '天敵が多い地域。兵隊が活躍すれば大きな成果を得られる。',
       durationSec: 9000, reqWorker: 25, reqSoldier: 50, reqFood: 50,
-      successRate: 0.55, reward: { food: [200, 400], cookie: [3, 8] }
+      successRate: 0.55, reward: { food: [250, 500], cookie: [8, 20] }
     },
     {
       id: 'oldnest', name: '古い巣跡', icon: '🏚️', riskLabel: '超高リスク',
       desc: '廃墟となった巣の残骸を調査する。遺物が眠っているかもしれない。',
       durationSec: 12000, reqWorker: 15, reqSoldier: 75, reqFood: 30,
-      successRate: 0.40, reward: { food: [50, 200], cookie: [5, 15] }
+      successRate: 0.40, reward: { food: [50, 250], cookie: [15, 40] }
     }
   ];
   // (旧)兵隊アリ数での遠征解放は廃止。現在は研究の遠征枝解放(女王Lv＋働きアリ)で判定。
@@ -11407,6 +11407,48 @@ function expandMap(forcedType, isEmergency) {
     return m > 0 ? `${m}分${s > 0 ? s + '秒' : ''}` : `${s}秒`;
   }
 
+  // 成功率の実効値（パーティ補正・研究はPhase4で加算）。今は基礎値を返す。
+  function getExpeditionSuccessRate(def, party) {
+    return clamp(def ? def.successRate : 0, 0.05, 0.98);
+  }
+
+  // 成功率を 低/中/高 のラベル＋色に変換（具体的な%は出さない）
+  function expedSuccessTier(rate) {
+    if(rate < 0.5)  return { label: '低', color: '#f87171' };
+    if(rate < 0.75) return { label: '中', color: '#fbbf24' };
+    return { label: '高', color: '#4ade80' };
+  }
+
+  // 進行中の遠征に出払っている兵隊アリの合計
+  function getDeployedSoldiers() {
+    let n = 0;
+    for(const e of (G.expeditions || [])) if(!e.resolved) n += (e.soldiers || 0);
+    return n;
+  }
+
+  // 遠征中は巣の守りが手薄＝レイド予兆が早まる。出払う兵隊が多いほど加速。
+  function getExpeditionRaidAccel() {
+    let accel = 1;
+    for(const e of (G.expeditions || [])) {
+      if(e.resolved || (e.soldiers || 0) <= 0) continue;
+      accel += 0.4 + (e.soldiers || 0) / 200;
+    }
+    return Math.min(accel, 2.2);
+  }
+
+  // 報酬を質的表現に（具体数字は出さない）。期待値の大きさでざっくり段階化。
+  function expedRewardHint(def) {
+    if(!def || !def.reward) return '';
+    const fMax = def.reward.food ? def.reward.food[1] : 0;
+    const cMax = def.reward.cookie ? def.reward.cookie[1] : 0;
+    const foodWord = fMax <= 0 ? null : fMax <= 400 ? '控えめ' : fMax <= 800 ? 'まずまず' : fMax <= 1300 ? 'たっぷり' : '大量';
+    const cookieWord = cMax <= 0 ? null : cMax <= 2 ? 'まれに' : cMax <= 10 ? 'そこそこ' : 'どっさり';
+    const parts = [];
+    if(foodWord)   parts.push(`🍃 ${foodWord}`);
+    if(cookieWord) parts.push(`🍪 ${cookieWord}`);
+    return parts.join(' ／ ') || '—';
+  }
+
   function startExpedition(destId) {
     const def = getExpeditionDef(destId);
     if(!def || !isExpeditionUnlocked()) return;
@@ -11505,6 +11547,11 @@ function expandMap(forcedType, isEmergency) {
     const now = Date.now();
     let html = '';
 
+    const deployedSoldiers = getDeployedSoldiers();
+    if(deployedSoldiers > 0) {
+      html += `<div style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.4);border-radius:8px;padding:8px 10px;margin-bottom:12px;font-size:11px;color:#fca5a5;line-height:1.4;">⚠ 兵隊アリ ${deployedSoldiers}匹 が外に出ています。巣の守りが手薄になり、襲撃が早まります。</div>`;
+    }
+
     const active   = (G.expeditions || []).filter(e => !e.resolved);
     const resolved = (G.expeditions || []).filter(e => e.resolved);
 
@@ -11543,7 +11590,8 @@ function expandMap(forcedType, isEmergency) {
       if(def.reqWorker  > 0) costParts.push(`働き ${def.reqWorker}匹`);
       if(def.reqSoldier > 0) costParts.push(`兵隊 ${def.reqSoldier}匹`);
       if(def.reqFood    > 0) costParts.push(`食料 ${def.reqFood}`);
-      const rewardStr = `食料 ${def.reward.food[0]}〜${def.reward.food[1]}${def.reward.cookie[1] > 0 ? ` / 🍪 ${def.reward.cookie[0]}〜${def.reward.cookie[1]}` : ''}`;
+      const tier = expedSuccessTier(getExpeditionSuccessRate(def, null));
+      const rewardHint = expedRewardHint(def);
       let btnLabel = isActive ? '遠征中' : canStart ? '遠征を始める' : '出発不可';
       if(!isActive && !canWorker)  btnLabel += ` (働き${def.reqWorker}匹必要)`;
       if(!isActive && !canSoldier) btnLabel += ` (兵隊${def.reqSoldier}匹必要)`;
@@ -11557,7 +11605,7 @@ function expandMap(forcedType, isEmergency) {
         </div>
         <div class="exped-card-desc">${def.desc}</div>
         <div class="exped-card-cost">派遣: ${costParts.join(' ＋ ')}</div>
-        <div class="exped-card-reward">報酬: ${rewardStr}（成功率 ${Math.round(def.successRate * 100)}%）</div>
+        <div class="exped-card-reward">報酬: ${rewardHint}　成功率: <b style="color:${tier.color}">${tier.label}</b></div>
         <button class="exped-btn" data-exped-dest="${def.id}" ${!canStart ? 'disabled' : ''}>${btnLabel}</button>
       </div>`;
     }
@@ -17894,7 +17942,8 @@ function syncFermenterUnlockUI() {
           setRaidUI(false);
         }
       } else if(S.raidVis.state === "none") {
-        if(G.raidTimer > 0) G.raidTimer -= dt;
+        // 遠征で兵隊が出払っていると予兆が早まる（ハラハラ感）
+        if(G.raidTimer > 0) G.raidTimer -= dt * getExpeditionRaidAccel();
         if(G.raidTimer <= 0 && G.raidTimer !== -1) {
           G.raidTimer = RAID_COUNTDOWN_SEC; // 第二波も同じ予告秒数
           S.raidVis.state = "countdown";
