@@ -3600,29 +3600,30 @@
     {
       id: 'nearby', name: '近場探索', icon: '🌿', riskLabel: '低リスク',
       desc: 'すぐそばの草地を調べる。リスクは低いが収穫も控えめ。',
-      durationSec: 180, reqWorker: 5, reqSoldier: 0, reqFood: 50,
+      durationSec: 1800, reqWorker: 25, reqSoldier: 0, reqFood: 50,
       successRate: 0.90, reward: { food: [150, 300], cookie: [0, 0] }
     },
     {
       id: 'forest', name: '林床探索', icon: '🌲', riskLabel: '中リスク',
       desc: '森の奥を探索する。まとまった収穫が期待できるが危険もある。',
-      durationSec: 480, reqWorker: 8, reqSoldier: 3, reqFood: 100,
+      durationSec: 4800, reqWorker: 40, reqSoldier: 15, reqFood: 100,
       successRate: 0.70, reward: { food: [400, 700], cookie: [0, 1] }
     },
     {
       id: 'danger', name: '危険地帯', icon: '⚠️', riskLabel: '高リスク',
       desc: '天敵が多い地域。兵隊が活躍すれば大きな成果を得られる。',
-      durationSec: 900, reqWorker: 5, reqSoldier: 10, reqFood: 50,
+      durationSec: 9000, reqWorker: 25, reqSoldier: 50, reqFood: 50,
       successRate: 0.55, reward: { food: [200, 400], cookie: [3, 8] }
     },
     {
       id: 'oldnest', name: '古い巣跡', icon: '🏚️', riskLabel: '超高リスク',
       desc: '廃墟となった巣の残骸を調査する。遺物が眠っているかもしれない。',
-      durationSec: 1200, reqWorker: 3, reqSoldier: 15, reqFood: 30,
+      durationSec: 12000, reqWorker: 15, reqSoldier: 75, reqFood: 30,
       successRate: 0.40, reward: { food: [50, 200], cookie: [5, 15] }
     }
   ];
   const EXPEDITION_UNLOCK_SOLDIERS = 5; // 兵隊アリがこの数以上で遠征解放
+  const EXPEDITION_DEV_DURATION = 30;   // 開発モード時の遠征時間(秒)
 
   const MILESTONES = [10, 25, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000];
   const TOAST_MILESTONE_COOLDOWN = 2.0;
@@ -11406,13 +11407,14 @@ function expandMap(forcedType, isEmergency) {
 
     if(!G.expeditions) G.expeditions = [];
     const now = Date.now();
+    const dur = S._devMode ? EXPEDITION_DEV_DURATION : def.durationSec;
     G.expeditions.push({
       id: 'exp_' + now.toString(36),
       destId,
       workers: def.reqWorker,
       soldiers: def.reqSoldier,
       startMs: now,
-      returnMs: now + def.durationSec * 1000,
+      returnMs: now + dur * 1000,
       resolved: false,
       win: null,
       reward: null,
@@ -11531,7 +11533,7 @@ function expandMap(forcedType, isEmergency) {
         <div class="exped-card-head">
           <span class="exped-card-icon">${def.icon}</span>
           <span class="exped-card-name">${def.name}</span>
-          <span class="exped-card-risk">${def.riskLabel}・${fmtExpedSec(def.durationSec)}</span>
+          <span class="exped-card-risk">${def.riskLabel}・${fmtExpedSec(S._devMode ? EXPEDITION_DEV_DURATION : def.durationSec)}</span>
         </div>
         <div class="exped-card-desc">${def.desc}</div>
         <div class="exped-card-cost">派遣: ${costParts.join(' ＋ ')}</div>
