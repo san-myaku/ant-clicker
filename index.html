@@ -774,6 +774,26 @@
       0%, 100% { box-shadow: 0 2px 4px rgba(0,0,0,0.5), 0 0 0 3px rgba(245,158,11,0.14), 0 0 8px rgba(245,158,11,0.35); }
       50% { box-shadow: 0 2px 4px rgba(0,0,0,0.5), 0 0 0 4px rgba(245,158,11,0.26), 0 0 14px rgba(245,158,11,0.6); }
     }
+    /* ===== 放射状（蜘蛛の巣）研究ツリー: 拡大モーダル専用 ===== */
+    .rtree-radial { position: relative; }
+    .rtree-radial .rtree-web-ring { fill: none; stroke: rgba(170,135,92,0.13); stroke-width: 1.5; }
+    .rtree-radial .rtree-web-thread { stroke: rgba(170,135,92,0.11); stroke-width: 1.5; }
+    .rtree-queen-hub {
+      position: absolute; transform: translate(-50%, -50%);
+      width: 88px; height: 88px; border-radius: 999px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: radial-gradient(circle at 40% 34%, #6a3f9c, #2a1740 80%);
+      border: 3px solid rgba(217,70,239,0.7);
+      box-shadow: 0 0 20px rgba(217,70,239,0.5), inset 0 0 12px rgba(0,0,0,0.55);
+      font-size: 32px; line-height: 1; color: #f3e0ff;
+    }
+    .rtree-queen-hub span { font-size: 10px; font-weight: 800; color: #e9c7ff; margin-top: 1px; }
+    .rtree-spoke-label {
+      position: absolute; transform: translate(-50%, -50%);
+      font-size: 11px; font-weight: 800; white-space: nowrap;
+      color: var(--branch-color, #cbb48b); opacity: 0.9; pointer-events: none;
+      text-shadow: 0 1px 2px #000, 0 0 4px #000;
+    }
     @media (max-width: 520px) {
       /* モバイル: ツリーを「高さ制限付き 2D スクロール領域」にする。
          横スクローラ(pan-x)のままだと、その上での縦ドラッグが親(#control-panel)へ
@@ -14862,6 +14882,104 @@ function expandMap(forcedType, isEmergency) {
     return `<div class="rtree-scroll">${buildResearchTreeInner(rs).inner}</div>`;
   }
 
+  // ===== 放射状（蜘蛛の巣）レイアウト: 拡大モーダル専用。女王枝を中心ハブに、他8枝をスポークに =====
+  const RADIAL_CONST = { NODE_R:24, QUEEN_R0:78, QUEEN_RSTEP:70, SPOKE_R0:250, RING_STEP:104, ROW_SEP:64, MARGIN:60 };
+  function computeRadialResearchLayout(){
+    const C = RADIAL_CONST;
+    const spokeBranches = RESEARCH_BRANCH_DEFS.filter(b => b.id !== 'queen');
+    const queenBranch = RESEARCH_BRANCH_DEFS.find(b => b.id === 'queen');
+    const groupByDepth = (branchId) => {
+      const nodes = getResearchBranchNodes(branchId);
+      const colMap = {}; let maxD = 0;
+      for(const def of nodes){ const d = getResearchNodeDepth(def); (colMap[d]=colMap[d]||[]).push(def); if(d>maxD) maxD=d; }
+      return { nodes, colMap, maxD };
+    };
+    const placements = [];   // {def, x, y, accent}
+    const posById = {};
+    const hubs = [];         // スポーク端のラベル
+    const ringSet = new Set();
+    const spokeAngles = [];
+    let maxRadius = C.QUEEN_R0;
+
+    // 女王枝: 中心ハブ周りの内側リング（深さ別）
+    if(queenBranch){
+      const qg = groupByDepth('queen');
+      const depths = Object.keys(qg.colMap).map(Number).sort((a,b)=>a-b);
+      for(const d of depths){
+        const arr = qg.colMap[d];
+        const r = C.QUEEN_R0 + d * C.QUEEN_RSTEP;
+        ringSet.add(r);
+        for(let s=0;s<arr.length;s++){
+          const ang = ((-90 + (360/arr.length)*s) * Math.PI/180) + d*0.35;
+          const x = Math.cos(ang)*r, y = Math.sin(ang)*r;
+          placements.push({ def: arr[s], x, y, accent: queenBranch.accent });
+          posById[arr[s].id] = { x, y };
+          maxRadius = Math.max(maxRadius, r);
+        }
+      }
+    }
+    // 他8枝: 放射スポーク（深さ＝中心からの距離、サブ行＝スポークに垂直なオフセット）
+    const n = spokeBranches.length;
+    for(let i=0;i<n;i++){
+      const branch = spokeBranches[i];
+      const ang = (-90 + (360/n)*i) * Math.PI/180;
+      spokeAngles.push({ branch, ang });
+      const px = -Math.sin(ang), py = Math.cos(ang); // 垂直単位ベクトル
+      const g = groupByDepth(branch.id);
+      const depths = Object.keys(g.colMap).map(Number).sort((a,b)=>a-b);
+      for(const d of depths){
+        const arr = g.colMap[d];
+        const baseR = C.SPOKE_R0 + d * C.RING_STEP;
+        ringSet.add(baseR);
+        const bx = Math.cos(ang)*baseR, by = Math.sin(ang)*baseR;
+        for(let s=0;s<arr.length;s++){
+          const off = (s - (arr.length-1)/2) * C.ROW_SEP;
+          const x = bx + px*off, y = by + py*off;
+          placements.push({ def: arr[s], x, y, accent: branch.accent });
+          posById[arr[s].id] = { x, y };
+          maxRadius = Math.max(maxRadius, Math.hypot(x,y));
+        }
+      }
+      const labelR = C.SPOKE_R0 - 70;
+      hubs.push({ branch, x: Math.cos(ang)*labelR, y: Math.sin(ang)*labelR });
+    }
+    const R = maxRadius + C.NODE_R + C.MARGIN;
+    const size = R*2, cx0 = R, cy0 = R;
+    for(const p of placements){ p.cx = p.x + cx0; p.cy = p.y + cy0; }
+    for(const id in posById){ posById[id].cx = posById[id].x + cx0; posById[id].cy = posById[id].y + cy0; }
+    for(const h of hubs){ h.cx = h.x + cx0; h.cy = h.y + cy0; }
+    return { placements, posById, hubs, rings:[...ringSet], spokeAngles, width:size, height:size, cx0, cy0 };
+  }
+
+  function buildRadialResearchInner(rs){
+    const L = computeRadialResearchLayout();
+    const C = RADIAL_CONST;
+    const web = [];
+    for(const r of L.rings) web.push(`<circle class="rtree-web-ring" cx="${L.cx0}" cy="${L.cy0}" r="${r.toFixed(1)}" />`);
+    const threadR = L.width/2 - C.MARGIN*0.5;
+    for(const sa of L.spokeAngles){
+      const ex = L.cx0 + Math.cos(sa.ang)*threadR, ey = L.cy0 + Math.sin(sa.ang)*threadR;
+      web.push(`<line class="rtree-web-thread" x1="${L.cx0}" y1="${L.cy0}" x2="${ex.toFixed(1)}" y2="${ey.toFixed(1)}" />`);
+    }
+    const links = [];
+    for(const p of L.placements){
+      const pre = Array.isArray(p.def.prereq) ? p.def.prereq : [];
+      for(const pid of pre){
+        const pp = L.posById[pid]; if(!pp) continue;
+        const linkCls = hasResearchNode(p.def.id) ? 'is-done' : (hasResearchNode(pid) ? 'is-open' : 'is-locked');
+        links.push(`<line class="rtree-link ${linkCls}" x1="${pp.cx.toFixed(1)}" y1="${pp.cy.toFixed(1)}" x2="${p.cx.toFixed(1)}" y2="${p.cy.toFixed(1)}" />`);
+      }
+    }
+    const hub = `<div class="rtree-queen-hub" style="left:${L.cx0}px;top:${L.cy0}px;">👸<span>女王</span></div>`;
+    const labels = L.hubs.map(h => `<div class="rtree-spoke-label" style="left:${h.cx}px;top:${h.cy}px;--branch-color:${h.branch.accent||'#38bdf8'}">${h.branch.icon||'•'} ${h.branch.label}</div>`).join('');
+    const nodeEls = L.placements.map(p => renderResearchTreeNode(p.def, p.cx, p.cy, p.accent)).join('');
+    const inner = `<div class="rtree rtree-radial" style="width:${L.width}px;height:${L.height}px">`
+      + `<svg class="rtree-links-svg" width="${L.width}" height="${L.height}" viewBox="0 0 ${L.width} ${L.height}" aria-hidden="true">${web.join('')}${links.join('')}</svg>`
+      + hub + labels + nodeEls
+      + `</div>`;
+    return { inner, width: L.width, height: L.height };
+  }
+
   // 段階3: 転生メタ通貨「知見」パネル（転生済み or 知見/メタ所持時のみ表示）
   function renderResearchMeta(){
     const insight = Math.max(0, Math.floor(G.insight || 0));
@@ -14882,26 +15000,16 @@ function expandMap(forcedType, isEmergency) {
     return `<div class="rmeta-head"><span class="rmeta-title">🧠 知見（転生で獲得・恒久）</span><span class="rmeta-balance">${fmtCount(insight)}</span></div>${rows}`;
   }
 
-  // 拡大モーダル: 大画面ではレーンを複数列に並べ、いちばん大きく表示できる列数を選ぶ。
-  // 縦長のツリーを1列のまま縦横フィットさせると極端に縮む（横が大量に余る）ため、
-  // 列数ごとに「モーダルに収まるスケール」を求め、スケールが最大になる列数を採用する。
+  // 拡大モーダル: 女王を中心に据えた放射状（蜘蛛の巣）レイアウトで全体を描き、モーダルに収まる倍率へ縮小する。
   function renderResearchTreeModal(rs){
     const body = researchTreeModalBody;
     let bw = (body && body.clientWidth) ? body.clientWidth : Math.floor(window.innerWidth * 0.9);
     let bh = (body && body.clientHeight) ? body.clientHeight : Math.floor(window.innerHeight * 0.8);
     bw = Math.max(260, bw - 16);
     bh = Math.max(260, bh - 16);
-    const clampScale = (f) => Math.max(0.6, Math.min(1.7, f));
-    const maxCols = Math.min(6, RESEARCH_BRANCH_DEFS.length);
-    let best = { cols: 1, scale: 0 };
-    for(let c = 1; c <= maxCols; c++){
-      const L = computeResearchTreeLayout(c);
-      const sc = clampScale(Math.min(bw / Math.max(1, L.width), bh / Math.max(1, L.height)));
-      // スケールが目に見えて大きくなる列数だけ採用（同等以下なら列数の少ない＝余白の少ない方を維持）
-      if(sc > best.scale + 0.012) best = { cols: c, scale: sc };
-    }
-    const t = buildResearchTreeInner(rs, best.cols);
-    const scale = clampScale(Math.min(bw / Math.max(1, t.width), bh / Math.max(1, t.height)));
+    const t = buildRadialResearchInner(rs);
+    // 放射ツリーは大きいので最小倍率を低めに許可（収まりきらない時はモーダル側スクロール）
+    const scale = Math.max(0.28, Math.min(1.3, Math.min(bw / Math.max(1, t.width), bh / Math.max(1, t.height))));
     const sw = Math.ceil(t.width * scale);
     const sh = Math.ceil(t.height * scale);
     return `<div class="rtree-modal-stage" style="width:${sw}px;height:${sh}px">`
