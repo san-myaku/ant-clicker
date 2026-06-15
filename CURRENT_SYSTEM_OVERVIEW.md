@@ -631,6 +631,12 @@ Current implemented nodes:
 
 `military_barracks_blueprint` was removed from the research tree (the barracks blueprint is now a Rooms tab dock purchase). Its constant and `G.major.barracks` compatibility plumbing are kept, so old saves that researched it stay valid. The defense branch contains `soldier_jaw_2x` (root) plus `poison_jaw`/`poison_conc`, `oshiai`, `numbers_win`, `raid_spoils`, `early_warning`, and the soldier-caste line `caste_unlock` → `caste_scout`/`caste_heavy` (see Soldier Castes below).
 
+### Venom sac & poison-fang line (毒嚢・毒牙)
+
+Defeating the spider boss drops `G.venomSac` (毒嚢, saved; +1, 20% chance +2) in the spider-win branch of `resolveRaid`. It's a special research material: `getResearchNodeCost` now returns a `fang` field from `def.costFang` (scales ×(lvl+1) for repeatables, no meta discount), and `canAffordResearch`/`buyResearchNode`/`formatResearchCost` (🧪) consume/show it. The defense-branch poison-fang line requires it: `venom_fang`「毒牙」(costFang 1, prereq `poison_jaw`; flag `venomFang` + `poisonDmg` +100%) → `venom_fang_refine`「毒牙の精製」(costFang ×Lv, infinite `poisonDmg` +30%/Lv). Because `poison_jaw` is the prereq, the existing engaged-enemy poison tick (`hasResearchUnlock('poisonJaw')` × `getResearchBonus('poisonDmg')`) automatically gets the fang boost — no separate combat path.
+
+`lure_spider`「捕食者誘引フェロモン」(costFang 2, breakthrough, flag `lureSpider`) adds a "🕷 クモをおびき寄せる" button to the expedition modal: `lureSpider()` charges `LURE_SPIDER_FOOD_COST` (2000 food), sets a `LURE_SPIDER_CD_MS` (5 min) cooldown on `S._lureSpiderCdUntil`, and force-starts a spider raid (`S._forceRaidKind='spider'`, countdown) — letting late-game players farm venom sacs on demand. The venom sac count shows in the expedition modal (when `venomFang`/`lureSpider` unlocked or count>0) and the stats modal 防衛 section.
+
 ### Soldier castes (兵種カースト, unified)
 
 `caste_unlock`「兵種分化」(breakthrough, flag `casteSystem`) enables a colony-wide soldier-caste ratio; `caste_scout`/`caste_heavy` unlock the 斥候/重装 castes individually (標準 is always available). `SOLDIER_CASTE_DEFS` gives each caste `powerMul`/`hpMul`/`expeditionMul` — 標準 1.0/1.0/1.0, 斥候 0.6/0.7/1.6 (great for expeditions, weak on the front line), 重装 1.7/1.9/0.5 (defense specialist, poor expedition value). This models real ant polymorphism.

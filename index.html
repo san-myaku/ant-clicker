@@ -3891,6 +3891,10 @@ const RESEARCH_BRANCH_DEFS = [
   { id: 'caste_unlock', branch: 'defense', name: '兵種分化', desc: '兵隊アリを多型化し、コロニーの兵種比率を設定できるようにする。比率は防衛と遠征の両方に影響する。', costCookie: 30, costFood: 3500, prereq: [SOLDIER_JAW_2X_NODE], breakthrough: true, effects:[{kind:'flag',flag:'casteSystem'}] },
   { id: 'caste_scout', branch: 'defense', name: '斥候兵の分化', desc: '小型で俊敏な斥候兵を編成可能に。遠征の成功率を大きく上げるが、前線の火力・耐久は低い。', costCookie: 18, costFood: 2000, prereq: ['caste_unlock'], breakthrough: false },
   { id: 'caste_heavy', branch: 'defense', name: '重装兵の分化', desc: '大型の大顎を持つ重装兵を編成可能に。防衛の火力・耐久が高いが、遠征には不向き。', costCookie: 18, costFood: 2000, prereq: ['caste_unlock'], breakthrough: false },
+  // 毒牙系: クモから採取した毒嚢(🧪)を必須素材とする系統
+  { id: 'venom_fang', branch: 'defense', name: '毒牙', desc: 'クモから採取した毒嚢を兵隊の武器に転用する。接敵した敵への毒ダメージを大幅に強化する。', costCookie: 18, costFood: 0, costFang: 1, prereq: ['poison_jaw'], breakthrough: true, effects:[{kind:'flag',flag:'venomFang'},{kind:'mul',key:'poisonDmg',firstLevel:1.0}] },
+  { id: 'venom_fang_refine', branch: 'defense', name: '毒牙の精製', desc: '毒嚢を精製し、毒ダメージ +30%/Lv（無限）。毒嚢を消費する。', costCookie: 8, costFood: 0, costFang: 1, costGrowth: 1.5, max: Infinity, prereq: ['venom_fang'], breakthrough: false, effects:[{kind:'mul',key:'poisonDmg',perLevel:0.30}] },
+  { id: 'lure_spider', branch: 'defense', name: '捕食者誘引フェロモン', desc: 'クモをおびき寄せるフェロモンを合成する。遠征パネルからクモの襲撃を任意で誘発し、毒嚢を狙って採取できる（食料コスト＋クールダウン）。', costCookie: 50, costFood: 5000, costFang: 2, prereq: ['venom_fang'], breakthrough: true, effects:[{kind:'flag',flag:'lureSpider'}] },
   // 黄金枝: 黄金の指/黄金卵/黄金バフ(黄金幼虫→成虫で発動)を強化する。golden_1 は黄金の指 Lv1 が入口条件。
   { id: 'golden_1', branch: 'golden', name: '黄金の輝きI', desc: 'タップ産卵で黄金卵が生まれる確率 ×1.5。', costCookie: 15, costFood: 0, prereq: [], breakthrough: false, effects:[{kind:'mul',key:'goldenEggChance',perLevel:0.5}] },
   { id: 'golden_shine_inf', branch: 'golden', name: '黄金の輝き', desc: '黄金卵の確率 +15%/Lv（無限）', costCookie: 8, costFood: 0, costGrowth: 1.5, max: Infinity, prereq: ['golden_1'], breakthrough: false, effects:[{kind:'mul',key:'goldenEggChance',perLevel:0.15}] },
@@ -4158,7 +4162,7 @@ function isResearchBranchUnlocked(branchId){
 
 // 次に購入するレベル(level)のコスト。反復ノードは costGrowth^level で増加。一度きりは基本コスト。
 function getResearchNodeCost(def, level){
-  if(!def) return { cookie:0, food:0 };
+  if(!def) return { cookie:0, food:0, fang:0 };
   const lvl = Math.max(0, Math.floor(level || 0));
   const max = getResearchNodeMaxLevel(def);
   const repeatable = (max > 1);
@@ -4167,7 +4171,9 @@ function getResearchNodeCost(def, level){
   const discount = (typeof getResearchCostMul === 'function') ? getResearchCostMul() : 1; // メタ割引(段階3)。未定義なら1
   return {
     cookie: Math.max(0, Math.floor((def.costCookie || 0) * RESEARCH_GLOBAL_COST_MUL * factor * discount)),
-    food: Math.max(0, Math.floor((def.costFood || 0) * RESEARCH_GLOBAL_COST_MUL * factor * discount))
+    food: Math.max(0, Math.floor((def.costFood || 0) * RESEARCH_GLOBAL_COST_MUL * factor * discount)),
+    // 毒嚢(venomSac): 毒牙系の必須素材。メタ割引やグローバル倍率は掛けず、反復時のみ等倍ずつ増える。
+    fang: Math.max(0, Math.floor((def.costFang || 0) * (repeatable ? (lvl + 1) : 1)))
   };
 }
 
@@ -4190,7 +4196,7 @@ function getResearchStatus(def){
 function canAffordResearch(def){
   if(!def) return false;
   const c = getResearchNodeCost(def, researchLevel(def.id));
-  return (G.cookie >= c.cookie) && (G.food >= c.food);
+  return (G.cookie >= c.cookie) && (G.food >= c.food) && ((G.venomSac || 0) >= (c.fang || 0));
 }
 
 function getAvailableResearchNodeCount(){
@@ -4285,12 +4291,13 @@ function buyResearchNode(nodeId){
   if(status !== 'ready') return false;
   const lv = researchLevel(def.id);
   const cost = getResearchNodeCost(def, lv);
-  if(G.cookie < cost.cookie || G.food < cost.food) {
-    toast('資源が不足しています', true);
+  if(G.cookie < cost.cookie || G.food < cost.food || (G.venomSac || 0) < (cost.fang || 0)) {
+    toast((cost.fang || 0) > 0 && (G.venomSac || 0) < cost.fang ? '毒嚢が足りません（クモを討伐して採取）' : '資源が不足しています', true);
     return false;
   }
   G.cookie = Math.max(0, Math.floor(G.cookie - cost.cookie));
   G.food = Math.max(0, G.food - cost.food);
+  if(cost.fang > 0) G.venomSac = Math.max(0, Math.floor(G.venomSac || 0) - cost.fang);
   const rs = ensureResearchState();
   const wasZero = (lv <= 0);
   rs.unlockedNodes[def.id] = lv + 1;   // レベル+1（反復ノードは積み増し）
@@ -6015,6 +6022,7 @@ function ensureRestSlots(n){
     barracksPending: 0,     // 兵舎の「建設予約」数
     expeditions: [],         // 進行中・帰還済みの遠征記録
     soldierCaste: { scout: 0, heavy: 0 },  // 兵種比率(%)。標準=100-scout-heavy。研究で解放
+    venomSac: 0,             // 毒嚢: クモ討伐で得る特別素材。毒牙系研究の必須コスト
 
     get tot() { return this.ants.worker + this.ants.nurse + this.ants.builder + this.ants.soldier + (this.ants.fermenter || 0); },
     // MAJOR_UPGRADE: 深度解放の段数を返す（depth3はdepth2前提）
@@ -6171,7 +6179,8 @@ function ensureRestSlots(n){
         cookieRoomPending: Math.max(0, Math.floor(this.cookieRoomPending || 0)),
         barracksPending: Math.max(0, Math.floor(this.barracksPending || 0)),
         expeditions: Array.isArray(this.expeditions) ? this.expeditions : [],
-        soldierCaste: this.soldierCaste || { scout: 0, heavy: 0 }
+        soldierCaste: this.soldierCaste || { scout: 0, heavy: 0 },
+        venomSac: Math.max(0, Math.floor(this.venomSac || 0))
       };
     },
 
@@ -6276,6 +6285,7 @@ function ensureRestSlots(n){
         this.soldierCaste = (d.soldierCaste && typeof d.soldierCaste === 'object')
           ? { scout: clamp(Math.floor(+d.soldierCaste.scout || 0), 0, 100), heavy: clamp(Math.floor(+d.soldierCaste.heavy || 0), 0, 100) }
           : { scout: 0, heavy: 0 };
+        this.venomSac = Math.max(0, Math.floor(+d.venomSac || 0));
         if(d.research && typeof d.research === 'object') {
           this.research = d.research;
         } else {
@@ -11456,6 +11466,32 @@ function expandMap(forcedType, isEmergency) {
     return { label: '高', color: '#4ade80' };
   }
 
+  // ===== 捕食者誘引（研究 lureSpider） =====
+  const LURE_SPIDER_FOOD_COST = 2000;
+  const LURE_SPIDER_CD_MS = 5 * 60 * 1000; // 再使用クールダウン(5分)
+  function lureSpiderCdRemainMs() { return Math.max(0, (S._lureSpiderCdUntil || 0) - Date.now()); }
+  function canLureSpider() {
+    return hasResearchUnlock('lureSpider') && !!S.full && S.raidVis && S.raidVis.state === 'none'
+      && (G.ants.soldier || 0) > 0 && lureSpiderCdRemainMs() <= 0 && G.food >= LURE_SPIDER_FOOD_COST;
+  }
+  function lureSpider() {
+    if(!hasResearchUnlock('lureSpider')) return;
+    if(!S.full || !S.raidVis || S.raidVis.state !== 'none') { toast('今は誘引できません（戦闘中）', true); return; }
+    if((G.ants.soldier || 0) <= 0) { toast('誘引には兵隊アリが必要です', true); return; }
+    if(lureSpiderCdRemainMs() > 0) { toast('フェロモンを再合成中…', true); return; }
+    if(G.food < LURE_SPIDER_FOOD_COST) { toast(`食料が${LURE_SPIDER_FOOD_COST}必要です`, true); return; }
+    G.food = Math.max(0, G.food - LURE_SPIDER_FOOD_COST);
+    S._lureSpiderCdUntil = Date.now() + LURE_SPIDER_CD_MS;
+    S._forceRaidKind = 'spider';
+    G.raidTimer = 10;
+    S.raidVis.state = 'countdown';
+    _raidPrevPhase = '';
+    toast('🕷 フェロモンを散布した…大グモが寄ってくる！');
+    addQueenWhisper('危険な賭けね…でも毒嚢のためよ', 'lure_spider');
+    setRaidUI(true, '👁️ 警戒警報', 'フェロモンに誘われ、大グモが接近している。兵隊を準備せよ。', `${Math.ceil(G.raidTimer)}s`);
+    closeExpeditionModal();
+  }
+
   // 進行中の遠征に出払っている兵隊アリの合計
   function getDeployedSoldiers() {
     let n = 0;
@@ -11703,6 +11739,25 @@ function expandMap(forcedType, isEmergency) {
     const deployedSoldiers = getDeployedSoldiers();
     if(deployedSoldiers > 0) {
       html += `<div style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.4);border-radius:8px;padding:8px 10px;margin-bottom:12px;font-size:11px;color:#fca5a5;line-height:1.4;">⚠ 兵隊アリ ${deployedSoldiers}匹 が外に出ています。巣の守りが手薄になり、襲撃が早まります。</div>`;
+    }
+
+    // 毒嚢の所持と捕食者誘引（毒牙系/誘引が解放されているか毒嚢所持時のみ）
+    const showVenom = hasResearchUnlock('venomFang') || hasResearchUnlock('lureSpider') || (G.venomSac || 0) > 0;
+    if(showVenom) {
+      let venomHtml = `<div class="exped-section"><div class="exped-section-title">毒牙・捕食者誘引</div>`
+        + `<div style="font-size:12px;color:#c084fc;margin-bottom:6px;">🧪 毒嚢: <b>${Math.floor(G.venomSac || 0)}</b> 個</div>`;
+      if(hasResearchUnlock('lureSpider')) {
+        const cd = lureSpiderCdRemainMs();
+        const can = canLureSpider();
+        let sub = `食料 ${LURE_SPIDER_FOOD_COST}`;
+        if(cd > 0) sub = `再合成まで ${fmtExpedSec(cd / 1000)}`;
+        else if(S.raidVis && S.raidVis.state !== 'none') sub = '戦闘中は使用不可';
+        else if((G.ants.soldier || 0) <= 0) sub = '兵隊アリが必要';
+        else if(G.food < LURE_SPIDER_FOOD_COST) sub = `食料が${LURE_SPIDER_FOOD_COST}必要`;
+        venomHtml += `<button class="exped-btn" data-lure-spider="1" ${can ? '' : 'disabled'} style="${can ? 'background:#a855f7;' : ''}">🕷 クモをおびき寄せる（${sub}）</button>`;
+      }
+      venomHtml += `</div>`;
+      html += venomHtml;
     }
 
     html += renderCasteSection();
@@ -13023,7 +13078,12 @@ function expandMap(forcedType, isEmergency) {
         const fb = Math.floor((out.rewardFood || 0) * 0.5);
         const cb = 30 + Math.floor(Math.random() * 21);
         G.food += fb; rewardFood += fb; addCookie(cb); rewardCookie += cb;
-        addQueenWhisper('やったわ…！あの大グモを討ち取った。あなたたちは本当に強い');
+        // クモの毒嚢を採取（毒牙系研究の素材）。稀に2個。
+        const sacGain = 1 + (Math.random() < 0.2 ? 1 : 0);
+        G.venomSac = Math.max(0, Math.floor(G.venomSac || 0)) + sacGain;
+        modalOut.venomSacGain = sacGain;
+        toast(`🧪 クモの毒嚢を${sacGain}個 採取した！（毒牙研究の素材）`);
+        addQueenWhisper('やったわ…！あの大グモを討ち取った。牙から毒嚢も採れたわ');
       }
       modalOut.rewardFood = rewardFood;
       modalOut.rewardCookie = rewardCookie;
@@ -14313,6 +14373,7 @@ function expandMap(forcedType, isEmergency) {
     const parts = [];
     if(c.cookie > 0) parts.push(`🍪${fmtCount(c.cookie)}`);
     if(c.food > 0) parts.push(`🍃${fmtCount(c.food)}`);
+    if(c.fang > 0) parts.push(`🧪${fmtCount(c.fang)}`);
     return (parts.length > 0) ? parts.join(' + ') : '-';
   }
 
@@ -17633,14 +17694,16 @@ function syncFermenterUnlockUI() {
       ['働き清掃', hasWorkerWasteCleanup() ? `ON (${Math.round(WASTE_WORKER_JOB_FRACTION * 100)}% / 最大${WASTE_WORKER_JOB_MAX})` : '研究前']
     ]);
 
-    addStatsSection('防衛', [
+    const defenseRows = [
       ['防衛力', fmtStatNum(colonyPower)],
       ['敵パワー', fmtStatNum(enemyPower)],
       ['勝率目安', fmtStatPct(winProb)],
       ['兵隊DPS', fmtStatNum(soldierDps, 1)],
       ['次の兵隊', `🍃 ${fmtStatNum(G.getCost('soldier'))}`],
       ['レイド', `${fmtStatNum(G.raidWins || 0)}勝 / ${fmtStatNum(G.raidTotal || 0)}戦`]
-    ]);
+    ];
+    if((G.venomSac || 0) > 0 || hasResearchUnlock('venomFang')) defenseRows.push(['毒嚢', `🧪 ${fmtStatNum(G.venomSac || 0)}`]);
+    addStatsSection('防衛', defenseRows);
 
     addStatsSection('環境/描画', [
       ['季節', season ? season.label : '-'],
@@ -17691,6 +17754,8 @@ function syncFermenterUnlockUI() {
         cycleExpedScale(id, parseInt(d, 10));
         return;
       }
+      const lureBtn = e.target.closest('[data-lure-spider]');
+      if(lureBtn && !lureBtn.disabled) { lureSpider(); return; }
       const btn = e.target.closest('[data-exped-dest]');
       if(btn && !btn.disabled) startExpedition(btn.dataset.expedDest);
     });

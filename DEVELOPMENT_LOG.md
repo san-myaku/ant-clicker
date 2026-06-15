@@ -37,6 +37,15 @@
 - `resolveExpedition` は exp.successRate で判定、報酬に `getResearchBonus('expedReward')` を乗算、失敗時の働きアリ損耗を重装比率で軽減。
 - 検証(preview): 規模×2で林床が働き80/兵隊30に、開始でその数を消費・レコードに scale2/successRate0.98 を保存を確認。
 
+### Phase 5 — クモの毒嚢と毒牙研究
+
+- 資源 `G.venomSac`(毒嚢)をセーブ対応。クモ討伐(`resolveRaid`勝利分岐)で+1(20%で+2)、トースト＋女王つぶやき。
+- 研究コスト系に `fang` 追加: `getResearchNodeCost`(costFang×(lvl+1))/`canAffordResearch`/`buyResearchNode`(毒嚢消費)/`formatResearchCost`(🧪表示)。
+- 防衛枝に毒牙系: `venom_fang`「毒牙」(costFang1, 前提poison_jaw, flag venomFang＋poisonDmg+100%)→`venom_fang_refine`「毒牙の精製」(costFang×Lv無限, poisonDmg+30%/Lv)。既存の毒顎適用(poisonJaw×poisonDmg)経由で自動強化、戦闘経路の追加不要。
+- `lure_spider`「捕食者誘引フェロモン」(costFang2, flag lureSpider): 遠征モーダルに「🕷 クモをおびき寄せる」ボタン。食料2000＋CD5分でクモレイドを任意発生(`lureSpider()`)。
+- 毒嚢の所持を遠征モーダル(毒牙/誘引解放 or 所持>0時)と統計モーダル防衛節に表示。
+- 検証(preview): venomSacのセーブ往復(新コードで3が永続)、毒牙・誘引セクション/毒嚢数表示、誘引ボタンでクモ予兆発生・食料2000消費・CD設定を確認。
+
 ## 2026-06-14 モグラ v2: digging approach + realistic redraw + room-collapse on loss
 
 User feedback on the mole: make it more realistic, have it **dig in** (kick up dust, advance steadily toward the room), fight hard, and **destroy the room** if you lose. All in `index.html`, runtime/visual only.
