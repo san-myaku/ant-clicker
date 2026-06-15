@@ -8003,6 +8003,10 @@ function expandMap(forcedType, isEmergency) {
   const RAID_SPIDER_LUNGE_RADIUS   = 34;   // 噛みつきの範囲(dp適用前)
   const RAID_SPIDER_LUNGE_MAX_HITS = 4;    // 1回の噛みつきで巻き込む最大兵数
   const RAID_SPIDER_KIND = { id:'spider', label:'クモ', spdMul:0.7, sizeMul:5.5, tint:'#6b5038', atk:0.35, pushThrough:0.45 };
+  const RAID_SPIDER_SHAKE_CD    = 4.2;  // 兵隊を振り落とす間隔(秒)
+  const RAID_SPIDER_SHAKE_MAX   = 3;    // 1回の振り落とし最大体数
+  const RAID_SPIDER_VENOM_DPS   = 3.5;  // 毒ダメージ(HP/秒)
+  const RAID_SPIDER_VENOM_SECS  = 6.0;  // 毒の持続秒数
   function isSpiderRaid() { return !!(S.raidVis && S.raidVis.bossType === 'spider'); }
 
   function decideRaidBossType() {
@@ -11386,14 +11390,47 @@ function expandMap(forcedType, isEmergency) {
       hp: bossHp, maxHp: bossHp, dead: false, hitFlash: 0,
       kind: k.id, sizeMul: k.sizeMul, tint: k.tint,
       atk: RAID_ENEMY_ATK_BASE * (k.atk || 1), pushThrough: k.pushThrough || 0,
-      lungeCd: RAID_SPIDER_LUNGE_CD, lungeFlash: 0, isBoss: true
+      lungeCd: RAID_SPIDER_LUNGE_CD, lungeFlash: 0, isBoss: true,
+      shakeCd: RAID_SPIDER_SHAKE_CD
     });
   }
 
-  // v3: クモの噛みつき（範囲攻撃）。数秒ごとに周囲の生存兵を最大 N 体まとめて負傷/戦死させる。
+  // 兵隊アリをクモの体から振り飛ばす
+  function spiderThrowSoldier(s, spider) {
+    s.phase = "thrown";
+    s.targetEnemyId = null;
+    s.climbOffX = null; s.climbOffY = null;
+    const angle = (Math.random() - 0.5) * Math.PI * 1.8 - Math.PI * 0.5; // 上方向バイアス
+    const speed = dp(100 + Math.random() * 70);
+    s.vx = Math.cos(angle + (Math.random() - 0.5) * 1.2) * speed;
+    s.vy = -dp(60 + Math.random() * 40); // 上へ弾く
+    s._throwSpin = (Math.random() - 0.5) * 12; // 回転速度
+  }
+
+  // v3改: クモの噛みつき（毒牙）＋振り落とし。数秒ごとに周囲の兵を噛んで毒付与。
   function tickSpiderLunge(en, dt) {
     if(en.lungeFlash > 0) en.lungeFlash = Math.max(0, en.lungeFlash - dt * 2.5);
     en.lungeCd = (en.lungeCd == null ? RAID_SPIDER_LUNGE_CD : en.lungeCd) - dt;
+
+    // 定期的に体に這い登っている兵を振り落とす
+    en.shakeCd = (en.shakeCd == null ? RAID_SPIDER_SHAKE_CD : en.shakeCd) - dt;
+    if(en.shakeCd <= 0) {
+      en.shakeCd = RAID_SPIDER_SHAKE_CD;
+      if(Array.isArray(S.raidSoldiers)) {
+        let thrown = 0;
+        for(const s of S.raidSoldiers) {
+          if(thrown >= RAID_SPIDER_SHAKE_MAX) break;
+          if(!s || s.dead || s.phase !== "climb") continue;
+          spiderThrowSoldier(s, en);
+          thrown++;
+        }
+        if(thrown > 0) {
+          shake(dp(8), 0.35);
+          if(S.full) fx(en.x, en.y - dp(18), '振り落とし！', '#c4b5fd');
+        }
+      }
+    }
+
     if(en.lungeCd > 0) return;
     en.lungeCd = RAID_SPIDER_LUNGE_CD;
     en.lungeFlash = 1;
@@ -11404,9 +11441,15 @@ function expandMap(forcedType, isEmergency) {
     for(const s of S.raidSoldiers) {
       if(hits >= RAID_SPIDER_LUNGE_MAX_HITS) break;
       if(!s || s.dead) continue;
+      // 体に這い登っている兵は距離に関係なく噛める
       const dx = s.x - en.x, dy = s.y - en.y;
-      if(dx * dx + dy * dy > r2) continue;
+      const inRange = s.phase === "climb" || (dx * dx + dy * dy <= r2);
+      if(!inRange) continue;
       s.hp = (s.hp == null ? 0 : s.hp) - RAID_SPIDER_LUNGE_DMG;
+      // 毒付与（毒牙！）
+      s.poisoned = true;
+      s.poisonSecs = RAID_SPIDER_VENOM_SECS;
+      fx(s.x, s.y - dp(8), '☠毒', '#4ade80');
       hits++;
       if(s.hp <= 0 && !s.dead) {
         s.dead = true; s.targetEnemyId = null;
@@ -11415,7 +11458,7 @@ function expandMap(forcedType, isEmergency) {
     }
     if(hits > 0) {
       shake(dp(7), 0.3);
-      if(S.full) fx(en.x, en.y - dp(10), "ガブッ!", "#ef4444");
+      if(S.full) fx(en.x, en.y - dp(12), '🕷 ガブッ!毒！', '#4ade80');
     }
   }
 
@@ -11685,6 +11728,26 @@ function expandMap(forcedType, isEmergency) {
     ctx.lineWidth = 1.4 * k;
     ctx.beginPath(); ctx.moveTo(23 * k, 5 * k); ctx.quadraticCurveTo(31 * k, 13 * k, 28 * k, 20 * k); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(17 * k, 5 * k); ctx.quadraticCurveTo(25 * k, 14 * k, 22 * k, 22 * k); ctx.stroke();
+
+    // 毒牙の発光（噛みつき直前に緑に輝く）
+    const venomCharge = en.lungeCd != null ? clamp(1 - en.lungeCd / RAID_SPIDER_LUNGE_CD, 0, 1) : 0;
+    if(venomCharge > 0.25) {
+      const gv = (venomCharge - 0.25) / 0.75;
+      ctx.save();
+      ctx.globalAlpha *= gv * 0.85;
+      // 牙先の緑光
+      const vGlow = ctx.createRadialGradient(27 * k, 22 * k, 1 * k, 27 * k, 22 * k, 20 * k);
+      vGlow.addColorStop(0, 'rgba(74,222,128,0.95)');
+      vGlow.addColorStop(1, 'rgba(74,222,128,0)');
+      ctx.fillStyle = vGlow;
+      ctx.beginPath(); ctx.arc(27 * k, 22 * k, 20 * k, 0, 6.28); ctx.fill();
+      // 毒液のしずく
+      ctx.fillStyle = '#86efac';
+      ctx.beginPath(); ctx.arc(29 * k, 26 * k, 4 * k * gv, 0, 6.28); ctx.fill();
+      ctx.beginPath(); ctx.arc(22 * k, 30 * k, 3 * k * gv, 0, 6.28); ctx.fill();
+      ctx.restore();
+    }
+
     ctx.restore();
 
     en._spiderLegs.filter(L => L.layer === 'front').forEach(drawLegState);
@@ -11928,6 +11991,36 @@ function expandMap(forcedType, isEmergency) {
       s.wobble = (s.wobble || 0) + dt * 6;
       if(s.fade < 1) s.fade = Math.min(1, s.fade + dt * 3);
       if(s.atkCd) s.atkCd = Math.max(0, s.atkCd - dt); // 攻撃クールダウン減衰
+
+      // 毒ダメージ（クモの毒牙でかかった毒）
+      if(s.poisoned && (s.poisonSecs || 0) > 0) {
+        s.poisonSecs -= dt;
+        s.hp = (s.hp || 0) - RAID_SPIDER_VENOM_DPS * dt;
+        if(s.hp <= 0 && !s.dead) {
+          s.dead = true; s.targetEnemyId = null;
+          if(S.raidVis) S.raidVis.casualtyWeight = (S.raidVis.casualtyWeight || 0) + (s.weight || 1);
+        }
+        if(s.poisonSecs <= 0) s.poisoned = false;
+      }
+
+      // 振り落とされフェーズ: 放物線を描いて地面に戻る
+      if(s.phase === "thrown") {
+        s.vx = (s.vx || 0) * Math.pow(0.92, dt * 60);
+        s.vy = (s.vy || 0) + dp(220) * dt; // 重力
+        s.x += s.vx * dt;
+        s.y += s.vy * dt;
+        s._throwSpin = (s._throwSpin || 0);
+        s.rot = (s.rot || 0) + s._throwSpin * dt;
+        const groundY2 = getRaidSurfaceSoldierGroundY(s);
+        if(s.y >= groundY2) {
+          s.y = groundY2; s.vx = 0; s.vy = 0; s._throwSpin = 0;
+          s.phase = "advance";
+          shake(dp(1.5), 0.06);
+        }
+        clampRaidSurfaceSoldierToGround(s);
+        continue; // thrown は以降のターゲット/移動ロジックをスキップ
+      }
+
       const groundY = getRaidSurfaceSoldierGroundY(s);
 
       // ターゲット解決（死亡/突破/消失なら再探索）
@@ -11951,6 +12044,31 @@ function expandMap(forcedType, isEmergency) {
         s.targetEnemyId = blocker.id;
       }
 
+      // 體に這い登っているフェーズ（クモ専用）
+      if(s.phase === "climb") {
+        const spiderEn = target && target.kind === 'spider' ? target : null;
+        if(!spiderEn) { s.phase = "advance"; s.climbOffX = null; s.climbOffY = null; }
+        else {
+          // 蜘蛛の体上の位置を維持（小さくゆらゆら動く）
+          s.x = spiderEn.x + (s.climbOffX || 0) + Math.sin(s.wobble * 2.1) * dp(1.5);
+          s.y = spiderEn.y + (s.climbOffY || 0) + Math.cos(s.wobble * 1.9) * dp(1.0);
+          spiderEn.engagedBy = (spiderEn.engagedBy || 0) + 1;
+          // 体の上でも反撃を受ける（弱め）
+          s.hp = (s.hp || 0) - (spiderEn.atk || RAID_ENEMY_ATK_BASE) * 0.3 * dt;
+          if(s.hp <= 0 && !s.dead) {
+            s.dead = true; s.targetEnemyId = null;
+            if(S.raidVis) S.raidVis.casualtyWeight = (S.raidVis.casualtyWeight || 0) + (s.weight || 1);
+          }
+          // 攻撃（這い登っているので連続攻撃できる）
+          if((s.atkCd || 0) <= 0) {
+            const killed = damageRaidEnemy(spiderEn, soldierDamage * (s.weight || 1));
+            s.atkCd = RAID_SURFACE_SOLDIER_ATTACK_COOLDOWN * 0.65;
+            if(killed) { S.raidVis.killedEnemies = (S.raidVis.killedEnemies || 0) + 1; s.targetEnemyId = null; s.phase = "advance"; s.climbOffX = null; s.climbOffY = null; }
+          }
+        }
+        continue; // climb は地表クランプをスキップ
+      }
+
       // emerge: 入口から地表へ出る
       if(s.phase === "emerge") {
         moveToward(s, s.homeX, groundY, s.sp * 0.8, dt);
@@ -11968,6 +12086,30 @@ function expandMap(forcedType, isEmergency) {
           s.phase = "advance";
           moveToward(s, tx, ty, s.sp, dt);
         } else {
+          // クモボスなら体に這い登る
+          if(target.isBoss && target.kind === 'spider') {
+            s.phase = "climb";
+            if(s.climbOffX == null) {
+              const offAngle = (s.slotIndex / Math.max(1, total)) * Math.PI * 2 + Math.random() * 0.8;
+              const offR = dp(6 + (s.slotIndex % 5) * 4.5);
+              s.climbOffX = Math.cos(offAngle) * offR;
+              s.climbOffY = Math.sin(offAngle) * offR - dp(11);
+            }
+            s.x = target.x + s.climbOffX + Math.sin(s.wobble * 2.1) * dp(1.5);
+            s.y = target.y + s.climbOffY + Math.cos(s.wobble * 1.9) * dp(1.0);
+            target.engagedBy = (target.engagedBy || 0) + 1;
+            s.hp = (s.hp || 0) - (target.atk || RAID_ENEMY_ATK_BASE) * 0.3 * dt;
+            if(s.hp <= 0 && !s.dead) {
+              s.dead = true; s.targetEnemyId = null;
+              if(S.raidVis) S.raidVis.casualtyWeight = (S.raidVis.casualtyWeight || 0) + (s.weight || 1);
+            }
+            if((s.atkCd || 0) <= 0) {
+              const killed = damageRaidEnemy(target, soldierDamage * (s.weight || 1));
+              s.atkCd = RAID_SURFACE_SOLDIER_ATTACK_COOLDOWN * 0.65;
+              if(killed) { S.raidVis.killedEnemies = (S.raidVis.killedEnemies || 0) + 1; s.targetEnemyId = null; s.phase = "advance"; s.climbOffX = null; s.climbOffY = null; }
+            }
+            continue; // 地表クランプをスキップ
+          }
           s.phase = "engage"; // 近距離は敵に張り付いて追従
           moveToward(s, tx, ty, s.sp * 0.9, dt);
           target.engagedBy = (target.engagedBy || 0) + 1; // 交戦中：この敵を引き留める
@@ -12003,7 +12145,7 @@ function expandMap(forcedType, isEmergency) {
         }
       }
 
-      // 地表ラインの近くに保つ（潜りすぎ/浮きすぎ防止）
+      // 地表ラインの近くに保つ（climb/thrown はスキップ済み）
       clampRaidSurfaceSoldierToGround(s);
     }
 
@@ -12091,21 +12233,37 @@ function expandMap(forcedType, isEmergency) {
     for(const s of list) {
       const a = clamp(s.fade == null ? 1 : s.fade, 0, 1);
       if(a <= 0) continue;
+      const isClimb = s.phase === "climb";
+      const isThrown = s.phase === "thrown";
+      const isPoisoned = !!s.poisoned;
       ctx.save();
       ctx.globalAlpha *= a;
       ctx.translate(s.x, s.y);
+      // 振り落とし中: 回転（きりきり舞いで飛ぶ）
       ctx.rotate(s.rot || 0);
-      // 体（兵隊アリの青 #3b82f6。地表敵の暗赤と区別。働きアリよりやや大きめ）
-      ctx.fillStyle = '#3b82f6';
+      // 体色（毒なら緑、這い登りは少し明るい青）
+      const bodyCol = isPoisoned ? '#22c55e' : (isClimb ? '#60a5fa' : '#3b82f6');
+      const headCol = isPoisoned ? '#15803d' : (isClimb ? '#2563eb' : '#1d4ed8');
+      const jawCol  = isPoisoned ? 'rgba(134,239,172,0.9)' : 'rgba(191,219,254,0.95)';
+      // 這い登り中は少し大きく（奮戦感）
+      if(isClimb) ctx.scale(1.15, 1.15);
+      ctx.fillStyle = bodyCol;
       ctx.beginPath(); ctx.ellipse(-dp(5.5), 0, dp(4.8), dp(3.3), 0, 0, 6.28); ctx.fill(); // 腹部
       ctx.beginPath(); ctx.ellipse(0, 0, dp(3.0), dp(2.9), 0, 0, 6.28); ctx.fill();        // 胸部
-      ctx.fillStyle = '#1d4ed8';
+      ctx.fillStyle = headCol;
       ctx.beginPath(); ctx.ellipse(dp(4.6), 0, dp(3.1), dp(3.0), 0, 0, 6.28); ctx.fill();  // 頭部
       // 大顎
-      ctx.strokeStyle = 'rgba(191,219,254,0.95)';
+      ctx.strokeStyle = jawCol;
       ctx.lineWidth = dp(1.1);
       ctx.beginPath(); ctx.moveTo(dp(7.2), -dp(1.4)); ctx.lineTo(dp(11.5), -dp(3.0)); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(dp(7.2),  dp(1.4)); ctx.lineTo(dp(11.5),  dp(3.0)); ctx.stroke();
+      // 毒: 緑のぼんやりオーラ
+      if(isPoisoned) {
+        const poisonRatio = clamp((s.poisonSecs || 0) / RAID_SPIDER_VENOM_SECS, 0, 1);
+        ctx.globalAlpha *= 0.55 * poisonRatio;
+        ctx.fillStyle = '#86efac';
+        ctx.beginPath(); ctx.ellipse(0, 0, dp(8), dp(7), 0, 0, 6.28); ctx.fill();
+      }
       ctx.restore();
       // v2: 兵隊HPバー（負傷時のみ・ワールド座標で回転を受けない）
       drawRaidSoldierHpBar(ctx, s);
