@@ -3157,7 +3157,6 @@
             <div>卵: +<span id="off-egg" class="txt-gold"></span></div>
             <div>幼虫化: +<span id="off-larva" class="txt-blue"></span></div>
             <div>成虫化: +<span id="off-hatch" class="txt-blue"></span></div>
-            <div>クッキー: +<span id="off-cookie" class="txt-gold"></span></div>
         </div>
         <button class="modal-btn" onclick="document.getElementById('modal-off').classList.remove('show')">OK</button>
     </div>
@@ -14257,20 +14256,12 @@ function expandMap(forcedType, isEmergency) {
       G.larvaToAdultP = 0;
     }
 
-    // クッキー（期待値の近似。※ 変数名は G.cookie ・ G.cookie ではない）
-    const baseCookieChance = 0.005 * G.getWorkerCookieMul();
-    const chance = getWorkerCookieChance();
-    const chanceMul = (baseCookieChance > 0) ? (chance / baseCookieChance) : 1;
-    const addCookie = Math.floor((G.ants.worker * sec * G.getWorkerCookieMul() * chanceMul) / 20000);
-    if(addCookie > 0) G.cookie += addCookie;
-
-    // オフライン進行モーダルに表示（HTML の id: off-time, off-food, off-egg, off-hatch, off-cookie を使用）
+    // オフライン進行モーダルに表示（HTML の id: off-time, off-food, off-egg, off-hatch を使用）
     setText(document.getElementById('off-time'), fmtTime(sec));
     setText(document.getElementById('off-food'), Math.floor(addFood));
     setText(document.getElementById('off-egg'), Math.floor(addEgg));
     setText(document.getElementById('off-larva'), Math.floor(addLarva));
     setText(document.getElementById('off-hatch'), adultInt);
-    setText(document.getElementById('off-cookie'), addCookie);
     const modalOff = document.getElementById('modal-off');
     if(modalOff) modalOff.classList.add('show');
 
