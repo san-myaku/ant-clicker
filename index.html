@@ -20657,6 +20657,23 @@ function syncFermenterUnlockUI() {
     }
   }
 
+  // B: 部屋ごとの椀状陰影。床に光・縁と天井に影を入れて「掘った空洞」の立体感を出す。
+  // 静的キャッシュ(drawStaticNestSoilLayer)に焼くので毎フレームのコストは増えない。
+  function roomBowlGradient(g, n) {
+    const r = n.r || dp(10);
+    const rx = r * (n.blobScaleX || 1);
+    const ry = r * (n.blobScaleY || 0.8);
+    const cx = n.x;
+    const cy = n.y + ry * 0.22;                 // 明点は床側（光は上から＝天井側は影に）
+    const inner = Math.max(dp(2), Math.min(rx, ry) * 0.18);
+    const outer = Math.max(rx, ry) * 1.18;
+    const grad = g.createRadialGradient(cx, cy, inner, cx, cy, outer);
+    grad.addColorStop(0,   'rgb(209,187,157)'); // 光の当たる床
+    grad.addColorStop(0.5, 'rgb(178,152,124)');
+    grad.addColorStop(1,   'rgb(95,72,51)');    // 縁・天井の陰（疑似AO）
+    return grad;
+  }
+
   function drawStaticNestSoilLayer(g, view, soilTop, soilBottom) {
     const soilH = soilBottom - soilTop;
     const cavGr = g.createLinearGradient(0, soilTop, 0, soilBottom);
@@ -20734,6 +20751,8 @@ function syncFermenterUnlockUI() {
       if(!S.nodeVis[i]) return;
       if(n.x < view.x - nodePad || n.x > view.x + view.w + nodePad) return;
       if(n.y < soilTop - nodePad || n.y > soilBottom + nodePad) return;
+      // 部屋は椀状グラデーションで立体感を、通路(shaft)は従来の平塗りのまま
+      g.fillStyle = (n.type === 'shaft') ? cavGr : roomBowlGradient(g, n);
       fillBlobPath(g, n);
     });
     g.restore();
@@ -21895,6 +21914,19 @@ function syncFermenterUnlockUI() {
       ctx.fillStyle=e.c; ctx.globalAlpha=e.l; ctx.fillText(e.t,e.x,e.y);
     });
     ctx.globalAlpha=1;
+
+    // A: ヴィネット（周縁の暖かい暗がり）。地下の奥行き・トンネル感を強める。
+    // 画面空間で1枚かぶせるだけ＝1フレーム1回の安いオーバーレイ。
+    ctx.setTransform(1,0,0,1,0,0);
+    {
+      const vw = canvas.width, vh = canvas.height;
+      const vig = ctx.createRadialGradient(vw*0.5, vh*0.46, Math.min(vw,vh)*0.30, vw*0.5, vh*0.52, Math.max(vw,vh)*0.72);
+      vig.addColorStop(0,   'rgba(0,0,0,0)');
+      vig.addColorStop(0.66,'rgba(0,0,0,0)');
+      vig.addColorStop(1,   'rgba(18,9,3,0.40)');
+      ctx.fillStyle = vig;
+      ctx.fillRect(0, 0, vw, vh);
+    }
 
     // FPS overlay (dev mode only)
     if(S._devMode && S.perf) {
