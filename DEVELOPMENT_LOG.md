@@ -1,5 +1,14 @@
 # Development Log
 
+## 2026-06-17 巣断面のリアル化(A+B+D): 椀状陰影・ヴィネット・ブルードの山
+
+実物の蟻の巣写真（層状の土・掘った椀状の部屋・ぎっしり詰まったブルード）に寄せる段階的改善。描画専用でシミュレーション/セーブには非干渉。
+
+- **B 部屋の椀状陰影**: `roomBowlGradient()` を追加。`drawStaticNestSoilLayer()` の空洞塗りで、部屋ノードを「床に光・縁と天井に影」の放射状グラデで塗り、掘った空洞の立体感を出す。通路(shaft)は従来の平塗り。静的キャッシュに焼くので毎フレーム無料。
+- **A ヴィネット**: `render()` 末尾に画面空間の放射状の暖色暗がりを1枚かぶせ、地下の奥行き感を強化（1フレーム1回）。
+- **D ブルードの山**: 育児室/女王室で、詰まり具合(`broodTotal` vs 部屋容量≈150×`roomCapacity`)に応じた高さのクリーム色「土台」を敷き、卵/幼虫をその帯に寄せて(`pileY()`)立体的な粒(`drawBroodGrain()`)で描画。上限60スロットが部屋全体に散る旧描画の「まばら」を解消し、満杯の部屋は「ぎっしり積もったブルード」に見える。幼虫の下に小さな影も追加。
+- 検証(preview): クリーン起動で fps 18〜22(headless throttle)・コンソールエラー0。女王部屋=椀状、育児室(卵6980+幼虫3293)=クリーム色の山として描画されることを実機スクショで確認。残り(E トンネル壁陰影・F 構造のハニカム化)は未着手。
+
 ## 2026-06-17 Soil image texture experiment
 
 - Added `assets/terrain/soil-loam-tile.png`, generated via the built-in image generation tool as a realistic brown loam texture for the underground cross-section background.

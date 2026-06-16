@@ -20141,6 +20141,30 @@ function syncFermenterUnlockUI() {
     return next;
   }
 
+  // D: ブルードの粒（卵/蛹）を1粒ずつ立体的に。影＋クリーム色の濃淡＋ハイライトで
+  // 「ぎっしり積もった粒」に見せる。粒位置はスロット（描画上限あり）なので負荷は有界。
+  function drawBroodGrain(ctx, x, y, seed01, scale){
+    const sc = (typeof scale === 'number') ? scale : 1;
+    const rx = dp(3.3) * sc, ry = dp(2.4) * sc;
+    const ang = (seed01 - 0.5) * 1.2;            // 種ごとに少し向きを変える
+    // 影（右下にわずかに落とす＝粒が積もって見える）
+    ctx.fillStyle = 'rgba(58,38,20,0.34)';
+    ctx.beginPath();
+    ctx.ellipse(x + dp(0.7)*sc, y + dp(1.2)*sc, rx*0.94, ry*0.82, ang, 0, 6.28);
+    ctx.fill();
+    // 本体（クリーム色を種でわずかに振る）
+    const tone = 0.84 + seed01 * 0.16;
+    ctx.fillStyle = `rgb(${Math.round(246*tone)},${Math.round(233*tone)},${Math.round(198*tone)})`;
+    ctx.beginPath();
+    ctx.ellipse(x, y, rx, ry, ang, 0, 6.28);
+    ctx.fill();
+    // ハイライト（左上の照り）
+    ctx.fillStyle = 'rgba(255,252,242,0.72)';
+    ctx.beginPath();
+    ctx.ellipse(x - rx*0.3, y - ry*0.36, rx*0.32, ry*0.32, ang, 0, 6.28);
+    ctx.fill();
+  }
+
   function drawLarvaSimple(ctx, x, y, seed01, scale){
     // 軽量描画（短い線＋小さな頭）
     const sc = (typeof scale === 'number') ? scale : 0.5;
@@ -21135,32 +21159,65 @@ function syncFermenterUnlockUI() {
       if(totalDraw > 0 || drawLarvaWaste || (n.type === 'waste' && n.slots && n.slots.length)) {
         ctx.save();
         clipBlobPath(ctx, n);
+        // D: ブルードの「盛り上がり（土台）」。詰まり具合で山の高さが決まり、
+        // 粒（卵/幼虫）をこの帯に寄せて積もって見せる。育児室・女王室のみ。
+        const broodTotal = invEgg + invLarva;
+        let pileTopY = null, pileFloorY = null, pileH = 0, pileRy = 0, pileTop = 0;
+        if(broodTotal > 0 && (n.type === 'nursery' || n.type === 'queen')) {
+          pileRy = (n.r || dp(10)) * (n.blobScaleY || 0.8);
+          pileTop = n.y - pileRy;
+          const capRef = (n.type === 'nursery') ? Math.max(80, 150 * getResearchBonus('roomCapacity')) : 30;
+          const fill = clamp(broodTotal / capRef, 0.2, 1);
+          pileFloorY = n.y + pileRy * 0.9;
+          pileH = pileRy * 1.75 * fill;
+          pileTopY = pileFloorY - pileH;
+          const rxx = (n.r || dp(10)) * (n.blobScaleX || 1);
+          const bedGrd = ctx.createLinearGradient(0, pileTopY, 0, pileFloorY);
+          bedGrd.addColorStop(0,   'rgba(212,194,156,0)');
+          bedGrd.addColorStop(0.4, 'rgba(214,196,158,0.60)');
+          bedGrd.addColorStop(1,   'rgba(228,210,172,0.92)');
+          ctx.fillStyle = bedGrd;
+          ctx.fillRect(n.x - rxx*1.25, pileTopY, rxx*2.5, pileH + dp(6));
+        }
+        const pileY = (sy) => {
+          if(pileTopY == null) return sy;
+          const ny = clamp((sy - pileTop) / (2*pileRy), 0, 1);
+          return pileTopY + ny * pileH;
+        };
         for(let k=0; k<larvaSlots.length; k++){
           const slotIdx = larvaSlots[k];
           const s = n.slots[slotIdx];
           if(!s) continue;
+          const py = pileY(s.y);
           const seed = seed01FromIds(n.id ?? i, slotIdx);
+          // 幼虫の下に小さな影＝床に座って積もって見える
+          ctx.fillStyle = 'rgba(58,38,20,0.28)';
+          ctx.beginPath(); ctx.ellipse(s.x + dp(0.5), py + dp(1.3), dp(3.2), dp(1.7), 0, 0, 6.28); ctx.fill();
           // 幼虫サイズを1.5倍（見た目強調）
-          if(lightLarva) drawLarvaSimple(ctx, s.x, s.y, seed, 0.78);
-          else drawLarvaAt(ctx, s.x, s.y, S.t, seed, 0.72);
+          if(lightLarva) drawLarvaSimple(ctx, s.x, py, seed, 0.78);
+          else drawLarvaAt(ctx, s.x, py, S.t, seed, 0.72);
           if(k < invGoldenLarva) {
             ctx.save();
             ctx.strokeStyle = 'rgba(250, 204, 21, 0.95)';
             ctx.lineWidth = dp(1.2);
-            ctx.beginPath(); ctx.arc(s.x, s.y, dp(5.2), 0, 6.28); ctx.stroke();
+            ctx.beginPath(); ctx.arc(s.x, py, dp(5.2), 0, 6.28); ctx.stroke();
             ctx.restore();
           }
         }
         for(let k=0; k<eggSlots.length; k++){
           const s = n.slots[eggSlots[k]];
           if(!s) continue;
+          const py = pileY(s.y);
           const isGoldenEgg = k < invGoldenEgg;
-          ctx.fillStyle = isGoldenEgg ? '#facc15' : '#fef3c7';
-          ctx.beginPath(); ctx.arc(s.x, s.y, dp(isGoldenEgg ? 3.6 : 3), 0, 6.28); ctx.fill();
           if(isGoldenEgg) {
+            ctx.fillStyle = '#facc15';
+            ctx.beginPath(); ctx.arc(s.x, py, dp(3.6), 0, 6.28); ctx.fill();
             ctx.strokeStyle = 'rgba(255,255,255,0.55)';
             ctx.lineWidth = dp(0.8);
-            ctx.beginPath(); ctx.arc(s.x, s.y, dp(4.6), 0, 6.28); ctx.stroke();
+            ctx.beginPath(); ctx.arc(s.x, py, dp(4.6), 0, 6.28); ctx.stroke();
+          } else {
+            // クリーム色の粒として立体的に描く（ぎっしり積もったブルード）
+            drawBroodGrain(ctx, s.x, py, seed01FromIds(n.id ?? i, eggSlots[k]), lightLarva ? 0.85 : 1);
           }
         }
         for(const slotIdx of foodSlots){

@@ -1068,7 +1068,7 @@ Crowd sprite mode uses a pre-rendered ant atlas and `S.antCrowd` typed-array sty
 
 Large-nest static layer caching:
 
-- `drawCachedStaticNestLayer()` renders underground soil, tunnel stamps, room cutouts, cave fill, and static background details into `S._soilLayerCvs`.
+- `drawCachedStaticNestLayer()` renders underground soil, tunnel stamps, room cutouts, cave fill, and static background details into `S._soilLayerCvs`. Room cavities are filled with a per-room radial "bowl" gradient (`roomBowlGradient()`: lit floor, shadowed rim/ceiling) for an excavated 3D look; shafts keep the flat cave fill. Baked into the cache, so no per-frame cost.
 - `drawCachedFogLayer()` renders fog-of-war into `S._fogCvs`.
 - Both caches use camera/screen/world signatures (`getNestScreenCacheKey()` / `getNestVisualSignature()`) and are reused while the camera and visible nest geometry are stable.
 - The cache canvas is larger than the visible screen (`NEST_LAYER_CACHE_PAD_RATIO`, min/max pad) so normal panning can be served from cached pixels.
@@ -1078,6 +1078,8 @@ Large-nest static layer caching:
 - If the camera moves beyond cache coverage during interaction, `drawCheapSoilFallback()` fills exposed soil cheaply until a full static cache rebuild is needed.
 - Soil/fog cache rebuilds are staggered with `noteNestLayerRebuildThisFrame()` so they do not both rebuild in the same render frame when possible.
 - Room inventory, larvae, waste dots, ants, queen, large food, enemies, trails, and effects remain dynamic and are drawn on top.
+- Brood rooms (nursery/queen) draw a cream "bedding" mound whose height scales with fill (`broodTotal` vs room brood capacity); eggs/larvae are remapped onto that band (`pileY()`) and drawn as 3D grains (`drawBroodGrain()`) so a full chamber reads as a packed brood pile instead of scattered dots.
+- A screen-space radial vignette (warm dark, drawn once per frame at the end of `render()`) frames the view for underground depth.
 
 Render settings:
 
