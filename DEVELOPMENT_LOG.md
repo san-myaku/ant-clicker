@@ -1,5 +1,11 @@
 # Development Log
 
+## 2026-06-17 Soil image texture experiment
+
+- Added `assets/terrain/soil-loam-tile.png`, generated via the built-in image generation tool as a realistic brown loam texture for the underground cross-section background.
+- Added `TERRAIN_SOIL_TEXTURE_SRC` plus preload/fallback plumbing. When the image loads, `drawStaticNestSoilLayer()` blends it into the cached soil layer; if it is still loading or fails, the previous procedural Canvas soil pattern remains active.
+- Included soil texture load state in the nest visual signature so the cached static soil layer rebuilds after the image becomes available.
+
 ## 2026-06-16 Terrain realism pass: surface band + stratified underground
 
 - Reworked the existing Canvas terrain instead of replacing the nest with a bitmap. The surface now has stronger irregular height variation, a thicker soil lip, humus shading, internal contour strokes, denser debris, varied grass color/width/lean, and a lightly textured entrance mound.

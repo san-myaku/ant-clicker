@@ -3775,6 +3775,8 @@
   const GRASS_TUFT_MIN = 2;
   const GRASS_TUFT_MAX = 6;
   const GRASS_AVOID_R = 26;
+  const TERRAIN_SOIL_TEXTURE_SRC = 'assets/terrain/soil-loam-tile.png';
+  const TERRAIN_SOIL_TEXTURE_SCALE = 1.85;
   // 襲撃バランス（後から調整しやすいように定数化）
   const RAID_CFG = {
     enemyBase: 50,
@@ -6649,6 +6651,8 @@ function ensureRestSlots(n){
     majorLuckyTargets: { cookie: null },
     cam: { x: 0, y: 0, tx: 0, ty: 0, scale: 1, tScale: 1, minScale: 0.2, maxScale: 3 },
     soilPattern: null, soilPatternCanvas: null, grass: [],
+    soilTextureImg: null, soilTextureLoaded: false, soilTextureFailed: false,
+    soilTexturePattern: null, soilTexturePatternCtx: null,
     surfacePts: [], surfaceStep: 0,
     surfaceDebris: [],
     surfacePattern: null, surfacePatternCanvas: null,
@@ -7074,6 +7078,58 @@ window._dbg = {
     S.surfacePts = pts;
     S.surfaceStep = step;
   }
+
+  function invalidateTerrainVisualCache() {
+    S._soilLayerKey = '';
+    S._soilLayerMeta = null;
+    S.soilTexturePattern = null;
+    S.soilTexturePatternCtx = null;
+  }
+
+  function preloadTerrainTextures() {
+    if(typeof Image === 'undefined' || S.soilTextureImg) return;
+    const img = new Image();
+    S.soilTextureImg = img;
+    img.onload = () => {
+      S.soilTextureLoaded = true;
+      S.soilTextureFailed = false;
+      invalidateTerrainVisualCache();
+    };
+    img.onerror = () => {
+      S.soilTextureLoaded = false;
+      S.soilTextureFailed = true;
+      invalidateTerrainVisualCache();
+    };
+    img.src = TERRAIN_SOIL_TEXTURE_SRC;
+  }
+
+  function getSoilTexturePattern(g) {
+    if(!S.soilTextureLoaded || !S.soilTextureImg || !g || typeof g.createPattern !== 'function') return null;
+    if(S.soilTexturePattern && S.soilTexturePatternCtx === g) return S.soilTexturePattern;
+    const pattern = g.createPattern(S.soilTextureImg, 'repeat');
+    if(pattern) {
+      if(typeof pattern.setTransform === 'function' && typeof DOMMatrix !== 'undefined') {
+        try {
+          pattern.setTransform(new DOMMatrix().scaleSelf(TERRAIN_SOIL_TEXTURE_SCALE));
+        } catch(e) {}
+      }
+      S.soilTexturePattern = pattern;
+      S.soilTexturePatternCtx = g;
+    }
+    return pattern;
+  }
+
+  function drawSoilTextureFill(g, view, soilTop, soilH, alpha = 0.4) {
+    const pattern = getSoilTexturePattern(g);
+    if(!pattern) return false;
+    g.save();
+    g.globalAlpha = alpha;
+    g.fillStyle = pattern;
+    g.fillRect(view.x, soilTop, view.w, soilH);
+    g.restore();
+    return true;
+  }
+  preloadTerrainTextures();
 
   function buildBackgroundAssets(rebuildGrass = true) {
     if(!S.full) return;
@@ -20489,6 +20545,7 @@ function syncFermenterUnlockUI() {
       Math.round((S.full.sy || 0) * 10),
       Math.round((q.x || 0) * 10),
       Math.round((q.y || 0) * 10),
+      S.soilTextureLoaded ? 'soiltex1' : (S.soilTextureFailed ? 'soiltexerr' : 'soiltex0'),
       S.colors.soil.join(',')
     ].join(':');
   }
@@ -20590,9 +20647,10 @@ function syncFermenterUnlockUI() {
     soilGr.addColorStop(1,   '#2d1b0e');
     ctx.fillStyle = soilGr;
     ctx.fillRect(view.x, soilTop, view.w, soilH);
+    const hasSoilTexture = drawSoilTextureFill(ctx, view, soilTop, soilH, 0.28);
     if(S.soilPattern) {
       ctx.save();
-      ctx.globalAlpha = 0.18;
+      ctx.globalAlpha = hasSoilTexture ? 0.07 : 0.18;
       ctx.fillStyle = S.soilPattern;
       ctx.fillRect(view.x, soilTop, view.w, soilH);
       ctx.restore();
@@ -20614,16 +20672,18 @@ function syncFermenterUnlockUI() {
     soilGr.addColorStop(1,   '#2d1b0e');
     g.fillStyle = soilGr;
     g.fillRect(view.x, soilTop, view.w, soilH);
+    const hasSoilTexture = drawSoilTextureFill(g, view, soilTop, soilH, 0.42);
 
     const depthGr = g.createLinearGradient(0, soilTop, 0, soilBottom);
     depthGr.addColorStop(0, 'rgba(0,0,0,0)');
-    depthGr.addColorStop(1, 'rgba(0,0,0,0.04)');
+    depthGr.addColorStop(0.55, 'rgba(0,0,0,0.03)');
+    depthGr.addColorStop(1, 'rgba(0,0,0,0.10)');
     g.fillStyle = depthGr;
     g.fillRect(view.x, soilTop, view.w, soilH);
 
     if(S.soilPattern) {
       g.save();
-      g.globalAlpha = 0.28;
+      g.globalAlpha = hasSoilTexture ? 0.08 : 0.28;
       g.fillStyle = S.soilPattern;
       g.fillRect(view.x, soilTop, view.w, soilH);
       g.restore();
