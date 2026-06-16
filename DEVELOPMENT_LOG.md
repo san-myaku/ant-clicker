@@ -1,5 +1,12 @@
 # Development Log
 
+## 2026-06-16 Terrain realism pass: surface band + stratified underground
+
+- Reworked the existing Canvas terrain instead of replacing the nest with a bitmap. The surface now has stronger irregular height variation, a thicker soil lip, humus shading, internal contour strokes, denser debris, varied grass color/width/lean, and a lightly textured entrance mound.
+- Added runtime-only underground detail arrays in `S`: `bgSoilBands` and `bgSoilPockets`. `buildBackgroundAssets()` generates layered soil veins, clay/mineral pockets, denser pebbles, and branched fine roots; `drawBackgroundDetails()` draws only visible-range details into the cached static nest layer.
+- Added subtle sky horizon haze and sun/moon glow so the current screen no longer reads as a flat blue backdrop, while keeping the terrain and nest as the visual focus.
+- Verification: inline script parse passed; `git diff --check` passed; headless Playwright loaded the local `index.html` at desktop and mobile viewports with no console/page errors. The in-app browser still failed with the known Windows sandbox setup-refresh issue, so Playwright was used as the fallback.
+
 ## 2026-06-15 UI改善: ツリーズーム / 遠征・兵隊ボタンの常時表示 / 兵隊パネル / 遠征出発演出
 
 - **研究ツリーのズーム**: 拡大モーダルに ±/⤢ ボタン＋Ctrl(⌘)ホイール＋ピンチを追加。基準fit倍率に `S._rtreeZoom`(0.5〜3.0)を掛ける。再描画せず transform/サイズだけ更新する `applyRtreeZoom()`/`setRtreeZoom()`。開くたびに等倍へリセット。

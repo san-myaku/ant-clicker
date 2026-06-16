@@ -3756,14 +3756,14 @@
     { id: 'goldenCookieOnly', label: '黄金蟻はクッキー専任', goldenCookieOnly: true }
   ];
   // 地表ビジュアル（軽量な事前生成）
-  const SURF_STEP = 24;
-  const SURF_AMP = 12;
+  const SURF_STEP = 20;
+  const SURF_AMP = 16;
   const SURF_NOISE_STEP = 260;
   const SURF_NOISE_DETAIL = 110;
-  const SURF_UP = 8;
-  const SURF_DOWN = 26;
+  const SURF_UP = 12;
+  const SURF_DOWN = 34;
   const SURF_BAND_PAD = 160;
-  const DEBRIS_COUNT = 140;
+  const DEBRIS_COUNT = 190;
   const DEBRIS_ENTRANCE_BOOST = 0.35;
   const DEBRIS_MIN_DY = 2;
   const DEBRIS_MAX_DY = 35;
@@ -3773,7 +3773,7 @@
   const ENTRANCE_HOLE_H = 5;
   const GRASS_STEP = 12;
   const GRASS_TUFT_MIN = 2;
-  const GRASS_TUFT_MAX = 5;
+  const GRASS_TUFT_MAX = 6;
   const GRASS_AVOID_R = 26;
   // 襲撃バランス（後から調整しやすいように定数化）
   const RAID_CFG = {
@@ -6653,6 +6653,7 @@ function ensureRestSlots(n){
     surfaceDebris: [],
     surfacePattern: null, surfacePatternCanvas: null,
     bgPebbles: [], bgRoots: [], bgFossils: [],
+    bgSoilBands: [], bgSoilPockets: [],
     colors: { soil:['#5d4037','#6d4c41','#795548'], tun:'#3e2723' },
     builderState: "待機中",
     buildAssignments: {
@@ -7083,13 +7084,66 @@ window._dbg = {
     S.bgPebbles = [];
     S.bgRoots = [];
     S.bgFossils = [];
+    S.bgSoilBands = [];
+    S.bgSoilPockets = [];
     const soilTop = S.full.sy;
     const soilBottom = S.full.h;
     const soilH = Math.max(1, soilBottom - soilTop);
     const area = S.full.w * soilH;
 
+    const bandColors = [
+      'rgba(80, 50, 34, 0.9)',
+      'rgba(128, 92, 66, 0.75)',
+      'rgba(52, 36, 28, 0.75)',
+      'rgba(154, 126, 90, 0.55)'
+    ];
+    const bandCount = clamp(Math.floor(soilH / dp(260)), 16, 58);
+    for(let i=0; i<bandCount; i++) {
+      const t = (i + Math.random() * 0.6) / Math.max(1, bandCount);
+      const yBase = soilTop + dp(55) + t * Math.max(1, soilH - dp(110));
+      const freq = dp(220 + Math.random() * 420);
+      const amp = dp(3 + Math.random() * 12) * (0.35 + t * 0.9);
+      const stepX = dp(120 + Math.random() * 110);
+      const phase = Math.random() * Math.PI * 2;
+      const pts = [];
+      let minY = Infinity, maxY = -Infinity;
+      for(let x=-dp(120); x<=S.full.w + dp(120); x+=stepX) {
+        const wobble = Math.sin((x / freq) + phase) * amp + (Math.random() * 2 - 1) * amp * 0.45;
+        const y = yBase + wobble;
+        pts.push({ x, y });
+        if(y < minY) minY = y;
+        if(y > maxY) maxY = y;
+      }
+      S.bgSoilBands.push({
+        pts,
+        minY,
+        maxY,
+        w: dp(2 + Math.random() * 7),
+        c: bandColors[(Math.random() * bandColors.length) | 0],
+        a: 0.12 + Math.random() * 0.18
+      });
+    }
+
+    const pocketColors = [
+      'rgba(122, 91, 61, 0.72)',
+      'rgba(88, 58, 43, 0.7)',
+      'rgba(151, 125, 88, 0.48)',
+      'rgba(65, 49, 39, 0.66)'
+    ];
+    const pocketCount = clamp(Math.floor(area * 0.0000012), 10, 48);
+    for(let i=0; i<pocketCount; i++) {
+      const x = Math.random() * S.full.w;
+      const y = soilTop + dp(80) + Math.random() * Math.max(1, soilH - dp(160));
+      const rx = dp(24 + Math.random() * 72);
+      const ry = rx * (0.16 + Math.random() * 0.24);
+      const rot = (Math.random() - 0.5) * 0.55;
+      const c = pocketColors[(Math.random() * pocketColors.length) | 0];
+      const a = 0.10 + Math.random() * 0.16;
+      S.bgSoilPockets.push({ x, y, rx, ry, rot, c, a });
+    }
+
     const pebbleColors = ['#5b3d2b', '#6b4a36', '#4f3426', '#7a5a45', '#634734'];
-    const pebbleCount = clamp(Math.floor(area * 0.00001) * 2, 240, 1600);
+    const pebbleCount = clamp(Math.floor(area * 0.000012) * 2, 320, 1900);
     for(let i=0; i<pebbleCount; i++) {
       const x = Math.random() * S.full.w;
       const y = soilTop + dp(40) + Math.random() * Math.max(1, soilH - dp(80));
@@ -7101,8 +7155,8 @@ window._dbg = {
       S.bgPebbles.push({ x, y, rx, ry, rot, c, a });
     }
 
-    const rootColors = ['rgba(70,50,30,0.35)', 'rgba(60,42,26,0.30)', 'rgba(80,58,36,0.28)'];
-    const rootCount = clamp(Math.floor(S.full.w / dp(140)), 6, 18);
+    const rootColors = ['#4f351f', '#3f2a1b', '#5a3d25'];
+    const rootCount = clamp(Math.floor(S.full.w / dp(110)), 8, 26);
     for(let i=0; i<rootCount; i++) {
       const pts = [];
       let x = Math.random() * S.full.w;
@@ -7120,8 +7174,22 @@ window._dbg = {
       }
       const w = dp(1.2 + Math.random() * 1.8);
       const c = rootColors[(Math.random() * rootColors.length) | 0];
-      const a = 0.35 + Math.random() * 0.25;
-      S.bgRoots.push({ pts, w, c, a, minX, maxX, minY, maxY });
+      const a = 0.22 + Math.random() * 0.22;
+      const branches = [];
+      for(let bi=1; bi<pts.length-1; bi++) {
+        if(Math.random() > 0.48) continue;
+        const base = pts[bi];
+        const dir = Math.random() < 0.5 ? -1 : 1;
+        const len = dp(20 + Math.random() * 54);
+        const bx = clamp(base.x + dir * len * (0.55 + Math.random() * 0.75), dp(12), S.full.w - dp(12));
+        const by = base.y + dp(10 + Math.random() * 48);
+        const cx = (base.x + bx) * 0.5 + dir * dp(5 + Math.random() * 14);
+        const cy = (base.y + by) * 0.5 + dp(Math.random() * 12);
+        branches.push({ x0: base.x, y0: base.y, cx, cy, x1: bx, y1: by });
+        minX = Math.min(minX, bx, cx); maxX = Math.max(maxX, bx, cx);
+        minY = Math.min(minY, by, cy); maxY = Math.max(maxY, by, cy);
+      }
+      S.bgRoots.push({ pts, branches, w, c, a, minX, maxX, minY, maxY });
     }
 
     const fossilMinY = soilTop + dp(700);
@@ -7159,6 +7227,28 @@ window._dbg = {
       pctx.beginPath();
       pctx.arc(x, y, r, 0, 6.28);
       pctx.fill();
+    }
+    const lightSpecksSoil = Math.floor(tile * tile * 0.0015);
+    for(let i=0; i<lightSpecksSoil; i++) {
+      const x = Math.random() * tile;
+      const y = Math.random() * tile;
+      const r = 0.35 + Math.random() * 1.2;
+      pctx.fillStyle = `rgba(228,196,150,${0.05 + Math.random()*0.08})`;
+      pctx.beginPath();
+      pctx.arc(x, y, r, 0, 6.28);
+      pctx.fill();
+    }
+    const grains = Math.floor(tile * tile * 0.00055);
+    for(let i=0; i<grains; i++) {
+      const x = Math.random() * tile;
+      const y = Math.random() * tile;
+      const len = 2 + Math.random() * 7;
+      pctx.strokeStyle = `rgba(35,22,16,${0.06 + Math.random()*0.08})`;
+      pctx.lineWidth = 0.6 + Math.random() * 0.5;
+      pctx.beginPath();
+      pctx.moveTo(x, y);
+      pctx.lineTo(x + Math.cos(Math.random() * 6.28) * len, y + Math.sin(Math.random() * 6.28) * len * 0.45);
+      pctx.stroke();
     }
     S.soilPatternCanvas = p;
     S.soilPattern = ctx.createPattern(p, 'repeat');
@@ -7256,6 +7346,7 @@ window._dbg = {
         if(Math.abs(x-ex) <= avoid) continue;
         if(Math.random() < 0.65) {
           const tuft = GRASS_TUFT_MIN + Math.floor(Math.random() * (GRASS_TUFT_MAX - GRASS_TUFT_MIN + 1));
+          const grassCols = ['#4d7c0f', '#3f6f12', '#5f8f20', '#2f5f19'];
           for(let k=0; k<tuft; k++) {
             const ox = (Math.random() - 0.5) * step * 0.6;
             const gx = clamp(x + ox, 0, S.full.w);
@@ -7264,7 +7355,10 @@ window._dbg = {
               h: dp(6 + Math.random() * 12),
               o: Math.random() * 6,
               sway: 0.6 + Math.random() * 0.8,
-              yo: dp(Math.random() * 3)
+              yo: dp(Math.random() * 3),
+              lean: (Math.random() - 0.5) * dp(4),
+              w: dp(1.1 + Math.random() * 1.2),
+              c: grassCols[(Math.random() * grassCols.length) | 0]
             });
           }
         }
@@ -7272,12 +7366,56 @@ window._dbg = {
     }
   }
 
+  function drawSoilStrata(ctx, view, soilTop, soilBottom){
+    const bands = S.bgSoilBands || [];
+    const pockets = S.bgSoilPockets || [];
+    if(bands.length === 0 && pockets.length === 0) return;
+    const pad = dp(100);
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(view.x - pad, soilTop - pad, view.w + pad * 2, (soilBottom - soilTop) + pad * 2);
+    ctx.clip();
+
+    for(const b of bands) {
+      if(!b.pts || b.pts.length < 2) continue;
+      if(b.maxY < soilTop - pad || b.minY > soilBottom + pad) continue;
+      ctx.globalAlpha = b.a;
+      ctx.strokeStyle = b.c;
+      ctx.lineWidth = b.w;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      ctx.moveTo(b.pts[0].x, b.pts[0].y);
+      for(let i=1; i<b.pts.length; i++) {
+        ctx.lineTo(b.pts[i].x, b.pts[i].y);
+      }
+      ctx.stroke();
+    }
+
+    for(const p of pockets) {
+      if(p.x + p.rx < view.x - pad || p.x - p.rx > view.x + view.w + pad) continue;
+      if(p.y + p.ry < soilTop - pad || p.y - p.ry > soilBottom + pad) continue;
+      ctx.globalAlpha = p.a;
+      ctx.fillStyle = p.c;
+      ctx.beginPath();
+      ctx.ellipse(p.x, p.y, p.rx, p.ry, p.rot, 0, 6.28);
+      ctx.fill();
+    }
+
+    ctx.restore();
+    ctx.globalAlpha = 1;
+  }
+
   function drawBackgroundDetails(ctx, view, soilTop, soilBottom){
-    if(!S.bgPebbles || !S.bgRoots || !S.bgFossils) return;
+    const fossils = S.bgFossils || [];
+    const pebbles = S.bgPebbles || [];
+    const roots = S.bgRoots || [];
     const pad = dp(50);
 
+    drawSoilStrata(ctx, view, soilTop, soilBottom);
+
     // fossils (deep)
-    for(const f of S.bgFossils) {
+    for(const f of fossils) {
       if(f.x < view.x - pad || f.x > view.x + view.w + pad) continue;
       if(f.y < soilTop - pad || f.y > soilBottom + pad) continue;
       ctx.globalAlpha = f.a;
@@ -7289,7 +7427,7 @@ window._dbg = {
     }
 
     // pebbles
-    for(const p of S.bgPebbles) {
+    for(const p of pebbles) {
       if(p.x < view.x - pad || p.x > view.x + view.w + pad) continue;
       if(p.y < soilTop - pad || p.y > soilBottom + pad) continue;
       ctx.globalAlpha = p.a;
@@ -7300,7 +7438,7 @@ window._dbg = {
     }
 
     // roots (near surface)
-    for(const r of S.bgRoots) {
+    for(const r of roots) {
       if(r.maxX < view.x - pad || r.minX > view.x + view.w + pad) continue;
       if(r.maxY < soilTop - pad || r.minY > soilBottom + pad) continue;
       ctx.globalAlpha = r.a;
@@ -7314,6 +7452,15 @@ window._dbg = {
         ctx.lineTo(r.pts[i].x, r.pts[i].y);
       }
       ctx.stroke();
+      if(r.branches && r.branches.length) {
+        ctx.lineWidth = Math.max(dp(0.6), r.w * 0.55);
+        for(const b of r.branches) {
+          ctx.beginPath();
+          ctx.moveTo(b.x0, b.y0);
+          ctx.quadraticCurveTo(b.cx, b.cy, b.x1, b.y1);
+          ctx.stroke();
+        }
+      }
     }
 
     ctx.globalAlpha = 1;
@@ -7348,8 +7495,9 @@ window._dbg = {
     const midX = (x0 + x1) * 0.5;
     const midY = surfaceY(midX);
     const bandGr = ctx.createLinearGradient(0, midY - top, 0, midY + bottom);
-    bandGr.addColorStop(0, 'rgba(204, 178, 150, 0.96)');
-    bandGr.addColorStop(1, 'rgba(122, 96, 74, 0.96)');
+    bandGr.addColorStop(0, 'rgba(216, 192, 160, 0.98)');
+    bandGr.addColorStop(0.34, 'rgba(166, 127, 92, 0.98)');
+    bandGr.addColorStop(1, 'rgba(92, 68, 50, 0.98)');
     ctx.fillStyle = bandGr;
     ctx.fill();
 
@@ -7357,6 +7505,32 @@ window._dbg = {
       ctx.globalAlpha = 0.25;
       ctx.fillStyle = S.surfacePattern;
       ctx.fill();
+    }
+
+    const humusGr = ctx.createLinearGradient(0, midY - top, 0, midY + bottom);
+    humusGr.addColorStop(0, 'rgba(70, 48, 32, 0)');
+    humusGr.addColorStop(0.28, 'rgba(58, 40, 29, 0.18)');
+    humusGr.addColorStop(0.55, 'rgba(58, 40, 29, 0.06)');
+    humusGr.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = humusGr;
+    ctx.fill();
+
+    const contourDefs = [
+      { off: 5, color: 'rgba(58, 40, 27, 0.26)', w: 1.0, freq: 0.022 },
+      { off: 14, color: 'rgba(239, 210, 168, 0.14)', w: 0.9, freq: 0.031 },
+      { off: 24, color: 'rgba(48, 32, 22, 0.16)', w: 1.1, freq: 0.018 }
+    ];
+    for(const c of contourDefs) {
+      ctx.beginPath();
+      for(let x=x0; x<=x1; x+=step) {
+        const jitter = Math.sin(x * c.freq + c.off) * dp(0.8);
+        const y = surfaceY(x) + dp(c.off) + jitter;
+        if(x===x0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = c.color;
+      ctx.lineWidth = dp(c.w);
+      ctx.stroke();
     }
     ctx.restore();
 
@@ -7405,8 +7579,26 @@ window._dbg = {
     ctx.lineTo(ex - moundW, baseY + dp(10));
     ctx.closePath();
     ctx.fill();
+    ctx.globalAlpha = 0.22;
+    ctx.strokeStyle = 'rgba(70,45,28,0.75)';
+    ctx.lineWidth = dp(1);
+    for(let i=-3; i<=3; i++) {
+      const span = moundW * (0.18 + (4 - Math.abs(i)) * 0.12);
+      const y = baseY - moundH * (0.48 - Math.abs(i) * 0.08) + dp(i * 3);
+      ctx.beginPath();
+      ctx.moveTo(ex - span, y);
+      ctx.quadraticCurveTo(ex, y - moundH * 0.18, ex + span, y + dp(1));
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
     ctx.strokeStyle = 'rgba(0,0,0,0.18)';
     ctx.lineWidth = dp(1.4);
+    ctx.beginPath();
+    ctx.moveTo(ex - moundW, baseY + dp(2));
+    ctx.quadraticCurveTo(ex, baseY - moundH, ex + moundW, baseY + dp(2));
+    ctx.lineTo(ex + moundW, baseY + dp(10));
+    ctx.lineTo(ex - moundW, baseY + dp(10));
+    ctx.closePath();
     ctx.stroke();
 
     const holeW = dp(ENTRANCE_HOLE_W);
@@ -20703,6 +20895,12 @@ function syncFermenterUnlockUI() {
       ctx.fillStyle = skyGr;
       ctx.fillRect(view.x, skyTop, view.w, skyBottom - skyTop);
 
+      const horizonGr = ctx.createLinearGradient(0, S.full.sy - dp(140), 0, S.full.sy);
+      horizonGr.addColorStop(0, 'rgba(255,255,255,0)');
+      horizonGr.addColorStop(1, 'rgba(255,244,214,0.16)');
+      ctx.fillStyle = horizonGr;
+      ctx.fillRect(view.x, skyTop, view.w, skyBottom - skyTop);
+
       // 太陽/月もフェードでつなぎ、夕方→夜の見た目の急変を抑える
       const daylight = getDaylightAmount(t);
       const sunAlpha = clamp(daylight, 0, 1);
@@ -20713,18 +20911,37 @@ function syncFermenterUnlockUI() {
       if(sunAlpha > 0.01) {
         ctx.save();
         ctx.globalAlpha = sunAlpha;
+        const sunX = view.x + view.w * dayProg;
+        const sunY = -SKY_HEADROOM + (S.full.sy + SKY_HEADROOM) * 0.30;
+        const sunGlow = ctx.createRadialGradient(sunX, sunY, dp(10), sunX, sunY, dp(86));
+        sunGlow.addColorStop(0, 'rgba(253,224,71,0.35)');
+        sunGlow.addColorStop(0.35, 'rgba(251,191,36,0.12)');
+        sunGlow.addColorStop(1, 'rgba(251,191,36,0)');
+        ctx.fillStyle = sunGlow;
+        ctx.beginPath();
+        ctx.arc(sunX, sunY, dp(86), 0, 6.28);
+        ctx.fill();
         ctx.fillStyle = '#fde047';
         ctx.beginPath();
-        ctx.arc(view.x + view.w * dayProg, -SKY_HEADROOM + (S.full.sy + SKY_HEADROOM) * 0.30, dp(20), 0, 6.28);
+        ctx.arc(sunX, sunY, dp(20), 0, 6.28);
         ctx.fill();
         ctx.restore();
       }
       if(moonAlpha > 0.01) {
         ctx.save();
         ctx.globalAlpha = moonAlpha;
+        const moonX = view.x + view.w * moonProg;
+        const moonY = -SKY_HEADROOM + (S.full.sy + SKY_HEADROOM) * 0.22;
+        const moonGlow = ctx.createRadialGradient(moonX, moonY, dp(8), moonX, moonY, dp(58));
+        moonGlow.addColorStop(0, 'rgba(226,232,240,0.28)');
+        moonGlow.addColorStop(1, 'rgba(226,232,240,0)');
+        ctx.fillStyle = moonGlow;
+        ctx.beginPath();
+        ctx.arc(moonX, moonY, dp(58), 0, 6.28);
+        ctx.fill();
         ctx.fillStyle = '#f1f5f9';
         ctx.beginPath();
-        ctx.arc(view.x + view.w * moonProg, -SKY_HEADROOM + (S.full.sy + SKY_HEADROOM) * 0.22, dp(15), 0, 6.28);
+        ctx.arc(moonX, moonY, dp(15), 0, 6.28);
         ctx.fill();
         ctx.restore();
       }
@@ -21041,14 +21258,16 @@ function syncFermenterUnlockUI() {
 
     drawSurfaceDebris(ctx, view);
 
-    ctx.strokeStyle='#4d7c0f'; ctx.lineWidth=dp(2);
     const grassPad = dp(40);
     S.grass.forEach(g=>{
       if(g.x < view.x - grassPad || g.x > view.x + view.w + grassPad) return;
       const baseY = surfaceY(g.x) + (g.yo || 0);
       const sw = Math.sin(S.t*2+g.o) * dp(4) * (g.sway || 1);
+      ctx.strokeStyle = g.c || '#4d7c0f';
+      ctx.lineWidth = g.w || dp(2);
       ctx.beginPath(); ctx.moveTo(g.x, baseY);
-      ctx.quadraticCurveTo(g.x+sw, baseY-g.h*0.5, g.x+sw*1.5, baseY-g.h);
+      const lean = g.lean || 0;
+      ctx.quadraticCurveTo(g.x + lean + sw, baseY-g.h*0.5, g.x + lean*1.6 + sw*1.5, baseY-g.h);
       ctx.stroke();
     });
 

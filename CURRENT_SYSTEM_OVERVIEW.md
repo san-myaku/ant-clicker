@@ -1,6 +1,6 @@
 # Ant Colony V23 Current System Overview
 
-Last updated: 2026-06-08 (23)
+Last updated: 2026-06-16 (terrain polish)
 Target file: `index.html`
 
 This document is the current implementation overview for the single-file ant clicker game. When gameplay, UI, save data, AI behavior, or public deployment assumptions change, update this file together with `DEVELOPMENT_LOG.md`.
@@ -75,6 +75,8 @@ Important fields:
 - `majorLuckyTargets`
 - `cam`
 - `surfacePts`, `surfaceDebris`
+- `soilPattern`, `surfacePattern`
+- `bgPebbles`, `bgRoots`, `bgFossils`, `bgSoilBands`, `bgSoilPockets` (runtime-only generated terrain detail)
 - `band`
 - `restCount`, `wasteCount`, `fermentCount`, `cookieRoomCount`
 - `cookieRoomMul`
