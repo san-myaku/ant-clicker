@@ -1068,7 +1068,7 @@ Crowd sprite mode uses a pre-rendered ant atlas and `S.antCrowd` typed-array sty
 
 Large-nest static layer caching:
 
-- `drawCachedStaticNestLayer()` renders underground soil, tunnel stamps, room cutouts, cave fill, and static background details into `S._soilLayerCvs`. Room cavities are filled with a per-room radial "bowl" gradient (`roomBowlGradient()`: lit floor, shadowed rim/ceiling) for an excavated 3D look; shafts keep the flat cave fill. Baked into the cache, so no per-frame cost.
+- `drawCachedStaticNestLayer()` renders underground soil, tunnel stamps, room cutouts, cave fill, and static background details into `S._soilLayerCvs`. Room cavities are filled with a per-room radial "bowl" gradient (`roomBowlGradient()`: lit floor, shadowed rim/ceiling) for an excavated 3D look; shafts keep the flat cave fill. Tunnels get a wall-shading overlay: a smooth full-width darkening pass plus a faint narrow center-light pass (two batched `drawStamps()` calls) so they read as recessed tubes without beading. All baked into the cache, so no per-frame cost.
 - `drawCachedFogLayer()` renders fog-of-war into `S._fogCvs`.
 - Both caches use camera/screen/world signatures (`getNestScreenCacheKey()` / `getNestVisualSignature()`) and are reused while the camera and visible nest geometry are stable.
 - The cache canvas is larger than the visible screen (`NEST_LAYER_CACHE_PAD_RATIO`, min/max pad) so normal panning can be served from cached pixels.

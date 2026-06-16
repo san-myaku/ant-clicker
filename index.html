@@ -20781,6 +20781,30 @@ function syncFermenterUnlockUI() {
     });
     g.restore();
 
+    // E: トンネルの壁陰影。壁(縁)をわずかに暗く＋中央に光のリッジを重ねて「管状」に見せる。
+    // スタンプを2回バッチ描画するだけ（cavGr塗りの上に重ねる）。静的キャッシュに焼くので毎フレーム無料。
+    g.save();
+    g.beginPath();
+    g.rect(view.x, soilTop, view.w, soilH);
+    g.clip();
+    g.fillStyle = 'rgba(64,44,27,0.32)';   // 壁（トンネル全幅をなだらかに暗く＝管の凹み感。連続塗りなのでビーズ化しない）
+    S.full.edges.forEach((e,i)=>{
+      if(!shouldDrawEdgeProgress(i)) return;
+      const stamps = e.stamps;
+      if(!stamps || stamps.length===0) return;
+      const count = Math.max(1, Math.floor(stamps.length * S.edgeFrac[i]));
+      drawStamps(g, stamps, count, 1.0, view, soilTop, soilBottom, stampPad);
+    });
+    g.fillStyle = 'rgba(214,194,162,0.16)'; // 中央のごく淡い光（広め・低不透明度でビーズ感を出さない）
+    S.full.edges.forEach((e,i)=>{
+      if(!shouldDrawEdgeProgress(i)) return;
+      const stamps = e.stamps;
+      if(!stamps || stamps.length===0) return;
+      const count = Math.max(1, Math.floor(stamps.length * S.edgeFrac[i]));
+      drawStamps(g, stamps, count, 0.68, view, soilTop, soilBottom, stampPad);
+    });
+    g.restore();
+
     g.save();
     g.beginPath();
     g.rect(view.x, soilTop, view.w, soilH);
