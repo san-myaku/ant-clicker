@@ -7832,13 +7832,13 @@ S.band.forceShaft = 0;
   const MESH_GEN_DEFAULTS = Object.freeze({
     bands: 6,              // 深度バンド数
     roomsPerBand: 7,       // 1バンドあたりのチャンバー数（目安。±1ゆらぐ）
-    bandHeight: dp(160),   // 1バンドの厚み（クラスター高さ≈135pxに合わせ密に積層）
-    bandGap: dp(50),       // バンド間の土の厚み（薄いフロア床）
+    bandHeight: dp(160),   // ※レガシー: 新配置(slabH=半径基準のジッター)では未使用。S.band状態の参考のみ
+    bandGap: dp(10),       // バンド間の薄い土の床（小さく＝直下に密着積層）
     firstBandTop: dp(280), // 入口直下〜最初のバンド上端までの距離
     sideMargin: dp(150),   // 左右の余白
-    thinWall: dp(14),      // チャンバー間の壁の薄さ（中心間距離の詰め具合）
+    thinWall: dp(6),       // チャンバー間の壁の薄さ（異方性衝突に加算。小さく＝ぎっしり密着）
     intraLinks: 2,         // 1チャンバーが層内でつなぐ最大隣接数（ループ源）
-    interLinksPerBand: 3,  // バンド間トンネルの本数（複数＝ループ）
+    interLinksPerBand: 2,  // バンド間トンネルの本数（複数＝ループ。多いと交差チューブが目立つ）
     descents: 3            // 入口直下の降り口の本数
   });
 
@@ -7925,54 +7925,55 @@ S.band.forceShaft = 0;
     // bandHeight/ワールド幅いっぱいに引き伸ばすと部屋同士の間が伸びてトンネルが
     // 長くなり、層もレイヤーとして読めなくなる（旧バグ。縦は直済み、横も同様に修正）。
     const bandRooms = [];
+    const allRooms = [];           // 全バンド横断の衝突判定用（隣バンドとも重ならないように）
     const margin = opt.sideMargin;
+    // レンズ（横長・床フラット）を考慮した異方性の重なり判定。横は広く・縦は狭く詰める。
+    const lensHX = (r, t) => r * (t==='nursery' ? 1.45 : (t==='food'||t==='storage') ? 1.30 : t==='queen' ? 1.15 : 1.35);
+    const lensHY = (r) => r * 0.66;
+    const overlapsAny = (x, y, r, t) => {
+      const hx = lensHX(r, t), hy = lensHY(r);
+      for(const o of allRooms) {
+        const dx = (x - o.x) / (hx + lensHX(o.r, o.type) + opt.thinWall);
+        const dy = (y - o.y) / (hy + lensHY(o.r) + opt.thinWall);
+        if(dx*dx + dy*dy < 1) return true; // 楕円距離 < 1 ＝ 重なり
+      }
+      return false;
+    };
+    let bandTop = sy + opt.firstBandTop;
+    let lastBandTop = bandTop;
+    let deepestY = bandTop;
     for(let bi=0; bi<opt.bands; bi++) {
-      const top = sy + opt.firstBandTop + bi * (opt.bandHeight + opt.bandGap);
+      lastBandTop = bandTop;
       const ids = [];
       const isLast = (bi === opt.bands - 1);
       const count = Math.max(3, Math.round(opt.roomsPerBand + (Math.random()*2 - 1)));
-      const cols = Math.max(2, Math.ceil(count / 2));
-      const rows = Math.ceil(count / cols);
       const bandTypes = [];
       for(let i=0; i<count; i++) bandTypes.push(nextType(isLast && i === count - 1));
       const maxRad = Math.max(...bandTypes.map(meshRoomRadius));
-      const rowStep = maxRad * 2.0;
-      const colStep = maxRad * 2.6; // レンズ形状は横長(blobScaleX最大1.45)なので縦より広めに
-      let placed = 0;
-      for(let r=0; r<rows && placed<count; r++) {
-        const rowCols = Math.min(cols, count - placed);
-        const rowWidth = (rowCols - 1) * colStep;
-        let rowStartX = cx - rowWidth / 2;
-        if(r % 2 === 1) rowStartX += colStep * 0.5; // 行ごとに半セルずらして密に
-        for(let c=0; c<rowCols; c++) {
-          const type = bandTypes[placed];
-          const rad = meshRoomRadius(type);
-          let x = rowStartX + c * colStep;
-          let y = top + rad + r * rowStep;
-          x += (Math.random()-0.5) * dp(40);
-          y += (Math.random()-0.5) * dp(16);
-          x = clamp(x, margin + rad, W - margin - rad);
-          // 衝突回避（薄壁は許容）：横長blobを考慮した中心間距離
-          for(let attempt=0; attempt<4; attempt++) {
-            let ok = true;
-            for(const oid of ids) {
-              const o = nodes[oid];
-              const minD = (rad*1.3 + o.r*1.3)*0.5 + opt.thinWall;
-              if(dist(x, y, o.x, o.y) < minD) { ok = false; break; }
-            }
-            if(ok) break;
-            x += (Math.random()-0.5) * dp(50);
-            y += (Math.random()-0.5) * dp(36);
-            x = clamp(x, margin + rad, W - margin - rad);
-          }
-          const nid = addN(x, y, rad, type, false);
-          meshLensShape(nodes[nid]);
-          nodes[nid].band = bi;
-          ids.push(nid);
-          placed++;
+      const slabH = maxRad * 2.0;                                  // バンドの縦の厚み（薄め＝直下に積層）
+      const clusterHalfW = Math.min(W/2 - margin, count * maxRad * 0.95); // 横もcx周りに密集させる（全幅に散らさない）
+      for(let i=0; i<count; i++) {
+        const type = bandTypes[i];
+        const rad = meshRoomRadius(type);
+        let bx, by, ok = false;
+        for(let attempt=0; attempt<48; attempt++) {
+          const x = clamp(cx - clusterHalfW + Math.random()*2*clusterHalfW, margin+rad, W-margin-rad);
+          const y = bandTop + rad + Math.random()*slabH;
+          if(!overlapsAny(x, y, rad, type)) { bx=x; by=y; ok=true; break; }
         }
+        if(!ok) { // 48回で空きが無ければ薄い重なりを許容して配置（部屋を失わない）
+          bx = clamp(cx - clusterHalfW + Math.random()*2*clusterHalfW, margin+rad, W-margin-rad);
+          by = bandTop + rad + Math.random()*slabH;
+        }
+        const nid = addN(bx, by, rad, type, false);
+        meshLensShape(nodes[nid]);
+        nodes[nid].band = bi;
+        ids.push(nid);
+        allRooms.push(nodes[nid]);
+        if(by + rad > deepestY) deepestY = by + rad;
       }
       bandRooms.push(ids);
+      bandTop += slabH + opt.bandGap;   // 次バンドは薄い床(bandGap)を挟んで直下＝積層
     }
 
     // 層内リンク（短い横枝・ループ源）：各部屋を最近傍 intraLinks 個へつなぐ
@@ -8034,8 +8035,7 @@ S.band.forceShaft = 0;
     // blob/slots を構築
     nodes.forEach(n => buildNodeBlobAndSlots(n));
 
-    const lastTop = sy + opt.firstBandTop + (opt.bands-1) * (opt.bandHeight + opt.bandGap);
-    const H = Math.max(canvas.height * 2, lastTop + opt.bandHeight + dp(600));
+    const H = Math.max(canvas.height * 2, deepestY + dp(600));
 
     S.full = { nodes, edges, byNode, sy, eid, qid, w:W, h:H };
     // メインシャフト先端は最初の降り口シャフト（なければ女王）
@@ -8043,12 +8043,13 @@ S.band.forceShaft = 0;
     for(const n of nodes) { if(n.type === 'shaft') { tip = n.id; break; } }
     S.mainTipId = tip;
 
-    // バンド状態：最深バンドまで作ってあるので band も最深へ
-    S.band.height = opt.bandHeight + opt.bandGap;
-    S.band.step   = opt.bandHeight + opt.bandGap;
+    // バンド状態：最深バンドまで作ってあるので band も最深へ（積層後の実測値を使う）
+    const bandSpacing = Math.max(dp(80), (deepestY - (sy + opt.firstBandTop)) / Math.max(1, opt.bands));
+    S.band.height = bandSpacing;
+    S.band.step   = bandSpacing;
     S.band.index  = opt.bands - 1;
-    S.band.top    = lastTop;
-    S.band.bottom = lastTop + opt.bandHeight;
+    S.band.top    = lastBandTop;
+    S.band.bottom = deepestY;
     S.band.targetFill = 22;
     S.band.targetSpan = 0.68;
     S.band.needSide = false;
