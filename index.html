@@ -7833,10 +7833,10 @@ S.band.forceShaft = 0;
     bands: 6,              // 深度バンド数
     roomsPerBand: 7,       // 1バンドあたりのチャンバー数（目安。±1ゆらぐ）
     bandHeight: dp(160),   // ※レガシー: 新配置(slabH=半径基準のジッター)では未使用。S.band状態の参考のみ
-    bandGap: dp(10),       // バンド間の薄い土の床（小さく＝直下に密着積層）
+    bandGap: dp(45),       // バンド間の土の床（層がフロアとして読める程度に分離。大きすぎると長い縦トンネル）
     firstBandTop: dp(280), // 入口直下〜最初のバンド上端までの距離
     sideMargin: dp(150),   // 左右の余白
-    thinWall: dp(6),       // チャンバー間の壁の薄さ（異方性衝突に加算。小さく＝ぎっしり密着）
+    thinWall: dp(18),      // チャンバー間の壁の薄さ（異方性衝突に加算。重なり防止＆トンネルが見える程度）
     extraLoops: 4,         // MSTに足すループ本数（複数経路用。少なく＝ゴチャつかない）
     intraLinks: 2,         // ※レガシー: MST方式では未使用
     interLinksPerBand: 2,  // ※レガシー: MST方式では未使用
@@ -7932,14 +7932,15 @@ S.band.forceShaft = 0;
     // レンズ（横長・床フラット）を考慮した異方性の重なり判定。横は広く・縦は狭く詰める。
     const lensHX = (r, t) => r * (t==='nursery' ? 1.45 : (t==='food'||t==='storage') ? 1.30 : t==='queen' ? 1.15 : 1.35);
     const lensHY = (r) => r * 0.66;
-    const overlapsAny = (x, y, r, t) => {
+    const overlapPenalty = (x, y, r, t) => {
       const hx = lensHX(r, t), hy = lensHY(r);
+      let pen = 0;
       for(const o of allRooms) {
         const dx = (x - o.x) / (hx + lensHX(o.r, o.type) + opt.thinWall);
         const dy = (y - o.y) / (hy + lensHY(o.r) + opt.thinWall);
-        if(dx*dx + dy*dy < 1) return true; // 楕円距離 < 1 ＝ 重なり
+        if(dx*dx + dy*dy < 1) pen++; // 楕円距離 < 1 ＝ 重なり。重なる部屋数を返す
       }
-      return false;
+      return pen;
     };
     let bandTop = sy + opt.firstBandTop;
     let lastBandTop = bandTop;
@@ -7952,21 +7953,20 @@ S.band.forceShaft = 0;
       const bandTypes = [];
       for(let i=0; i<count; i++) bandTypes.push(nextType(isLast && i === count - 1));
       const maxRad = Math.max(...bandTypes.map(meshRoomRadius));
-      const slabH = maxRad * 2.0;                                  // バンドの縦の厚み（薄め＝直下に積層）
-      const clusterHalfW = Math.min(W/2 - margin, count * maxRad * 0.95); // 横もcx周りに密集させる（全幅に散らさない）
+      const slabH = maxRad * 2.8;                                   // バンドの縦の厚み（2行が無理なく入る＝重なり防止）
+      const clusterHalfW = Math.min(W/2 - margin, count * maxRad * 1.15); // 横の密集幅も部屋数ぶん確保（重なり防止）
       for(let i=0; i<count; i++) {
         const type = bandTypes[i];
         const rad = meshRoomRadius(type);
-        let bx, by, ok = false;
-        for(let attempt=0; attempt<48; attempt++) {
+        let bx, by, ok = false, bestPen = Infinity, bestX = cx, bestY = bandTop + rad;
+        for(let attempt=0; attempt<56; attempt++) {
           const x = clamp(cx - clusterHalfW + Math.random()*2*clusterHalfW, margin+rad, W-margin-rad);
           const y = bandTop + rad + Math.random()*slabH;
-          if(!overlapsAny(x, y, rad, type)) { bx=x; by=y; ok=true; break; }
+          const pen = overlapPenalty(x, y, rad, type);
+          if(pen === 0) { bx=x; by=y; ok=true; break; }
+          if(pen < bestPen) { bestPen = pen; bestX = x; bestY = y; } // 最も重なりの少ない候補を保持
         }
-        if(!ok) { // 48回で空きが無ければ薄い重なりを許容して配置（部屋を失わない）
-          bx = clamp(cx - clusterHalfW + Math.random()*2*clusterHalfW, margin+rad, W-margin-rad);
-          by = bandTop + rad + Math.random()*slabH;
-        }
+        if(!ok) { bx = bestX; by = bestY; } // 完全な空きが無ければ最小重なり位置（部屋を失わない・重なりを最小化）
         const nid = addN(bx, by, rad, type, false);
         meshLensShape(nodes[nid]);
         nodes[nid].band = bi;
