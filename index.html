@@ -3038,6 +3038,10 @@
           <button class="btn-up-sm" id="btn-dev-raid-spider" style="width:60px;">🕷️<br>クモ</button>
           <button class="btn-up-sm" id="btn-dev-mole" style="width:60px;">🦫<br>モグラ</button>
         </div>
+        <div class="row-group" id="dev-nestgen-tools" style="display:none; align-items:center;">
+          <span style="font-size:10px; color:#94a3b8; white-space:nowrap; align-self:center;">巣生成(試作):</span>
+          <button class="btn-up-sm" id="btn-dev-mesh-nest" style="width:90px;">🕸️<br>新メッシュ巣</button>
+        </div>
         <div class="row-group" id="normal-tools">
           <button class="btn" id="btn-render-settings-pub" style="flex:1;">描画設定</button>
         </div>
@@ -6859,6 +6863,7 @@ window._dbg = {
   maybeShiftBand,
   queueMainShaftEdge,
   getMainPendingEdge,
+  generateMeshNest,
 };
 
   // ------------------------------------------------------------
@@ -7813,7 +7818,264 @@ S.band.forceShaft = 0;
     buildBackgroundAssets();
   }
 
-  
+  // ============================================================
+  // 新・巣構造ジェネレーター（メッシュ型・F1骨格）
+  //   NEST_STRUCTURE_REDESIGN_PLAN.md に基づく試作。devトグルで並走する。
+  //   - 木構造をやめ、ループのあるネットワーク（メッシュ）にする
+  //   - 中央1本トランクなし。入口直下ですぐ複数の降り口へ分岐
+  //   - 各深度バンドに密なチャンバー・クラスターを置く
+  //   - 層内・層間とも複数経路でつなぐ（ループ）。密度は一様
+  //   - 部屋はレンズ/涙型（横長・床フラット・天井ドーム）
+  //   既存の描画・バンド・在庫ロジックはそのまま流用。本番セーブには触れない。
+  //   生成パラメータは MESH_GEN_DEFAULTS で調整（決め打ちしないので実機で詰める）。
+  // ============================================================
+  const MESH_GEN_DEFAULTS = Object.freeze({
+    bands: 6,              // 深度バンド数
+    roomsPerBand: 7,       // 1バンドあたりのチャンバー数（目安。±1ゆらぐ）
+    bandHeight: dp(520),   // 1バンドの厚み
+    bandGap: dp(150),      // バンド間の土の厚み
+    firstBandTop: dp(280), // 入口直下〜最初のバンド上端までの距離
+    sideMargin: dp(150),   // 左右の余白
+    thinWall: dp(14),      // チャンバー間の壁の薄さ（中心間距離の詰め具合）
+    intraLinks: 2,         // 1チャンバーが層内でつなぐ最大隣接数（ループ源）
+    interLinksPerBand: 3,  // バンド間トンネルの本数（複数＝ループ）
+    descents: 3            // 入口直下の降り口の本数
+  });
+
+  // レンズ/涙型（横長・床フラット・天井ドーム）の blob パラメータを種別で割り当てる
+  function meshLensShape(n) {
+    if(!n || n.type === 'shaft' || n.type === 'entrance') return;
+    const t = n.type;
+    let sx = 1.35, sy = 0.66, flat = 0.5;
+    if(t === 'queen')                          { sx = 1.15; sy = 0.72; flat = 0.30; }
+    else if(t === 'nursery')                   { sx = 1.45; sy = 0.62; flat = 0.55; }
+    else if(t === 'waste')                     { sx = 1.20; sy = 0.70; flat = 0.40; }
+    else if(t === 'food' || t === 'storage')   { sx = 1.30; sy = 0.68; flat = 0.45; }
+    const j = (Math.random() - 0.5);
+    n.blobScaleX = sx + j * 0.12;
+    n.blobScaleY = sy + j * 0.05;
+    n.floorFlat  = clamp(flat + j * 0.08, 0, 0.7);
+  }
+
+  // 種別ごとのチャンバー半径（女王＝大ドーム、ゴミ＝小 など）
+  function meshRoomRadius(type) {
+    if(type === 'queen')   return dp(45 * 1.5 * ROOM_SCALE);
+    if(type === 'nursery') return dp(34 * ROOM_SCALE);
+    if(type === 'food' || type === 'storage') return dp(31 * ROOM_SCALE);
+    if(type === 'ferment' || type === 'cookieroom') return dp(29 * ROOM_SCALE);
+    if(type === 'soldier' || type === 'rest') return dp(28 * ROOM_SCALE);
+    if(type === 'waste')   return dp(24 * ROOM_SCALE);
+    return dp(29 * ROOM_SCALE);
+  }
+
+  function generateMeshNest(userOpts) {
+    const opt = Object.assign({}, MESH_GEN_DEFAULTS, userOpts || {});
+    const W = WORLD_W_BASE;
+    const sy = dp(160);
+    const nodes = [], edges = [], byNode = [];
+
+    const addN = (x, y, r, type, main=false) => {
+      const id = nodes.length;
+      nodes.push({
+        id, x, y, r, type, main: !!main,
+        invEgg:0, invGoldenEgg:0, invFood:0, invCookie:0,
+        invLarva:0, invGoldenLarva:0, invLarvaFood:0, invWaste:0,
+        waste:0, fermentState:'idle', fermentProgress:0, fermentInputFood:0,
+        branch:false, blobScaleX:null, blobScaleY:null, floorFlat:null,
+        slots:[], blob:[], _blobPath:null, _blobPathLen:0,
+        band: undefined
+      });
+      byNode.push([]);
+      return id;
+    };
+    const hasEdge = (u, v) => {
+      for(const eid of byNode[u]) { const e = edges[eid]; if(e.u===v || e.v===v) return true; }
+      return false;
+    };
+    const addE = (u, v, kind) => {
+      if(u === v || hasEdge(u, v)) return -1;
+      const id = edges.length;
+      const A = nodes[u], B = nodes[v];
+      const p0 = { x:A.x, y:A.y }, p3 = { x:B.x, y:B.y };
+      const seed = hashNums([p0.x, p0.y, p3.x, p3.y, A.id, B.id, 5]);
+      const ctrl = makeCurvyBezierControls(p0, p3, { curviness: edgeCurviness(A, B), seed });
+      edges.push({ id, u, v, p0, p1:ctrl.p1, p2:ctrl.p2, p3, kind: kind||null });
+      byNode[u].push(id); byNode[v].push(id);
+      return id;
+    };
+
+    // 地表の出入り口は1つ。すぐ下に女王房。
+    const cx = W / 2;
+    const eid = addN(cx, sy + dp(10), dp(12), 'entrance');
+    const qid = addN(cx, sy + dp(110), meshRoomRadius('queen'), 'queen');
+    addE(eid, qid);
+
+    // 種別プール（女王は上の1つだけ。育児/食料を多めに、ゴミは深部へ寄せる）
+    const typePool = ['nursery','food','rest','nursery','storage','soldier','food','ferment','nursery','cookieroom','rest','storage','food'];
+    let typeIdx = 0;
+    const nextType = (isLast) => {
+      if(isLast && Math.random() < 0.5) return 'waste';
+      const t = typePool[typeIdx % typePool.length];
+      typeIdx++;
+      return t;
+    };
+
+    // 各バンドに密なクラスターを置く（2〜3行に詰めて横長クラスターに）
+    // 行間隔はチャンバー半径基準（=バンド間の土の厚みより明確に狭く）。
+    // bandHeight いっぱいに引き伸ばすと「層内の行間」が「層間の隙間」より広くなり、
+    // 層がレイヤーとして読めなくなる（旧バグ）。
+    const bandRooms = [];
+    const margin = opt.sideMargin;
+    for(let bi=0; bi<opt.bands; bi++) {
+      const top = sy + opt.firstBandTop + bi * (opt.bandHeight + opt.bandGap);
+      const ids = [];
+      const isLast = (bi === opt.bands - 1);
+      const count = Math.max(3, Math.round(opt.roomsPerBand + (Math.random()*2 - 1)));
+      const cols = Math.max(2, Math.ceil(count / 2));
+      const rows = Math.ceil(count / cols);
+      const usableW = W - margin*2;
+      const bandTypes = [];
+      for(let i=0; i<count; i++) bandTypes.push(nextType(isLast && i === count - 1));
+      const maxRad = Math.max(...bandTypes.map(meshRoomRadius));
+      const rowStep = maxRad * 2.0;
+      let placed = 0;
+      for(let r=0; r<rows && placed<count; r++) {
+        const rowCols = Math.min(cols, count - placed);
+        for(let c=0; c<rowCols; c++) {
+          const type = bandTypes[placed];
+          const rad = meshRoomRadius(type);
+          const colT = (rowCols > 1) ? c/(rowCols-1) : 0.5;
+          let x = margin + rad + colT * (usableW - rad*2);
+          if(r % 2 === 1) x += (usableW/Math.max(1,cols)) * 0.30; // 行ごとに半セルずらして密に
+          let y = top + rad + r * rowStep;
+          x += (Math.random()-0.5) * dp(40);
+          y += (Math.random()-0.5) * dp(16);
+          x = clamp(x, margin + rad, W - margin - rad);
+          // 衝突回避（薄壁は許容）：横長blobを考慮した中心間距離
+          for(let attempt=0; attempt<4; attempt++) {
+            let ok = true;
+            for(const oid of ids) {
+              const o = nodes[oid];
+              const minD = (rad*1.3 + o.r*1.3)*0.5 + opt.thinWall;
+              if(dist(x, y, o.x, o.y) < minD) { ok = false; break; }
+            }
+            if(ok) break;
+            x += (Math.random()-0.5) * dp(50);
+            y += (Math.random()-0.5) * dp(36);
+            x = clamp(x, margin + rad, W - margin - rad);
+          }
+          const nid = addN(x, y, rad, type, false);
+          meshLensShape(nodes[nid]);
+          nodes[nid].band = bi;
+          ids.push(nid);
+          placed++;
+        }
+      }
+      bandRooms.push(ids);
+    }
+
+    // 層内リンク（短い横枝・ループ源）：各部屋を最近傍 intraLinks 個へつなぐ
+    for(const ids of bandRooms) {
+      for(const aId of ids) {
+        const a = nodes[aId];
+        const near = ids.filter(id => id !== aId)
+          .map(id => ({ id, d: dist(a.x, a.y, nodes[id].x, nodes[id].y) }))
+          .sort((p, q) => p.d - q.d);
+        let links = 0;
+        for(const cand of near) {
+          if(links >= opt.intraLinks) break;
+          if(cand.d > dp(440)) break;
+          if(addE(aId, cand.id, 'branch') !== -1) links++;
+        }
+      }
+    }
+
+    // 入口直下の降り口：女王から複数の降り口（中継シャフト）で band0 の代表部屋へ
+    const band0 = bandRooms[0] || [];
+    if(band0.length) {
+      const sorted = band0.slice().sort((p, q) => nodes[p].x - nodes[q].x);
+      const dn = Math.min(opt.descents, sorted.length);
+      for(let k=0; k<dn; k++) {
+        const idx = Math.round((dn > 1 ? k/(dn-1) : 0.5) * (sorted.length - 1));
+        const pid = sorted[idx];
+        const target = nodes[pid];
+        const mx = cx*0.45 + target.x*0.55 + (Math.random()-0.5)*dp(40);
+        const my = (nodes[qid].y + target.y) / 2;
+        const sId = addN(mx, my, dp(15), 'shaft', false);
+        addE(qid, sId);
+        addE(sId, pid);
+      }
+    }
+
+    // 層間トンネル（複数本＝ループ）：band i の各部屋から band i+1 の最近傍へ、本数制限つきで
+    for(let bi=0; bi<bandRooms.length-1; bi++) {
+      const upper = bandRooms[bi], lower = bandRooms[bi+1];
+      if(!upper.length || !lower.length) continue;
+      const pairs = [];
+      for(const uId of upper) {
+        const u = nodes[uId];
+        let best = -1, bestD = Infinity;
+        for(const lId of lower) {
+          const d = dist(u.x, u.y, nodes[lId].x, nodes[lId].y);
+          if(d < bestD) { bestD = d; best = lId; }
+        }
+        if(best >= 0) pairs.push({ u:uId, v:best, d:bestD });
+      }
+      pairs.sort((p, q) => p.d - q.d);
+      const want = Math.min(opt.interLinksPerBand, pairs.length);
+      let made = 0;
+      for(const pr of pairs) {
+        if(made >= want) break;
+        if(addE(pr.u, pr.v) !== -1) made++;
+      }
+    }
+
+    // blob/slots を構築
+    nodes.forEach(n => buildNodeBlobAndSlots(n));
+
+    const lastTop = sy + opt.firstBandTop + (opt.bands-1) * (opt.bandHeight + opt.bandGap);
+    const H = Math.max(canvas.height * 2, lastTop + opt.bandHeight + dp(600));
+
+    S.full = { nodes, edges, byNode, sy, eid, qid, w:W, h:H };
+    // メインシャフト先端は最初の降り口シャフト（なければ女王）
+    let tip = qid;
+    for(const n of nodes) { if(n.type === 'shaft') { tip = n.id; break; } }
+    S.mainTipId = tip;
+
+    // バンド状態：最深バンドまで作ってあるので band も最深へ
+    S.band.height = opt.bandHeight + opt.bandGap;
+    S.band.step   = opt.bandHeight + opt.bandGap;
+    S.band.index  = opt.bands - 1;
+    S.band.top    = lastTop;
+    S.band.bottom = lastTop + opt.bandHeight;
+    S.band.targetFill = 22;
+    S.band.targetSpan = 0.68;
+    S.band.needSide = false;
+    S.band.forceShaft = 0;
+    S.band.depthLock = false;
+    S.band.lastShiftAt = performance.now();
+
+    // プレビューは即可視（全ノード/全エッジを開通済みに）
+    S.nodeVis = new Array(nodes.length).fill(true);
+    S.edgeFrac = new Array(edges.length).fill(1);
+
+    // ランタイム実体は作り直し（旧巣のノード参照を断つ）
+    S.ants = []; S.enemies = []; S.invaders = [];
+    S.effects = []; S.dust = []; S.trails = []; S.raidSoldiers = [];
+    S.antCrowd = null;
+
+    ensureMainShaftState();
+    rebuildAllEdgeStamps();
+    buildBackgroundAssets();
+    updateCameraLimits();
+    fitWorldToView(0.95, true);
+
+    const info = { nodes: nodes.length, edges: edges.length, bands: opt.bands };
+    if(typeof toast === 'function') toast(`🕸️ 新メッシュ巣を生成（部屋${nodes.length}・通路${edges.length}）`);
+    return info;
+  }
+
+
 function expandMap(forcedType, isEmergency) {
       /*
         ====== 巣を「生成」する関数（強化版） ======
@@ -17403,6 +17665,7 @@ function syncFermenterUnlockUI() {
   function _activateDevMode(showToast) {
     const dt = document.getElementById('dev-tools'); if(dt) dt.style.display = '';
     const drt = document.getElementById('dev-raid-tools'); if(drt) drt.style.display = '';
+    const dnt = document.getElementById('dev-nestgen-tools'); if(dnt) dnt.style.display = '';
     const nt = document.getElementById('normal-tools'); if(nt) nt.style.display = 'none';
     S._devMode = true;
     if(typeof unlockResearchSystem === 'function') unlockResearchSystem();
@@ -17419,10 +17682,20 @@ function syncFermenterUnlockUI() {
     });
     const moleBtn = document.getElementById('btn-dev-mole');
     if(moleBtn && !moleBtn._devWired) { moleBtn._devWired = true; moleBtn.addEventListener('click', () => spawnMole(true)); }
+    const meshBtn = document.getElementById('btn-dev-mesh-nest');
+    if(meshBtn && !meshBtn._devWired) {
+      meshBtn._devWired = true;
+      meshBtn.addEventListener('click', () => {
+        // 試作プレビュー専用：本番セーブには影響させない（このセッション中だけ巣を入れ替える）
+        generateMeshNest();
+      });
+    }
   }
   (function(){
     if(location.search.includes('dev=1')) {
-      _activateDevMode(false);
+      // スクリプト末尾で定義される TOAST 等の初期化前に実行されるとクラッシュするため、
+      // 同期スクリプトの完了後（次ティック）まで遅延する。
+      setTimeout(() => _activateDevMode(false), 0);
       return;
     }
     const pubBtn = renderUI.pubBtn;
