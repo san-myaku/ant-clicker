@@ -5392,16 +5392,18 @@ function buildNodeBlobAndSlots(n){
   ensureBlobParams(n);
   n.blob = [];
   n.slots = [];
-  const seg = 12;
+  const mesh = !!(typeof S !== 'undefined' && S && S._meshNest);
+  const seg = mesh ? 14 : 12;
   const sx = n.blobScaleX || 1;
   const sy = n.blobScaleY || 0.8;
   const flat = n.floorFlat || 0;
   const floorY = n.r * sy * 0.75;
   for(let i=0; i<seg; i++) {
     const a = (i/seg)*Math.PI*2;
-    const rr = n.r*(0.8+Math.random()*0.3);
+    const rr = mesh ? n.r*(0.66+Math.random()*0.5) : n.r*(0.8+Math.random()*0.3); // meshは輪郭を不規則(±25%)に＝有機的
     let dx = Math.cos(a) * rr * sx;
     let dy = Math.sin(a) * rr * sy;
+    if(mesh && dy < 0) dy *= 1.14; // meshは天井をドーム状に持ち上げて涙型へ
     if(flat > 0 && dy > 0) {
       dy = dy * (1 - flat) + floorY * flat;
     }
@@ -6233,6 +6235,12 @@ function ensureRestSlots(n){
     let distAcc = 0;
     let target = startTrim;
     const endTarget = total - endTrim;
+    // F2: meshはトンネルが部屋につながる口をラッパ状に広げる（端のスタンプを大きく）
+    const mesh = !!(typeof S !== 'undefined' && S && S._meshNest);
+    const uRoom = mesh && nodes && nodes[e.u] && nodes[e.u].type !== 'shaft' && nodes[e.u].type !== 'entrance';
+    const vRoom = mesh && nodes && nodes[e.v] && nodes[e.v].type !== 'shaft' && nodes[e.v].type !== 'entrance';
+    const spanLen = Math.max(1, endTarget - startTrim);
+    const flareLen = baseR * 3.4;
     for(let i=0; i<sampleCount; i++){
       const a = pts[i], b = pts[i+1];
       const d = segLen[i];
@@ -6242,7 +6250,13 @@ function ensureRestSlots(n){
         const x = a.x + (b.x - a.x) * t;
         const y = a.y + (b.y - a.y) * t;
         const jitter = 0.85 + rng() * 0.30; // +/- 15%
-        stamps.push({ x, y, r: baseR * jitter });
+        let flare = 1;
+        if(mesh){
+          const p = target - startTrim;
+          if(uRoom && p < flareLen) flare = Math.max(flare, 1 + 0.85 * (1 - p / flareLen));
+          if(vRoom && (spanLen - p) < flareLen) flare = Math.max(flare, 1 + 0.85 * (1 - (spanLen - p) / flareLen));
+        }
+        stamps.push({ x, y, r: baseR * jitter * flare });
         target += spacing;
       }
       distAcc += d;
@@ -7849,15 +7863,15 @@ S.band.forceShaft = 0;
   function meshLensShape(n) {
     if(!n || n.type === 'shaft' || n.type === 'entrance') return;
     const t = n.type;
-    let sx = 1.35, sy = 0.66, flat = 0.5;
-    if(t === 'queen')                          { sx = 1.15; sy = 0.72; flat = 0.30; }
-    else if(t === 'nursery')                   { sx = 1.45; sy = 0.62; flat = 0.55; }
-    else if(t === 'waste')                     { sx = 1.20; sy = 0.70; flat = 0.40; }
-    else if(t === 'food' || t === 'storage')   { sx = 1.30; sy = 0.68; flat = 0.45; }
+    let sx = 1.35, sy = 0.66, flat = 0.6;
+    if(t === 'queen')                          { sx = 1.15; sy = 0.74; flat = 0.42; }
+    else if(t === 'nursery')                   { sx = 1.45; sy = 0.62; flat = 0.64; }
+    else if(t === 'waste')                     { sx = 1.20; sy = 0.70; flat = 0.52; }
+    else if(t === 'food' || t === 'storage')   { sx = 1.30; sy = 0.68; flat = 0.56; }
     const j = (Math.random() - 0.5);
     n.blobScaleX = sx + j * 0.12;
     n.blobScaleY = sy + j * 0.05;
-    n.floorFlat  = clamp(flat + j * 0.08, 0, 0.7);
+    n.floorFlat  = clamp(flat + j * 0.08, 0, 0.78);
   }
 
   // 種別ごとのチャンバー半径（女王＝大ドーム、ゴミ＝小 など）
@@ -7873,6 +7887,7 @@ S.band.forceShaft = 0;
 
   function generateMeshNest(userOpts) {
     const opt = Object.assign({}, MESH_GEN_DEFAULTS, userOpts || {});
+    S._meshNest = true; // F2: blob輪郭/トンネル形状をmesh専用に切替（旧巣には影響させない）
     const W = WORLD_W_BASE;
     const sy = dp(160);
     const nodes = [], edges = [], byNode = [];
