@@ -7917,8 +7917,11 @@ S.band.forceShaft = 0;
       const A = nodes[u], B = nodes[v];
       const p0 = { x:A.x, y:A.y }, p3 = { x:B.x, y:B.y };
       const seed = hashNums([p0.x, p0.y, p3.x, p3.y, A.id, B.id, 5]);
-      // mesh巣のシャフトは手描きスケッチのように大きく蛇行させる（直線をなくす。共有のedgeCurvinessは触らない）
-      const ctrl = makeCurvyBezierControls(p0, p3, { curviness: Math.max(edgeCurviness(A, B) * 1.5, 0.52), maxOffsetFactor: 0.5, seed });
+      // mesh巣のシャフトは手描きスケッチのように蛇行。ただし短い枝/ジャンクションは蛇行を抑えてスッキリさせる。
+      const _len = Math.hypot(p3.x - p0.x, p3.y - p0.y);
+      let _cv = Math.max(edgeCurviness(A, B) * 1.5, 0.52);
+      if(_len < dp(70)) _cv *= 0.42;
+      const ctrl = makeCurvyBezierControls(p0, p3, { curviness: _cv, maxOffsetFactor: 0.5, seed });
       edges.push({ id, u, v, p0, p1:ctrl.p1, p2:ctrl.p2, p3, kind: kind||null });
       byNode[u].push(id); byNode[v].push(id);
       return id;
@@ -8022,14 +8025,26 @@ S.band.forceShaft = 0;
     // Y字ジャンクション: src から中継シャフト(J)を1本伸ばし、そこから複数の部屋へ二股に分岐。
     // ＝シャフトの「途中でY字」になる（部屋ではなく通路の途中で割れる）。
     const forkConnect = (srcId, targetIds) => {
+      const src = nodes[srcId];
       const valid = targetIds.filter(t => t!=null && t!==srcId && !hasEdge(srcId, t));
       if(valid.length === 0) return;
-      if(valid.length === 1) { addE(srcId, valid[0]); return; } // 1個なら普通の接続
-      const src = nodes[srcId];
-      let tx=0, ty=0; for(const t of valid){ tx+=nodes[t].x; ty+=nodes[t].y; } tx/=valid.length; ty/=valid.length;
-      const jId = addN(src.x + (tx-src.x)*0.5, src.y + (ty-src.y)*0.5, dp(9), 'shaft', false); // 中継シャフト＝分岐点
-      addE(srcId, jId);
-      for(const t of valid) addE(jId, t);
+      if(valid.length >= 2){
+        // 二股は「2つのターゲットがsrcから見て十分方向が違う＆互いに離れている」場合だけ作る。
+        // 同方向・近すぎだと二股の意味がなく浮いて見えるので、その場合は最寄り1本に。
+        const t0 = valid[0], t1 = valid[1];
+        const a0 = Math.atan2(nodes[t0].y-src.y, nodes[t0].x-src.x);
+        const a1 = Math.atan2(nodes[t1].y-src.y, nodes[t1].x-src.x);
+        let da = Math.abs(a0-a1); if(da > Math.PI) da = 2*Math.PI - da;
+        const far = dist(nodes[t0].x,nodes[t0].y, nodes[t1].x,nodes[t1].y);
+        if(da >= 0.55 && far >= dp(80)){
+          // 意味のある二股: junctionをsrc寄り(0.4)に・tunnel径(小)で置き、独立空洞に見せない
+          const cxj=(nodes[t0].x+nodes[t1].x)/2, cyj=(nodes[t0].y+nodes[t1].y)/2;
+          const jId = addN(src.x+(cxj-src.x)*0.4, src.y+(cyj-src.y)*0.4, dp(5), 'shaft', false);
+          addE(srcId, jId); addE(jId, t0); addE(jId, t1);
+          return;
+        }
+      }
+      addE(srcId, valid[0]); // 二股不成立なら最寄り1本だけ
     };
     const nearestIn = (group, x, y, k) => group.slice()
       .sort((a,b)=>dist(nodes[a].x,nodes[a].y,x,y)-dist(nodes[b].x,nodes[b].y,x,y)).slice(0, k);
