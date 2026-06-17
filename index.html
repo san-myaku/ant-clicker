@@ -7833,11 +7833,12 @@ S.band.forceShaft = 0;
     bands: 6,              // 深度バンド数
     roomsPerBand: 7,       // 1バンドあたりのチャンバー数（目安。±1ゆらぐ）
     bandHeight: dp(160),   // ※レガシー: 新配置(slabH=半径基準のジッター)では未使用。S.band状態の参考のみ
-    bandGap: dp(45),       // バンド間の土の床（層がフロアとして読める程度に分離。大きすぎると長い縦トンネル）
+    bandGap: dp(35),       // 層間の土の床（層がフロアとして読める程度に分離）
     firstBandTop: dp(280), // 入口直下〜最初のバンド上端までの距離
     sideMargin: dp(150),   // 左右の余白
-    thinWall: dp(18),      // チャンバー間の壁の薄さ（異方性衝突に加算。重なり防止＆トンネルが見える程度）
-    extraLoops: 4,         // MSTに足すループ本数（複数経路用。少なく＝ゴチャつかない）
+    thinWall: dp(12),      // チャンバー間の壁の薄さ（異方性衝突に加算。重なり防止＆蛇行シャフトが見える程度）
+    extraLoops: 4,         // 層内ループ本数（一部の部屋が2つの隣とつながる。少なく＝ゴチャつかない）
+    interLayerLinks: 2,    // 隣接層をつなぐ縦シャフトの本数
     intraLinks: 2,         // ※レガシー: MST方式では未使用
     interLinksPerBand: 2,  // ※レガシー: MST方式では未使用
     descents: 3            // ※レガシー: MST方式では未使用（女王の枝分かれはMSTが担当）
@@ -7899,8 +7900,8 @@ S.band.forceShaft = 0;
       const A = nodes[u], B = nodes[v];
       const p0 = { x:A.x, y:A.y }, p3 = { x:B.x, y:B.y };
       const seed = hashNums([p0.x, p0.y, p3.x, p3.y, A.id, B.id, 5]);
-      // mesh巣は有機的に見せるため曲率を1.4倍（共有のedgeCurvinessは触らない）
-      const ctrl = makeCurvyBezierControls(p0, p3, { curviness: edgeCurviness(A, B) * 1.4, seed });
+      // mesh巣のシャフトは手描きスケッチのように大きく蛇行させる（共有のedgeCurvinessは触らない）
+      const ctrl = makeCurvyBezierControls(p0, p3, { curviness: Math.max(edgeCurviness(A, B) * 1.4, 0.4), maxOffsetFactor: 0.42, seed });
       edges.push({ id, u, v, p0, p1:ctrl.p1, p2:ctrl.p2, p3, kind: kind||null });
       byNode[u].push(id); byNode[v].push(id);
       return id;
@@ -7991,30 +7992,34 @@ S.band.forceShaft = 0;
       }
       return false;
     };
-    const mstNodes = [qid, ...bandRooms.flat()];
-    const inTree = new Set([qid]);
-    while(inTree.size < mstNodes.length) {
-      let bestA=-1, bestB=-1, bestD=Infinity;
-      for(const a of inTree) {
-        const na = nodes[a];
-        for(const b of mstNodes) {
-          if(inTree.has(b)) continue;
-          const d = dist(na.x, na.y, nodes[b].x, nodes[b].y);
-          if(d < bestD) { bestD=d; bestA=a; bestB=b; }
-        }
+    // 層内: バンドごとにMST（部屋同士を最近傍でつなぐ枝分かれ＝スケッチの数珠つなぎ）
+    for(const ids of bandRooms) {
+      if(ids.length < 2) continue;
+      const inT = new Set([ids[0]]);
+      while(inT.size < ids.length) {
+        let bA=-1, bB=-1, bD=Infinity;
+        for(const a of inT){ const na=nodes[a]; for(const b of ids){ if(inT.has(b)) continue; const d=dist(na.x,na.y,nodes[b].x,nodes[b].y); if(d<bD){bD=d;bA=a;bB=b;} } }
+        if(bB<0) break; addE(bA,bB,'branch'); inT.add(bB);
       }
-      if(bestB < 0) break;
-      addE(bestA, bestB, 'branch');
-      inTree.add(bestB);
     }
-    // ループを少しだけ（隣接する近い部屋・交差しないもの・上限 extraLoops）
+    // 女王→第0層 ＆ 層間: 最短の非交差ペアを少数だけ縦シャフトでつなぐ
+    const connectGroups = (upper, lower, k) => {
+      const pairs=[];
+      for(const u of upper) for(const l of lower) pairs.push({ u, l, d:dist(nodes[u].x,nodes[u].y,nodes[l].x,nodes[l].y) });
+      pairs.sort((p,q)=>p.d-q.d);
+      let made=0;
+      for(const pr of pairs){ if(made>=k) break; if(hasEdge(pr.u,pr.l)) continue; if(localCross(nodes[pr.u].x,nodes[pr.u].y,nodes[pr.l].x,nodes[pr.l].y,pr.u,pr.l)) continue; if(addE(pr.u,pr.l)!==-1) made++; }
+    };
+    if(bandRooms[0] && bandRooms[0].length) connectGroups([qid], bandRooms[0], 2);
+    for(let bi=0; bi<bandRooms.length-1; bi++) connectGroups(bandRooms[bi], bandRooms[bi+1], opt.interLayerLinks);
+    // 層内ループを少し（隣接・非交差・上限 extraLoops）＝一部の部屋が2つの隣とつながる
     const rooms = bandRooms.flat();
     const loopCands = [];
     for(let i=0; i<rooms.length; i++) {
       for(let j=i+1; j<rooms.length; j++) {
         const A = nodes[rooms[i]], B = nodes[rooms[j]];
         const d = dist(A.x, A.y, B.x, B.y);
-        if(d <= dp(200)) loopCands.push({ u:rooms[i], v:rooms[j], d });
+        if(d <= dp(190)) loopCands.push({ u:rooms[i], v:rooms[j], d });
       }
     }
     loopCands.sort((p,q)=>p.d-q.d);
