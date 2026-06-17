@@ -7832,8 +7832,8 @@ S.band.forceShaft = 0;
   const MESH_GEN_DEFAULTS = Object.freeze({
     bands: 6,              // 深度バンド数
     roomsPerBand: 7,       // 1バンドあたりのチャンバー数（目安。±1ゆらぐ）
-    bandHeight: dp(520),   // 1バンドの厚み
-    bandGap: dp(150),      // バンド間の土の厚み
+    bandHeight: dp(160),   // 1バンドの厚み（クラスター高さ≈135pxに合わせ密に積層）
+    bandGap: dp(50),       // バンド間の土の厚み（薄いフロア床）
     firstBandTop: dp(280), // 入口直下〜最初のバンド上端までの距離
     sideMargin: dp(150),   // 左右の余白
     thinWall: dp(14),      // チャンバー間の壁の薄さ（中心間距離の詰め具合）
