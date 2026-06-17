@@ -7837,9 +7837,10 @@ S.band.forceShaft = 0;
     firstBandTop: dp(280), // 入口直下〜最初のバンド上端までの距離
     sideMargin: dp(150),   // 左右の余白
     thinWall: dp(6),       // チャンバー間の壁の薄さ（異方性衝突に加算。小さく＝ぎっしり密着）
-    intraLinks: 2,         // 1チャンバーが層内でつなぐ最大隣接数（ループ源）
-    interLinksPerBand: 2,  // バンド間トンネルの本数（複数＝ループ。多いと交差チューブが目立つ）
-    descents: 3            // 入口直下の降り口の本数
+    extraLoops: 4,         // MSTに足すループ本数（複数経路用。少なく＝ゴチャつかない）
+    intraLinks: 2,         // ※レガシー: MST方式では未使用
+    interLinksPerBand: 2,  // ※レガシー: MST方式では未使用
+    descents: 3            // ※レガシー: MST方式では未使用（女王の枝分かれはMSTが担当）
   });
 
   // レンズ/涙型（横長・床フラット・天井ドーム）の blob パラメータを種別で割り当てる
@@ -7898,7 +7899,8 @@ S.band.forceShaft = 0;
       const A = nodes[u], B = nodes[v];
       const p0 = { x:A.x, y:A.y }, p3 = { x:B.x, y:B.y };
       const seed = hashNums([p0.x, p0.y, p3.x, p3.y, A.id, B.id, 5]);
-      const ctrl = makeCurvyBezierControls(p0, p3, { curviness: edgeCurviness(A, B), seed });
+      // mesh巣は有機的に見せるため曲率を1.4倍（共有のedgeCurvinessは触らない）
+      const ctrl = makeCurvyBezierControls(p0, p3, { curviness: edgeCurviness(A, B) * 1.4, seed });
       edges.push({ id, u, v, p0, p1:ctrl.p1, p2:ctrl.p2, p3, kind: kind||null });
       byNode[u].push(id); byNode[v].push(id);
       return id;
@@ -7976,60 +7978,53 @@ S.band.forceShaft = 0;
       bandTop += slabH + opt.bandGap;   // 次バンドは薄い床(bandGap)を挟んで直下＝積層
     }
 
-    // 層内リンク（短い横枝・ループ源）：各部屋を最近傍 intraLinks 個へつなぐ
-    for(const ids of bandRooms) {
-      for(const aId of ids) {
-        const a = nodes[aId];
-        const near = ids.filter(id => id !== aId)
-          .map(id => ({ id, d: dist(a.x, a.y, nodes[id].x, nodes[id].y) }))
-          .sort((p, q) => p.d - q.d);
-        let links = 0;
-        for(const cand of near) {
-          if(links >= opt.intraLinks) break;
-          if(cand.d > dp(440)) break;
-          if(addE(aId, cand.id, 'branch') !== -1) links++;
+    // ===== トンネル接続: 最小全域木(MST)＝交差しない有機的な枝分かれ ＋ ループ数本だけ =====
+    // 「最近傍N個」でつなぐと交差トンネルが増えてゴチャつくため、距離MSTで枝分かれ
+    // （二股・三股）する幹を作る。EMSTは平面上で辺が交差しない性質があり自然に綺麗。
+    // ループ（複数経路）は隣接する近い部屋同士から、交差しないものを少数だけ足す。
+    // 生成中は S.full 未確定なので、ローカルな直線交差判定で弾く。
+    const localCross = (ax, ay, bx, by, uId, vId) => {
+      for(const e of edges) {
+        if(e.u===uId || e.v===uId || e.u===vId || e.v===vId) continue;
+        const c = nodes[e.u], d2 = nodes[e.v];
+        if(segIntersect({x:ax,y:ay}, {x:bx,y:by}, {x:c.x,y:c.y}, {x:d2.x,y:d2.y})) return true;
+      }
+      return false;
+    };
+    const mstNodes = [qid, ...bandRooms.flat()];
+    const inTree = new Set([qid]);
+    while(inTree.size < mstNodes.length) {
+      let bestA=-1, bestB=-1, bestD=Infinity;
+      for(const a of inTree) {
+        const na = nodes[a];
+        for(const b of mstNodes) {
+          if(inTree.has(b)) continue;
+          const d = dist(na.x, na.y, nodes[b].x, nodes[b].y);
+          if(d < bestD) { bestD=d; bestA=a; bestB=b; }
         }
       }
+      if(bestB < 0) break;
+      addE(bestA, bestB, 'branch');
+      inTree.add(bestB);
     }
-
-    // 入口直下の降り口：女王から複数の降り口（中継シャフト）で band0 の代表部屋へ
-    const band0 = bandRooms[0] || [];
-    if(band0.length) {
-      const sorted = band0.slice().sort((p, q) => nodes[p].x - nodes[q].x);
-      const dn = Math.min(opt.descents, sorted.length);
-      for(let k=0; k<dn; k++) {
-        const idx = Math.round((dn > 1 ? k/(dn-1) : 0.5) * (sorted.length - 1));
-        const pid = sorted[idx];
-        const target = nodes[pid];
-        const mx = cx*0.45 + target.x*0.55 + (Math.random()-0.5)*dp(40);
-        const my = (nodes[qid].y + target.y) / 2;
-        const sId = addN(mx, my, dp(15), 'shaft', false);
-        addE(qid, sId);
-        addE(sId, pid);
+    // ループを少しだけ（隣接する近い部屋・交差しないもの・上限 extraLoops）
+    const rooms = bandRooms.flat();
+    const loopCands = [];
+    for(let i=0; i<rooms.length; i++) {
+      for(let j=i+1; j<rooms.length; j++) {
+        const A = nodes[rooms[i]], B = nodes[rooms[j]];
+        const d = dist(A.x, A.y, B.x, B.y);
+        if(d <= dp(200)) loopCands.push({ u:rooms[i], v:rooms[j], d });
       }
     }
-
-    // 層間トンネル（複数本＝ループ）：band i の各部屋から band i+1 の最近傍へ、本数制限つきで
-    for(let bi=0; bi<bandRooms.length-1; bi++) {
-      const upper = bandRooms[bi], lower = bandRooms[bi+1];
-      if(!upper.length || !lower.length) continue;
-      const pairs = [];
-      for(const uId of upper) {
-        const u = nodes[uId];
-        let best = -1, bestD = Infinity;
-        for(const lId of lower) {
-          const d = dist(u.x, u.y, nodes[lId].x, nodes[lId].y);
-          if(d < bestD) { bestD = d; best = lId; }
-        }
-        if(best >= 0) pairs.push({ u:uId, v:best, d:bestD });
-      }
-      pairs.sort((p, q) => p.d - q.d);
-      const want = Math.min(opt.interLinksPerBand, pairs.length);
-      let made = 0;
-      for(const pr of pairs) {
-        if(made >= want) break;
-        if(addE(pr.u, pr.v) !== -1) made++;
-      }
+    loopCands.sort((p,q)=>p.d-q.d);
+    let loops = 0;
+    for(const c of loopCands) {
+      if(loops >= opt.extraLoops) break;
+      if(hasEdge(c.u, c.v)) continue;
+      const A = nodes[c.u], B = nodes[c.v];
+      if(localCross(A.x, A.y, B.x, B.y, c.u, c.v)) continue;
+      if(addE(c.u, c.v, 'branch') !== -1) loops++;
     }
 
     // blob/slots を構築
