@@ -7845,13 +7845,13 @@ S.band.forceShaft = 0;
   // ============================================================
   const MESH_GEN_DEFAULTS = Object.freeze({
     bands: 6,              // 深度バンド数
-    roomsPerBand: 11,      // 1バンドあたりのチャンバー数（横幅を埋めて短い枝にする）
+    roomsPerBand: 8,       // 1バンドあたりのチャンバー数（中間案: 大きい部屋を少なめに密着）
     widthUse: 0.72,        // 各層が使う横幅の割合（W/2-margin に対して。大きいほど画面幅を活かす）
     bandHeight: dp(160),   // ※レガシー: 新配置(slabH=半径基準のジッター)では未使用。S.band状態の参考のみ
-    bandGap: dp(35),       // 層間の土の床（層がフロアとして読める程度に分離）
+    bandGap: dp(24),       // 層間の土の床（中間案: 詰めて密着寄りに）
     firstBandTop: dp(190), // 入口直下〜最初のバンド上端までの距離（女王からのシャフトを短く）
     sideMargin: dp(150),   // 左右の余白
-    thinWall: dp(12),      // チャンバー間の壁の薄さ（異方性衝突に加算。重なり防止＆蛇行シャフトが見える程度）
+    thinWall: dp(8),       // チャンバー間の壁の薄さ（中間案: 薄壁で密着、ただし重ならない範囲）
     extraLoops: 4,         // 層内ループ本数（一部の部屋が2つの隣とつながる。少なく＝ゴチャつかない）
     interLayerLinks: 2,    // 隣接層をつなぐ縦シャフトの本数
     intraLinks: 2,         // ※レガシー: MST方式では未使用
@@ -7876,13 +7876,14 @@ S.band.forceShaft = 0;
 
   // 種別ごとのチャンバー半径（女王＝大ドーム、ゴミ＝小 など）
   function meshRoomRadius(type) {
-    if(type === 'queen')   return dp(45 * 1.5 * ROOM_SCALE);
-    if(type === 'nursery') return dp(34 * ROOM_SCALE);
-    if(type === 'food' || type === 'storage') return dp(31 * ROOM_SCALE);
-    if(type === 'ferment' || type === 'cookieroom') return dp(29 * ROOM_SCALE);
-    if(type === 'soldier' || type === 'rest') return dp(28 * ROOM_SCALE);
-    if(type === 'waste')   return dp(24 * ROOM_SCALE);
-    return dp(29 * ROOM_SCALE);
+    // 中間案: 画像1寄りに部屋を大きく（数を減らして密着させる前提）
+    if(type === 'queen')   return dp(48 * 1.5 * ROOM_SCALE);
+    if(type === 'nursery') return dp(46 * ROOM_SCALE);
+    if(type === 'food' || type === 'storage') return dp(42 * ROOM_SCALE);
+    if(type === 'ferment' || type === 'cookieroom') return dp(39 * ROOM_SCALE);
+    if(type === 'soldier' || type === 'rest') return dp(38 * ROOM_SCALE);
+    if(type === 'waste')   return dp(32 * ROOM_SCALE);
+    return dp(39 * ROOM_SCALE);
   }
 
   function generateMeshNest(userOpts) {
