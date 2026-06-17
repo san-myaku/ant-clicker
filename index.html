@@ -8003,16 +8003,32 @@ S.band.forceShaft = 0;
         if(bB<0) break; addE(bA,bB,'branch'); inT.add(bB);
       }
     }
-    // 女王→第0層 ＆ 層間: 最短の非交差ペアを少数だけ縦シャフトでつなぐ
-    const connectGroups = (upper, lower, k) => {
-      const pairs=[];
-      for(const u of upper) for(const l of lower) pairs.push({ u, l, d:dist(nodes[u].x,nodes[u].y,nodes[l].x,nodes[l].y) });
-      pairs.sort((p,q)=>p.d-q.d);
-      let made=0;
-      for(const pr of pairs){ if(made>=k) break; if(hasEdge(pr.u,pr.l)) continue; if(localCross(nodes[pr.u].x,nodes[pr.u].y,nodes[pr.l].x,nodes[pr.l].y,pr.u,pr.l)) continue; if(addE(pr.u,pr.l)!==-1) made++; }
+    // Y字ジャンクション: src から中継シャフト(J)を1本伸ばし、そこから複数の部屋へ二股に分岐。
+    // ＝シャフトの「途中でY字」になる（部屋ではなく通路の途中で割れる）。
+    const forkConnect = (srcId, targetIds) => {
+      const valid = targetIds.filter(t => t!=null && t!==srcId && !hasEdge(srcId, t));
+      if(valid.length === 0) return;
+      if(valid.length === 1) { addE(srcId, valid[0]); return; } // 1個なら普通の接続
+      const src = nodes[srcId];
+      let tx=0, ty=0; for(const t of valid){ tx+=nodes[t].x; ty+=nodes[t].y; } tx/=valid.length; ty/=valid.length;
+      const jId = addN(src.x + (tx-src.x)*0.5, src.y + (ty-src.y)*0.5, dp(9), 'shaft', false); // 中継シャフト＝分岐点
+      addE(srcId, jId);
+      for(const t of valid) addE(jId, t);
     };
-    if(bandRooms[0] && bandRooms[0].length) connectGroups([qid], bandRooms[0], 2);
-    for(let bi=0; bi<bandRooms.length-1; bi++) connectGroups(bandRooms[bi], bandRooms[bi+1], opt.interLayerLinks);
+    const nearestIn = (group, x, y, k) => group.slice()
+      .sort((a,b)=>dist(nodes[a].x,nodes[a].y,x,y)-dist(nodes[b].x,nodes[b].y,x,y)).slice(0, k);
+    // 女王→第0層: 真下へ1本伸ばしてY字で2部屋へ分岐
+    if(bandRooms[0] && bandRooms[0].length) {
+      forkConnect(qid, nearestIn(bandRooms[0], nodes[qid].x, nodes[qid].y, Math.min(2, bandRooms[0].length)));
+    }
+    // 層間: 上層で下層中心に最も近い部屋を起点に、下層の近い部屋へY字分岐（縦シャフトが途中で割れる）
+    for(let bi=0; bi<bandRooms.length-1; bi++) {
+      const upper = bandRooms[bi], lower = bandRooms[bi+1];
+      if(!upper.length || !lower.length) continue;
+      let lcx=0, lcy=0; for(const l of lower){ lcx+=nodes[l].x; lcy+=nodes[l].y; } lcx/=lower.length; lcy/=lower.length;
+      const src = nearestIn(upper, lcx, lcy, 1)[0];
+      forkConnect(src, nearestIn(lower, nodes[src].x, nodes[src].y, Math.min(opt.interLayerLinks, lower.length)));
+    }
     // 層内ループを少し（隣接・非交差・上限 extraLoops）＝一部の部屋が2つの隣とつながる
     const rooms = bandRooms.flat();
     const loopCands = [];
