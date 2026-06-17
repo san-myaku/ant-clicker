@@ -7921,9 +7921,9 @@ S.band.forceShaft = 0;
     };
 
     // 各バンドに密なクラスターを置く（2〜3行に詰めて横長クラスターに）
-    // 行間隔はチャンバー半径基準（=バンド間の土の厚みより明確に狭く）。
-    // bandHeight いっぱいに引き伸ばすと「層内の行間」が「層間の隙間」より広くなり、
-    // 層がレイヤーとして読めなくなる（旧バグ）。
+    // 行間隔・列間隔ともチャンバー半径基準（=バンド間の土の厚みより明確に狭く）。
+    // bandHeight/ワールド幅いっぱいに引き伸ばすと部屋同士の間が伸びてトンネルが
+    // 長くなり、層もレイヤーとして読めなくなる（旧バグ。縦は直済み、横も同様に修正）。
     const bandRooms = [];
     const margin = opt.sideMargin;
     for(let bi=0; bi<opt.bands; bi++) {
@@ -7933,20 +7933,21 @@ S.band.forceShaft = 0;
       const count = Math.max(3, Math.round(opt.roomsPerBand + (Math.random()*2 - 1)));
       const cols = Math.max(2, Math.ceil(count / 2));
       const rows = Math.ceil(count / cols);
-      const usableW = W - margin*2;
       const bandTypes = [];
       for(let i=0; i<count; i++) bandTypes.push(nextType(isLast && i === count - 1));
       const maxRad = Math.max(...bandTypes.map(meshRoomRadius));
       const rowStep = maxRad * 2.0;
+      const colStep = maxRad * 2.6; // レンズ形状は横長(blobScaleX最大1.45)なので縦より広めに
       let placed = 0;
       for(let r=0; r<rows && placed<count; r++) {
         const rowCols = Math.min(cols, count - placed);
+        const rowWidth = (rowCols - 1) * colStep;
+        let rowStartX = cx - rowWidth / 2;
+        if(r % 2 === 1) rowStartX += colStep * 0.5; // 行ごとに半セルずらして密に
         for(let c=0; c<rowCols; c++) {
           const type = bandTypes[placed];
           const rad = meshRoomRadius(type);
-          const colT = (rowCols > 1) ? c/(rowCols-1) : 0.5;
-          let x = margin + rad + colT * (usableW - rad*2);
-          if(r % 2 === 1) x += (usableW/Math.max(1,cols)) * 0.30; // 行ごとに半セルずらして密に
+          let x = rowStartX + c * colStep;
           let y = top + rad + r * rowStep;
           x += (Math.random()-0.5) * dp(40);
           y += (Math.random()-0.5) * dp(16);
