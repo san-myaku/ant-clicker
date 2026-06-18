@@ -3041,6 +3041,7 @@
         <div class="row-group" id="dev-nestgen-tools" style="display:none; align-items:center;">
           <span style="font-size:10px; color:#94a3b8; white-space:nowrap; align-self:center;">巣生成(試作):</span>
           <button class="btn-up-sm" id="btn-dev-mesh-nest" style="width:90px;">🕸️<br>新メッシュ巣</button>
+          <button class="btn-up-sm" id="btn-dev-mesh-growth" style="width:92px;">🌱<br>成長メッシュ</button>
         </div>
         <div class="row-group" id="normal-tools">
           <button class="btn" id="btn-render-settings-pub" style="flex:1;">描画設定</button>
@@ -5566,6 +5567,10 @@ function ensureRestSlots(n){
 
   // 現在の帯が十分埋まったら、帯を下へずらす（= 次の層を埋め始める）
   
+  function isMeshGrowthMode() {
+      return !!(S && S._meshNest && S._meshGrowth);
+  }
+
   function maybeShiftBand() {
       if(!S.full) return;
       ensureBandReady();
@@ -5610,8 +5615,12 @@ function ensureRestSlots(n){
       // 帯を下げた直後は、まず縦の通路（shaft）を2本くらい優先して作る
       // → 次の層への“足場”を作ってから、部屋を埋める
       // Main shaft: queue one pending edge right after shifting the band.
-      queueMainShaftEdge();
-      S.band.forceShaft = 1;
+      if(isMeshGrowthMode()) {
+          S.band.forceShaft = 0;
+      } else {
+          queueMainShaftEdge();
+          S.band.forceShaft = 1;
+      }
       S.band.lastShiftAt = now;
 
       // 次の層ほど「埋めてから降りる」要求を少し強める（落ちるのが早すぎるのを防ぐ）
@@ -6500,6 +6509,10 @@ function ensureRestSlots(n){
     save(options = {}) {
       const showToast = options.showToast !== false;
       const toastText = options.toastText || "保存完了";
+      if(S._devTransientWorld && !options.allowDevWorldSave) {
+        if(showToast) toast('試作メッシュ巣は保存しません（通常セーブ保護）', true);
+        return false;
+      }
       const pack = {
         v: "23.0",
         g: this.toSave(),
@@ -6758,6 +6771,9 @@ function ensureRestSlots(n){
 
     deserializeWorld(savedWorld) {
       if(!savedWorld || !savedWorld.nodes || !savedWorld.edges) return false;
+      this._meshNest = false;
+      this._meshGrowth = false;
+      this._devTransientWorld = false;
 
       // 旧セーブの広い巣は、新しい基準幅へ中心基準で圧縮する。
       // これにより既存プレイでも「断面図の横幅 3/4」が即反映される。
@@ -6877,7 +6893,12 @@ window._dbg = {
   maybeShiftBand,
   queueMainShaftEdge,
   getMainPendingEdge,
+  advanceDigEdge,
+  updateBuilderLogic,
   generateMeshNest,
+  findNodePath,
+  getPath,
+  getPathDebugStats,
 };
 
   // ------------------------------------------------------------
@@ -7747,6 +7768,9 @@ window._dbg = {
 
   // 巣を一から生成。入口・女王の間・最初の通路を作り、band（掘る範囲）を初期化する
   function initWorld() {
+    S._meshNest = false;
+    S._meshGrowth = false;
+    S._devTransientWorld = false;
     const W = WORLD_W_BASE, H = canvas.height;
     const sy = dp(160);
     const btm = Math.max(H*3, dp(12000));
@@ -7888,7 +7912,10 @@ S.band.forceShaft = 0;
 
   function generateMeshNest(userOpts) {
     const opt = Object.assign({}, MESH_GEN_DEFAULTS, userOpts || {});
+    const growthMode = !!(opt.growth || opt.preview === false);
     S._meshNest = true; // F2: blob輪郭/トンネル形状をmesh専用に切替（旧巣には影響させない）
+    S._meshGrowth = growthMode;
+    S._devTransientWorld = true;
     const W = WORLD_W_BASE;
     const sy = dp(160);
     const nodes = [], edges = [], byNode = [];
@@ -7931,7 +7958,7 @@ S.band.forceShaft = 0;
     const cx = W / 2;
     const eid = addN(cx, sy + dp(10), dp(12), 'entrance');
     const qid = addN(cx, sy + dp(110), meshRoomRadius('queen'), 'queen');
-    addE(eid, qid);
+    const entranceQueenEid = addE(eid, qid);
 
     // 種別プール（女王は上の1つだけ。育児/食料を多めに、ゴミは深部へ寄せる）
     const typePool = ['nursery','food','rest','nursery','storage','soldier','food','ferment','nursery','cookieroom','rest','storage','food'];
@@ -8091,28 +8118,61 @@ S.band.forceShaft = 0;
     for(const n of nodes) { if(n.type === 'shaft') { tip = n.id; break; } }
     S.mainTipId = tip;
 
-    // バンド状態：最深バンドまで作ってあるので band も最深へ（積層後の実測値を使う）
+    // バンド状態：プレビューは最深まで表示、成長モードは第0層から掘り進める
     const bandSpacing = Math.max(dp(80), (deepestY - (sy + opt.firstBandTop)) / Math.max(1, opt.bands));
-    S.band.height = bandSpacing;
-    S.band.step   = bandSpacing;
-    S.band.index  = opt.bands - 1;
-    S.band.top    = lastBandTop;
-    S.band.bottom = deepestY;
-    S.band.targetFill = 22;
+    if(growthMode) {
+      const firstBandIds = (bandRooms[0] || []).filter(id => nodes[id]);
+      let firstTop = sy + opt.firstBandTop - dp(40);
+      let firstBottom = sy + opt.firstBandTop + bandSpacing;
+      if(firstBandIds.length) {
+        let minY = Infinity, maxY = -Infinity;
+        for(const id of firstBandIds) {
+          const n = nodes[id];
+          minY = Math.min(minY, n.y - n.r);
+          maxY = Math.max(maxY, n.y + n.r);
+        }
+        firstTop = Math.max(sy + dp(70), minY - dp(45));
+        firstBottom = Math.min(H - dp(160), maxY + dp(90));
+      }
+      const firstHeight = Math.max(dp(180), firstBottom - firstTop);
+      S.band.height = firstHeight;
+      S.band.step   = Math.max(dp(140), bandSpacing);
+      S.band.index  = 0;
+      S.band.top    = firstTop;
+      S.band.bottom = firstTop + firstHeight;
+      S.band.targetFill = Math.max(5, Math.min(10, Math.floor((firstBandIds.length || opt.roomsPerBand) * 0.65)));
+    } else {
+      S.band.height = bandSpacing;
+      S.band.step   = bandSpacing;
+      S.band.index  = opt.bands - 1;
+      S.band.top    = lastBandTop;
+      S.band.bottom = deepestY;
+      S.band.targetFill = 22;
+    }
     S.band.targetSpan = 0.68;
     S.band.needSide = false;
     S.band.forceShaft = 0;
     S.band.depthLock = false;
-    S.band.lastShiftAt = performance.now();
+    S.band.lastShiftAt = performance.now() - (growthMode ? 2500 : 0);
 
-    // プレビューは即可視（全ノード/全エッジを開通済みに）
-    S.nodeVis = new Array(nodes.length).fill(true);
-    S.edgeFrac = new Array(edges.length).fill(1);
+    if(growthMode) {
+      S.nodeVis = new Array(nodes.length).fill(false);
+      S.edgeFrac = new Array(edges.length).fill(0);
+      S.nodeVis[eid] = true;
+      S.nodeVis[qid] = true;
+      if(entranceQueenEid >= 0) S.edgeFrac[entranceQueenEid] = 1;
+    } else {
+      // プレビューは即可視（全ノード/全エッジを開通済みに）
+      S.nodeVis = new Array(nodes.length).fill(true);
+      S.edgeFrac = new Array(edges.length).fill(1);
+    }
 
     // ランタイム実体は作り直し（旧巣のノード参照を断つ）
     S.ants = []; S.enemies = []; S.invaders = [];
     S.effects = []; S.dust = []; S.trails = []; S.raidSoldiers = [];
     S.antCrowd = null;
+    S.buildAssignments = null;
+    if(typeof G.recalc === 'function') G.recalc();
 
     ensureMainShaftState();
     rebuildAllEdgeStamps();
@@ -8121,7 +8181,11 @@ S.band.forceShaft = 0;
     fitWorldToView(0.95, true);
 
     const info = { nodes: nodes.length, edges: edges.length, bands: opt.bands };
-    if(typeof toast === 'function') toast(`🕸️ 新メッシュ巣を生成（部屋${nodes.length}・通路${edges.length}）`);
+    info.growth = growthMode;
+    if(typeof toast === 'function') {
+      const label = growthMode ? '成長メッシュ巣を生成（入口から建築開始）' : '新メッシュ巣を生成';
+      toast(`🕸️ ${label}（部屋${nodes.length}・通路${edges.length}）`);
+    }
     return info;
   }
 
@@ -8982,57 +9046,162 @@ function expandMap(forcedType, isEmergency) {
     return 'normal';
   }
 
-  // ノード from から to への経路（node列）を BFS で探索。完成した通路（edgeFrac>=0.99）のみ通れる
-  function findNodePath(srcNodeId, dstNodeId) {
-    if(srcNodeId === dstNodeId) return [srcNodeId];
-    if(!S.full || !S.full.byNode) return null;
-    const q=[srcNodeId], vis=new Set([srcNodeId]), prev=new Map();
-    let found=false;
-    while(q.length) {
-      const u=q.shift();
-      if(u===dstNodeId){found=true; break;}
-      const links = S.full.byNode[u] || [];
-      for(const eid of links) {
-        if(S.edgeFrac[eid]<0.99) continue;
-        const e=S.full.edges[eid];
-        const v=(e.u===u?e.v:e.u);
-        if(!vis.has(v)){
-          vis.add(v);
-          prev.set(v, u);
-          q.push(v);
+  const PATH_CONGESTION_WALK_WEIGHT = 2.4;
+  const PATH_CONGESTION_RESERVED_WEIGHT = 0.55;
+  const PATH_CONGESTION_LOOKAHEAD = 4;
+  const PATH_CONGESTION_COST = dp(26);
+  const PATH_RANDOM_COST = dp(11);
+
+  function getEdgePathLength(e) {
+    if(!e) return 1;
+    if(typeof e._pathLen === 'number' && e._pathLen > 0) return e._pathLen;
+    let len = 0;
+    let prev = e.p0;
+    const samples = 8;
+    for(let i=1; i<=samples; i++) {
+      const p = cubic(e.p0, e.p1, e.p2, e.p3, i / samples);
+      len += Math.hypot(p.x - prev.x, p.y - prev.y);
+      prev = p;
+    }
+    e._pathLen = Math.max(1, len);
+    return e._pathLen;
+  }
+
+  function getPathCongestionCounts() {
+    if(!S.full || !S.full.edges) return [];
+    const edgeN = S.full.edges.length;
+    const frame = Math.floor(S.frameCount || 0);
+    if(S._pathCongestion && S._pathCongestion.frame === frame && S._pathCongestion.edgeN === edgeN) {
+      return S._pathCongestion.counts;
+    }
+    const counts = new Array(edgeN).fill(0);
+    for(const ant of (S.ants || [])) {
+      if(!ant) continue;
+      if(ant.phase === 'walk' && Number.isInteger(ant.eid) && ant.eid >= 0 && ant.eid < edgeN) {
+        counts[ant.eid] += PATH_CONGESTION_WALK_WEIGHT;
+      }
+      if(Array.isArray(ant.path) && ant.path.length) {
+        const start = clamp(Math.floor(ant.pIdx || 0), 0, ant.path.length);
+        const end = Math.min(ant.path.length, start + PATH_CONGESTION_LOOKAHEAD);
+        for(let i=start; i<end; i++) {
+          const step = ant.path[i];
+          if(!step || step.eid == null || step.eid < 0 || step.eid >= edgeN) continue;
+          const falloff = 1 - ((i - start) / Math.max(1, PATH_CONGESTION_LOOKAHEAD)) * 0.55;
+          counts[step.eid] += PATH_CONGESTION_RESERVED_WEIGHT * falloff;
         }
       }
     }
-    if(!found) return null;
-    const nodes=[]; let curr=dstNodeId;
-    nodes.unshift(curr);
-    while(curr!==srcNodeId) {
-      curr = prev.get(curr);
-      if(curr == null) break;
-      nodes.unshift(curr);
+    S._pathCongestion = { frame, edgeN, counts };
+    return counts;
+  }
+
+  function reservePathForCongestion(path) {
+    if(!path || !path.length) return;
+    const counts = getPathCongestionCounts();
+    const end = Math.min(path.length, PATH_CONGESTION_LOOKAHEAD);
+    for(let i=0; i<end; i++) {
+      const step = path[i];
+      if(!step || step.eid == null || step.eid < 0 || step.eid >= counts.length) continue;
+      const falloff = 1 - (i / Math.max(1, PATH_CONGESTION_LOOKAHEAD)) * 0.55;
+      counts[step.eid] += PATH_CONGESTION_RESERVED_WEIGHT * falloff;
     }
-    return nodes;
+  }
+
+  function getRouteEdgeCost(eid, opts) {
+    const e = S.full.edges[eid];
+    if(!e) return Infinity;
+    const congestionCounts = (opts && opts.congestion === false) ? null : getPathCongestionCounts();
+    const congestion = congestionCounts ? Math.max(0, congestionCounts[eid] || 0) : 0;
+    const jitter = (!opts || opts.random !== false) ? Math.random() * PATH_RANDOM_COST : 0;
+    return getEdgePathLength(e) + Math.min(dp(260), congestion * PATH_CONGESTION_COST) + jitter;
+  }
+
+  function findNodeRoute(srcNodeId, dstNodeId, opts) {
+    if(srcNodeId === dstNodeId) return { nodes:[srcNodeId], steps:[] };
+    if(!S.full || !S.full.byNode || !S.full.nodes || !S.full.edges) return null;
+    if(srcNodeId == null || dstNodeId == null) return null;
+    const nodeN = S.full.nodes.length;
+    if(srcNodeId < 0 || srcNodeId >= nodeN || dstNodeId < 0 || dstNodeId >= nodeN) return null;
+
+    const best = new Array(nodeN).fill(Infinity);
+    const prevNode = new Array(nodeN).fill(-1);
+    const prevEdge = new Array(nodeN).fill(-1);
+    const done = new Array(nodeN).fill(false);
+    best[srcNodeId] = 0;
+
+    for(let iter=0; iter<nodeN; iter++) {
+      let u = -1, uCost = Infinity;
+      for(let i=0; i<nodeN; i++) {
+        if(!done[i] && best[i] < uCost) { u = i; uCost = best[i]; }
+      }
+      if(u < 0) break;
+      if(u === dstNodeId) break;
+      done[u] = true;
+      const links = S.full.byNode[u] || [];
+      for(const eid of links) {
+        if((S.edgeFrac[eid] || 0) < 0.99) continue;
+        const e = S.full.edges[eid];
+        if(!e) continue;
+        const v = (e.u === u) ? e.v : e.u;
+        if(v == null || v < 0 || v >= nodeN || done[v]) continue;
+        const nextCost = uCost + getRouteEdgeCost(eid, opts);
+        const tie = Math.abs(nextCost - best[v]) <= 0.001;
+        if(nextCost < best[v] - 0.001 || (tie && (!opts || opts.random !== false) && Math.random() < 0.5)) {
+          best[v] = nextCost;
+          prevNode[v] = u;
+          prevEdge[v] = eid;
+        }
+      }
+    }
+
+    if(!Number.isFinite(best[dstNodeId])) return null;
+    const nodes = [];
+    const steps = [];
+    let curr = dstNodeId;
+    let guard = 0;
+    while(curr !== srcNodeId && guard++ < nodeN + 2) {
+      const p = prevNode[curr];
+      const eid = prevEdge[curr];
+      if(p < 0 || eid < 0) return null;
+      nodes.unshift(curr);
+      const e = S.full.edges[eid];
+      steps.unshift({ eid, dir:(e.u === p) ? 1 : -1, to: curr });
+      curr = p;
+    }
+    nodes.unshift(srcNodeId);
+    return { nodes, steps };
+  }
+
+  // ノード from から to への経路（node列）を重み付き探索。完成した通路（edgeFrac>=0.99）のみ通れる。
+  function findNodePath(srcNodeId, dstNodeId, opts) {
+    const route = findNodeRoute(srcNodeId, dstNodeId, opts);
+    return route ? route.nodes : null;
   }
 
   // ノード from から to への経路を edge配列に変換（既存移動コードのため）
-  function getPath(from, to) {
-    const nodePath = findNodePath(from, to);
-    if(!nodePath) return null;
-    if(nodePath.length<=1) return [];
-    const path=[];
-    for(let i=0; i<nodePath.length-1; i++) {
-      const u = nodePath[i], v = nodePath[i+1];
-      const links = S.full.byNode[u] || [];
-      let eid = null;
-      for(const id of links) {
-        const e = S.full.edges[id];
-        if((e.u===u && e.v===v) || (e.u===v && e.v===u)) { eid = id; break; }
+  function getPath(from, to, opts) {
+    const route = findNodeRoute(from, to, opts);
+    if(!route) return null;
+    if(!opts || opts.reserve !== false) reservePathForCongestion(route.steps);
+    return route.steps;
+  }
+
+  function getPathDebugStats() {
+    const counts = getPathCongestionCounts();
+    let total = 0, max = 0, hotEdges = 0;
+    for(const c of counts) {
+      if(c > 0) {
+        hotEdges++;
+        total += c;
+        if(c > max) max = c;
       }
-      if(eid == null) return null;
-      const e = S.full.edges[eid];
-      path.push({eid, dir:(e.u===u)?1:-1, to:v});
     }
-    return path;
+    return {
+      edges: counts.length,
+      hotEdges,
+      total: +total.toFixed(2),
+      max: +max.toFixed(2)
+    };
   }
 
   // 部屋→部屋経路のフォールバック（入口経由）※Part4未実装でも動くように
@@ -9672,6 +9841,7 @@ function expandMap(forcedType, isEmergency) {
     if(text.indexOf('expand:') === 0) return 74;
     if(n && n.type === 'shaft') return 62;
     if(text.indexOf('existing:') === 0) return 58;
+    if(text === 'mesh-loop') return 56;
     return 50;
   }
 
@@ -9705,6 +9875,38 @@ function expandMap(forcedType, isEmergency) {
     if((S.edgeFrac[eid] || 0) >= 1) return false;
     const limit = getDigTargetStackLimit(eid, to, reason);
     return getBuildReservedCount(eid) < limit;
+  }
+
+  function canDigMeshGrowthHiddenType(type) {
+    if(!isMeshGrowthMode()) return false;
+    return !!type && type !== 'entrance' && type !== 'queen';
+  }
+
+  function getMeshGrowthLoopDigTarget() {
+    if(!isMeshGrowthMode() || !S.full) return null;
+    const bandCenter = (S.band.top + S.band.bottom) * 0.5;
+    let best = null;
+    for(let i=0; i<S.full.edges.length; i++) {
+      if((S.edgeFrac[i] || 0) >= 1) continue;
+      const e = S.full.edges[i];
+      if(!S.nodeVis[e.u] || !S.nodeVis[e.v]) continue;
+      const a = S.full.nodes[e.u];
+      const b = S.full.nodes[e.v];
+      if(!a || !b) continue;
+      if(isNodeAboveGround(a) || isNodeAboveGround(b)) continue;
+      const to = (a.y <= b.y) ? e.v : e.u;
+      const dir = (to === e.v) ? 1 : -1;
+      const reason = 'mesh-loop';
+      if(!isDigTargetReservable(i, to, reason)) continue;
+      const mx = (a.x + b.x) * 0.5;
+      const my = (a.y + b.y) * 0.5;
+      const len = dist(a.x, a.y, b.x, b.y);
+      let score = 760 - Math.abs(my - bandCenter) * 0.01 - len * 0.002;
+      score -= Math.abs(mx - ENX()) * 0.004;
+      if(e.kind === 'branch') score += 8;
+      if(!best || score > best.score) best = { eid:i, to, dir, score, reason };
+    }
+    return best;
   }
 
   function getDigTarget(builderLv) {
@@ -9757,7 +9959,7 @@ function expandMap(forcedType, isEmergency) {
             }
           }
           // B) 予約が残っていれば新しい発酵室を配置する
-          if((G.fermentRoomPending || 0) > 0) {
+          if(!isMeshGrowthMode() && (G.fermentRoomPending || 0) > 0) {
             const feid = forceExpandRoom('ferment');
             if(feid != null) {
               G.fermentRoomPending = Math.max(0, (G.fermentRoomPending || 0) - 1);
@@ -9788,7 +9990,7 @@ function expandMap(forcedType, isEmergency) {
               return decorateDigTarget({ eid: _ci, to: _chiIdx, dir: _cuv ? 1 : -1, score: 9800, reason: 'cookieroom:reserved' });
             }
           }
-          if((G.cookieRoomPending || 0) > 0) {
+          if(!isMeshGrowthMode() && (G.cookieRoomPending || 0) > 0) {
             const ceid = forceExpandRoom('cookieroom');
             if(ceid != null) {
               G.cookieRoomPending = Math.max(0, (G.cookieRoomPending || 0) - 1);
@@ -9818,7 +10020,7 @@ function expandMap(forcedType, isEmergency) {
               return decorateDigTarget({ eid: _wi, to: _whiIdx, dir: _wuv ? 1 : -1, score: 9780, reason: 'waste:reserved' });
             }
           }
-          if((G.wasteRoomPending || 0) > 0) {
+          if(!isMeshGrowthMode() && (G.wasteRoomPending || 0) > 0) {
             const weid = forceExpandRoom('waste');
             if(weid != null) {
               G.wasteRoomPending = Math.max(0, (G.wasteRoomPending || 0) - 1);
@@ -9848,7 +10050,7 @@ function expandMap(forcedType, isEmergency) {
               return decorateDigTarget({ eid: _bi, to: _bhiIdx, dir: _buv ? 1 : -1, score: 9800, reason: 'barracks:reserved' });
             }
           }
-          if((G.barracksPending || 0) > 0) {
+          if(!isMeshGrowthMode() && (G.barracksPending || 0) > 0) {
             const beid = forceExpandRoom('soldier');
             if(beid != null) {
               G.barracksPending = Math.max(0, (G.barracksPending || 0) - 1);
@@ -9906,9 +10108,11 @@ function expandMap(forcedType, isEmergency) {
           }
 
           // 候補が無ければ新しくshaftを生成して掘る
-          const newEid = expandMap('shaft', true);
-          if(newEid !== null && newEid !== undefined) {
-              return decorateDigTarget({ eid:newEid, to:S.full.edges[newEid].v, dir:1, score:9990, reason:"forceShaft: new" });
+          if(!isMeshGrowthMode()) {
+              const newEid = expandMap('shaft', true);
+              if(newEid !== null && newEid !== undefined) {
+                  return decorateDigTarget({ eid:newEid, to:S.full.edges[newEid].v, dir:1, score:9990, reason:"forceShaft: new" });
+              }
           }
       }
 
@@ -9979,7 +10183,7 @@ function expandMap(forcedType, isEmergency) {
           if(bestPref) return decorateDigTarget(bestPref);
 
           // すでに同タイプの未完成部屋があるなら、新規生成せずに下の既存工事/シャフト処理へ流す。
-          if(!forcedRoomUnderConstruction) {
+          if(!forcedRoomUnderConstruction && !isMeshGrowthMode()) {
               const newEidPref = expandMap(forcedType, true);
               if(newEidPref !== null && newEidPref !== undefined) {
                   return decorateDigTarget({ eid:newEidPref, to:S.full.edges[newEidPref].v, dir:1, score:1100, reason:"expand:"+forcedType });
@@ -10015,6 +10219,7 @@ function expandMap(forcedType, isEmergency) {
           if(hasBarracksBlueprint() && hidden.type === 'soldier') allowed = true; // 日本語: 兵舎設計図解放後のみ許可
           if(canAddWaste && hidden.type === 'waste') allowed = true; // ゴミ室は最大1部屋のみ
           if(isFermentRoomUnlocked() && hidden.type === 'ferment') allowed = true;
+          if(canDigMeshGrowthHiddenType(hidden.type)) allowed = true;
           if(!allowed) continue;
           if(!isDigTargetReservable(i, hiddenIdx, "existing")) continue;
 
@@ -10031,6 +10236,11 @@ function expandMap(forcedType, isEmergency) {
           }
       }
       if(bestExisting) return decorateDigTarget(bestExisting);
+
+      const meshLoop = getMeshGrowthLoopDigTarget();
+      if(meshLoop) return decorateDigTarget(meshLoop);
+
+      if(isMeshGrowthMode()) return null;
 
       // === 3) Expand new room
       // 重複部屋の防止: 同タイプの未完成部屋があるなら、新しい部屋もフォールバックのshaftも作らず
@@ -17740,6 +17950,14 @@ function syncFermenterUnlockUI() {
         generateMeshNest();
       });
     }
+    const meshGrowthBtn = document.getElementById('btn-dev-mesh-growth');
+    if(meshGrowthBtn && !meshGrowthBtn._devWired) {
+      meshGrowthBtn._devWired = true;
+      meshGrowthBtn.addEventListener('click', () => {
+        // F4試作：トポロジーは先に作り、建築AIで未開通エッジを段階解放する
+        generateMeshNest({ growth: true });
+      });
+    }
   }
   (function(){
     if(location.search.includes('dev=1')) {
@@ -18006,7 +18224,7 @@ function syncFermenterUnlockUI() {
     if(e.key === 'd' || e.key === 'D') toggleDebug('game');
   });
 
-  // デバッグ：キーPで「画面中心に近い部屋 → 女王部屋」の最短パスを描画
+  // デバッグ：キーPで「画面中心に近い部屋 → 女王部屋」の現在選ばれる経路を描画
   window.addEventListener('keydown', (e)=>{
     if(e.key !== 'p' && e.key !== 'P') return;
     if(!S.full) return;
@@ -18152,6 +18370,7 @@ function syncFermenterUnlockUI() {
   updateSpeedUI();
 
   function maybeAutoSave() {
+    if(S._devTransientWorld) return;
     const now = Date.now();
     if(now - (S.lastAutoSaveAt || 0) < AUTO_SAVE_INTERVAL_MS) return;
     S.lastAutoSaveAt = now;
@@ -20488,6 +20707,43 @@ function syncFermenterUnlockUI() {
     ctx.fill();
   }
 
+  function drawFoodSeedGrain(ctx, x, y, seed01, scale){
+    const sc = (typeof scale === 'number') ? scale : 1;
+    const rx = dp(3.1) * sc, ry = dp(2.15) * sc;
+    const ang = (seed01 - 0.5) * 2.0;
+    ctx.fillStyle = 'rgba(63,39,18,0.30)';
+    ctx.beginPath();
+    ctx.ellipse(x + dp(0.7)*sc, y + dp(1.2)*sc, rx*0.95, ry*0.78, ang, 0, 6.28);
+    ctx.fill();
+
+    const tone = 0.88 + seed01 * 0.12;
+    const r = Math.round(214 * tone);
+    const g = Math.round(157 * tone);
+    const b = Math.round(62 * tone);
+    ctx.fillStyle = `rgb(${r},${g},${b})`;
+    ctx.beginPath();
+    ctx.ellipse(x, y, rx, ry, ang, 0, 6.28);
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(255,220,132,0.42)';
+    ctx.lineWidth = dp(0.8) * sc;
+    ctx.beginPath();
+    ctx.ellipse(x, y, rx*0.92, ry*0.90, ang, 0, 6.28);
+    ctx.stroke();
+
+    ctx.strokeStyle = 'rgba(95,58,18,0.58)';
+    ctx.lineWidth = dp(0.45) * sc;
+    ctx.beginPath();
+    ctx.moveTo(x - Math.cos(ang) * rx * 0.62, y - Math.sin(ang) * rx * 0.62);
+    ctx.quadraticCurveTo(x, y - ry * 0.18, x + Math.cos(ang) * rx * 0.62, y + Math.sin(ang) * rx * 0.62);
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(255,239,171,0.72)';
+    ctx.beginPath();
+    ctx.ellipse(x - rx*0.24, y - ry*0.32, rx*0.28, ry*0.23, ang, 0, 6.28);
+    ctx.fill();
+  }
+
   function drawLarvaSimple(ctx, x, y, seed01, scale){
     // 軽量描画（短い線＋小さな頭）
     const sc = (typeof scale === 'number') ? scale : 0.5;
@@ -21570,8 +21826,7 @@ function syncFermenterUnlockUI() {
         for(const slotIdx of foodSlots){
           const s = n.slots[slotIdx];
           if(!s) continue;
-          ctx.fillStyle = '#4ade80';
-          ctx.beginPath(); ctx.arc(s.x, s.y, dp(3), 0, 6.28); ctx.fill();
+          drawFoodSeedGrain(ctx, s.x, s.y, seed01FromIds((n.id ?? i) + 19, slotIdx), lightLarva ? 0.9 : 1);
         }
         for(const slotIdx of cookieSlots){
           const s = n.slots[slotIdx];
