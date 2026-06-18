@@ -1,5 +1,28 @@
 # Development Log
 
+## 2026-06-19 リアル土断面F1: 土塊/細根/部屋リップ/通路口の崩れ
+
+`design_concepts/terrain-realism-hybrid-concept.png` の方向性に寄せる第一段として、ゲームロジックやセーブ形式を触らず、巣本体の静的レンダーを「写真風の土断面」に近づけた。UI刷新は未着手で、まず土・部屋・通路だけに限定。
+
+- `buildBackgroundAssets()` に `bgSoilClods` と `bgRootlets` を追加。土塊、細根、陰影付き小石、ハイライトを静的素材として生成し、`drawBackgroundDetails()` で土キャッシュに焼くようにした。毎フレーム描画ではなく既存の `S._soilLayerCvs` 系キャッシュに乗せる。
+- `drawEarthPebbleStamp()` / `drawRoomSoilLip()` / `drawTunnelMouthDetails()` を追加。部屋の縁に厚い土リップと崩れ粒を重ね、通路口にも小石・接触影を置く。輪郭データや部屋スロットは変えず、見た目だけで「掘られた空洞」に寄せた。
+- `drawRoomForegroundRims()` は前面マスクだけでなく、`drawRoomSoilLip(..., foreground=true)` を使ってアリの前に土の縁が乗るようにした。アリが部屋外に出て見える問題のレイヤー対策も維持。
+- メッシュ巣では `roomTint()` の部屋種別カラーを 35% に抑え、緑/ピンクの識別色より土色と陰影を優先する。通常の旧木構造巣では従来アルファを維持。
+- ユーザー確認後の調整: 土リップが目立ちすぎたため、リップ線幅/アルファ/崩れ粒数を大幅に下げた。背景の等間隔な薄茶色横線は `bgSoilBands` の長いストロークが原因だったため描画停止し、代わりに大きめの `soilPatternCanvas`（260pxタイル）を共通の土テクスチャ画像風レイヤーとして強めた。影・部屋内グラデーションは維持。
+- 追加試作: 部屋/通路の内側にも共通画像レイヤーを敷けるよう `cavityPatternCanvas`（300pxタイル）を追加。`drawStaticNestSoilLayer()` では、穴あけ後に `cavGr` で下地を置き、同じ `cavityPattern` を全ての部屋/通路形状へワールド座標でクリップ描画し、その上から `roomBowlGradient()` の光/影だけを半透明で重ねる。部屋ごとに画像原点をリセットしないため、同じ模様スタンプ感を避ける。
+- 検証: `git diff --check` と inline script の `node --check` は成功。Playwright（file URL `?dev=1`）で `generateMeshNest({growth:true, roomsPerBand:12, widthUse:0.93})` を実行し、75ノード/82エッジ、初期可視5/開通4、育児室1・餌室1可視、両室から女王房への経路あり、保存ガード有効、土素材生成（clods 220 / rootlets 52 / pebbles 420 / roots 16）、静的土キャッシュ作成、コンソール/pageerror 0件を確認。目視用スクショ `qa_screenshots/mesh_realism_f1_smoke.png` を保存。
+
+## 2026-06-19 メッシュ巣F4: 初期育児/餌室復元 + 食料表示/部屋リム調整
+
+前日の F4 dev成長モードは入口＋女王房だけから始まっていたが、既存ゲームの序盤不変条件として「育児室1・餌室1」は維持する方針に戻した。あわせて、ユーザー確認で出た食料表示・アリのはみ出し・部屋影の違和感を同じ差分で調整した。
+
+- `generateMeshNest({ growth:true })` の初期解放に、第0層の `nursery` 1室と `food` 1室を必ず含めるようにした。女王房から初期2室へは `forkConnect(..., forceFork=true)` でY字分岐し、`revealPath()` で中継shaftとエッジを開通済みにする。入口/女王だけで始まる退行は避ける。
+- 運搬中の食料を、室内在庫と同じ `drawFoodSeedGrain()` 系の黄土〜琥珀の種粒に統一した。`drawCarriedFoodGrain()` / `getAntFoodSeed()` を追加し、ドット描画・スプライト描画・近距離描画・口移し表示の緑丸を置き換えた。資源UIの緑は識別用として維持。
+- `drawRoomForegroundRims()` を追加し、部屋の手前側リムをアリ描画の後に薄く重ねるようにした。シミュレーション座標は変えず、レイヤーで脚や体が部屋外へはみ出して見えるケースを抑える。
+- メッシュ部屋の内側影を、円形半径ではなく `blobScaleX/Y` を反映した `getRoomVisualRadii()` ベースへ変更。横長レンズ/涙型の部屋に対して丸い影がずれて見える問題を弱め、mesh時の影アルファも少し落とした。
+- 開発中の反省点は memory note（`2026-06-19T011228-ant-clicker-mesh-f4-lessons.md`）に記録。今後は初期不変条件・dev保存ガード・食料表示共通化・レイヤー確認を先に見る。
+- 検証: `git diff --check` と inline script の `node --check` は成功。Playwright（file URL `?dev=1`）で `generateMeshNest({growth:true, roomsPerBand:12, widthUse:0.93})` を実行し、79ノード/87エッジ、初期可視5ノード/開通4エッジ、`nurseryVisible=1`、`foodVisible=1`、育児室/餌室から女王房への経路あり、`caps food=1200 pop=200 egg=200`、保存ガード有効、コンソール/pageerror 0件を確認。目視用スクショ `qa_screenshots/mesh_f4_initial_food_layer_smoke.png` を保存。
+
 ## 2026-06-18 メッシュ巣F4: dev成長モードと建築AIの既存エッジ掘削
 
 `NEST_STRUCTURE_REDESIGN_PLAN.md` の F4 に着手。いきなり本番生成へ置換せず、dev限定で「全メッシュグラフは先に作るが、入口/女王房から建築アリが段階的に掘る」成長モードを追加した。

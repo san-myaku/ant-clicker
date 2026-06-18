@@ -1,6 +1,6 @@
 # Ant Colony V23 Current System Overview
 
-Last updated: 2026-06-17 (soil texture experiment)
+Last updated: 2026-06-19 (mesh realism F1 soil/cavity polish)
 Target file: `index.html`
 
 This document is the current implementation overview for the single-file ant clicker game. When gameplay, UI, save data, AI behavior, or public deployment assumptions change, update this file together with `DEVELOPMENT_LOG.md`.
@@ -76,8 +76,9 @@ Important fields:
 - `cam`
 - `surfacePts`, `surfaceDebris`
 - `soilPattern`, `surfacePattern`
-- `bgPebbles`, `bgRoots`, `bgFossils`, `bgSoilBands`, `bgSoilPockets` (runtime-only generated terrain detail)
+- `bgPebbles`, `bgRoots`, `bgRootlets`, `bgFossils`, `bgSoilClods`, `bgSoilBands`, `bgSoilPockets` (runtime-only generated terrain detail)
 - `soilTextureImg`, `soilTextureLoaded`, `soilTextureFailed` (runtime-only image texture for cached soil rendering)
+- `cavityPattern`, `cavityPatternCanvas` (runtime-only shared procedural image layer for chamber/tunnel interiors)
 - `band`
 - `restCount`, `wasteCount`, `fermentCount`, `cookieRoomCount`
 - `cookieRoomMul`
@@ -252,12 +253,15 @@ Loop edges (extra cross-connections) are disabled: each new room gets exactly on
 
 A second, experimental nest generator is being built per `NEST_STRUCTURE_REDESIGN_PLAN.md` to replace the tree-shaped generator above with a looped mesh (multiple routes between chambers, no single central trunk, banded chamber clusters connected by short tunnels). It is still **dev-only** and does not affect production saves or the normal generator.
 
-- `generateMeshNest(userOpts)` — builds a brand-new `S.full` from scratch: entrance + queen room, then dense horizontal chamber clusters per depth band. Within each band, rooms are connected by a distance MST plus a small number of loop edges; queen-to-band and inter-band descents use small shaft junctions so the tunnel splits in a Y shape instead of branching at a room. Plain `generateMeshNest()` remains an all-visible preview; `generateMeshNest({growth:true})` starts from entrance + queen only and lets builders reveal the prebuilt graph over time.
+- `generateMeshNest(userOpts)` — builds a brand-new `S.full` from scratch: entrance + queen room, then dense horizontal chamber clusters per depth band. Within each band, rooms are connected by a distance MST plus a small number of loop edges; queen-to-band and inter-band descents use small shaft junctions so the tunnel splits in a Y shape instead of branching at a room. Plain `generateMeshNest()` remains an all-visible preview; `generateMeshNest({growth:true})` starts from entrance + queen + one initial nursery + one initial food room, then lets builders reveal the rest of the prebuilt graph over time.
 - `MESH_GEN_DEFAULTS` currently tunes the accepted F1/F2 preview: `roomsPerBand=12`, `widthUse=0.93`, `firstBandTop=dp(190)`, `thinWall=dp(8)`, `extraLoops=4`, `interLayerLinks=2`. Legacy fields (`bandHeight`, `intraLinks`, `interLinksPerBand`, `descents`) remain present but are no longer the active layout mechanism.
 - `meshLensShape(n)` / `meshRoomRadius(type)` plus mesh-gated branches in `buildNodeBlobAndSlots()` and `buildEdgeStamps()` give mesh chambers wider lens/teardrop silhouettes, flatter floors, larger organic blob irregularity, and flared tunnel mouths without changing the production tree nest rendering.
 - Ant routing no longer depends on BFS edge-count order. `findNodePath()` / `getPath()` now run a weighted route search over completed tunnels (`edgeFrac >= 0.99`), with bezier path length as the base cost plus current/future edge congestion and a small random tie-breaker. Existing movement tasks still call `getPath()` unchanged, so the looped mesh can spread traffic across alternate routes while the current production tree remains compatible. Debug helpers are exposed at `window._dbg.findNodePath`, `window._dbg.getPath`, and `window._dbg.getPathDebugStats`.
-- Builder growth has a dev-only mesh path: while `S._meshGrowth` is true, `getDigTarget()` chooses existing unfinished mesh edges leading to hidden preplanned nodes, can also finish visible-visible loop edges as `mesh-loop`, and returns `null` instead of calling legacy `expandMap()` / `forceExpandRoom()` once the prebuilt mesh has no valid frontier. This keeps the growth prototype from mixing old tree-generated rooms into the mesh.
-- Room inventory food is drawn as bright ochre/amber seed-like grains inside chambers so it stays distinct from builder soil; carried food markers and resource UI remain green for readability.
+- Builder growth has a dev-only mesh path: while `S._meshGrowth` is true, `getDigTarget()` chooses existing unfinished mesh edges leading to hidden preplanned nodes, can also finish visible-visible loop edges as `mesh-loop`, and returns `null` instead of calling legacy `expandMap()` / `forceExpandRoom()` once the prebuilt mesh has no valid frontier. The initial visible mesh-growth state preserves the normal early-game invariant of one nursery room and one food room.
+- Room inventory food and carried food are both drawn as bright ochre/amber seed-like grains through the same food-grain renderer so they stay distinct from builder soil and match each other. The resource UI remains green for quick HUD readability.
+- Mesh room foreground rims are drawn after ants, and mesh room inner shadows use the chamber's visual radii (`blobScaleX/Y`) instead of a circular radius. This keeps wide lens/teardrop rooms from getting mismatched circular shadows and masks minor ant/body overhangs at the front edge of chambers.
+- Realism F1 terrain rendering keeps the new detail inside the existing cached static nest layer: `bgSoilClods` and `bgRootlets` add clumped soil and fine roots, pebbles get contact shadows/highlights, `drawRoomSoilLip()` adds subtle chamber lips, and `drawTunnelMouthDetails()` adds restrained tunnel-mouth shadows/stones. The old long `bgSoilBands` strokes are not drawn because they read as artificial horizontal seams; the common soil background instead uses a larger procedural `soilPatternCanvas` as an image-like texture layer. Mesh chamber type tint is reduced to 35% alpha so soil lighting remains dominant while color-mode readability is still present.
+- Chamber and tunnel interiors can also use one shared image-like layer: `cavityPatternCanvas` is generated once in `buildBackgroundAssets()`, then `drawStaticNestSoilLayer()` clips the same `cavityPattern` through all visible room blobs and tunnel stamps in world coordinates. `roomBowlGradient()` is now a translucent light/shadow overlay on top of that shared texture, so current room shadows remain while interiors no longer depend only on per-room flat fills.
 - Reachable only via dev mode: the `巣生成(試作):` dev-tools row has `#btn-dev-mesh-nest` for the all-visible preview and `#btn-dev-mesh-growth` for the builder-growth prototype; `window._dbg.generateMeshNest` is also available for console use. Dev mode itself is unlocked via `?dev=1` or the existing long-press gesture; this button row is hidden until then.
 - Dev mesh worlds set `S._devTransientWorld=true`; automatic saves and normal `G.save()` are blocked while such a trial world is active, so the prototype cannot overwrite the player's normal save.
 - Known limitation carried over from the existing camera system, not introduced by this work: `S.cam.minScale`'s fit-to-width bias (tuned for tall trunk-style nests) means `fitWorldToView` may not zoom out enough to show a full short-and-wide mesh nest in one frame.

@@ -5343,17 +5343,19 @@ function tryStartNurseFeeding(a, feedJob){
 // 部屋タイプ -> 薄い色分け（半透明のオーバーレイ色）
 // null を返した場合は色を付けない（通路など）
 function roomTint(t){
+  const mul = (typeof S !== 'undefined' && S && S._meshNest) ? 0.35 : 1;
+  const rgba = (r,g,b,a) => `rgba(${r},${g},${b},${a * mul})`;
   if(t==='shaft' || t==='entrance') return null;              // 通路/入口は色を付けない
-  if(t==='queen')   return 'rgba(251,191,36,0.10)';           // 金（女王）
-  if(t==='nursery') return 'rgba(236,72,153,0.10)';           // ピンク（育児）
-  if(t==='food')    return 'rgba(74,222,128,0.10)';           // 緑（食料）
-  if(t==='rest')    return 'rgba(96,165,250,0.10)';           // 青（休憩）
-  if(t==='soldier') return 'rgba(59,130,246,0.10)';           // 青濃（兵舎）
-  if(t==='cookieroom') return 'rgba(252,211,77,0.18)';        // 金色（クッキー室）
-  if(t==='ferment') return 'rgba(251,146,60,0.18)';           // 橙（発酵室）
-  if(t==='storage') return 'rgba(16,185,129,0.10)';           // 緑濃（貯蔵）
-  if(t==='waste')   return 'rgba(71,85,105,0.16)';            // ゴミ室（暗め）
-  return 'rgba(255,255,255,0.06)';                            // その他
+  if(t==='queen')   return rgba(251,191,36,0.10);             // 金（女王）
+  if(t==='nursery') return rgba(236,72,153,0.10);             // ピンク（育児）
+  if(t==='food')    return rgba(74,222,128,0.10);             // 緑（食料）
+  if(t==='rest')    return rgba(96,165,250,0.10);             // 青（休憩）
+  if(t==='soldier') return rgba(59,130,246,0.10);             // 青濃（兵舎）
+  if(t==='cookieroom') return rgba(252,211,77,0.18);          // 金色（クッキー室）
+  if(t==='ferment') return rgba(251,146,60,0.18);             // 橙（発酵室）
+  if(t==='storage') return rgba(16,185,129,0.10);             // 緑濃（貯蔵）
+  if(t==='waste')   return rgba(71,85,105,0.16);              // ゴミ室（暗め）
+  return rgba(255,255,255,0.06);                              // その他
 }
 
 function blobParamsForType(t){
@@ -6681,13 +6683,16 @@ function ensureRestSlots(n){
     },
     majorLuckyTargets: { cookie: null },
     cam: { x: 0, y: 0, tx: 0, ty: 0, scale: 1, tScale: 1, minScale: 0.2, maxScale: 3 },
-    soilPattern: null, soilPatternCanvas: null, grass: [],
+    soilPattern: null, soilPatternCanvas: null,
+    cavityPattern: null, cavityPatternCanvas: null,
+    grass: [],
     soilTextureImg: null, soilTextureLoaded: false, soilTextureFailed: false,
     soilTexturePattern: null, soilTexturePatternCtx: null,
     surfacePts: [], surfaceStep: 0,
     surfaceDebris: [],
     surfacePattern: null, surfacePatternCanvas: null,
-    bgPebbles: [], bgRoots: [], bgFossils: [],
+    bgPebbles: [], bgRoots: [], bgRootlets: [], bgFossils: [],
+    bgSoilClods: [],
     bgSoilBands: [], bgSoilPockets: [],
     colors: { soil:['#5d4037','#6d4c41','#795548'], tun:'#3e2723' },
     builderState: "待機中",
@@ -7179,7 +7184,9 @@ window._dbg = {
     // 背景ディテール（小石・根・埋蔵物）を生成
     S.bgPebbles = [];
     S.bgRoots = [];
+    S.bgRootlets = [];
     S.bgFossils = [];
+    S.bgSoilClods = [];
     S.bgSoilBands = [];
     S.bgSoilPockets = [];
     const soilTop = S.full.sy;
@@ -7238,8 +7245,30 @@ window._dbg = {
       S.bgSoilPockets.push({ x, y, rx, ry, rot, c, a });
     }
 
+    const clodColors = [
+      'rgba(74,49,32,0.78)',
+      'rgba(93,63,42,0.74)',
+      'rgba(58,39,29,0.78)',
+      'rgba(120,86,57,0.58)',
+      'rgba(42,35,31,0.62)'
+    ];
+    const clodCount = clamp(Math.floor(area * 0.0000048), 220, 1050);
+    for(let i=0; i<clodCount; i++) {
+      const x = Math.random() * S.full.w;
+      const y = soilTop + dp(28) + Math.random() * Math.max(1, soilH - dp(56));
+      const depthT = clamp((y - soilTop) / Math.max(1, soilH), 0, 1);
+      const sizeMul = 1 + depthT * 0.65;
+      const rx = dp(2.2 + Math.random() * 8.8) * sizeMul;
+      const ry = rx * (0.38 + Math.random() * 0.55);
+      const rot = Math.random() * Math.PI;
+      const c = clodColors[(Math.random() * clodColors.length) | 0];
+      const a = 0.18 + Math.random() * 0.26;
+      const hi = 0.08 + Math.random() * 0.12;
+      S.bgSoilClods.push({ x, y, rx, ry, rot, c, a, hi });
+    }
+
     const pebbleColors = ['#5b3d2b', '#6b4a36', '#4f3426', '#7a5a45', '#634734'];
-    const pebbleCount = clamp(Math.floor(area * 0.000012) * 2, 320, 1900);
+    const pebbleCount = clamp(Math.floor(area * 0.000012) * 2, 420, 2300);
     for(let i=0; i<pebbleCount; i++) {
       const x = Math.random() * S.full.w;
       const y = soilTop + dp(40) + Math.random() * Math.max(1, soilH - dp(80));
@@ -7288,6 +7317,27 @@ window._dbg = {
       S.bgRoots.push({ pts, branches, w, c, a, minX, maxX, minY, maxY });
     }
 
+    const rootletColors = ['#5a3a21', '#46301e', '#6a4729'];
+    const rootletCount = clamp(Math.floor(S.full.w / dp(34)), 34, 120);
+    for(let i=0; i<rootletCount; i++) {
+      const x0 = Math.random() * S.full.w;
+      const y0 = soilTop + dp(3 + Math.random() * 42);
+      const len = dp(28 + Math.random() * 130);
+      const drift = (Math.random() * 2 - 1) * dp(34);
+      const x1 = clamp(x0 + drift, dp(8), S.full.w - dp(8));
+      const y1 = y0 + len;
+      const cx = (x0 + x1) * 0.5 + (Math.random() * 2 - 1) * dp(24);
+      const cy = y0 + len * (0.42 + Math.random() * 0.2);
+      const w = dp(0.45 + Math.random() * 0.75);
+      const c = rootletColors[(Math.random() * rootletColors.length) | 0];
+      const a = 0.13 + Math.random() * 0.20;
+      S.bgRootlets.push({
+        x0, y0, cx, cy, x1, y1, w, c, a,
+        minX: Math.min(x0, x1, cx), maxX: Math.max(x0, x1, cx),
+        minY: Math.min(y0, y1, cy), maxY: Math.max(y0, y1, cy)
+      });
+    }
+
     const fossilMinY = soilTop + dp(700);
     if(soilBottom > fossilMinY + dp(120)) {
       const fossilColors = ['#6e5a44', '#7a6a52', '#5e4a3b', '#74614c'];
@@ -7309,27 +7359,48 @@ window._dbg = {
     }
 
     // 小さなパターンを作って繰り返し描画する（巨大オフスクリーン生成を避ける）
-    const tile = Math.max(48, Math.round(dp(120)));
+    const tile = Math.max(160, Math.round(dp(260)));
     const p = document.createElement('canvas');
     p.width = tile; p.height = tile;
     const pctx = p.getContext('2d');
     pctx.clearRect(0, 0, tile, tile);
-    const specks = Math.floor(tile * tile * 0.003);
+    const bg = pctx.createLinearGradient(0, 0, tile, tile);
+    bg.addColorStop(0, 'rgba(111,76,50,0.18)');
+    bg.addColorStop(0.5, 'rgba(63,42,30,0.10)');
+    bg.addColorStop(1, 'rgba(26,18,14,0.14)');
+    pctx.fillStyle = bg;
+    pctx.fillRect(0, 0, tile, tile);
+    const mottles = Math.floor(tile * tile * 0.00075);
+    for(let i=0; i<mottles; i++) {
+      const x = Math.random() * tile;
+      const y = Math.random() * tile;
+      const rx = 6 + Math.random() * 34;
+      const ry = rx * (0.45 + Math.random() * 0.55);
+      const rot = Math.random() * Math.PI;
+      const warm = Math.random() < 0.55;
+      pctx.fillStyle = warm
+        ? `rgba(146,101,64,${0.025 + Math.random()*0.055})`
+        : `rgba(22,15,11,${0.025 + Math.random()*0.055})`;
+      pctx.beginPath();
+      pctx.ellipse(x, y, rx, ry, rot, 0, 6.28);
+      pctx.fill();
+    }
+    const specks = Math.floor(tile * tile * 0.004);
     for(let i=0; i<specks; i++) {
       const x = Math.random() * tile;
       const y = Math.random() * tile;
-      const r = 0.6 + Math.random() * 1.6;
-      pctx.fillStyle = `rgba(0,0,0,${0.12 + Math.random()*0.18})`;
+      const r = 0.35 + Math.random() * 1.7;
+      pctx.fillStyle = `rgba(0,0,0,${0.07 + Math.random()*0.13})`;
       pctx.beginPath();
       pctx.arc(x, y, r, 0, 6.28);
       pctx.fill();
     }
-    const lightSpecksSoil = Math.floor(tile * tile * 0.0015);
+    const lightSpecksSoil = Math.floor(tile * tile * 0.0022);
     for(let i=0; i<lightSpecksSoil; i++) {
       const x = Math.random() * tile;
       const y = Math.random() * tile;
       const r = 0.35 + Math.random() * 1.2;
-      pctx.fillStyle = `rgba(228,196,150,${0.05 + Math.random()*0.08})`;
+      pctx.fillStyle = `rgba(228,196,150,${0.035 + Math.random()*0.07})`;
       pctx.beginPath();
       pctx.arc(x, y, r, 0, 6.28);
       pctx.fill();
@@ -7339,7 +7410,7 @@ window._dbg = {
       const x = Math.random() * tile;
       const y = Math.random() * tile;
       const len = 2 + Math.random() * 7;
-      pctx.strokeStyle = `rgba(35,22,16,${0.06 + Math.random()*0.08})`;
+      pctx.strokeStyle = `rgba(35,22,16,${0.035 + Math.random()*0.055})`;
       pctx.lineWidth = 0.6 + Math.random() * 0.5;
       pctx.beginPath();
       pctx.moveTo(x, y);
@@ -7348,6 +7419,59 @@ window._dbg = {
     }
     S.soilPatternCanvas = p;
     S.soilPattern = ctx.createPattern(p, 'repeat');
+
+    const cavTile = Math.max(180, Math.round(dp(300)));
+    const cp = document.createElement('canvas');
+    cp.width = cavTile; cp.height = cavTile;
+    const cpctx = cp.getContext('2d');
+    cpctx.clearRect(0, 0, cavTile, cavTile);
+    const cavBg = cpctx.createLinearGradient(0, 0, cavTile, cavTile);
+    cavBg.addColorStop(0, 'rgb(204,181,144)');
+    cavBg.addColorStop(0.48, 'rgb(172,141,106)');
+    cavBg.addColorStop(1, 'rgb(126,92,64)');
+    cpctx.fillStyle = cavBg;
+    cpctx.fillRect(0, 0, cavTile, cavTile);
+    const cavMottles = Math.floor(cavTile * cavTile * 0.0009);
+    for(let i=0; i<cavMottles; i++) {
+      const x = Math.random() * cavTile;
+      const y = Math.random() * cavTile;
+      const rx = 7 + Math.random() * 28;
+      const ry = rx * (0.30 + Math.random() * 0.48);
+      const rot = Math.random() * Math.PI;
+      cpctx.fillStyle = Math.random() < 0.55
+        ? `rgba(238,214,172,${0.030 + Math.random()*0.075})`
+        : `rgba(63,39,22,${0.035 + Math.random()*0.075})`;
+      cpctx.beginPath();
+      cpctx.ellipse(x, y, rx, ry, rot, 0, 6.28);
+      cpctx.fill();
+    }
+    const cavSpecks = Math.floor(cavTile * cavTile * 0.0038);
+    for(let i=0; i<cavSpecks; i++) {
+      const x = Math.random() * cavTile;
+      const y = Math.random() * cavTile;
+      const r = 0.28 + Math.random() * 1.25;
+      cpctx.fillStyle = Math.random() < 0.7
+        ? `rgba(67,43,25,${0.08 + Math.random()*0.16})`
+        : `rgba(245,220,177,${0.04 + Math.random()*0.11})`;
+      cpctx.beginPath();
+      cpctx.arc(x, y, r, 0, 6.28);
+      cpctx.fill();
+    }
+    const cavFibers = Math.floor(cavTile * cavTile * 0.00038);
+    for(let i=0; i<cavFibers; i++) {
+      const x = Math.random() * cavTile;
+      const y = Math.random() * cavTile;
+      const len = 4 + Math.random() * 15;
+      const ang = Math.random() * Math.PI * 2;
+      cpctx.strokeStyle = `rgba(52,32,19,${0.04 + Math.random()*0.06})`;
+      cpctx.lineWidth = 0.45 + Math.random() * 0.5;
+      cpctx.beginPath();
+      cpctx.moveTo(x, y);
+      cpctx.lineTo(x + Math.cos(ang) * len, y + Math.sin(ang) * len * 0.38);
+      cpctx.stroke();
+    }
+    S.cavityPatternCanvas = cp;
+    S.cavityPattern = ctx.createPattern(cp, 'repeat');
 
     const surfTile = Math.max(32, Math.round(dp(80)));
     const sp = document.createElement('canvas');
@@ -7472,21 +7596,8 @@ window._dbg = {
     ctx.rect(view.x - pad, soilTop - pad, view.w + pad * 2, (soilBottom - soilTop) + pad * 2);
     ctx.clip();
 
-    for(const b of bands) {
-      if(!b.pts || b.pts.length < 2) continue;
-      if(b.maxY < soilTop - pad || b.minY > soilBottom + pad) continue;
-      ctx.globalAlpha = b.a;
-      ctx.strokeStyle = b.c;
-      ctx.lineWidth = b.w;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.beginPath();
-      ctx.moveTo(b.pts[0].x, b.pts[0].y);
-      for(let i=1; i<b.pts.length; i++) {
-        ctx.lineTo(b.pts[i].x, b.pts[i].y);
-      }
-      ctx.stroke();
-    }
+    // Long, repeated strata lines read as artificial seams at game zoom levels.
+    // Keep the generated band data for future use, but let mottled texture/pockets carry the soil layer.
 
     for(const p of pockets) {
       if(p.x + p.rx < view.x - pad || p.x - p.rx > view.x + view.w + pad) continue;
@@ -7504,11 +7615,34 @@ window._dbg = {
 
   function drawBackgroundDetails(ctx, view, soilTop, soilBottom){
     const fossils = S.bgFossils || [];
+    const clods = S.bgSoilClods || [];
     const pebbles = S.bgPebbles || [];
     const roots = S.bgRoots || [];
+    const rootlets = S.bgRootlets || [];
     const pad = dp(50);
 
     drawSoilStrata(ctx, view, soilTop, soilBottom);
+
+    // clumped soil aggregates: large, low-contrast shapes make the cross-section feel dug, not flat.
+    for(const c of clods) {
+      if(c.x + c.rx < view.x - pad || c.x - c.rx > view.x + view.w + pad) continue;
+      if(c.y + c.ry < soilTop - pad || c.y - c.ry > soilBottom + pad) continue;
+      ctx.globalAlpha = c.a;
+      ctx.fillStyle = c.c;
+      ctx.beginPath();
+      ctx.ellipse(c.x, c.y, c.rx, c.ry, c.rot, 0, 6.28);
+      ctx.fill();
+      ctx.globalAlpha = c.a * 0.45;
+      ctx.fillStyle = 'rgba(18,12,8,0.65)';
+      ctx.beginPath();
+      ctx.ellipse(c.x + c.rx * 0.16, c.y + c.ry * 0.34, c.rx * 0.92, c.ry * 0.62, c.rot, 0, 6.28);
+      ctx.fill();
+      ctx.globalAlpha = c.hi;
+      ctx.fillStyle = 'rgba(220,185,134,0.72)';
+      ctx.beginPath();
+      ctx.ellipse(c.x - c.rx * 0.26, c.y - c.ry * 0.38, c.rx * 0.32, c.ry * 0.22, c.rot, 0, 6.28);
+      ctx.fill();
+    }
 
     // fossils (deep)
     for(const f of fossils) {
@@ -7526,10 +7660,20 @@ window._dbg = {
     for(const p of pebbles) {
       if(p.x < view.x - pad || p.x > view.x + view.w + pad) continue;
       if(p.y < soilTop - pad || p.y > soilBottom + pad) continue;
+      ctx.globalAlpha = p.a * 0.45;
+      ctx.fillStyle = 'rgba(18,12,8,0.72)';
+      ctx.beginPath();
+      ctx.ellipse(p.x + p.rx * 0.16, p.y + p.ry * 0.35, p.rx * 0.98, p.ry * 0.70, p.rot, 0, 6.28);
+      ctx.fill();
       ctx.globalAlpha = p.a;
       ctx.fillStyle = p.c;
       ctx.beginPath();
       ctx.ellipse(p.x, p.y, p.rx, p.ry, p.rot, 0, 6.28);
+      ctx.fill();
+      ctx.globalAlpha = p.a * 0.42;
+      ctx.fillStyle = 'rgba(230,198,154,0.76)';
+      ctx.beginPath();
+      ctx.ellipse(p.x - p.rx * 0.28, p.y - p.ry * 0.34, p.rx * 0.28, p.ry * 0.18, p.rot, 0, 6.28);
       ctx.fill();
     }
 
@@ -7557,6 +7701,20 @@ window._dbg = {
           ctx.stroke();
         }
       }
+    }
+
+    // fine root hairs just below the surface.
+    for(const r of rootlets) {
+      if(r.maxX < view.x - pad || r.minX > view.x + view.w + pad) continue;
+      if(r.maxY < soilTop - pad || r.minY > soilBottom + pad) continue;
+      ctx.globalAlpha = r.a;
+      ctx.strokeStyle = r.c;
+      ctx.lineWidth = r.w;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(r.x0, r.y0);
+      ctx.quadraticCurveTo(r.cx, r.cy, r.x1, r.y1);
+      ctx.stroke();
     }
 
     ctx.globalAlpha = 1;
@@ -8051,7 +8209,7 @@ S.band.forceShaft = 0;
     }
     // Y字ジャンクション: src から中継シャフト(J)を1本伸ばし、そこから複数の部屋へ二股に分岐。
     // ＝シャフトの「途中でY字」になる（部屋ではなく通路の途中で割れる）。
-    const forkConnect = (srcId, targetIds) => {
+    const forkConnect = (srcId, targetIds, forceFork=false) => {
       const src = nodes[srcId];
       const valid = targetIds.filter(t => t!=null && t!==srcId && !hasEdge(srcId, t));
       if(valid.length === 0) return;
@@ -8063,7 +8221,7 @@ S.band.forceShaft = 0;
         const a1 = Math.atan2(nodes[t1].y-src.y, nodes[t1].x-src.x);
         let da = Math.abs(a0-a1); if(da > Math.PI) da = 2*Math.PI - da;
         const far = dist(nodes[t0].x,nodes[t0].y, nodes[t1].x,nodes[t1].y);
-        if(da >= 0.55 && far >= dp(80)){
+        if(forceFork || (da >= 0.55 && far >= dp(80))){
           // 意味のある二股: junctionをsrc寄り(0.4)に・tunnel径(小)で置き、独立空洞に見せない
           const cxj=(nodes[t0].x+nodes[t1].x)/2, cyj=(nodes[t0].y+nodes[t1].y)/2;
           const jId = addN(src.x+(cxj-src.x)*0.4, src.y+(cyj-src.y)*0.4, dp(5), 'shaft', false);
@@ -8075,9 +8233,22 @@ S.band.forceShaft = 0;
     };
     const nearestIn = (group, x, y, k) => group.slice()
       .sort((a,b)=>dist(nodes[a].x,nodes[a].y,x,y)-dist(nodes[b].x,nodes[b].y,x,y)).slice(0, k);
+    const getInitialGrowthRooms = () => {
+      const ids = (bandRooms[0] || []).filter(id => nodes[id]);
+      const nursery = ids.find(id => nodes[id] && nodes[id].type === 'nursery');
+      const food = ids.find(id => nodes[id] && nodes[id].type === 'food');
+      const out = [];
+      if(nursery != null) out.push(nursery);
+      if(food != null && food !== nursery) out.push(food);
+      return { nursery, food, ids: out };
+    };
+    const initialGrowthRooms = getInitialGrowthRooms();
     // 女王→第0層: 真下へ1本伸ばしてY字で2部屋へ分岐
     if(bandRooms[0] && bandRooms[0].length) {
-      forkConnect(qid, nearestIn(bandRooms[0], nodes[qid].x, nodes[qid].y, Math.min(2, bandRooms[0].length)));
+      const firstTargets = (growthMode && initialGrowthRooms.ids.length >= 2)
+        ? initialGrowthRooms.ids.slice(0, 2)
+        : nearestIn(bandRooms[0], nodes[qid].x, nodes[qid].y, Math.min(2, bandRooms[0].length));
+      forkConnect(qid, firstTargets, growthMode && firstTargets.length >= 2);
     }
     // 層間: 上層で下層中心に最も近い部屋を起点に、下層の近い部屋へY字分岐（縦シャフトが途中で割れる）
     for(let bi=0; bi<bandRooms.length-1; bi++) {
@@ -8161,6 +8332,35 @@ S.band.forceShaft = 0;
       S.nodeVis[eid] = true;
       S.nodeVis[qid] = true;
       if(entranceQueenEid >= 0) S.edgeFrac[entranceQueenEid] = 1;
+      const revealPath = (from, to) => {
+        if(from == null || to == null || !nodes[from] || !nodes[to]) return false;
+        const q = [from], seen = new Set([from]), prev = new Map();
+        while(q.length) {
+          const u = q.shift();
+          if(u === to) break;
+          for(const peid of byNode[u] || []) {
+            const e = edges[peid];
+            if(!e) continue;
+            const v = (e.u === u) ? e.v : e.u;
+            if(seen.has(v)) continue;
+            seen.add(v);
+            prev.set(v, { node:u, eid:peid });
+            q.push(v);
+          }
+        }
+        if(!seen.has(to)) return false;
+        let cur = to, guard = 0;
+        S.nodeVis[cur] = true;
+        while(cur !== from && guard++ < nodes.length + 2) {
+          const p = prev.get(cur);
+          if(!p) break;
+          S.edgeFrac[p.eid] = 1;
+          S.nodeVis[p.node] = true;
+          cur = p.node;
+        }
+        return true;
+      };
+      for(const rid of initialGrowthRooms.ids) revealPath(qid, rid);
     } else {
       // プレビューは即可視（全ノード/全エッジを開通済みに）
       S.nodeVis = new Array(nodes.length).fill(true);
@@ -8885,13 +9085,20 @@ function expandMap(forcedType, isEmergency) {
       return null;
   }
 
+  let antVisualSeq = 1;
+  function ensureAntVisualId(a) {
+    if(!a) return 0;
+    if(a.vid == null) a.vid = antVisualSeq++;
+    return a.vid;
+  }
+
   function spawnAnt(role) {
     if(!S.full) return;
     const q = S.full.nodes[S.full.qid];
     S.ants.push({
       role, task:'idle', stateT:0,
       node: S.full.qid, eid:-1, t:0.5, x:q.x, y:q.y,
-      path:[], pIdx:0, anim:Math.random()*10,
+      path:[], pIdx:0, anim:Math.random()*10, vid: antVisualSeq++,
       _laneOffset: (Math.random() - 0.5) * dp(7.2),
       sp: 1, cargo:null, goldenCargo:false,
       golden: (role === 'worker' && shouldSpawnGoldenWorker()),
@@ -19987,7 +20194,7 @@ function syncFermenterUnlockUI() {
     ctx.beginPath(); ctx.arc(0, 0, dp(2.2), 0, 6.28); ctx.fill();
     // 追加: 幼虫運搬(larva)のアイコン表示対応
     const carry = a.cargo || a.carryType;
-    if(carry === 'food'){ctx.fillStyle='#4ade80'; ctx.beginPath(); ctx.arc(dp(3.3),0,dp(1.4),0,6.28); ctx.fill();}
+    if(carry === 'food') drawCarriedFoodGrain(ctx, dp(3.3), 0, a, 0.52, 3);
     if(carry === 'egg'){ctx.fillStyle='#fef3c7'; ctx.beginPath(); ctx.arc(dp(3.3),0,dp(1.4),0,6.28); ctx.fill();}
     if(carry === 'larva'){
       // 運搬中の幼虫は「うねうね」表示に差し替え
@@ -20033,6 +20240,7 @@ function syncFermenterUnlockUI() {
   function drawAntDotsBatched(ants) {
     const baseGroups = {};
     const carryGroups = {};
+    const foodCarry = [];
     const goldenGlow = [];
     const panic = [];
     const dotR = dp(2.2);
@@ -20046,7 +20254,7 @@ function syncFermenterUnlockUI() {
       }
       addBatchPoint(baseGroups, getAntBaseColor(a), x, y);
       const carry = a.cargo || a.carryType;
-      if(carry === 'food') addBatchPoint(carryGroups, '#4ade80', x + dp(3.3), y);
+      if(carry === 'food') foodCarry.push({ x: x + dp(3.3), y, seed:getAntFoodSeed(a, 5), scale:0.48 });
       else if(carry === 'egg') addBatchPoint(carryGroups, '#fef3c7', x + dp(3.3), y);
       else if(carry === 'larva') addBatchPoint(carryGroups, '#fef3c7', x + dp(3.3), y);
       else if(carry === 'waste') addBatchPoint(carryGroups, '#6b7280', x + dp(3.2), y);
@@ -20066,6 +20274,7 @@ function syncFermenterUnlockUI() {
     }
     for(const color of Object.keys(baseGroups)) batches += drawCircleBatch(baseGroups[color], dotR, color);
     for(const color of Object.keys(carryGroups)) batches += drawCircleBatch(carryGroups[color], carryR, color);
+    for(const p of foodCarry) drawFoodSeedGrain(ctx, p.x, p.y, p.seed, p.scale);
     if(panic.length) {
       ctx.strokeStyle = 'rgba(248, 113, 113, 0.85)';
       ctx.lineWidth = dp(1);
@@ -20096,7 +20305,7 @@ function syncFermenterUnlockUI() {
     ctx.beginPath(); ctx.ellipse(dp(3.4), 0, dp(2.0), dp(1.9), 0, 0, 6.28); ctx.fill();
     // 追加: 幼虫運搬(larva)のアイコン表示対応
     const carry = a.cargo || a.carryType;
-    if(carry === 'food'){ctx.fillStyle='#4ade80'; ctx.beginPath(); ctx.arc(dp(6),0,dp(1.8),0,6.28); ctx.fill();}
+    if(carry === 'food') drawCarriedFoodGrain(ctx, dp(6), 0, a, 0.62, 7);
     if(carry === 'egg'){ctx.fillStyle='#fef3c7'; ctx.beginPath(); ctx.arc(dp(6),0,dp(1.8),0,6.28); ctx.fill();}
     if(carry === 'larva'){
       // 運搬中の幼虫は「うねうね」表示に差し替え
@@ -20744,6 +20953,174 @@ function syncFermenterUnlockUI() {
     ctx.fill();
   }
 
+  function getAntFoodSeed(a, salt=0) {
+    const visualId = ensureAntVisualId(a);
+    return seed01FromIds(visualId * 1009 + salt * 37 + 13, 19);
+  }
+
+  function drawCarriedFoodGrain(ctx, x, y, antOrSeed, scale, salt=0) {
+    const seed = (typeof antOrSeed === 'number') ? antOrSeed : getAntFoodSeed(antOrSeed, salt);
+    drawFoodSeedGrain(ctx, x, y, seed, scale);
+  }
+
+  function getRoomVisualRadii(n) {
+    const r = (n && n.r) || dp(10);
+    return {
+      rx: r * ((n && n.blobScaleX) || 1),
+      ry: r * ((n && n.blobScaleY) || 0.8)
+    };
+  }
+
+  function drawEarthPebbleStamp(ctx, x, y, rx, ry, rot, color, alpha, highlightAlpha) {
+    const prevAlpha = ctx.globalAlpha;
+    ctx.globalAlpha = prevAlpha * alpha * 0.42;
+    ctx.fillStyle = 'rgba(16,10,6,0.72)';
+    ctx.beginPath();
+    ctx.ellipse(x + rx * 0.18, y + ry * 0.38, rx * 1.0, ry * 0.72, rot, 0, 6.28);
+    ctx.fill();
+    ctx.globalAlpha = prevAlpha * alpha;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.ellipse(x, y, rx, ry, rot, 0, 6.28);
+    ctx.fill();
+    if(highlightAlpha > 0) {
+      ctx.globalAlpha = prevAlpha * highlightAlpha;
+      ctx.fillStyle = 'rgba(230,195,143,0.78)';
+      ctx.beginPath();
+      ctx.ellipse(x - rx * 0.28, y - ry * 0.36, rx * 0.30, ry * 0.20, rot, 0, 6.28);
+      ctx.fill();
+    }
+    ctx.globalAlpha = prevAlpha;
+  }
+
+  function drawRoomSoilLip(ctx, n, view, foreground=false) {
+    if(!n || n.type === 'shaft' || n.type === 'entrance') return;
+    const rr = getRoomVisualRadii(n);
+    const pad = dp(130);
+    if(view) {
+      if(n.x + rr.rx < view.x - pad || n.x - rr.rx > view.x + view.w + pad) return;
+      if(n.y + rr.ry < view.y - pad || n.y - rr.ry > view.y + view.h + pad) return;
+    }
+    const mesh = !!S._meshNest;
+    const id = (n.id != null) ? n.id : 0;
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = foreground ? 'rgba(38,24,13,0.30)' : 'rgba(26,17,10,0.22)';
+    ctx.lineWidth = mesh ? dp(foreground ? 2.2 : 2.0) : dp(foreground ? 1.8 : 1.6);
+    strokeBlobPath(ctx, n);
+    if(!foreground) {
+      ctx.strokeStyle = 'rgba(139,96,58,0.18)';
+      ctx.lineWidth = mesh ? dp(1.0) : dp(0.8);
+      strokeBlobPath(ctx, n);
+    }
+
+    if(foreground) {
+      ctx.strokeStyle = 'rgba(232,196,136,0.10)';
+      ctx.lineWidth = dp(0.8);
+      ctx.beginPath();
+      ctx.ellipse(n.x, n.y + rr.ry * 0.38, rr.rx * 0.72, rr.ry * 0.33, 0, Math.PI * 0.10, Math.PI * 0.90);
+      ctx.stroke();
+    }
+
+    const bottomCount = foreground ? Math.min(5, Math.max(2, Math.round(rr.rx / dp(30)))) : Math.min(7, Math.max(3, Math.round(rr.rx / dp(24))));
+    for(let k=0; k<bottomCount; k++) {
+      const u = seed01FromIds((id + 1) * 811 + k * 17, foreground ? 73 : 29);
+      const v = seed01FromIds((id + 1) * 613 + k * 23, foreground ? 131 : 47);
+      const a = Math.PI * (0.08 + 0.84 * ((k + u * 0.65) / Math.max(1, bottomCount)));
+      const edgeJitter = 0.86 + v * 0.20;
+      const x = n.x + Math.cos(a) * rr.rx * edgeJitter;
+      const y = n.y + Math.sin(a) * rr.ry * (0.78 + u * 0.18);
+      const prx = dp((foreground ? 1.4 : 1.2) + u * (foreground ? 2.6 : 3.0));
+      const pry = prx * (0.38 + v * 0.35);
+      const rot = a + (u - 0.5) * 1.2;
+      const color = (u < 0.33) ? 'rgba(91,58,32,0.88)' : (u < 0.66 ? 'rgba(61,39,24,0.88)' : 'rgba(132,91,54,0.72)');
+      drawEarthPebbleStamp(ctx, x, y, prx, pry, rot, color, foreground ? 0.26 : 0.20, foreground ? 0.04 : 0.03);
+    }
+
+    if(!foreground) {
+      const topCount = Math.min(4, Math.max(1, Math.round(rr.rx / dp(42))));
+      for(let k=0; k<topCount; k++) {
+        const u = seed01FromIds((id + 5) * 577 + k * 31, 89);
+        const v = seed01FromIds((id + 3) * 431 + k * 19, 167);
+        const a = Math.PI * (1.12 + 0.76 * ((k + u * 0.5) / Math.max(1, topCount)));
+        const x = n.x + Math.cos(a) * rr.rx * (0.88 + v * 0.12);
+        const y = n.y + Math.sin(a) * rr.ry * (0.86 + u * 0.10);
+        const prx = dp(0.9 + u * 1.9);
+        const pry = prx * (0.35 + v * 0.35);
+        drawEarthPebbleStamp(ctx, x, y, prx, pry, a + (v - 0.5), 'rgba(47,31,21,0.72)', 0.16, 0.02);
+      }
+    }
+    ctx.restore();
+  }
+
+  function drawTunnelMouthDetail(ctx, e, nodeId, stamp, view, soilTop, soilBottom, salt) {
+    const n = S.full && S.full.nodes ? S.full.nodes[nodeId] : null;
+    if(!n || !stamp) return;
+    if(n.type === 'shaft' || n.type === 'entrance') return;
+    const pad = dp(80);
+    if(stamp.x < view.x - pad || stamp.x > view.x + view.w + pad) return;
+    if(stamp.y < soilTop - pad || stamp.y > soilBottom + pad) return;
+    const angle = Math.atan2(stamp.y - n.y, stamp.x - n.x);
+    const mouthR = Math.max(dp(5), stamp.r * 1.25);
+    ctx.save();
+    const grd = ctx.createRadialGradient(stamp.x, stamp.y, mouthR * 0.15, stamp.x, stamp.y, mouthR * 1.55);
+    grd.addColorStop(0, 'rgba(35,22,13,0.22)');
+    grd.addColorStop(0.58, 'rgba(66,42,24,0.10)');
+    grd.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grd;
+    ctx.beginPath();
+    ctx.arc(stamp.x, stamp.y, mouthR * 1.65, 0, 6.28);
+    ctx.fill();
+
+    const count = 3;
+    for(let k=0; k<count; k++) {
+      const u = seed01FromIds((e.id + 1) * 997 + k * 37, salt + 11);
+      const v = seed01FromIds((e.id + 1) * 389 + k * 41, salt + 53);
+      const side = (u - 0.5) * mouthR * 2.2;
+      const out = (v - 0.18) * mouthR * 0.72;
+      const x = stamp.x + Math.cos(angle) * out + Math.cos(angle + Math.PI * 0.5) * side;
+      const y = stamp.y + Math.sin(angle) * out + Math.sin(angle + Math.PI * 0.5) * side;
+      const rx = dp(1.0 + u * 2.0);
+      const ry = rx * (0.36 + v * 0.36);
+      const color = u < 0.5 ? 'rgba(79,51,30,0.74)' : 'rgba(126,84,48,0.56)';
+      drawEarthPebbleStamp(ctx, x, y, rx, ry, angle + (u - 0.5) * 1.4, color, 0.20, 0.03);
+    }
+    ctx.restore();
+  }
+
+  function drawTunnelMouthDetails(ctx, e, f, view, soilTop, soilBottom) {
+    if(!e || !e.stamps || !e.stamps.length || !S.full || !S.full.nodes) return;
+    if(f > 0.02) drawTunnelMouthDetail(ctx, e, e.u, e.stamps[0], view, soilTop, soilBottom, 101);
+    if(f >= 0.98) drawTunnelMouthDetail(ctx, e, e.v, e.stamps[e.stamps.length - 1], view, soilTop, soilBottom, 211);
+  }
+
+  function drawRoomForegroundRims(ctx, view) {
+    if(!S.full || !S.full.nodes) return;
+    const mesh = !!S._meshNest;
+    const pad = dp(120);
+    S.full.nodes.forEach((n, i) => {
+      if(!S.nodeVis[i]) return;
+      if(!n || n.type === 'shaft' || n.type === 'entrance' || n.type === 'queen') return;
+      const rr = getRoomVisualRadii(n);
+      if(n.x < view.x - pad || n.x > view.x + view.w + pad) return;
+      if(n.y < view.y - pad || n.y > view.y + view.h + pad) return;
+      ctx.save();
+      clipBlobPath(ctx, n);
+      const frontTop = n.y + rr.ry * (mesh ? 0.12 : 0.18);
+      const frontBottom = n.y + rr.ry * 1.12;
+      const grd = ctx.createLinearGradient(0, frontTop, 0, frontBottom);
+      grd.addColorStop(0, 'rgba(0,0,0,0)');
+      grd.addColorStop(0.55, mesh ? 'rgba(56,35,18,0.16)' : 'rgba(45,28,16,0.18)');
+      grd.addColorStop(1, mesh ? 'rgba(41,25,13,0.42)' : 'rgba(32,20,12,0.34)');
+      ctx.fillStyle = grd;
+      ctx.fillRect(n.x - rr.rx * 1.35, frontTop, rr.rx * 2.7, Math.max(dp(1), frontBottom - frontTop));
+      ctx.restore();
+
+      drawRoomSoilLip(ctx, n, view, true);
+    });
+  }
+
   function drawLarvaSimple(ctx, x, y, seed01, scale){
     // 軽量描画（短い線＋小さな頭）
     const sc = (typeof scale === 'number') ? scale : 0.5;
@@ -21271,9 +21648,9 @@ function syncFermenterUnlockUI() {
     const inner = Math.max(dp(2), Math.min(rx, ry) * 0.18);
     const outer = Math.max(rx, ry) * 1.18;
     const grad = g.createRadialGradient(cx, cy, inner, cx, cy, outer);
-    grad.addColorStop(0,   'rgb(209,187,157)'); // 光の当たる床
-    grad.addColorStop(0.5, 'rgb(178,152,124)');
-    grad.addColorStop(1,   'rgb(95,72,51)');    // 縁・天井の陰（疑似AO）
+    grad.addColorStop(0,   'rgba(238,218,184,0.52)'); // 光の当たる床
+    grad.addColorStop(0.5, 'rgba(180,145,105,0.14)');
+    grad.addColorStop(1,   'rgba(62,39,23,0.52)');     // 縁・天井の陰（疑似AO）
     return grad;
   }
 
@@ -21336,26 +21713,43 @@ function syncFermenterUnlockUI() {
     });
     g.restore();
 
+    const fillCavityShapes = (fillStyle, alpha = 1, includeEdges = true, includeNodes = true) => {
+      const prevAlpha = g.globalAlpha;
+      g.globalAlpha = prevAlpha * alpha;
+      g.fillStyle = fillStyle;
+      if(includeEdges) S.full.edges.forEach((e,i)=>{
+        if(!shouldDrawEdgeProgress(i)) return;
+        const f = S.edgeFrac[i];
+        if(!e.stamps) buildEdgeStamps(e, S.full.nodes);
+        const stamps = e.stamps;
+        if(!stamps || stamps.length===0) return;
+        const count = Math.max(1, Math.floor(stamps.length * f));
+        drawStamps(g, stamps, count, 1, view, soilTop, soilBottom, stampPad);
+      });
+      if(includeNodes) S.full.nodes.forEach((n,i)=>{
+        if(!S.nodeVis[i]) return;
+        if(n.x < view.x - nodePad || n.x > view.x + view.w + nodePad) return;
+        if(n.y < soilTop - nodePad || n.y > soilBottom + nodePad) return;
+        fillBlobPath(g, n);
+      });
+      g.globalAlpha = prevAlpha;
+    };
+
     g.save();
     g.beginPath();
     g.rect(view.x, soilTop, view.w, soilH);
     g.clip();
-    g.fillStyle = cavGr;
-    S.full.edges.forEach((e,i)=>{
-      if(!shouldDrawEdgeProgress(i)) return;
-      const f = S.edgeFrac[i];
-      if(!e.stamps) buildEdgeStamps(e, S.full.nodes);
-      const stamps = e.stamps;
-      if(!stamps || stamps.length===0) return;
-      const count = Math.max(1, Math.floor(stamps.length * f));
-      drawStamps(g, stamps, count, 1, view, soilTop, soilBottom, stampPad);
-    });
+    fillCavityShapes(cavGr, 1, true, true);
+    if(S.cavityPattern) {
+      fillCavityShapes(S.cavityPattern, 0.78, true, true);
+    }
     S.full.nodes.forEach((n,i)=>{
       if(!S.nodeVis[i]) return;
+      if(n.type === 'shaft') return;
       if(n.x < view.x - nodePad || n.x > view.x + view.w + nodePad) return;
       if(n.y < soilTop - nodePad || n.y > soilBottom + nodePad) return;
-      // 部屋は椀状グラデーションで立体感を、通路(shaft)は従来の平塗りのまま
-      g.fillStyle = (n.type === 'shaft') ? cavGr : roomBowlGradient(g, n);
+      // 部屋は共通テクスチャの上に椀状の光/影だけを重ねる。
+      g.fillStyle = roomBowlGradient(g, n);
       fillBlobPath(g, n);
     });
     g.restore();
@@ -21406,6 +21800,23 @@ function syncFermenterUnlockUI() {
       if(n.x < view.x - nodePad || n.x > view.x + view.w + nodePad) return;
       if(n.y < soilTop - nodePad || n.y > soilBottom + nodePad) return;
       strokeBlobPath(g, n);
+    });
+    g.restore();
+
+    // Realism F1: bake earthy lips and crumbly tunnel mouths into the static layer.
+    // This gives rooms/tunnels a dug cross-section feel without adding per-frame cost.
+    g.save();
+    g.beginPath();
+    g.rect(view.x, soilTop, view.w, soilH);
+    g.clip();
+    S.full.edges.forEach((e,i)=>{
+      if(!shouldDrawEdgeProgress(i)) return;
+      if(!e.stamps) buildEdgeStamps(e, S.full.nodes);
+      drawTunnelMouthDetails(g, e, clamp(S.edgeFrac[i] || 0, 0, 1), view, soilTop, soilBottom);
+    });
+    S.full.nodes.forEach((n,i)=>{
+      if(!S.nodeVis[i]) return;
+      drawRoomSoilLip(g, n, view, false);
     });
     g.restore();
   }
@@ -21935,24 +22346,27 @@ function syncFermenterUnlockUI() {
       clipBlobPath(ctx, n);
       // 縁の影（外から中心に向かって透明になるグラデ）
       const r = n.r;
-      const shadowGrd = ctx.createRadialGradient(n.x, n.y - r * 0.15, r * 0.35, n.x, n.y, r * 1.08);
+      const rr = getRoomVisualRadii(n);
+      const innerR = Math.max(dp(2), Math.min(rr.rx, rr.ry) * 0.34);
+      const outerR = Math.max(rr.rx, rr.ry) * (S._meshNest ? 1.05 : 1.08);
+      const shadowGrd = ctx.createRadialGradient(n.x, n.y - rr.ry * 0.12, innerR, n.x, n.y + rr.ry * 0.02, outerR);
       shadowGrd.addColorStop(0,   'rgba(0,0,0,0)');
-      shadowGrd.addColorStop(0.6, 'rgba(0,0,0,0)');
-      shadowGrd.addColorStop(1,   'rgba(0,0,0,0.52)');
+      shadowGrd.addColorStop(0.62, 'rgba(0,0,0,0)');
+      shadowGrd.addColorStop(1,   S._meshNest ? 'rgba(0,0,0,0.38)' : 'rgba(0,0,0,0.50)');
       ctx.fillStyle = shadowGrd;
-      ctx.fillRect(n.x - r * 1.3, n.y - r * 1.3, r * 2.6, r * 2.6);
+      ctx.fillRect(n.x - rr.rx * 1.25, n.y - rr.ry * 1.35, rr.rx * 2.5, rr.ry * 2.7);
       // 上端の影（土が崩れる感じ）
-      const topShadow = ctx.createLinearGradient(n.x, n.y - r, n.x, n.y - r * 0.3);
-      topShadow.addColorStop(0,   'rgba(20,10,5,0.45)');
+      const topShadow = ctx.createLinearGradient(n.x, n.y - rr.ry * 1.05, n.x, n.y - rr.ry * 0.28);
+      topShadow.addColorStop(0,   S._meshNest ? 'rgba(20,10,5,0.32)' : 'rgba(20,10,5,0.44)');
       topShadow.addColorStop(1,   'rgba(20,10,5,0)');
       ctx.fillStyle = topShadow;
-      ctx.fillRect(n.x - r * 1.3, n.y - r * 1.3, r * 2.6, r * 1.1);
+      ctx.fillRect(n.x - rr.rx * 1.25, n.y - rr.ry * 1.25, rr.rx * 2.5, rr.ry * 1.0);
       // 床面のハイライト（わずかな光）
-      const floorGrd = ctx.createLinearGradient(n.x, n.y + r * 0.4, n.x, n.y + r);
+      const floorGrd = ctx.createLinearGradient(n.x, n.y + rr.ry * 0.28, n.x, n.y + rr.ry * 1.0);
       floorGrd.addColorStop(0, 'rgba(255,255,255,0)');
-      floorGrd.addColorStop(1, 'rgba(255,255,255,0.06)');
+      floorGrd.addColorStop(1, S._meshNest ? 'rgba(255,255,255,0.045)' : 'rgba(255,255,255,0.06)');
       ctx.fillStyle = floorGrd;
-      ctx.fillRect(n.x - r * 1.3, n.y + r * 0.3, r * 2.6, r * 0.9);
+      ctx.fillRect(n.x - rr.rx * 1.25, n.y + rr.ry * 0.25, rr.rx * 2.5, rr.ry * 0.9);
       ctx.restore();
     });
 
@@ -22309,15 +22723,12 @@ function syncFermenterUnlockUI() {
         ctx.stroke();
         ctx.fillStyle = 'rgba(253, 224, 71, 0.75)';
         ctx.beginPath(); ctx.arc(rx, ry, dp(0.95), 0, 6.28); ctx.fill();
-        if(_ct.troph){ // 口移し（栄養交換）の食料玉
-          ctx.fillStyle = '#4ade80';
-          ctx.beginPath(); ctx.arc(rx*0.66, ry*0.66, dp(1.7), 0, 6.28); ctx.fill();
-        }
+        if(_ct.troph) drawCarriedFoodGrain(ctx, rx*0.66, ry*0.66, a, 0.50, 17); // 口移し（栄養交換）の食料玉
       }
 
       // 追加: 幼虫運搬(larva)のアイコン表示対応
       const carry = a.cargo || a.carryType;
-      if(carry==='food'){ctx.fillStyle='#4ade80'; ctx.beginPath(); ctx.arc(dp(8),0,dp(3.5),0,6.28); ctx.fill();}
+      if(carry==='food') drawCarriedFoodGrain(ctx, dp(8), 0, a, 0.85, 11);
       if(carry==='egg'){ctx.fillStyle='#fef3c7'; ctx.beginPath(); ctx.arc(dp(8),0,dp(3.5),0,6.28); ctx.fill();}
       if(carry==='larva'){
         // 運搬中の幼虫は「うねうね」表示に差し替え
@@ -22362,6 +22773,9 @@ function syncFermenterUnlockUI() {
         if(bAlpha > 0.01) drawQueenWhisperBubble(q, bAlpha);
       }
     }
+
+    // 部屋の手前側リムをアリの上に軽く重ね、部屋外へはみ出して見える脚/体を縁で隠す。
+    drawRoomForegroundRims(ctx, view);
 
     // ===== フェロモントレイル描画 =====
     if(_colorMode && S.trails.length > 0) {
