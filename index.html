@@ -21091,6 +21091,115 @@ function syncFermenterUnlockUI() {
     ctx.globalAlpha = prevAlpha;
   }
 
+  function drawRoomRimChips(ctx, n, rr, foreground=false) {
+    if(!n || !rr) return;
+    const id = (n.id != null) ? n.id : 0;
+    const count = foreground
+      ? Math.min(7, Math.max(3, Math.round(rr.rx / dp(24))))
+      : Math.min(10, Math.max(4, Math.round(rr.rx / dp(20))));
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    for(let k=0; k<count; k++) {
+      const u = seed01FromIds((id + 11) * 733 + k * 43, foreground ? 307 : 191);
+      const v = seed01FromIds((id + 13) * 587 + k * 29, foreground ? 419 : 223);
+      const topBias = foreground ? 0.08 : 0.18;
+      const a = Math.PI * (topBias + (1 - topBias * 2) * ((k + u * 0.7) / Math.max(1, count)));
+      const edge = 0.96 + v * 0.09;
+      const x = n.x + Math.cos(a) * rr.rx * edge;
+      const y = n.y + Math.sin(a) * rr.ry * (0.92 + u * 0.12);
+      const rot = a + Math.PI * 0.5 + (v - 0.5) * 0.7;
+      const w = dp((foreground ? 2.4 : 2.8) + u * (foreground ? 4.0 : 5.2));
+      const h = dp((foreground ? 0.9 : 1.1) + v * 1.7);
+
+      ctx.globalAlpha = foreground ? 0.20 : 0.24;
+      ctx.fillStyle = (u < 0.55) ? 'rgba(30,18,10,0.86)' : 'rgba(88,54,28,0.58)';
+      ctx.beginPath();
+      ctx.ellipse(x, y, w, h, rot, 0, 6.28);
+      ctx.fill();
+
+      if(!foreground && k % 2 === 0) {
+        ctx.globalAlpha = 0.10;
+        ctx.strokeStyle = 'rgba(228,188,124,0.56)';
+        ctx.lineWidth = dp(0.7);
+        ctx.beginPath();
+        ctx.ellipse(x - Math.cos(a) * dp(1.2), y - Math.sin(a) * dp(1.2), w * 0.55, h * 0.45, rot, 0, Math.PI);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+
+  function drawRoomInteriorRealism(ctx, n, view) {
+    if(!n || n.type === 'shaft' || n.type === 'entrance') return;
+    const rr = getRoomVisualRadii(n);
+    const pad = dp(80);
+    if(view) {
+      if(n.x + rr.rx < view.x - pad || n.x - rr.rx > view.x + view.w + pad) return;
+      if(n.y + rr.ry < view.y - pad || n.y - rr.ry > view.y + view.h + pad) return;
+    }
+    const id = (n.id != null) ? n.id : 0;
+    const mesh = !!S._meshNest;
+    ctx.save();
+    clipBlobPath(ctx, n);
+
+    const topY = n.y - rr.ry;
+    const midY = n.y + rr.ry * 0.12;
+    const bottomY = n.y + rr.ry;
+    const ceil = ctx.createLinearGradient(0, topY, 0, midY);
+    ceil.addColorStop(0, mesh ? 'rgba(27,17,10,0.40)' : 'rgba(27,17,10,0.34)');
+    ceil.addColorStop(0.42, 'rgba(47,29,16,0.18)');
+    ceil.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = ceil;
+    ctx.fillRect(n.x - rr.rx * 1.08, topY, rr.rx * 2.16, rr.ry * 1.18);
+
+    const floor = ctx.createRadialGradient(
+      n.x - rr.rx * 0.08, n.y + rr.ry * 0.48, Math.max(dp(2), rr.ry * 0.10),
+      n.x, n.y + rr.ry * 0.42, Math.max(rr.rx, rr.ry) * 0.92
+    );
+    floor.addColorStop(0, 'rgba(245,226,185,0.32)');
+    floor.addColorStop(0.58, 'rgba(213,184,137,0.12)');
+    floor.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = floor;
+    ctx.beginPath();
+    ctx.ellipse(n.x, n.y + rr.ry * 0.44, rr.rx * 0.82, rr.ry * 0.36, 0, 0, 6.28);
+    ctx.fill();
+
+    const scuffCount = Math.min(18, Math.max(6, Math.round(rr.rx / dp(9))));
+    ctx.lineCap = 'round';
+    for(let k=0; k<scuffCount; k++) {
+      const u = seed01FromIds((id + 17) * 991 + k * 47, 337);
+      const v = seed01FromIds((id + 19) * 761 + k * 31, 461);
+      const x = n.x + (u - 0.5) * rr.rx * 1.25;
+      const y = n.y + rr.ry * (0.18 + v * 0.58);
+      const len = dp(3.2 + u * 9.0);
+      const rot = (v - 0.5) * 0.55;
+      ctx.globalAlpha = 0.06 + u * 0.035;
+      ctx.strokeStyle = u < 0.45 ? 'rgba(55,35,21,0.70)' : 'rgba(239,205,151,0.58)';
+      ctx.lineWidth = dp(0.45 + v * 0.65);
+      ctx.beginPath();
+      ctx.moveTo(x - Math.cos(rot) * len * 0.5, y - Math.sin(rot) * len * 0.5);
+      ctx.lineTo(x + Math.cos(rot) * len * 0.5, y + Math.sin(rot) * len * 0.5);
+      ctx.stroke();
+    }
+
+    const crumbleCount = Math.min(8, Math.max(3, Math.round(rr.rx / dp(19))));
+    for(let k=0; k<crumbleCount; k++) {
+      const u = seed01FromIds((id + 23) * 557 + k * 59, 541);
+      const v = seed01FromIds((id + 29) * 499 + k * 41, 673);
+      const a = Math.PI * (1.08 + 0.84 * ((k + u * 0.6) / Math.max(1, crumbleCount)));
+      const x = n.x + Math.cos(a) * rr.rx * (0.54 + v * 0.38);
+      const y = n.y + Math.sin(a) * rr.ry * (0.62 + u * 0.26);
+      const rx = dp(0.9 + u * 2.0);
+      const ry = rx * (0.36 + v * 0.32);
+      drawEarthPebbleStamp(ctx, x, y, rx, ry, a + (v - 0.5), 'rgba(53,34,21,0.72)', 0.12, 0.012);
+    }
+
+    ctx.globalAlpha = 1;
+    ctx.restore();
+
+  }
+
   function drawRoomSoilLip(ctx, n, view, foreground=false) {
     if(!n || n.type === 'shaft' || n.type === 'entrance') return;
     const rr = getRoomVisualRadii(n);
@@ -21120,6 +21229,8 @@ function syncFermenterUnlockUI() {
       ctx.ellipse(n.x, n.y + rr.ry * 0.38, rr.rx * 0.72, rr.ry * 0.33, 0, Math.PI * 0.10, Math.PI * 0.90);
       ctx.stroke();
     }
+
+    drawRoomRimChips(ctx, n, rr, foreground);
 
     const bottomCount = foreground ? Math.min(5, Math.max(2, Math.round(rr.rx / dp(30)))) : Math.min(7, Math.max(3, Math.round(rr.rx / dp(24))));
     for(let k=0; k<bottomCount; k++) {
@@ -21856,6 +21967,7 @@ function syncFermenterUnlockUI() {
       // 部屋は共通テクスチャの上に椀状の光/影だけを重ねる。
       g.fillStyle = roomBowlGradient(g, n);
       fillBlobPath(g, n);
+      drawRoomInteriorRealism(g, n, view);
     });
     g.restore();
 
