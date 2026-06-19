@@ -1,5 +1,13 @@
 # Development Log
 
+## 2026-06-19 Nest realism F5.5: stronger surface read
+
+Follow-up to the first F5.5 surface pass after the visual change still read too subtle at normal game zoom. The change is still visual-only.
+
+- Enlarged the surface cross-section cap again and pushed it toward a dark humus/root-mat silhouette so it reads from zoomed-out play.
+- Added `surfaceBackGrowth` for visible grass and plant silhouettes above the cut line, separate from the foreground grass strokes.
+- Added `surfaceMatRoots` inside the clipped surface band, plus larger pebbles, leaves, and twigs so the top layer changes are obvious without relying on tiny texture noise.
+
 ## 2026-06-19 Nest realism F5.5: surface realism before UI
 
 Continued before `NEST_REALISM_ROADMAP.md` F6. The change is visual-only: nest topology, room coordinates, ant movement, inventory logic, and save data are unchanged.
