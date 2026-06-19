@@ -1,5 +1,14 @@
 # Development Log
 
+## 2026-06-19 Nest realism F5.5: surface realism before UI
+
+Continued before `NEST_REALISM_ROADMAP.md` F6. The change is visual-only: nest topology, room coordinates, ant movement, inventory logic, and save data are unchanged.
+
+- Thickened the surface cross-section into a darker humus band with fixed pores, clods, and short fiber marks instead of continuous horizontal contour lines.
+- Added baked dangling surface roots through the static background detail path so chamber/tunnel cutouts still mask roots correctly.
+- Increased surface litter and grass density, made fallen leaves render as filled leaves, and added small grass base shadows for better ground contact.
+- Added F5.5 to the roadmap as the surface-tuning checkpoint before any HUD/glass UI pass.
+
 ## 2026-06-19 Nest realism F5: ant integration pass
 
 Continued from `NEST_REALISM_ROADMAP.md` F5. The change is visual-only: ant task logic, pathfinding, room coordinates, and save data are unchanged.

@@ -13,6 +13,7 @@ handoffs, call these phases "nest realism F1-F6" to avoid ambiguity.
 | F3: Natural passage carving | 65-70% | Darker walls, brighter center, tunnel-mouth contact shadow/pebbles, room-connection fixes, and deterministic wall scrape/crumb marks are in. Remaining work is stronger silhouette irregularity if screenshots still read too tube-like. |
 | F4: Inventory piles | 50-60% | Food/eggs/larvae/waste now render as floor-integrated piles with mound bases, contact shadows, and back/front depth shading. Remaining work is screenshot tuning of pile density and scale. |
 | F5: Ant integration | 60-70% | Tunnel ants now draw smaller/darker across vector, sprite, dot, and crowd modes, and the foreground room rim has stronger lower occlusion. Remaining work is screenshot tuning for over-dark passages or over-heavy rims. |
+| F5.5: Surface realism before UI | 45-55% | Thicker dark humus band, fixed cut-face grains, denser surface litter, taller grass clumps, and baked dangling roots are in. Remaining work is screenshot tuning for crowding near the entrance and top-screen readability. |
 | F6: UI pass | 0% | Keep HUD/glass UI for later after the nest body is stable. |
 
 ## F1: Soil Cross-Section Density
@@ -70,6 +71,18 @@ Current implementation notes:
 - `getCrowdAntDrawProfile()` applies the same smaller black-silhouette treatment to `crowdSprite` passage ants.
 - `drawRoomForegroundRims()` now extends the lower foreground occlusion band so room ants tuck farther under the chamber lip.
 
+## F5.5: Surface Realism Before UI
+
+- Make the surface read as a real cross-section cap, not a thin smooth stripe.
+- Add a darker humus mat, surface litter, grass clumps, and dangling roots before changing HUD/UI.
+- Keep roots and soil details in the static/background path where possible so room and tunnel cutouts still mask them.
+
+Current implementation notes:
+
+- `surfaceCutGrains` adds deterministic pores, clods, and short fiber marks to the surface band instead of continuous horizontal contour lines.
+- `surfaceRootCurtain` is baked through `drawBackgroundDetails()` before cavity cutouts, so dangling roots do not draw over chamber interiors.
+- Surface debris now uses denser pebbles/leaves/twigs, and leaves render as filled fallen leaves instead of two loose strokes.
+
 ## F6: UI Last
 
 - The dark glass HUD direction is attractive, but leave UI until the nest body is closer.
@@ -81,4 +94,5 @@ Current implementation notes:
 2. Finish F3 passage edge irregularity and mouth blending.
 3. Move to F4 inventory piles once the floor and passage treatment is stable.
 4. Revisit F5 ant integration after the rims and passages have their final silhouettes.
-5. Keep F6 out of scope until the nest body is visually coherent.
+5. Tune F5.5 surface realism against screenshots before HUD changes.
+6. Keep F6 out of scope until the nest body is visually coherent.

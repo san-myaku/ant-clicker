@@ -3765,10 +3765,10 @@
   const SURF_AMP = 16;
   const SURF_NOISE_STEP = 260;
   const SURF_NOISE_DETAIL = 110;
-  const SURF_UP = 12;
-  const SURF_DOWN = 34;
+  const SURF_UP = 18;
+  const SURF_DOWN = 52;
   const SURF_BAND_PAD = 160;
-  const DEBRIS_COUNT = 190;
+  const DEBRIS_COUNT = 280;
   const DEBRIS_ENTRANCE_BOOST = 0.35;
   const DEBRIS_MIN_DY = 2;
   const DEBRIS_MAX_DY = 35;
@@ -3776,9 +3776,9 @@
   const ENTRANCE_MOUND_H = 18;
   const ENTRANCE_HOLE_W = 17;
   const ENTRANCE_HOLE_H = 5;
-  const GRASS_STEP = 12;
+  const GRASS_STEP = 10;
   const GRASS_TUFT_MIN = 2;
-  const GRASS_TUFT_MAX = 6;
+  const GRASS_TUFT_MAX = 7;
   const GRASS_AVOID_R = 26;
   const TERRAIN_SOIL_TEXTURE_SRC = 'assets/terrain/soil-loam-tile.png';
   const TERRAIN_SOIL_TEXTURE_SCALE = 1.85;
@@ -6826,6 +6826,7 @@ function ensureRestSlots(n){
     cavityTexturePattern: null, cavityTexturePatternCtx: null,
     surfacePts: [], surfaceStep: 0,
     surfaceDebris: [],
+    surfaceCutGrains: [], surfaceRootCurtain: [],
     surfacePattern: null, surfacePatternCanvas: null,
     bgPebbles: [], bgRoots: [], bgRootlets: [], bgFossils: [],
     bgSoilClods: [],
@@ -7360,6 +7361,8 @@ window._dbg = {
     S.bgSoilClods = [];
     S.bgSoilBands = [];
     S.bgSoilPockets = [];
+    S.surfaceCutGrains = [];
+    S.surfaceRootCurtain = [];
     const soilTop = S.full.sy;
     const soilBottom = S.full.h;
     const soilH = Math.max(1, soilBottom - soilTop);
@@ -7506,6 +7509,45 @@ window._dbg = {
         x0, y0, cx, cy, x1, y1, w, c, a,
         minX: Math.min(x0, x1, cx), maxX: Math.max(x0, x1, cx),
         minY: Math.min(y0, y1, cy), maxY: Math.max(y0, y1, cy)
+      });
+    }
+
+    const curtainRootColors = ['#3c2a1b', '#4a321f', '#5a3b22', '#2f241a'];
+    const curtainRootCount = clamp(Math.floor(S.full.w / Math.max(1, dp(18))), 70, 240);
+    for(let i=0; i<curtainRootCount; i++) {
+      const x0 = Math.random() * S.full.w;
+      if(Math.abs(x0 - ENX()) < dp(ENTRANCE_HOLE_W * 1.8) && Math.random() < 0.72) continue;
+      const y0 = surfaceY(x0) + dp(4 + Math.random() * 16);
+      const len = dp(38 + Math.random() * 170) * (Math.random() < 0.18 ? 1.45 : 1);
+      const drift = (Math.random() * 2 - 1) * dp(20 + Math.random() * 44);
+      const x1 = clamp(x0 + drift, dp(8), S.full.w - dp(8));
+      const y1 = y0 + len;
+      const cx = (x0 + x1) * 0.5 + (Math.random() * 2 - 1) * dp(18);
+      const cy = y0 + len * (0.36 + Math.random() * 0.22);
+      const w = dp(0.45 + Math.random() * 0.9);
+      const c = curtainRootColors[(Math.random() * curtainRootColors.length) | 0];
+      const a = 0.16 + Math.random() * 0.28;
+      const branches = [];
+      const branchCount = Math.floor(Math.random() * 3);
+      for(let bi=0; bi<branchCount; bi++) {
+        const t = 0.26 + Math.random() * 0.56;
+        const bx0 = (1-t)*(1-t)*x0 + 2*(1-t)*t*cx + t*t*x1;
+        const by0 = (1-t)*(1-t)*y0 + 2*(1-t)*t*cy + t*t*y1;
+        const dir = Math.random() < 0.5 ? -1 : 1;
+        const blen = dp(14 + Math.random() * 42);
+        const bx1 = clamp(bx0 + dir * blen * (0.55 + Math.random() * 0.65), dp(8), S.full.w - dp(8));
+        const by1 = by0 + dp(8 + Math.random() * 30);
+        branches.push({
+          x0: bx0, y0: by0,
+          cx: (bx0 + bx1) * 0.5 + dir * dp(4 + Math.random() * 12),
+          cy: (by0 + by1) * 0.5 + dp(Math.random() * 8),
+          x1: bx1, y1: by1
+        });
+      }
+      S.surfaceRootCurtain.push({
+        x0, y0, cx, cy, x1, y1, w, c, a, branches,
+        minX: Math.min(x0, x1, cx) - dp(45), maxX: Math.max(x0, x1, cx) + dp(45),
+        minY: Math.min(y0, y1, cy), maxY: Math.max(y0, y1, cy) + dp(36)
       });
     }
 
@@ -7669,8 +7711,51 @@ window._dbg = {
       spctx.arc(x, y, r, 0, 6.28);
       spctx.fill();
     }
+    const surfFibers = Math.floor(surfTile * surfTile * 0.0009);
+    for(let i=0; i<surfFibers; i++) {
+      const x = Math.random() * surfTile;
+      const y = Math.random() * surfTile;
+      const len = 3 + Math.random() * 12;
+      const ang = Math.random() * Math.PI * 2;
+      spctx.strokeStyle = Math.random() < 0.62
+        ? `rgba(31,22,14,${0.09 + Math.random()*0.12})`
+        : `rgba(185,139,82,${0.05 + Math.random()*0.08})`;
+      spctx.lineWidth = 0.45 + Math.random() * 0.75;
+      spctx.lineCap = 'round';
+      spctx.beginPath();
+      spctx.moveTo(x, y);
+      spctx.lineTo(x + Math.cos(ang) * len, y + Math.sin(ang) * len * 0.55);
+      spctx.stroke();
+    }
     S.surfacePatternCanvas = sp;
     S.surfacePattern = ctx.createPattern(sp, 'repeat');
+
+    const cutGrainColors = [
+      'rgba(30,22,16,0.72)',
+      'rgba(76,51,33,0.66)',
+      'rgba(127,91,58,0.54)',
+      'rgba(201,165,116,0.35)'
+    ];
+    const cutGrainCount = clamp(Math.floor(S.full.w / Math.max(1, dp(5.5))), 140, 520);
+    for(let i=0; i<cutGrainCount; i++) {
+      const x = Math.random() * S.full.w;
+      const depth = Math.pow(Math.random(), 1.28);
+      const y = surfaceY(x) + dp(-14 + depth * (SURF_DOWN + 18));
+      const r = Math.random();
+      const kind = r < 0.46 ? 'pore' : (r < 0.78 ? 'streak' : 'clod');
+      const rot = (Math.random() - 0.5) * 1.2;
+      const c = cutGrainColors[(Math.random() * cutGrainColors.length) | 0];
+      const a = 0.30 + Math.random() * 0.40;
+      if(kind === 'streak') {
+        const len = dp(3 + Math.random() * 16);
+        const w = dp(0.55 + Math.random() * 0.8);
+        S.surfaceCutGrains.push({ kind, x, y, len, rot, w, c, a });
+      } else {
+        const rx = dp(kind === 'clod' ? (2.0 + Math.random() * 6.0) : (0.55 + Math.random() * 1.9));
+        const ry = rx * (kind === 'clod' ? (0.45 + Math.random() * 0.48) : (0.70 + Math.random() * 0.55));
+        S.surfaceCutGrains.push({ kind, x, y, rx, ry, rot, c, a });
+      }
+    }
 
     // 地表デブリ（小石・落ち葉・枝）
     S.surfaceDebris = [];
@@ -7703,16 +7788,16 @@ window._dbg = {
         const a = isEntrance ? (0.5 + Math.random() * 0.3) : (0.35 + Math.random() * 0.25);
         S.surfaceDebris.push({ kind, x, y, rx, ry, rot, c, a });
       } else if(kind === 'leaf') {
-        const len = dp(6 + Math.random() * 10);
-        const rot = (Math.random() * 1 - 0.5) * 0.6;
-        const w = dp(0.8 + Math.random() * 0.5);
+        const len = dp(7 + Math.random() * 15);
+        const rot = (Math.random() * 2 - 1) * 1.2;
+        const w = dp(0.75 + Math.random() * 0.55);
         const c = (isEntrance ? leafDarkColors : leafColors)[(Math.random() * (isEntrance ? leafDarkColors.length : leafColors.length)) | 0];
         const a = isEntrance ? (0.6 + Math.random() * 0.25) : (0.4 + Math.random() * 0.25);
         const lift = dp(Math.random() * 1.5);
         S.surfaceDebris.push({ kind, x, y, len, rot, w, c, a, lift });
       } else {
-        const len = dp(10 + Math.random() * 14);
-        const rot = (Math.random() * 1 - 0.5) * 0.7;
+        const len = dp(11 + Math.random() * 19);
+        const rot = (Math.random() * 2 - 1) * 1.15;
         const w = dp(0.8 + Math.random() * 0.6);
         const c = (isEntrance ? twigDarkColors : twigColors)[(Math.random() * (isEntrance ? twigDarkColors.length : twigColors.length)) | 0];
         const a = isEntrance ? (0.55 + Math.random() * 0.25) : (0.38 + Math.random() * 0.25);
@@ -7735,20 +7820,21 @@ window._dbg = {
       const avoid = dp(GRASS_AVOID_R);
       for(let x=0; x<S.full.w; x+=step) {
         if(Math.abs(x-ex) <= avoid) continue;
-        if(Math.random() < 0.65) {
+        if(Math.random() < 0.78) {
           const tuft = GRASS_TUFT_MIN + Math.floor(Math.random() * (GRASS_TUFT_MAX - GRASS_TUFT_MIN + 1));
-          const grassCols = ['#4d7c0f', '#3f6f12', '#5f8f20', '#2f5f19'];
+          const grassCols = ['#4d7c0f', '#3f6f12', '#5f8f20', '#2f5f19', '#6b7d28', '#31532a'];
           for(let k=0; k<tuft; k++) {
             const ox = (Math.random() - 0.5) * step * 0.6;
             const gx = clamp(x + ox, 0, S.full.w);
+            const tall = Math.random() < 0.22;
             S.grass.push({
               x: gx,
-              h: dp(6 + Math.random() * 12),
+              h: tall ? dp(20 + Math.random() * 28) : dp(7 + Math.random() * 15),
               o: Math.random() * 6,
-              sway: 0.6 + Math.random() * 0.8,
+              sway: tall ? (0.85 + Math.random() * 0.9) : (0.55 + Math.random() * 0.8),
               yo: dp(Math.random() * 3),
-              lean: (Math.random() - 0.5) * dp(4),
-              w: dp(1.1 + Math.random() * 1.2),
+              lean: (Math.random() - 0.5) * dp(tall ? 9 : 4),
+              w: dp((tall ? 0.9 : 1.1) + Math.random() * 1.2),
               c: grassCols[(Math.random() * grassCols.length) | 0]
             });
           }
@@ -7790,6 +7876,7 @@ window._dbg = {
     const pebbles = S.bgPebbles || [];
     const roots = S.bgRoots || [];
     const rootlets = S.bgRootlets || [];
+    const surfaceRoots = S.surfaceRootCurtain || [];
     const pad = dp(50);
 
     drawSoilStrata(ctx, view, soilTop, soilBottom);
@@ -7888,7 +7975,46 @@ window._dbg = {
       ctx.stroke();
     }
 
+    // Denser dangling roots anchored at the surface. These are baked before room/tunnel cutouts.
+    for(const r of surfaceRoots) {
+      if(r.maxX < view.x - pad || r.minX > view.x + view.w + pad) continue;
+      if(r.maxY < soilTop - pad || r.minY > soilBottom + pad) continue;
+      ctx.globalAlpha = r.a;
+      ctx.strokeStyle = r.c;
+      ctx.lineWidth = r.w;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      ctx.moveTo(r.x0, r.y0);
+      ctx.quadraticCurveTo(r.cx, r.cy, r.x1, r.y1);
+      ctx.stroke();
+      if(r.branches && r.branches.length) {
+        ctx.lineWidth = Math.max(dp(0.45), r.w * 0.62);
+        ctx.globalAlpha = r.a * 0.72;
+        for(const b of r.branches) {
+          ctx.beginPath();
+          ctx.moveTo(b.x0, b.y0);
+          ctx.quadraticCurveTo(b.cx, b.cy, b.x1, b.y1);
+          ctx.stroke();
+        }
+      }
+    }
+
     ctx.globalAlpha = 1;
+  }
+
+  function traceSurfaceBandPath(ctx, x0, x1, top, bottom, step) {
+    ctx.beginPath();
+    ctx.moveTo(x0, surfaceY(x0) - top);
+    for(let x=x0+step; x<=x1; x+=step) {
+      ctx.lineTo(x, surfaceY(x) - top);
+    }
+    ctx.lineTo(x1, surfaceY(x1) - top);
+    for(let x=x1; x>=x0; x-=step) {
+      ctx.lineTo(x, surfaceY(x) + bottom);
+    }
+    ctx.lineTo(x0, surfaceY(x0) + bottom);
+    ctx.closePath();
   }
 
   function drawSurfaceBand(ctx, view){
@@ -7907,56 +8033,32 @@ window._dbg = {
 
     const step = S.surfaceStep || dp(SURF_STEP);
     ctx.save();
-    ctx.beginPath();
-    ctx.moveTo(x0, surfaceY(x0) - top);
-    for(let x=x0+step; x<=x1; x+=step) {
-      ctx.lineTo(x, surfaceY(x) - top);
-    }
-    for(let x=x1; x>=x0; x-=step) {
-      ctx.lineTo(x, surfaceY(x) + bottom);
-    }
-    ctx.closePath();
+    traceSurfaceBandPath(ctx, x0, x1, top, bottom, step);
 
     const midX = (x0 + x1) * 0.5;
     const midY = surfaceY(midX);
     const bandGr = ctx.createLinearGradient(0, midY - top, 0, midY + bottom);
-    bandGr.addColorStop(0, 'rgba(216, 192, 160, 0.98)');
-    bandGr.addColorStop(0.34, 'rgba(166, 127, 92, 0.98)');
-    bandGr.addColorStop(1, 'rgba(92, 68, 50, 0.98)');
+    bandGr.addColorStop(0, 'rgba(44, 35, 25, 0.98)');
+    bandGr.addColorStop(0.18, 'rgba(62, 46, 31, 0.98)');
+    bandGr.addColorStop(0.42, 'rgba(136, 96, 62, 0.98)');
+    bandGr.addColorStop(0.72, 'rgba(101, 70, 49, 0.98)');
+    bandGr.addColorStop(1, 'rgba(59, 45, 36, 0.98)');
     ctx.fillStyle = bandGr;
     ctx.fill();
 
     if(S.surfacePattern) {
-      ctx.globalAlpha = 0.25;
+      ctx.globalAlpha = 0.34;
       ctx.fillStyle = S.surfacePattern;
       ctx.fill();
     }
 
     const humusGr = ctx.createLinearGradient(0, midY - top, 0, midY + bottom);
-    humusGr.addColorStop(0, 'rgba(70, 48, 32, 0)');
-    humusGr.addColorStop(0.28, 'rgba(58, 40, 29, 0.18)');
-    humusGr.addColorStop(0.55, 'rgba(58, 40, 29, 0.06)');
+    humusGr.addColorStop(0, 'rgba(18, 14, 10, 0.48)');
+    humusGr.addColorStop(0.24, 'rgba(32, 22, 15, 0.34)');
+    humusGr.addColorStop(0.48, 'rgba(58, 40, 29, 0.08)');
     humusGr.addColorStop(1, 'rgba(0, 0, 0, 0)');
     ctx.fillStyle = humusGr;
     ctx.fill();
-
-    const contourDefs = [
-      { off: 5, color: 'rgba(58, 40, 27, 0.26)', w: 1.0, freq: 0.022 },
-      { off: 14, color: 'rgba(239, 210, 168, 0.14)', w: 0.9, freq: 0.031 },
-      { off: 24, color: 'rgba(48, 32, 22, 0.16)', w: 1.1, freq: 0.018 }
-    ];
-    for(const c of contourDefs) {
-      ctx.beginPath();
-      for(let x=x0; x<=x1; x+=step) {
-        const jitter = Math.sin(x * c.freq + c.off) * dp(0.8);
-        const y = surfaceY(x) + dp(c.off) + jitter;
-        if(x===x0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      }
-      ctx.strokeStyle = c.color;
-      ctx.lineWidth = dp(c.w);
-      ctx.stroke();
-    }
     ctx.restore();
 
     ctx.save();
@@ -8063,15 +8165,19 @@ window._dbg = {
       } else if(d.kind === 'leaf') {
         ctx.translate(d.x, d.y);
         ctx.rotate(d.rot);
-        ctx.strokeStyle = d.c;
-        ctx.lineWidth = d.w;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
+        ctx.fillStyle = d.c;
         ctx.beginPath();
         ctx.moveTo(-d.len * 0.5, 0);
         ctx.quadraticCurveTo(0, -d.len * 0.25, d.len * 0.5, 0);
-        ctx.moveTo(-d.len * 0.45, d.lift);
-        ctx.quadraticCurveTo(0, d.len * 0.2, d.len * 0.45, d.lift);
+        ctx.quadraticCurveTo(0, d.len * 0.23 + d.lift, -d.len * 0.5, 0);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(34,26,18,0.34)';
+        ctx.lineWidth = Math.max(dp(0.5), d.w * 0.8);
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        ctx.moveTo(-d.len * 0.42, d.lift * 0.25);
+        ctx.quadraticCurveTo(0, d.lift - d.len * 0.02, d.len * 0.42, d.lift * 0.25);
         ctx.stroke();
       } else if(d.kind === 'twig') {
         ctx.translate(d.x, d.y);
@@ -21276,6 +21382,56 @@ function syncFermenterUnlockUI() {
     ctx.restore();
   }
 
+  function drawSurfaceCutDetails(ctx, view){
+    const grains = S.surfaceCutGrains || [];
+    if(!S.full || grains.length === 0 || !S.surfacePts || S.surfacePts.length < 2) return;
+    const pad = dp(SURF_BAND_PAD);
+    const x0 = clamp(view.x - pad, 0, S.full.w);
+    const x1 = clamp(view.x + view.w + pad, 0, S.full.w);
+    if(x1 <= x0) return;
+    const top = dp(SURF_UP);
+    const bottom = dp(SURF_DOWN);
+    const step = S.surfaceStep || dp(SURF_STEP);
+    ctx.save();
+    traceSurfaceBandPath(ctx, x0, x1, top, bottom, step);
+    ctx.clip();
+    for(const g of grains) {
+      if(g.x < view.x - dp(40) || g.x > view.x + view.w + dp(40)) continue;
+      if(g.y < view.y - dp(40) || g.y > view.y + view.h + dp(40)) continue;
+      ctx.save();
+      ctx.globalAlpha = g.a;
+      if(g.kind === 'streak') {
+        ctx.translate(g.x, g.y);
+        ctx.rotate(g.rot);
+        ctx.strokeStyle = g.c;
+        ctx.lineWidth = g.w;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(-g.len * 0.5, 0);
+        ctx.quadraticCurveTo(0, -g.len * 0.12, g.len * 0.5, g.len * 0.08);
+        ctx.stroke();
+      } else {
+        ctx.translate(g.x, g.y);
+        ctx.rotate(g.rot);
+        if(g.kind === 'clod') {
+          ctx.globalAlpha *= 0.46;
+          ctx.fillStyle = 'rgba(12,8,5,0.62)';
+          ctx.beginPath();
+          ctx.ellipse(g.rx * 0.12, g.ry * 0.32, g.rx * 0.94, g.ry * 0.58, 0, 0, 6.28);
+          ctx.fill();
+          ctx.globalAlpha = g.a;
+        }
+        ctx.fillStyle = g.c;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, g.rx, g.ry, 0, 0, 6.28);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+    ctx.restore();
+    ctx.globalAlpha = 1;
+  }
+
   function getInventoryPilePoint(n, kind, ordinal, drawCount, slotIdx, inventoryCount) {
     const anchor = getRoomPileAnchor(n, kind);
     const id = (n && n.id != null) ? n.id : 0;
@@ -22612,6 +22768,7 @@ function syncFermenterUnlockUI() {
     }
 
     drawSurfaceBand(ctx, view);
+    drawSurfaceCutDetails(ctx, view);
     drawEntranceMound(ctx, view);
 
     ctx.lineCap='round'; ctx.lineJoin='round';
@@ -22937,8 +23094,13 @@ function syncFermenterUnlockUI() {
       if(g.x < view.x - grassPad || g.x > view.x + view.w + grassPad) return;
       const baseY = surfaceY(g.x) + (g.yo || 0);
       const sw = Math.sin(S.t*2+g.o) * dp(4) * (g.sway || 1);
+      ctx.fillStyle = 'rgba(28,22,15,0.22)';
+      ctx.beginPath();
+      ctx.ellipse(g.x, baseY + dp(1.4), Math.max(dp(1.8), (g.w || dp(2)) * 1.6), dp(1.0), 0, 0, 6.28);
+      ctx.fill();
       ctx.strokeStyle = g.c || '#4d7c0f';
       ctx.lineWidth = g.w || dp(2);
+      ctx.lineCap = 'round';
       ctx.beginPath(); ctx.moveTo(g.x, baseY);
       const lean = g.lean || 0;
       ctx.quadraticCurveTo(g.x + lean + sw, baseY-g.h*0.5, g.x + lean*1.6 + sw*1.5, baseY-g.h);
