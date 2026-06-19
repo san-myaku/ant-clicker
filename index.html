@@ -3782,6 +3782,8 @@
   const GRASS_AVOID_R = 26;
   const TERRAIN_SOIL_TEXTURE_SRC = 'assets/terrain/soil-loam-tile.png';
   const TERRAIN_SOIL_TEXTURE_SCALE = 1.85;
+  const CAVITY_SOIL_TEXTURE_SRC = 'assets/textures/cavity-soil-tile-muted-v1.png';
+  const CAVITY_SOIL_TEXTURE_SCALE = 0.62;
   // 襲撃バランス（後から調整しやすいように定数化）
   const RAID_CFG = {
     enemyBase: 50,
@@ -6688,6 +6690,8 @@ function ensureRestSlots(n){
     grass: [],
     soilTextureImg: null, soilTextureLoaded: false, soilTextureFailed: false,
     soilTexturePattern: null, soilTexturePatternCtx: null,
+    cavityTextureImg: null, cavityTextureLoaded: false, cavityTextureFailed: false,
+    cavityTexturePattern: null, cavityTexturePatternCtx: null,
     surfacePts: [], surfaceStep: 0,
     surfaceDebris: [],
     surfacePattern: null, surfacePatternCanvas: null,
@@ -7129,23 +7133,42 @@ window._dbg = {
     S._soilLayerMeta = null;
     S.soilTexturePattern = null;
     S.soilTexturePatternCtx = null;
+    S.cavityTexturePattern = null;
+    S.cavityTexturePatternCtx = null;
   }
 
   function preloadTerrainTextures() {
-    if(typeof Image === 'undefined' || S.soilTextureImg) return;
-    const img = new Image();
-    S.soilTextureImg = img;
-    img.onload = () => {
-      S.soilTextureLoaded = true;
-      S.soilTextureFailed = false;
-      invalidateTerrainVisualCache();
-    };
-    img.onerror = () => {
-      S.soilTextureLoaded = false;
-      S.soilTextureFailed = true;
-      invalidateTerrainVisualCache();
-    };
-    img.src = TERRAIN_SOIL_TEXTURE_SRC;
+    if(typeof Image === 'undefined') return;
+    if(!S.soilTextureImg) {
+      const img = new Image();
+      S.soilTextureImg = img;
+      img.onload = () => {
+        S.soilTextureLoaded = true;
+        S.soilTextureFailed = false;
+        invalidateTerrainVisualCache();
+      };
+      img.onerror = () => {
+        S.soilTextureLoaded = false;
+        S.soilTextureFailed = true;
+        invalidateTerrainVisualCache();
+      };
+      img.src = TERRAIN_SOIL_TEXTURE_SRC;
+    }
+    if(!S.cavityTextureImg) {
+      const img = new Image();
+      S.cavityTextureImg = img;
+      img.onload = () => {
+        S.cavityTextureLoaded = true;
+        S.cavityTextureFailed = false;
+        invalidateTerrainVisualCache();
+      };
+      img.onerror = () => {
+        S.cavityTextureLoaded = false;
+        S.cavityTextureFailed = true;
+        invalidateTerrainVisualCache();
+      };
+      img.src = CAVITY_SOIL_TEXTURE_SRC;
+    }
   }
 
   function getSoilTexturePattern(g) {
@@ -7160,6 +7183,22 @@ window._dbg = {
       }
       S.soilTexturePattern = pattern;
       S.soilTexturePatternCtx = g;
+    }
+    return pattern;
+  }
+
+  function getCavityTexturePattern(g) {
+    if(!S.cavityTextureLoaded || !S.cavityTextureImg || !g || typeof g.createPattern !== 'function') return null;
+    if(S.cavityTexturePattern && S.cavityTexturePatternCtx === g) return S.cavityTexturePattern;
+    const pattern = g.createPattern(S.cavityTextureImg, 'repeat');
+    if(pattern) {
+      if(typeof pattern.setTransform === 'function' && typeof DOMMatrix !== 'undefined') {
+        try {
+          pattern.setTransform(new DOMMatrix().scaleSelf(CAVITY_SOIL_TEXTURE_SCALE));
+        } catch(e) {}
+      }
+      S.cavityTexturePattern = pattern;
+      S.cavityTexturePatternCtx = g;
     }
     return pattern;
   }
@@ -21526,6 +21565,7 @@ function syncFermenterUnlockUI() {
       Math.round((q.x || 0) * 10),
       Math.round((q.y || 0) * 10),
       S.soilTextureLoaded ? 'soiltex1' : (S.soilTextureFailed ? 'soiltexerr' : 'soiltex0'),
+      S.cavityTextureLoaded ? 'cavtex1' : (S.cavityTextureFailed ? 'cavtexerr' : 'cavtex0'),
       S.colors.soil.join(',')
     ].join(':');
   }
@@ -21739,8 +21779,12 @@ function syncFermenterUnlockUI() {
     g.beginPath();
     g.rect(view.x, soilTop, view.w, soilH);
     g.clip();
+    const cavityTexturePattern = getCavityTexturePattern(g);
     fillCavityShapes(cavGr, 1, true, true);
-    if(S.cavityPattern) {
+    if(cavityTexturePattern) {
+      fillCavityShapes(cavityTexturePattern, 0.88, true, true);
+      if(S.cavityPattern) fillCavityShapes(S.cavityPattern, 0.10, true, true);
+    } else if(S.cavityPattern) {
       fillCavityShapes(S.cavityPattern, 0.78, true, true);
     }
     S.full.nodes.forEach((n,i)=>{
