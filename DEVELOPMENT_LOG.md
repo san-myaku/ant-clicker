@@ -1,5 +1,14 @@
 # Development Log
 
+## 2026-06-19 Nest realism F4: floor-integrated inventory piles
+
+Continued from `NEST_REALISM_ROADMAP.md` F4. The change is visual-only: inventory counts, room ownership, save data, and hauling logic are unchanged.
+
+- Added deterministic pile anchors and floor-biased pile positions for eggs, larvae, food, cookies, and waste.
+- Replaced evenly scattered room inventory dots with clipped mound bases, per-particle contact shadows, and back/front depth alpha/scale.
+- Kept stored food and carried food on the same `drawFoodSeedGrain()` visual path; waste now uses a muted pebble grain instead of flat black dots.
+- Updated F4 progress to 50-60%; remaining work is screenshot tuning of pile density and scale.
+
 ## 2026-06-19 Nest realism F3: passage scrape marks
 
 Continued from `NEST_REALISM_ROADMAP.md` into F3, focused on making passages feel less like uniform tubes without touching topology, pathfinding, or save data.

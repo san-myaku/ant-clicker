@@ -21008,8 +21008,10 @@ function syncFermenterUnlockUI() {
   function getRoomVisualKindSalt(kind) {
     if(kind === 'larva') return 101;
     if(kind === 'egg') return 211;
+    if(kind === 'brood') return 257;
     if(kind === 'food') return 307;
     if(kind === 'cookie') return 401;
+    if(kind === 'waste') return 449;
     return 503;
   }
 
@@ -21140,6 +21142,136 @@ function syncFermenterUnlockUI() {
       rx: r * ((n && n.blobScaleX) || 1),
       ry: r * ((n && n.blobScaleY) || 0.8)
     };
+  }
+
+  function getRoomPileAnchor(n, kind) {
+    const rr = getRoomVisualRadii(n);
+    const id = (n && n.id != null) ? n.id : 0;
+    const salt = getRoomVisualKindSalt(kind);
+    let xBias = 0;
+    let yBias = 0.50;
+    if(kind === 'egg') { xBias = -0.10; yBias = 0.47; }
+    else if(kind === 'larva') { xBias = 0.08; yBias = 0.47; }
+    else if(kind === 'brood') { xBias = -0.02; yBias = 0.49; }
+    else if(kind === 'food') { xBias = 0.02; yBias = 0.52; }
+    else if(kind === 'cookie') { xBias = 0.08; yBias = 0.51; }
+    else if(kind === 'waste') { xBias = 0.18; yBias = 0.54; }
+    if(n && n.type === 'nursery' && kind === 'waste') { xBias = 0.38; yBias = 0.55; }
+    if(n && n.type === 'queen' && (kind === 'egg' || kind === 'larva' || kind === 'brood')) yBias = 0.43;
+    const jitterX = (seed01FromIds((id + 1) * 331 + salt, 17) - 0.5) * rr.rx * 0.10;
+    const jitterY = (seed01FromIds((id + 1) * 379 + salt, 23) - 0.5) * rr.ry * 0.05;
+    return {
+      x: n.x + rr.rx * xBias + jitterX,
+      y: n.y + rr.ry * yBias + jitterY,
+      rx: rr.rx,
+      ry: rr.ry
+    };
+  }
+
+  function getRoomPileFullness(count) {
+    const c = Math.max(0, Math.floor(count || 0));
+    return clamp(Math.log(c + 1) / Math.log(80), 0.12, 1);
+  }
+
+  function drawInventoryPileBase(ctx, n, kind, count) {
+    if(!n || count <= 0) return;
+    const anchor = getRoomPileAnchor(n, kind);
+    const fill = getRoomPileFullness(count);
+    const rx = anchor.rx * (0.20 + fill * 0.42);
+    const ry = anchor.ry * (0.08 + fill * 0.22);
+    const topColor = (kind === 'food' || kind === 'cookie')
+      ? 'rgba(196,143,62,0.23)'
+      : (kind === 'waste')
+        ? 'rgba(83,75,61,0.24)'
+        : 'rgba(231,213,176,0.28)';
+    const bottomColor = (kind === 'food' || kind === 'cookie')
+      ? 'rgba(135,86,35,0.15)'
+      : (kind === 'waste')
+        ? 'rgba(35,31,27,0.20)'
+        : 'rgba(143,111,70,0.12)';
+    ctx.save();
+    ctx.fillStyle = 'rgba(28,17,9,0.18)';
+    ctx.beginPath();
+    ctx.ellipse(anchor.x, anchor.y + ry * 0.28, rx * 1.02, ry * 0.72, 0, 0, 6.28);
+    ctx.fill();
+    const mound = ctx.createRadialGradient(
+      anchor.x - rx * 0.18, anchor.y - ry * 0.32, Math.max(dp(2), ry * 0.16),
+      anchor.x, anchor.y + ry * 0.10, Math.max(rx, ry) * 1.10
+    );
+    mound.addColorStop(0, topColor);
+    mound.addColorStop(0.62, bottomColor);
+    mound.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = mound;
+    ctx.beginPath();
+    ctx.ellipse(anchor.x, anchor.y, rx, ry, 0, 0, 6.28);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function getInventoryPilePoint(n, kind, ordinal, drawCount, slotIdx, inventoryCount) {
+    const anchor = getRoomPileAnchor(n, kind);
+    const id = (n && n.id != null) ? n.id : 0;
+    const salt = getRoomVisualKindSalt(kind);
+    const count = Math.max(1, Math.floor(inventoryCount || drawCount || 1));
+    const fill = getRoomPileFullness(count);
+    const spreadX = anchor.rx * (0.18 + fill * 0.42);
+    const spreadY = anchor.ry * (0.08 + fill * 0.22);
+    const a = seed01FromIds((id + 1) * 977 + salt, (slotIdx + 1) * 193 + ordinal * 37);
+    const b = seed01FromIds((id + 1) * 811 + salt, (slotIdx + 1) * 307 + ordinal * 43);
+    const c = seed01FromIds((id + 1) * 673 + salt, (slotIdx + 1) * 421 + ordinal * 53);
+    const radius = Math.sqrt(a) * (0.45 + fill * 0.58);
+    const theta = b * 6.28318530718 + salt * 0.013;
+    let x = anchor.x + Math.cos(theta) * spreadX * radius;
+    let y = anchor.y + Math.sin(theta) * spreadY * radius * 0.76 + radius * anchor.ry * 0.045;
+    const minY = n.y + anchor.ry * 0.08;
+    const maxY = n.y + anchor.ry * 0.84;
+    y = clamp(y, minY, maxY);
+    const dyNorm = clamp((y - n.y) / Math.max(dp(1), anchor.ry * 0.96), -0.98, 0.98);
+    const xBound = anchor.rx * clamp(Math.sqrt(Math.max(0.02, 1 - dyNorm * dyNorm)) * 0.84, 0.26, 0.84);
+    x = clamp(x, n.x - xBound, n.x + xBound);
+    const depth = clamp((y - minY) / Math.max(dp(1), maxY - minY), 0, 1);
+    const scale = (0.78 + depth * 0.24) * (0.92 + c * 0.16);
+    return { x, y, depth, scale };
+  }
+
+  function buildInventoryPileItems(n, kind, slotIndices, inventoryCount) {
+    const arr = [];
+    if(!n || !n.slots || !slotIndices || !slotIndices.length) return arr;
+    const drawCount = slotIndices.length;
+    for(let k=0; k<slotIndices.length; k++) {
+      const slotIdx = slotIndices[k];
+      if(!n.slots[slotIdx]) continue;
+      const p = getInventoryPilePoint(n, kind, k, drawCount, slotIdx, inventoryCount);
+      arr.push({ slotIdx, ordinal: k, x: p.x, y: p.y, depth: p.depth, scale: p.scale });
+    }
+    arr.sort((a, b) => a.y - b.y);
+    return arr;
+  }
+
+  function drawPileContactShadow(ctx, x, y, rx, ry, alpha) {
+    const prev = ctx.globalAlpha;
+    ctx.globalAlpha = prev * alpha;
+    ctx.fillStyle = 'rgba(24,14,7,0.78)';
+    ctx.beginPath();
+    ctx.ellipse(x + rx * 0.16, y + ry * 0.42, rx, ry, 0, 0, 6.28);
+    ctx.fill();
+    ctx.globalAlpha = prev;
+  }
+
+  function drawWastePebbleGrain(ctx, x, y, seed01, scale, depth) {
+    const sc = (typeof scale === 'number') ? scale : 1;
+    const rx = dp(2.2 + seed01 * 1.2) * sc;
+    const ry = dp(1.7 + (1 - seed01) * 0.8) * sc;
+    const rot = (seed01 - 0.5) * 2.4;
+    const tone = 0.72 + depth * 0.12 + seed01 * 0.10;
+    ctx.fillStyle = `rgb(${Math.round(67*tone)},${Math.round(59*tone)},${Math.round(47*tone)})`;
+    ctx.beginPath();
+    ctx.ellipse(x, y, rx, ry, rot, 0, 6.28);
+    ctx.fill();
+    ctx.fillStyle = `rgba(158,142,108,${0.14 + depth * 0.12})`;
+    ctx.beginPath();
+    ctx.ellipse(x - rx * 0.24, y - ry * 0.34, rx * 0.30, ry * 0.20, rot, 0, 6.28);
+    ctx.fill();
   }
 
   function drawEarthPebbleStamp(ctx, x, y, rx, ry, rot, color, alpha, highlightAlpha) {
@@ -22473,80 +22605,79 @@ function syncFermenterUnlockUI() {
       if(totalDraw > 0 || drawLarvaWaste || (n.type === 'waste' && n.slots && n.slots.length)) {
         ctx.save();
         clipBlobPath(ctx, n);
-        // D: ブルードの「盛り上がり（土台）」。詰まり具合で山の高さが決まり、
-        // 粒（卵/幼虫）をこの帯に寄せて積もって見せる。育児室・女王室のみ。
         const broodTotal = invEgg + invLarva;
-        let pileTopY = null, pileFloorY = null, pileH = 0, pileRy = 0, pileTop = 0;
-        if(broodTotal > 0 && (n.type === 'nursery' || n.type === 'queen')) {
-          pileRy = (n.r || dp(10)) * (n.blobScaleY || 0.8);
-          pileTop = n.y - pileRy;
-          const capRef = (n.type === 'nursery') ? Math.max(80, 150 * getResearchBonus('roomCapacity')) : 30;
-          const fill = clamp(broodTotal / capRef, 0.2, 1);
-          pileFloorY = n.y + pileRy * 0.9;
-          pileH = pileRy * 1.75 * fill;
-          pileTopY = pileFloorY - pileH;
-          const rxx = (n.r || dp(10)) * (n.blobScaleX || 1);
-          const bedGrd = ctx.createLinearGradient(0, pileTopY, 0, pileFloorY);
-          bedGrd.addColorStop(0,   'rgba(212,194,156,0)');
-          bedGrd.addColorStop(0.4, 'rgba(214,196,158,0.60)');
-          bedGrd.addColorStop(1,   'rgba(228,210,172,0.92)');
-          ctx.fillStyle = bedGrd;
-          ctx.fillRect(n.x - rxx*1.25, pileTopY, rxx*2.5, pileH + dp(6));
-        }
-        const pileY = (sy) => {
-          if(pileTopY == null) return sy;
-          const ny = clamp((sy - pileTop) / (2*pileRy), 0, 1);
-          return pileTopY + ny * pileH;
-        };
-        for(let k=0; k<larvaSlots.length; k++){
-          const slotIdx = larvaSlots[k];
-          const s = n.slots[slotIdx];
-          if(!s) continue;
-          const py = pileY(s.y);
-          const seed = seed01FromIds(n.id ?? i, slotIdx);
-          // 幼虫の下に小さな影＝床に座って積もって見える
-          ctx.fillStyle = 'rgba(58,38,20,0.28)';
-          ctx.beginPath(); ctx.ellipse(s.x + dp(0.5), py + dp(1.3), dp(3.2), dp(1.7), 0, 0, 6.28); ctx.fill();
-          // 幼虫サイズを1.5倍（見た目強調）
-          if(lightLarva) drawLarvaSimple(ctx, s.x, py, seed, 0.78);
-          else drawLarvaAt(ctx, s.x, py, S.t, seed, 0.72);
-          if(k < invGoldenLarva) {
+        if(broodTotal > 0 && (n.type === 'nursery' || n.type === 'queen')) drawInventoryPileBase(ctx, n, 'brood', broodTotal);
+        if(foodSlots.length > 0) drawInventoryPileBase(ctx, n, 'food', invFood);
+        if(cookieSlots.length > 0) drawInventoryPileBase(ctx, n, 'cookie', invCookieDraw);
+
+        const larvaPileItems = buildInventoryPileItems(n, 'larva', larvaSlots, invLarva);
+        for(const item of larvaPileItems){
+          const seed = seed01FromIds(n.id ?? i, item.slotIdx);
+          const alpha = 0.70 + item.depth * 0.30;
+          const sc = (lightLarva ? 0.72 : 0.66) * item.scale;
+          drawPileContactShadow(ctx, item.x, item.y, dp(3.4) * item.scale, dp(1.8) * item.scale, 0.16 + item.depth * 0.14);
+          ctx.save();
+          ctx.globalAlpha *= alpha;
+          if(lightLarva) drawLarvaSimple(ctx, item.x, item.y, seed, sc);
+          else drawLarvaAt(ctx, item.x, item.y, S.t, seed, sc);
+          ctx.restore();
+          if(item.ordinal < invGoldenLarva) {
             ctx.save();
             ctx.strokeStyle = 'rgba(250, 204, 21, 0.95)';
             ctx.lineWidth = dp(1.2);
-            ctx.beginPath(); ctx.arc(s.x, py, dp(5.2), 0, 6.28); ctx.stroke();
+            ctx.beginPath(); ctx.arc(item.x, item.y, dp(5.2) * item.scale, 0, 6.28); ctx.stroke();
             ctx.restore();
           }
         }
-        for(let k=0; k<eggSlots.length; k++){
-          const s = n.slots[eggSlots[k]];
-          if(!s) continue;
-          const py = pileY(s.y);
-          const isGoldenEgg = k < invGoldenEgg;
+
+        const eggPileItems = buildInventoryPileItems(n, 'egg', eggSlots, invEgg);
+        for(const item of eggPileItems){
+          const isGoldenEgg = item.ordinal < invGoldenEgg;
+          const seed = seed01FromIds(n.id ?? i, item.slotIdx);
+          const alpha = 0.72 + item.depth * 0.28;
+          const sc = (lightLarva ? 0.78 : 0.94) * item.scale;
+          drawPileContactShadow(ctx, item.x, item.y, dp(3.0) * item.scale, dp(1.5) * item.scale, 0.13 + item.depth * 0.13);
+          ctx.save();
+          ctx.globalAlpha *= alpha;
           if(isGoldenEgg) {
             ctx.fillStyle = '#facc15';
-            ctx.beginPath(); ctx.arc(s.x, py, dp(3.6), 0, 6.28); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(item.x, item.y, dp(3.4) * sc, dp(2.4) * sc, (seed - 0.5) * 1.1, 0, 6.28); ctx.fill();
             ctx.strokeStyle = 'rgba(255,255,255,0.55)';
             ctx.lineWidth = dp(0.8);
-            ctx.beginPath(); ctx.arc(s.x, py, dp(4.6), 0, 6.28); ctx.stroke();
+            ctx.beginPath(); ctx.arc(item.x, item.y, dp(4.4) * item.scale, 0, 6.28); ctx.stroke();
           } else {
-            // クリーム色の粒として立体的に描く（ぎっしり積もったブルード）
-            drawBroodGrain(ctx, s.x, py, seed01FromIds(n.id ?? i, eggSlots[k]), lightLarva ? 0.85 : 1);
+            drawBroodGrain(ctx, item.x, item.y, seed, sc);
           }
+          ctx.restore();
         }
-        for(const slotIdx of foodSlots){
-          const s = n.slots[slotIdx];
-          if(!s) continue;
-          drawFoodSeedGrain(ctx, s.x, s.y, seed01FromIds((n.id ?? i) + 19, slotIdx), lightLarva ? 0.9 : 1);
+
+        const foodPileItems = buildInventoryPileItems(n, 'food', foodSlots, invFood);
+        for(const item of foodPileItems){
+          const seed = seed01FromIds((n.id ?? i) + 19, item.slotIdx);
+          const sc = (lightLarva ? 0.82 : 0.96) * item.scale;
+          drawPileContactShadow(ctx, item.x, item.y, dp(2.9) * item.scale, dp(1.45) * item.scale, 0.13 + item.depth * 0.12);
+          ctx.save();
+          ctx.globalAlpha *= 0.74 + item.depth * 0.26;
+          drawFoodSeedGrain(ctx, item.x, item.y, seed, sc);
+          ctx.restore();
         }
-        for(const slotIdx of cookieSlots){
-          const s = n.slots[slotIdx];
-          if(!s) continue;
+
+        const cookiePileItems = buildInventoryPileItems(n, 'cookie', cookieSlots, invCookieDraw);
+        for(const item of cookiePileItems){
+          const seed = seed01FromIds((n.id ?? i) + 31, item.slotIdx);
+          const sc = item.scale;
+          drawPileContactShadow(ctx, item.x, item.y, dp(3.1) * sc, dp(1.5) * sc, 0.13 + item.depth * 0.12);
+          ctx.save();
+          ctx.globalAlpha *= 0.76 + item.depth * 0.24;
           ctx.fillStyle = '#fcd34d';
-          ctx.beginPath(); ctx.arc(s.x, s.y, dp(3), 0, 6.28); ctx.fill();
+          ctx.beginPath(); ctx.arc(item.x, item.y, dp(3) * sc, 0, 6.28); ctx.fill();
           ctx.fillStyle = '#a16207';
-          ctx.beginPath(); ctx.arc(s.x - dp(0.8), s.y - dp(0.6), dp(0.55), 0, 6.28); ctx.fill();
-          ctx.beginPath(); ctx.arc(s.x + dp(1), s.y + dp(0.5), dp(0.45), 0, 6.28); ctx.fill();
+          ctx.beginPath(); ctx.arc(item.x - dp(0.8) * sc, item.y - dp(0.6) * sc, dp(0.55) * sc, 0, 6.28); ctx.fill();
+          ctx.beginPath(); ctx.arc(item.x + dp(1) * sc, item.y + dp(0.5) * sc, dp(0.45) * sc, 0, 6.28); ctx.fill();
+          if(seed > 0.55) {
+            ctx.beginPath(); ctx.arc(item.x + dp(0.2) * sc, item.y - dp(1.1) * sc, dp(0.38) * sc, 0, 6.28); ctx.fill();
+          }
+          ctx.restore();
         }
         // 幼虫室のゴミ描画（軽量・控えめ）
         if(drawLarvaWaste) {
@@ -22558,10 +22689,17 @@ function syncFermenterUnlockUI() {
             dotCap
           );
           if(dotCount > 0) {
-            for(let k=0; k<dotCount; k++) {
-              const s = n.slots[(k * 5) % n.slots.length];
-              ctx.fillStyle = (k % 4 === 0) ? '#475569' : '#64748b';
-              ctx.beginPath(); ctx.arc(s.x, s.y, dp(1.8), 0, 6.28); ctx.fill();
+            drawInventoryPileBase(ctx, n, 'waste', dotCount);
+            const wasteSlots = [];
+            for(let k=0; k<dotCount; k++) wasteSlots.push((k * 5) % n.slots.length);
+            const wastePileItems = buildInventoryPileItems(n, 'waste', wasteSlots, waste);
+            for(const item of wastePileItems) {
+              const seed = seed01FromIds((n.id ?? i) + 43, item.slotIdx + item.ordinal * 11);
+              drawPileContactShadow(ctx, item.x, item.y, dp(2.1) * item.scale, dp(1.2) * item.scale, 0.10 + item.depth * 0.10);
+              ctx.save();
+              ctx.globalAlpha *= 0.66 + item.depth * 0.24;
+              drawWastePebbleGrain(ctx, item.x, item.y, seed, 0.76 * item.scale, item.depth);
+              ctx.restore();
             }
           }
         }
@@ -22624,10 +22762,17 @@ function syncFermenterUnlockUI() {
           const dotCap = getWasteVisualCap(lodOn ? WASTE_DOT_MAX : Math.floor(WASTE_DOT_MAX * 0.6));
           const dotCount = Math.min(n.slots.length, Math.floor(WASTE_DOT_BASE + waste * WASTE_DOT_PER_UNIT), dotCap);
           if(dotCount > 0) {
-            for(let k=0; k<dotCount; k++) {
-              const s = n.slots[(k * 3) % n.slots.length];
-              ctx.fillStyle = (k % 3 === 0) ? '#111827' : '#1f2937';
-              ctx.beginPath(); ctx.arc(s.x, s.y, dp(2.2), 0, 6.28); ctx.fill();
+            drawInventoryPileBase(ctx, n, 'waste', dotCount);
+            const wasteSlots = [];
+            for(let k=0; k<dotCount; k++) wasteSlots.push((k * 3) % n.slots.length);
+            const wastePileItems = buildInventoryPileItems(n, 'waste', wasteSlots, waste);
+            for(const item of wastePileItems) {
+              const seed = seed01FromIds((n.id ?? i) + 59, item.slotIdx + item.ordinal * 13);
+              drawPileContactShadow(ctx, item.x, item.y, dp(2.5) * item.scale, dp(1.3) * item.scale, 0.12 + item.depth * 0.12);
+              ctx.save();
+              ctx.globalAlpha *= 0.70 + item.depth * 0.24;
+              drawWastePebbleGrain(ctx, item.x, item.y, seed, item.scale, item.depth);
+              ctx.restore();
             }
           }
         }

@@ -11,7 +11,7 @@ handoffs, call these phases "nest realism F1-F6" to avoid ambiguity.
 | F1: Soil cross-section density | 70-80% | Pebbles, soil grains, fine roots, clods, surface grass, depth gradient, and static-cache rendering are in. Moisture variation and stronger layer differences still need work. |
 | F2: Dug chamber interiors | 75-80% | Shared chamber floor texture, bowl lighting, foreground rims, gritty rim chips, ceiling-collapse shadow, compacted floor highlight, and scuffs are in. Remaining work is visual tuning against real-device screenshots. |
 | F3: Natural passage carving | 65-70% | Darker walls, brighter center, tunnel-mouth contact shadow/pebbles, room-connection fixes, and deterministic wall scrape/crumb marks are in. Remaining work is stronger silhouette irregularity if screenshots still read too tube-like. |
-| F4: Inventory piles | 25-35% | Food/eggs/larvae/waste are drawn as particles, but not yet as floor-integrated piles with depth shading. |
+| F4: Inventory piles | 50-60% | Food/eggs/larvae/waste now render as floor-integrated piles with mound bases, contact shadows, and back/front depth shading. Remaining work is screenshot tuning of pile density and scale. |
 | F5: Ant integration | 35-45% | Foreground room rims mask some ant spill. Tunnel ants still need smaller/darker silhouettes and stronger clipping/rim treatment. |
 | F6: UI pass | 0% | Keep HUD/glass UI for later after the nest body is stable. |
 
@@ -51,6 +51,12 @@ Current implementation notes:
 - Draw food, eggs, larvae, and waste as floor piles rather than evenly scattered dots.
 - Add contact shadows per particle.
 - Darken back particles and brighten front particles so the pile sits on the chamber floor.
+
+Current implementation notes:
+
+- `getRoomPileAnchor()` and `buildInventoryPileItems()` convert existing visual slots into deterministic floor-biased pile positions; inventory counts and save data are unchanged.
+- `drawInventoryPileBase()` adds a clipped mound shadow/highlight under each pile type.
+- Food uses the same `drawFoodSeedGrain()` visual as carried food; waste now uses `drawWastePebbleGrain()` instead of flat dark dots.
 
 ## F5: Ant Integration
 
