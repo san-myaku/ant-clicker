@@ -5398,14 +5398,14 @@ function buildNodeBlobAndSlots(n){
   n.blob = [];
   n.slots = [];
   const mesh = !!(typeof S !== 'undefined' && S && S._meshNest);
-  const seg = mesh ? 14 : 12;
+  const seg = mesh ? 16 : 12;
   const sx = n.blobScaleX || 1;
   const sy = n.blobScaleY || 0.8;
   const flat = n.floorFlat || 0;
   const floorY = n.r * sy * 0.75;
   for(let i=0; i<seg; i++) {
     const a = (i/seg)*Math.PI*2;
-    const rr = mesh ? n.r*(0.66+Math.random()*0.5) : n.r*(0.8+Math.random()*0.3); // meshは輪郭を不規則(±25%)に＝有機的
+    const rr = mesh ? n.r*(0.84+Math.random()*0.24) : n.r*(0.8+Math.random()*0.3); // meshは有機的な揺らぎを残しつつ過剰な歪みを抑える
     let dx = Math.cos(a) * rr * sx;
     let dy = Math.sin(a) * rr * sy;
     if(mesh && dy < 0) dy *= 1.14; // meshは天井をドーム状に持ち上げて涙型へ
@@ -6274,6 +6274,14 @@ function ensureRestSlots(n){
       }
       distAcc += d;
     }
+    if(mesh && vRoom && endTarget >= startTrim) {
+      const endT = distToT(endTarget);
+      const p = cubic(e.p0, e.p1, e.p2, e.p3, endT);
+      const last = stamps[stamps.length - 1];
+      if(!last || Math.hypot(last.x - p.x, last.y - p.y) > spacing * 0.42) {
+        stamps.push({ x:p.x, y:p.y, r:baseR * (0.95 + rng() * 0.10) * 1.85 });
+      }
+    }
     e.stamps = stamps;
   }
 
@@ -6297,6 +6305,57 @@ function ensureRestSlots(n){
       any = true;
     }
     if(any) ctx.fill();
+  }
+
+  function drawEdgeRoomConnectorCaps(ctx, e, count, rScale, view, soilTop, soilBottom, pad){
+    if(!S.full || !S.full.nodes || !e || !e.stamps || e.stamps.length === 0 || count <= 0) return;
+    const stamps = e.stamps;
+    const max = Math.min(count, stamps.length);
+    if(max <= 0) return;
+    const nodes = S.full.nodes;
+    const drawOne = (nodeId, stamp) => {
+      const n = nodes[nodeId];
+      if(!n || !S.nodeVis[nodeId] || n.type === 'shaft' || n.type === 'entrance' || !stamp) return;
+      const rr = getRoomVisualRadii(n);
+      const bridgePad = Math.max(pad || 0, dp(42));
+      if(view) {
+        const minX = Math.min(stamp.x, n.x - rr.rx) - bridgePad;
+        const maxX = Math.max(stamp.x, n.x + rr.rx) + bridgePad;
+        if(maxX < view.x || minX > view.x + view.w) return;
+      }
+      const minY = Math.min(stamp.y, n.y - rr.ry) - bridgePad;
+      const maxY = Math.max(stamp.y, n.y + rr.ry) + bridgePad;
+      if(maxY < soilTop || minY > soilBottom) return;
+
+      const dx = stamp.x - n.x;
+      const dy = stamp.y - n.y;
+      const len = Math.hypot(dx, dy);
+      if(len <= 1e-4) return;
+      const ux = dx / len;
+      const uy = dy / len;
+      const rx = Math.max(dp(4), rr.rx);
+      const ry = Math.max(dp(4), rr.ry);
+      const boundary = 1 / Math.sqrt((ux * ux) / (rx * rx) + (uy * uy) / (ry * ry));
+      const stampR = Math.max(dp(2), stamp.r * rScale);
+      const width = Math.max(dp(7), stampR * 2.15);
+      const gap = len - boundary;
+      const maxBridge = Math.max(dp(34), width * 2.65);
+      if(gap > maxBridge || len < boundary - width * 0.45) return;
+
+      const inner = Math.max(0, boundary - width * 0.34);
+      ctx.save();
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = width;
+      ctx.strokeStyle = ctx.fillStyle;
+      ctx.beginPath();
+      ctx.moveTo(stamp.x, stamp.y);
+      ctx.lineTo(n.x + ux * inner, n.y + uy * inner);
+      ctx.stroke();
+      ctx.restore();
+    };
+    drawOne(e.u, stamps[0]);
+    drawOne(e.v, stamps[max - 1]);
   }
 
   /*
@@ -21744,6 +21803,7 @@ function syncFermenterUnlockUI() {
       if(!stamps || stamps.length===0) return;
       const count = Math.max(1, Math.floor(stamps.length * f));
       drawStamps(g, stamps, count, 1, view, soilTop, soilBottom, stampPad);
+      drawEdgeRoomConnectorCaps(g, e, count, 1, view, soilTop, soilBottom, stampPad);
     });
     S.full.nodes.forEach((n,i)=>{
       if(!S.nodeVis[i]) return;
@@ -21765,6 +21825,7 @@ function syncFermenterUnlockUI() {
         if(!stamps || stamps.length===0) return;
         const count = Math.max(1, Math.floor(stamps.length * f));
         drawStamps(g, stamps, count, 1, view, soilTop, soilBottom, stampPad);
+        drawEdgeRoomConnectorCaps(g, e, count, 1, view, soilTop, soilBottom, stampPad);
       });
       if(includeNodes) S.full.nodes.forEach((n,i)=>{
         if(!S.nodeVis[i]) return;
@@ -21811,6 +21872,7 @@ function syncFermenterUnlockUI() {
       if(!stamps || stamps.length===0) return;
       const count = Math.max(1, Math.floor(stamps.length * S.edgeFrac[i]));
       drawStamps(g, stamps, count, 1.0, view, soilTop, soilBottom, stampPad);
+      drawEdgeRoomConnectorCaps(g, e, count, 1.0, view, soilTop, soilBottom, stampPad);
     });
     g.fillStyle = 'rgba(214,194,162,0.16)'; // 中央のごく淡い光（広め・低不透明度でビーズ感を出さない）
     S.full.edges.forEach((e,i)=>{
@@ -21819,6 +21881,7 @@ function syncFermenterUnlockUI() {
       if(!stamps || stamps.length===0) return;
       const count = Math.max(1, Math.floor(stamps.length * S.edgeFrac[i]));
       drawStamps(g, stamps, count, 0.68, view, soilTop, soilBottom, stampPad);
+      drawEdgeRoomConnectorCaps(g, e, count, 0.68, view, soilTop, soilBottom, stampPad);
     });
     g.restore();
 
@@ -21836,6 +21899,7 @@ function syncFermenterUnlockUI() {
       if(!stamps || stamps.length===0) return;
       const count = Math.max(1, Math.floor(stamps.length * f));
       drawStamps(g, stamps, count, 0.7, view, soilTop, soilBottom, stampPad);
+      drawEdgeRoomConnectorCaps(g, e, count, 0.7, view, soilTop, soilBottom, stampPad);
     });
     g.strokeStyle = 'rgba(0,0,0,0.35)';
     g.lineWidth = dp(2.2);
