@@ -1,21 +1,13 @@
 # Development Log
 
-## 2026-06-19 Nest realism F5.5: stronger surface read
+## 2026-06-20 Nest realism F5.5: revert procedural surface, add raster layer
 
-Follow-up to the first F5.5 surface pass after the visual change still read too subtle at normal game zoom. The change is still visual-only.
+The procedural surface-strengthening commits were reverted because they made the queen chamber area visually inconsistent, added draw cost, and were hard to tune. The replacement keeps the surface treatment image-based.
 
-- Enlarged the surface cross-section cap again and pushed it toward a dark humus/root-mat silhouette so it reads from zoomed-out play.
-- Added `surfaceBackGrowth` for visible grass and plant silhouettes above the cut line, separate from the foreground grass strokes.
-- Added `surfaceMatRoots` inside the clipped surface band, plus larger pebbles, leaves, and twigs so the top layer changes are obvious without relying on tiny texture noise.
-
-## 2026-06-19 Nest realism F5.5: surface realism before UI
-
-Continued before `NEST_REALISM_ROADMAP.md` F6. The change is visual-only: nest topology, room coordinates, ant movement, inventory logic, and save data are unchanged.
-
-- Thickened the surface cross-section into a darker humus band with fixed pores, clods, and short fiber marks instead of continuous horizontal contour lines.
-- Added baked dangling surface roots through the static background detail path so chamber/tunnel cutouts still mask roots correctly.
-- Increased surface litter and grass density, made fallen leaves render as filled leaves, and added small grass base shadows for better ground contact.
-- Added F5.5 to the roadmap as the surface-tuning checkpoint before any HUD/glass UI pass.
+- Added `assets/textures/surface-cut-cap-tile-v1.png` for the soil cut-face cap and `assets/textures/surface-horizon-tile-v1.png` for the above-ground grass/litter silhouette.
+- Added lightweight texture loading and `createPattern()` rendering for both surface assets.
+- Drew the cut-face texture inside the static nest soil cache before chamber/tunnel cutouts, so room interiors are not tinted by the surface layer.
+- Drew the horizon strip once after sky rendering and before soil rendering; no large per-frame lists of extra roots/grass/debris are used.
 
 ## 2026-06-19 Nest realism F5: ant integration pass
 

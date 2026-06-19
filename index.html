@@ -3765,10 +3765,10 @@
   const SURF_AMP = 16;
   const SURF_NOISE_STEP = 260;
   const SURF_NOISE_DETAIL = 110;
-  const SURF_UP = 30;
-  const SURF_DOWN = 82;
+  const SURF_UP = 12;
+  const SURF_DOWN = 34;
   const SURF_BAND_PAD = 160;
-  const DEBRIS_COUNT = 360;
+  const DEBRIS_COUNT = 190;
   const DEBRIS_ENTRANCE_BOOST = 0.35;
   const DEBRIS_MIN_DY = 2;
   const DEBRIS_MAX_DY = 35;
@@ -3776,14 +3776,18 @@
   const ENTRANCE_MOUND_H = 18;
   const ENTRANCE_HOLE_W = 17;
   const ENTRANCE_HOLE_H = 5;
-  const GRASS_STEP = 10;
+  const GRASS_STEP = 12;
   const GRASS_TUFT_MIN = 2;
-  const GRASS_TUFT_MAX = 8;
+  const GRASS_TUFT_MAX = 6;
   const GRASS_AVOID_R = 26;
   const TERRAIN_SOIL_TEXTURE_SRC = 'assets/terrain/soil-loam-tile.png';
   const TERRAIN_SOIL_TEXTURE_SCALE = 1.85;
   const CAVITY_SOIL_TEXTURE_SRC = 'assets/textures/cavity-soil-tile-muted-v1.png';
   const CAVITY_SOIL_TEXTURE_SCALE = 0.62;
+  const SURFACE_CUT_TEXTURE_SRC = 'assets/textures/surface-cut-cap-tile-v1.png';
+  const SURFACE_CUT_TEXTURE_SCALE = 0.82;
+  const SURFACE_HORIZON_TEXTURE_SRC = 'assets/textures/surface-horizon-tile-v1.png';
+  const SURFACE_HORIZON_TEXTURE_SCALE = 0.82;
   // 襲撃バランス（後から調整しやすいように定数化）
   const RAID_CFG = {
     enemyBase: 50,
@@ -6824,10 +6828,12 @@ function ensureRestSlots(n){
     soilTexturePattern: null, soilTexturePatternCtx: null,
     cavityTextureImg: null, cavityTextureLoaded: false, cavityTextureFailed: false,
     cavityTexturePattern: null, cavityTexturePatternCtx: null,
+    surfaceCutTextureImg: null, surfaceCutTextureLoaded: false, surfaceCutTextureFailed: false,
+    surfaceCutTexturePattern: null, surfaceCutTexturePatternCtx: null,
+    surfaceHorizonTextureImg: null, surfaceHorizonTextureLoaded: false, surfaceHorizonTextureFailed: false,
+    surfaceHorizonTexturePattern: null, surfaceHorizonTexturePatternCtx: null,
     surfacePts: [], surfaceStep: 0,
     surfaceDebris: [],
-    surfaceCutGrains: [], surfaceRootCurtain: [],
-    surfaceBackGrowth: [], surfaceMatRoots: [],
     surfacePattern: null, surfacePatternCanvas: null,
     bgPebbles: [], bgRoots: [], bgRootlets: [], bgFossils: [],
     bgSoilClods: [],
@@ -7269,6 +7275,10 @@ window._dbg = {
     S.soilTexturePatternCtx = null;
     S.cavityTexturePattern = null;
     S.cavityTexturePatternCtx = null;
+    S.surfaceCutTexturePattern = null;
+    S.surfaceCutTexturePatternCtx = null;
+    S.surfaceHorizonTexturePattern = null;
+    S.surfaceHorizonTexturePatternCtx = null;
   }
 
   function preloadTerrainTextures() {
@@ -7303,6 +7313,44 @@ window._dbg = {
       };
       img.src = CAVITY_SOIL_TEXTURE_SRC;
     }
+    if(!S.surfaceCutTextureImg) {
+      const img = new Image();
+      S.surfaceCutTextureImg = img;
+      img.onload = () => {
+        S.surfaceCutTextureLoaded = true;
+        S.surfaceCutTextureFailed = false;
+        invalidateTerrainVisualCache();
+      };
+      img.onerror = () => {
+        S.surfaceCutTextureLoaded = false;
+        S.surfaceCutTextureFailed = true;
+        invalidateTerrainVisualCache();
+      };
+      img.src = SURFACE_CUT_TEXTURE_SRC;
+    }
+    if(!S.surfaceHorizonTextureImg) {
+      const img = new Image();
+      S.surfaceHorizonTextureImg = img;
+      img.onload = () => {
+        S.surfaceHorizonTextureLoaded = true;
+        S.surfaceHorizonTextureFailed = false;
+        invalidateTerrainVisualCache();
+      };
+      img.onerror = () => {
+        S.surfaceHorizonTextureLoaded = false;
+        S.surfaceHorizonTextureFailed = true;
+        invalidateTerrainVisualCache();
+      };
+      img.src = SURFACE_HORIZON_TEXTURE_SRC;
+    }
+  }
+
+  function applyPatternScale(pattern, scale) {
+    if(pattern && typeof pattern.setTransform === 'function' && typeof DOMMatrix !== 'undefined') {
+      try {
+        pattern.setTransform(new DOMMatrix().scaleSelf(scale));
+      } catch(e) {}
+    }
   }
 
   function getSoilTexturePattern(g) {
@@ -7310,11 +7358,7 @@ window._dbg = {
     if(S.soilTexturePattern && S.soilTexturePatternCtx === g) return S.soilTexturePattern;
     const pattern = g.createPattern(S.soilTextureImg, 'repeat');
     if(pattern) {
-      if(typeof pattern.setTransform === 'function' && typeof DOMMatrix !== 'undefined') {
-        try {
-          pattern.setTransform(new DOMMatrix().scaleSelf(TERRAIN_SOIL_TEXTURE_SCALE));
-        } catch(e) {}
-      }
+      applyPatternScale(pattern, TERRAIN_SOIL_TEXTURE_SCALE);
       S.soilTexturePattern = pattern;
       S.soilTexturePatternCtx = g;
     }
@@ -7326,13 +7370,33 @@ window._dbg = {
     if(S.cavityTexturePattern && S.cavityTexturePatternCtx === g) return S.cavityTexturePattern;
     const pattern = g.createPattern(S.cavityTextureImg, 'repeat');
     if(pattern) {
-      if(typeof pattern.setTransform === 'function' && typeof DOMMatrix !== 'undefined') {
-        try {
-          pattern.setTransform(new DOMMatrix().scaleSelf(CAVITY_SOIL_TEXTURE_SCALE));
-        } catch(e) {}
-      }
+      applyPatternScale(pattern, CAVITY_SOIL_TEXTURE_SCALE);
       S.cavityTexturePattern = pattern;
       S.cavityTexturePatternCtx = g;
+    }
+    return pattern;
+  }
+
+  function getSurfaceCutTexturePattern(g) {
+    if(!S.surfaceCutTextureLoaded || !S.surfaceCutTextureImg || !g || typeof g.createPattern !== 'function') return null;
+    if(S.surfaceCutTexturePattern && S.surfaceCutTexturePatternCtx === g) return S.surfaceCutTexturePattern;
+    const pattern = g.createPattern(S.surfaceCutTextureImg, 'repeat');
+    if(pattern) {
+      applyPatternScale(pattern, SURFACE_CUT_TEXTURE_SCALE);
+      S.surfaceCutTexturePattern = pattern;
+      S.surfaceCutTexturePatternCtx = g;
+    }
+    return pattern;
+  }
+
+  function getSurfaceHorizonTexturePattern(g) {
+    if(!S.surfaceHorizonTextureLoaded || !S.surfaceHorizonTextureImg || !g || typeof g.createPattern !== 'function') return null;
+    if(S.surfaceHorizonTexturePattern && S.surfaceHorizonTexturePatternCtx === g) return S.surfaceHorizonTexturePattern;
+    const pattern = g.createPattern(S.surfaceHorizonTextureImg, 'repeat');
+    if(pattern) {
+      applyPatternScale(pattern, SURFACE_HORIZON_TEXTURE_SCALE);
+      S.surfaceHorizonTexturePattern = pattern;
+      S.surfaceHorizonTexturePatternCtx = g;
     }
     return pattern;
   }
@@ -7362,10 +7426,6 @@ window._dbg = {
     S.bgSoilClods = [];
     S.bgSoilBands = [];
     S.bgSoilPockets = [];
-    S.surfaceCutGrains = [];
-    S.surfaceRootCurtain = [];
-    S.surfaceBackGrowth = [];
-    S.surfaceMatRoots = [];
     const soilTop = S.full.sy;
     const soilBottom = S.full.h;
     const soilH = Math.max(1, soilBottom - soilTop);
@@ -7513,77 +7573,6 @@ window._dbg = {
         minX: Math.min(x0, x1, cx), maxX: Math.max(x0, x1, cx),
         minY: Math.min(y0, y1, cy), maxY: Math.max(y0, y1, cy)
       });
-    }
-
-    const curtainRootColors = ['#3c2a1b', '#4a321f', '#5a3b22', '#2f241a'];
-    const curtainRootCount = clamp(Math.floor(S.full.w / Math.max(1, dp(16))), 90, 280);
-    for(let i=0; i<curtainRootCount; i++) {
-      const x0 = Math.random() * S.full.w;
-      if(Math.abs(x0 - ENX()) < dp(ENTRANCE_HOLE_W * 1.8) && Math.random() < 0.72) continue;
-      const y0 = surfaceY(x0) + dp(4 + Math.random() * 16);
-      const len = dp(38 + Math.random() * 170) * (Math.random() < 0.18 ? 1.45 : 1);
-      const drift = (Math.random() * 2 - 1) * dp(20 + Math.random() * 44);
-      const x1 = clamp(x0 + drift, dp(8), S.full.w - dp(8));
-      const y1 = y0 + len;
-      const cx = (x0 + x1) * 0.5 + (Math.random() * 2 - 1) * dp(18);
-      const cy = y0 + len * (0.36 + Math.random() * 0.22);
-      const w = dp(0.45 + Math.random() * 0.9);
-      const c = curtainRootColors[(Math.random() * curtainRootColors.length) | 0];
-      const a = 0.16 + Math.random() * 0.28;
-      const branches = [];
-      const branchCount = Math.floor(Math.random() * 3);
-      for(let bi=0; bi<branchCount; bi++) {
-        const t = 0.26 + Math.random() * 0.56;
-        const bx0 = (1-t)*(1-t)*x0 + 2*(1-t)*t*cx + t*t*x1;
-        const by0 = (1-t)*(1-t)*y0 + 2*(1-t)*t*cy + t*t*y1;
-        const dir = Math.random() < 0.5 ? -1 : 1;
-        const blen = dp(14 + Math.random() * 42);
-        const bx1 = clamp(bx0 + dir * blen * (0.55 + Math.random() * 0.65), dp(8), S.full.w - dp(8));
-        const by1 = by0 + dp(8 + Math.random() * 30);
-        branches.push({
-          x0: bx0, y0: by0,
-          cx: (bx0 + bx1) * 0.5 + dir * dp(4 + Math.random() * 12),
-          cy: (by0 + by1) * 0.5 + dp(Math.random() * 8),
-          x1: bx1, y1: by1
-        });
-      }
-      S.surfaceRootCurtain.push({
-        x0, y0, cx, cy, x1, y1, w, c, a, branches,
-        minX: Math.min(x0, x1, cx) - dp(45), maxX: Math.max(x0, x1, cx) + dp(45),
-        minY: Math.min(y0, y1, cy), maxY: Math.max(y0, y1, cy) + dp(36)
-      });
-    }
-
-    const backGrassColors = [
-      'rgba(47, 83, 38, 0.46)',
-      'rgba(77, 110, 39, 0.42)',
-      'rgba(94, 87, 43, 0.38)',
-      'rgba(37, 63, 35, 0.44)',
-      'rgba(111, 89, 55, 0.30)'
-    ];
-    const hazeCount = clamp(Math.floor(S.full.w / Math.max(1, dp(58))), 18, 70);
-    for(let i=0; i<hazeCount; i++) {
-      const x = Math.random() * S.full.w;
-      const y = surfaceY(x) - dp(8 + Math.random() * 18);
-      const rx = dp(24 + Math.random() * 74);
-      const ry = dp(9 + Math.random() * 26);
-      const c = Math.random() < 0.55 ? 'rgba(50, 75, 42, 0.20)' : 'rgba(88, 63, 39, 0.18)';
-      S.surfaceBackGrowth.push({ kind: 'haze', x, y, rx, ry, c, a: 0.45 + Math.random() * 0.32 });
-    }
-    const backBladeCount = clamp(Math.floor(S.full.w / Math.max(1, dp(8.2))), 150, 430);
-    for(let i=0; i<backBladeCount; i++) {
-      const x = Math.random() * S.full.w;
-      if(Math.abs(x - ENX()) < dp(GRASS_AVOID_R * 0.55) && Math.random() < 0.45) continue;
-      const baseY = surfaceY(x) + dp(-2 + Math.random() * 9);
-      const tall = Math.random() < 0.34;
-      const h = tall ? dp(34 + Math.random() * 74) : dp(16 + Math.random() * 34);
-      const lean = (Math.random() * 2 - 1) * dp(tall ? 22 : 10);
-      const w = dp((tall ? 0.85 : 0.75) + Math.random() * 1.25);
-      const c = backGrassColors[(Math.random() * backGrassColors.length) | 0];
-      const a = tall ? (0.34 + Math.random() * 0.34) : (0.24 + Math.random() * 0.32);
-      const sway = 0.45 + Math.random() * 1.1;
-      const seed = Math.random() * 6.28;
-      S.surfaceBackGrowth.push({ kind: 'blade', x, baseY, h, lean, w, c, a, sway, seed });
     }
 
     const fossilMinY = soilTop + dp(700);
@@ -7746,69 +7735,8 @@ window._dbg = {
       spctx.arc(x, y, r, 0, 6.28);
       spctx.fill();
     }
-    const surfFibers = Math.floor(surfTile * surfTile * 0.0009);
-    for(let i=0; i<surfFibers; i++) {
-      const x = Math.random() * surfTile;
-      const y = Math.random() * surfTile;
-      const len = 3 + Math.random() * 12;
-      const ang = Math.random() * Math.PI * 2;
-      spctx.strokeStyle = Math.random() < 0.62
-        ? `rgba(31,22,14,${0.09 + Math.random()*0.12})`
-        : `rgba(185,139,82,${0.05 + Math.random()*0.08})`;
-      spctx.lineWidth = 0.45 + Math.random() * 0.75;
-      spctx.lineCap = 'round';
-      spctx.beginPath();
-      spctx.moveTo(x, y);
-      spctx.lineTo(x + Math.cos(ang) * len, y + Math.sin(ang) * len * 0.55);
-      spctx.stroke();
-    }
     S.surfacePatternCanvas = sp;
     S.surfacePattern = ctx.createPattern(sp, 'repeat');
-
-    const cutGrainColors = [
-      'rgba(30,22,16,0.72)',
-      'rgba(76,51,33,0.66)',
-      'rgba(127,91,58,0.54)',
-      'rgba(201,165,116,0.35)'
-    ];
-    const cutGrainCount = clamp(Math.floor(S.full.w / Math.max(1, dp(5.5))), 140, 520);
-    for(let i=0; i<cutGrainCount; i++) {
-      const x = Math.random() * S.full.w;
-      const depth = Math.pow(Math.random(), 1.28);
-      const y = surfaceY(x) + dp(-14 + depth * (SURF_DOWN + 18));
-      const r = Math.random();
-      const kind = r < 0.46 ? 'pore' : (r < 0.78 ? 'streak' : 'clod');
-      const rot = (Math.random() - 0.5) * 1.2;
-      const c = cutGrainColors[(Math.random() * cutGrainColors.length) | 0];
-      const a = 0.30 + Math.random() * 0.40;
-      if(kind === 'streak') {
-        const len = dp(3 + Math.random() * 16);
-        const w = dp(0.55 + Math.random() * 0.8);
-        S.surfaceCutGrains.push({ kind, x, y, len, rot, w, c, a });
-      } else {
-        const rx = dp(kind === 'clod' ? (2.0 + Math.random() * 6.0) : (0.55 + Math.random() * 1.9));
-        const ry = rx * (kind === 'clod' ? (0.45 + Math.random() * 0.48) : (0.70 + Math.random() * 0.55));
-        S.surfaceCutGrains.push({ kind, x, y, rx, ry, rot, c, a });
-      }
-    }
-
-    const matRootColors = [
-      'rgba(28,18,11,0.74)',
-      'rgba(47,30,17,0.66)',
-      'rgba(75,49,27,0.52)',
-      'rgba(17,12,8,0.70)'
-    ];
-    const matRootCount = clamp(Math.floor(S.full.w / Math.max(1, dp(6.8))), 170, 460);
-    for(let i=0; i<matRootCount; i++) {
-      const x = Math.random() * S.full.w;
-      const y = surfaceY(x) + dp(-5 + Math.random() * 38);
-      const len = dp(9 + Math.random() * 38) * (Math.random() < 0.12 ? 1.7 : 1);
-      const rot = (Math.random() * 2 - 1) * 0.58 + (Math.random() < 0.75 ? 0 : Math.PI * 0.5);
-      const w = dp(0.55 + Math.random() * 1.35);
-      const c = matRootColors[(Math.random() * matRootColors.length) | 0];
-      const a = 0.30 + Math.random() * 0.48;
-      S.surfaceMatRoots.push({ x, y, len, rot, w, c, a });
-    }
 
     // 地表デブリ（小石・落ち葉・枝）
     S.surfaceDebris = [];
@@ -7834,26 +7762,26 @@ window._dbg = {
       const yMax = isEntrance ? Math.max(8, DEBRIS_MAX_DY - 10) : DEBRIS_MAX_DY;
       const y = surfaceY(x) + dp(yMin + Math.random() * (yMax - yMin));
       if(kind === 'pebble') {
-        const rx = dp(1.8 + Math.random() * 5.6) * (Math.random() < 0.18 ? 1.65 : 1);
+        const rx = dp(1.4 + Math.random() * 3.4);
         const ry = rx * (0.5 + Math.random() * 0.7);
         const rot = Math.random() * Math.PI;
         const c = (isEntrance ? surfPebbleDark : surfPebbleColors)[(Math.random() * (isEntrance ? surfPebbleDark.length : surfPebbleColors.length)) | 0];
-        const a = isEntrance ? (0.58 + Math.random() * 0.30) : (0.46 + Math.random() * 0.30);
+        const a = isEntrance ? (0.5 + Math.random() * 0.3) : (0.35 + Math.random() * 0.25);
         S.surfaceDebris.push({ kind, x, y, rx, ry, rot, c, a });
       } else if(kind === 'leaf') {
-        const len = dp(12 + Math.random() * 28) * (Math.random() < 0.16 ? 1.45 : 1);
-        const rot = (Math.random() * 2 - 1) * 1.2;
-        const w = dp(0.9 + Math.random() * 0.8);
+        const len = dp(6 + Math.random() * 10);
+        const rot = (Math.random() * 1 - 0.5) * 0.6;
+        const w = dp(0.8 + Math.random() * 0.5);
         const c = (isEntrance ? leafDarkColors : leafColors)[(Math.random() * (isEntrance ? leafDarkColors.length : leafColors.length)) | 0];
-        const a = isEntrance ? (0.68 + Math.random() * 0.24) : (0.54 + Math.random() * 0.30);
+        const a = isEntrance ? (0.6 + Math.random() * 0.25) : (0.4 + Math.random() * 0.25);
         const lift = dp(Math.random() * 1.5);
         S.surfaceDebris.push({ kind, x, y, len, rot, w, c, a, lift });
       } else {
-        const len = dp(18 + Math.random() * 34) * (Math.random() < 0.14 ? 1.55 : 1);
-        const rot = (Math.random() * 2 - 1) * 1.15;
-        const w = dp(0.95 + Math.random() * 0.9);
+        const len = dp(10 + Math.random() * 14);
+        const rot = (Math.random() * 1 - 0.5) * 0.7;
+        const w = dp(0.8 + Math.random() * 0.6);
         const c = (isEntrance ? twigDarkColors : twigColors)[(Math.random() * (isEntrance ? twigDarkColors.length : twigColors.length)) | 0];
-        const a = isEntrance ? (0.64 + Math.random() * 0.26) : (0.50 + Math.random() * 0.28);
+        const a = isEntrance ? (0.55 + Math.random() * 0.25) : (0.38 + Math.random() * 0.25);
         const branch = Math.random() < 0.4;
         const branchPos = (Math.random() * 0.4 - 0.2) * len;
         const branchLen = len * (0.25 + Math.random() * 0.25);
@@ -7873,21 +7801,20 @@ window._dbg = {
       const avoid = dp(GRASS_AVOID_R);
       for(let x=0; x<S.full.w; x+=step) {
         if(Math.abs(x-ex) <= avoid) continue;
-        if(Math.random() < 0.74) {
+        if(Math.random() < 0.65) {
           const tuft = GRASS_TUFT_MIN + Math.floor(Math.random() * (GRASS_TUFT_MAX - GRASS_TUFT_MIN + 1));
-          const grassCols = ['#4d7c0f', '#3f6f12', '#5f8f20', '#2f5f19', '#6b7d28', '#31532a'];
+          const grassCols = ['#4d7c0f', '#3f6f12', '#5f8f20', '#2f5f19'];
           for(let k=0; k<tuft; k++) {
             const ox = (Math.random() - 0.5) * step * 0.6;
             const gx = clamp(x + ox, 0, S.full.w);
-            const tall = Math.random() < 0.22;
             S.grass.push({
               x: gx,
-              h: tall ? dp(20 + Math.random() * 28) : dp(7 + Math.random() * 15),
+              h: dp(6 + Math.random() * 12),
               o: Math.random() * 6,
-              sway: tall ? (0.85 + Math.random() * 0.9) : (0.55 + Math.random() * 0.8),
+              sway: 0.6 + Math.random() * 0.8,
               yo: dp(Math.random() * 3),
-              lean: (Math.random() - 0.5) * dp(tall ? 9 : 4),
-              w: dp((tall ? 0.9 : 1.1) + Math.random() * 1.2),
+              lean: (Math.random() - 0.5) * dp(4),
+              w: dp(1.1 + Math.random() * 1.2),
               c: grassCols[(Math.random() * grassCols.length) | 0]
             });
           }
@@ -7929,7 +7856,6 @@ window._dbg = {
     const pebbles = S.bgPebbles || [];
     const roots = S.bgRoots || [];
     const rootlets = S.bgRootlets || [];
-    const surfaceRoots = S.surfaceRootCurtain || [];
     const pad = dp(50);
 
     drawSoilStrata(ctx, view, soilTop, soilBottom);
@@ -8028,75 +7954,10 @@ window._dbg = {
       ctx.stroke();
     }
 
-    // Denser dangling roots anchored at the surface. These are baked before room/tunnel cutouts.
-    for(const r of surfaceRoots) {
-      if(r.maxX < view.x - pad || r.minX > view.x + view.w + pad) continue;
-      if(r.maxY < soilTop - pad || r.minY > soilBottom + pad) continue;
-      ctx.globalAlpha = r.a;
-      ctx.strokeStyle = r.c;
-      ctx.lineWidth = r.w;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.beginPath();
-      ctx.moveTo(r.x0, r.y0);
-      ctx.quadraticCurveTo(r.cx, r.cy, r.x1, r.y1);
-      ctx.stroke();
-      if(r.branches && r.branches.length) {
-        ctx.lineWidth = Math.max(dp(0.45), r.w * 0.62);
-        ctx.globalAlpha = r.a * 0.72;
-        for(const b of r.branches) {
-          ctx.beginPath();
-          ctx.moveTo(b.x0, b.y0);
-          ctx.quadraticCurveTo(b.cx, b.cy, b.x1, b.y1);
-          ctx.stroke();
-        }
-      }
-    }
-
     ctx.globalAlpha = 1;
   }
 
-  function drawSurfaceBackGrowth(ctx, view){
-    const items = S.surfaceBackGrowth || [];
-    if(!S.full || !items.length) return;
-    const pad = dp(90);
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(view.x - pad, view.y - pad, view.w + pad * 2, view.h + pad * 2);
-    ctx.clip();
-    for(const it of items) {
-      if(it.kind === 'haze') {
-        if(it.x + it.rx < view.x - pad || it.x - it.rx > view.x + view.w + pad) continue;
-        if(it.y + it.ry < view.y - pad || it.y - it.ry > view.y + view.h + pad) continue;
-        ctx.save();
-        ctx.globalAlpha = it.a;
-        ctx.fillStyle = it.c;
-        ctx.shadowColor = it.c;
-        ctx.shadowBlur = dp(8);
-        ctx.beginPath();
-        ctx.ellipse(it.x, it.y, it.rx, it.ry, 0, 0, 6.28);
-        ctx.fill();
-        ctx.restore();
-      } else if(it.kind === 'blade') {
-        const topY = it.baseY - it.h;
-        if(it.x < view.x - pad || it.x > view.x + view.w + pad) continue;
-        if(it.baseY < view.y - pad || topY > view.y + view.h + pad) continue;
-        const sw = Math.sin(S.t * 1.35 + it.seed) * dp(3.2) * it.sway;
-        ctx.globalAlpha = it.a;
-        ctx.strokeStyle = it.c;
-        ctx.lineWidth = it.w;
-        ctx.lineCap = 'round';
-        ctx.beginPath();
-        ctx.moveTo(it.x, it.baseY);
-        ctx.quadraticCurveTo(it.x + it.lean * 0.36 + sw, it.baseY - it.h * 0.55, it.x + it.lean + sw * 1.2, topY);
-        ctx.stroke();
-      }
-    }
-    ctx.restore();
-    ctx.globalAlpha = 1;
-  }
-
-  function traceSurfaceBandPath(ctx, x0, x1, top, bottom, step) {
+  function traceSurfaceTextureBand(ctx, x0, x1, top, bottom, step) {
     ctx.beginPath();
     ctx.moveTo(x0, surfaceY(x0) - top);
     for(let x=x0+step; x<=x1; x+=step) {
@@ -8104,25 +7965,66 @@ window._dbg = {
     }
     ctx.lineTo(x1, surfaceY(x1) - top);
     for(let x=x1; x>=x0; x-=step) {
-      ctx.lineTo(x, surfaceY(x) + bottom);
+      const wobble = Math.sin(x * 0.018) * dp(3.2) + Math.sin(x * 0.051 + 1.2) * dp(1.8);
+      ctx.lineTo(x, surfaceY(x) + bottom + wobble);
     }
     ctx.lineTo(x0, surfaceY(x0) + bottom);
     ctx.closePath();
   }
 
-  function traceSurfaceCapPath(ctx, x0, x1, upper, lower, step) {
+  function drawSurfaceHorizonTexture(ctx, view) {
+    if(!S.full || !S.surfacePts || S.surfacePts.length < 2) return false;
+    const pattern = getSurfaceHorizonTexturePattern(ctx);
+    if(!pattern) return false;
+    const pad = dp(SURF_BAND_PAD);
+    const x0 = clamp(view.x - pad, 0, S.full.w);
+    const x1 = clamp(view.x + view.w + pad, 0, S.full.w);
+    if(x1 <= x0) return false;
+    const step = S.surfaceStep || dp(SURF_STEP);
+    const top = dp(116);
+    const bottom = dp(8);
+    const yL = surfaceY(x0);
+    const yR = surfaceY(x1);
+    const minY = Math.min(yL, yR) - top - dp(20);
+    const maxY = Math.max(yL, yR) + bottom + dp(18);
+    if(maxY < view.y || minY > view.y + view.h) return false;
+    ctx.save();
+    traceSurfaceTextureBand(ctx, x0, x1, top, bottom, step);
+    ctx.clip();
+    ctx.globalAlpha = 0.82;
+    ctx.fillStyle = pattern;
+    ctx.fillRect(view.x - pad, minY, view.w + pad * 2, Math.max(dp(1), maxY - minY));
+    ctx.restore();
+    return true;
+  }
+
+  function drawSurfaceCutTexture(ctx, view, soilTop, soilBottom) {
+    if(!S.full || !S.surfacePts || S.surfacePts.length < 2) return false;
+    const pattern = getSurfaceCutTexturePattern(ctx);
+    if(!pattern) return false;
+    const pad = dp(SURF_BAND_PAD);
+    const x0 = clamp(view.x - pad, 0, S.full.w);
+    const x1 = clamp(view.x + view.w + pad, 0, S.full.w);
+    if(x1 <= x0) return false;
+    const step = S.surfaceStep || dp(SURF_STEP);
+    const top = dp(4);
+    const bottom = dp(118);
+    const yL = surfaceY(x0);
+    const yR = surfaceY(x1);
+    const minY = Math.max(soilTop, Math.min(yL, yR) - top - dp(8));
+    const maxY = Math.min(soilBottom, Math.max(yL, yR) + bottom + dp(14));
+    if(maxY <= minY || maxY < view.y || minY > view.y + view.h) return false;
+    ctx.save();
     ctx.beginPath();
-    ctx.moveTo(x0, surfaceY(x0) - upper);
-    for(let x=x0+step; x<=x1; x+=step) {
-      ctx.lineTo(x, surfaceY(x) - upper);
-    }
-    ctx.lineTo(x1, surfaceY(x1) - upper);
-    for(let x=x1; x>=x0; x-=step) {
-      const wobble = Math.sin(x * 0.026) * dp(2.8) + Math.sin(x * 0.071 + 1.3) * dp(1.6);
-      ctx.lineTo(x, surfaceY(x) + lower + wobble);
-    }
-    ctx.lineTo(x0, surfaceY(x0) + lower);
-    ctx.closePath();
+    ctx.rect(view.x - pad, soilTop, view.w + pad * 2, soilBottom - soilTop);
+    ctx.clip();
+    traceSurfaceTextureBand(ctx, x0, x1, top, bottom, step);
+    ctx.clip();
+    ctx.globalAlpha = 0.76;
+    ctx.fillStyle = pattern;
+    ctx.fillRect(view.x - pad, minY, view.w + pad * 2, Math.max(dp(1), maxY - minY));
+    ctx.restore();
+    return true;
   }
 
   function drawSurfaceBand(ctx, view){
@@ -8141,57 +8043,77 @@ window._dbg = {
 
     const step = S.surfaceStep || dp(SURF_STEP);
     ctx.save();
-    traceSurfaceBandPath(ctx, x0, x1, top, bottom, step);
+    ctx.beginPath();
+    ctx.moveTo(x0, surfaceY(x0) - top);
+    for(let x=x0+step; x<=x1; x+=step) {
+      ctx.lineTo(x, surfaceY(x) - top);
+    }
+    for(let x=x1; x>=x0; x-=step) {
+      ctx.lineTo(x, surfaceY(x) + bottom);
+    }
+    ctx.closePath();
 
     const midX = (x0 + x1) * 0.5;
     const midY = surfaceY(midX);
     const bandGr = ctx.createLinearGradient(0, midY - top, 0, midY + bottom);
-    bandGr.addColorStop(0, 'rgba(20, 17, 13, 0.99)');
-    bandGr.addColorStop(0.18, 'rgba(34, 26, 18, 0.99)');
-    bandGr.addColorStop(0.34, 'rgba(92, 62, 38, 0.99)');
-    bandGr.addColorStop(0.64, 'rgba(125, 85, 52, 0.98)');
-    bandGr.addColorStop(1, 'rgba(58, 43, 34, 0.99)');
+    bandGr.addColorStop(0, 'rgba(216, 192, 160, 0.98)');
+    bandGr.addColorStop(0.34, 'rgba(166, 127, 92, 0.98)');
+    bandGr.addColorStop(1, 'rgba(92, 68, 50, 0.98)');
     ctx.fillStyle = bandGr;
     ctx.fill();
 
     if(S.surfacePattern) {
-      ctx.globalAlpha = 0.48;
+      ctx.globalAlpha = 0.25;
       ctx.fillStyle = S.surfacePattern;
       ctx.fill();
     }
 
     const humusGr = ctx.createLinearGradient(0, midY - top, 0, midY + bottom);
-    humusGr.addColorStop(0, 'rgba(7, 6, 4, 0.74)');
-    humusGr.addColorStop(0.20, 'rgba(18, 13, 9, 0.58)');
-    humusGr.addColorStop(0.42, 'rgba(42, 27, 16, 0.24)');
+    humusGr.addColorStop(0, 'rgba(70, 48, 32, 0)');
+    humusGr.addColorStop(0.28, 'rgba(58, 40, 29, 0.18)');
+    humusGr.addColorStop(0.55, 'rgba(58, 40, 29, 0.06)');
     humusGr.addColorStop(1, 'rgba(0, 0, 0, 0)');
     ctx.fillStyle = humusGr;
     ctx.fill();
 
-    traceSurfaceCapPath(ctx, x0, x1, top * 0.34, dp(18), step);
-    ctx.fillStyle = 'rgba(17, 12, 8, 0.68)';
-    ctx.fill();
+    const contourDefs = [
+      { off: 5, color: 'rgba(58, 40, 27, 0.26)', w: 1.0, freq: 0.022 },
+      { off: 14, color: 'rgba(239, 210, 168, 0.14)', w: 0.9, freq: 0.031 },
+      { off: 24, color: 'rgba(48, 32, 22, 0.16)', w: 1.1, freq: 0.018 }
+    ];
+    for(const c of contourDefs) {
+      ctx.beginPath();
+      for(let x=x0; x<=x1; x+=step) {
+        const jitter = Math.sin(x * c.freq + c.off) * dp(0.8);
+        const y = surfaceY(x) + dp(c.off) + jitter;
+        if(x===x0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = c.color;
+      ctx.lineWidth = dp(c.w);
+      ctx.stroke();
+    }
     ctx.restore();
 
     ctx.save();
     ctx.beginPath();
     for(let x=x0; x<=x1; x+=step) {
-      const y = surfaceY(x) - dp(2.2);
+      const y = surfaceY(x) - dp(1.2);
       if(x===x0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
     }
-    ctx.strokeStyle = 'rgba(192, 153, 96, 0.20)';
-    ctx.lineWidth = dp(1.2);
+    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+    ctx.lineWidth = dp(1);
     ctx.stroke();
 
     ctx.beginPath();
     for(let x=x0; x<=x1; x+=step) {
-      const y = surfaceY(x) + dp(5.2);
+      const y = surfaceY(x) + dp(2.8);
       if(x===x0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
     }
-    ctx.strokeStyle = 'rgba(0,0,0,0.54)';
-    ctx.lineWidth = dp(4.4);
+    ctx.strokeStyle = 'rgba(0,0,0,0.22)';
+    ctx.lineWidth = dp(1.6);
     ctx.stroke();
     ctx.restore();
   }
@@ -8277,19 +8199,15 @@ window._dbg = {
       } else if(d.kind === 'leaf') {
         ctx.translate(d.x, d.y);
         ctx.rotate(d.rot);
-        ctx.fillStyle = d.c;
-        ctx.beginPath();
-        ctx.moveTo(-d.len * 0.5, 0);
-        ctx.quadraticCurveTo(0, -d.len * 0.25, d.len * 0.5, 0);
-        ctx.quadraticCurveTo(0, d.len * 0.23 + d.lift, -d.len * 0.5, 0);
-        ctx.fill();
-        ctx.strokeStyle = 'rgba(34,26,18,0.34)';
-        ctx.lineWidth = Math.max(dp(0.5), d.w * 0.8);
+        ctx.strokeStyle = d.c;
+        ctx.lineWidth = d.w;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
         ctx.beginPath();
-        ctx.moveTo(-d.len * 0.42, d.lift * 0.25);
-        ctx.quadraticCurveTo(0, d.lift - d.len * 0.02, d.len * 0.42, d.lift * 0.25);
+        ctx.moveTo(-d.len * 0.5, 0);
+        ctx.quadraticCurveTo(0, -d.len * 0.25, d.len * 0.5, 0);
+        ctx.moveTo(-d.len * 0.45, d.lift);
+        ctx.quadraticCurveTo(0, d.len * 0.2, d.len * 0.45, d.lift);
         ctx.stroke();
       } else if(d.kind === 'twig') {
         ctx.translate(d.x, d.y);
@@ -21494,73 +21412,6 @@ function syncFermenterUnlockUI() {
     ctx.restore();
   }
 
-  function drawSurfaceCutDetails(ctx, view){
-    const grains = S.surfaceCutGrains || [];
-    const matRoots = S.surfaceMatRoots || [];
-    if(!S.full || (!grains.length && !matRoots.length) || !S.surfacePts || S.surfacePts.length < 2) return;
-    const pad = dp(SURF_BAND_PAD);
-    const x0 = clamp(view.x - pad, 0, S.full.w);
-    const x1 = clamp(view.x + view.w + pad, 0, S.full.w);
-    if(x1 <= x0) return;
-    const top = dp(SURF_UP);
-    const bottom = dp(SURF_DOWN);
-    const step = S.surfaceStep || dp(SURF_STEP);
-    ctx.save();
-    traceSurfaceBandPath(ctx, x0, x1, top, bottom, step);
-    ctx.clip();
-    for(const r of matRoots) {
-      if(r.x < view.x - dp(44) || r.x > view.x + view.w + dp(44)) continue;
-      if(r.y < view.y - dp(44) || r.y > view.y + view.h + dp(44)) continue;
-      ctx.save();
-      ctx.globalAlpha = r.a;
-      ctx.translate(r.x, r.y);
-      ctx.rotate(r.rot);
-      ctx.strokeStyle = r.c;
-      ctx.lineWidth = r.w;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.moveTo(-r.len * 0.5, 0);
-      ctx.quadraticCurveTo(0, -r.len * 0.08, r.len * 0.5, r.len * 0.08);
-      ctx.stroke();
-      ctx.restore();
-    }
-    for(const g of grains) {
-      if(g.x < view.x - dp(40) || g.x > view.x + view.w + dp(40)) continue;
-      if(g.y < view.y - dp(40) || g.y > view.y + view.h + dp(40)) continue;
-      ctx.save();
-      ctx.globalAlpha = g.a;
-      if(g.kind === 'streak') {
-        ctx.translate(g.x, g.y);
-        ctx.rotate(g.rot);
-        ctx.strokeStyle = g.c;
-        ctx.lineWidth = g.w;
-        ctx.lineCap = 'round';
-        ctx.beginPath();
-        ctx.moveTo(-g.len * 0.5, 0);
-        ctx.quadraticCurveTo(0, -g.len * 0.12, g.len * 0.5, g.len * 0.08);
-        ctx.stroke();
-      } else {
-        ctx.translate(g.x, g.y);
-        ctx.rotate(g.rot);
-        if(g.kind === 'clod') {
-          ctx.globalAlpha *= 0.46;
-          ctx.fillStyle = 'rgba(12,8,5,0.62)';
-          ctx.beginPath();
-          ctx.ellipse(g.rx * 0.12, g.ry * 0.32, g.rx * 0.94, g.ry * 0.58, 0, 0, 6.28);
-          ctx.fill();
-          ctx.globalAlpha = g.a;
-        }
-        ctx.fillStyle = g.c;
-        ctx.beginPath();
-        ctx.ellipse(0, 0, g.rx, g.ry, 0, 0, 6.28);
-        ctx.fill();
-      }
-      ctx.restore();
-    }
-    ctx.restore();
-    ctx.globalAlpha = 1;
-  }
-
   function getInventoryPilePoint(n, kind, ordinal, drawCount, slotIdx, inventoryCount) {
     const anchor = getRoomPileAnchor(n, kind);
     const id = (n && n.id != null) ? n.id : 0;
@@ -22303,6 +22154,7 @@ function syncFermenterUnlockUI() {
       Math.round((q.y || 0) * 10),
       S.soilTextureLoaded ? 'soiltex1' : (S.soilTextureFailed ? 'soiltexerr' : 'soiltex0'),
       S.cavityTextureLoaded ? 'cavtex1' : (S.cavityTextureFailed ? 'cavtexerr' : 'cavtex0'),
+      S.surfaceCutTextureLoaded ? 'surfcut1' : (S.surfaceCutTextureFailed ? 'surfcuterr' : 'surfcut0'),
       S.colors.soil.join(',')
     ].join(':');
   }
@@ -22464,6 +22316,7 @@ function syncFermenterUnlockUI() {
     }
 
     drawBackgroundDetails(g, view, soilTop, soilBottom);
+    drawSurfaceCutTexture(g, view, soilTop, soilBottom);
 
     const stampPad = dp(60);
     const nodePad = dp(90);
@@ -22888,7 +22741,7 @@ function syncFermenterUnlockUI() {
         ctx.fillRect(view.x, skyTop, view.w, skyBottom - skyTop);
       }
     }
-    drawSurfaceBackGrowth(ctx, view);
+    drawSurfaceHorizonTexture(ctx, view);
 
     // --- Soil (visible range only) ---
     const soilTop = Math.max(view.y, S.full.sy);
@@ -22898,7 +22751,6 @@ function syncFermenterUnlockUI() {
     }
 
     drawSurfaceBand(ctx, view);
-    drawSurfaceCutDetails(ctx, view);
     drawEntranceMound(ctx, view);
 
     ctx.lineCap='round'; ctx.lineJoin='round';
@@ -23224,13 +23076,8 @@ function syncFermenterUnlockUI() {
       if(g.x < view.x - grassPad || g.x > view.x + view.w + grassPad) return;
       const baseY = surfaceY(g.x) + (g.yo || 0);
       const sw = Math.sin(S.t*2+g.o) * dp(4) * (g.sway || 1);
-      ctx.fillStyle = 'rgba(28,22,15,0.22)';
-      ctx.beginPath();
-      ctx.ellipse(g.x, baseY + dp(1.4), Math.max(dp(1.8), (g.w || dp(2)) * 1.6), dp(1.0), 0, 0, 6.28);
-      ctx.fill();
       ctx.strokeStyle = g.c || '#4d7c0f';
       ctx.lineWidth = g.w || dp(2);
-      ctx.lineCap = 'round';
       ctx.beginPath(); ctx.moveTo(g.x, baseY);
       const lean = g.lean || 0;
       ctx.quadraticCurveTo(g.x + lean + sw, baseY-g.h*0.5, g.x + lean*1.6 + sw*1.5, baseY-g.h);
