@@ -6358,6 +6358,79 @@ function ensureRestSlots(n){
     drawOne(e.v, stamps[max - 1]);
   }
 
+  function drawPassageCarveMarks(ctx, e, count, rScale, view, soilTop, soilBottom, pad){
+    if(!e || !e.stamps || e.stamps.length < 3 || count <= 2) return;
+    const stamps = e.stamps;
+    const max = Math.min(count, stamps.length);
+    if(max <= 2) return;
+    const stride = Math.max(2, Math.floor(max / 24));
+    const viewPad = Math.max(pad || 0, dp(28));
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    for(let i=1; i<max-1; i+=stride) {
+      const s = stamps[i];
+      if(!s) continue;
+      if(s.x < view.x - viewPad || s.x > view.x + view.w + viewPad) continue;
+      if(s.y < soilTop - viewPad || s.y > soilBottom + viewPad) continue;
+
+      const prev = stamps[Math.max(0, i - 1)];
+      const next = stamps[Math.min(max - 1, i + 1)];
+      const tx = (next ? next.x : s.x) - (prev ? prev.x : s.x);
+      const ty = (next ? next.y : s.y) - (prev ? prev.y : s.y);
+      const len = Math.hypot(tx, ty);
+      if(len <= 1e-4) continue;
+      const nx = -ty / len;
+      const ny = tx / len;
+      const angle = Math.atan2(ty, tx);
+
+      const u = seed01FromIds((e.id + 1) * 1543 + i * 37, 911);
+      const v = seed01FromIds((e.id + 3) * 1291 + i * 53, 1307);
+      const side = u < 0.5 ? -1 : 1;
+      const radius = Math.max(dp(2.5), s.r * rScale);
+      const wallDist = radius * (0.56 + v * 0.34);
+      const wx = s.x + nx * side * wallDist;
+      const wy = s.y + ny * side * wallDist;
+
+      ctx.globalAlpha = 0.12 + v * 0.08;
+      ctx.fillStyle = u < 0.55 ? 'rgba(30,20,13,0.78)' : 'rgba(84,54,31,0.50)';
+      ctx.beginPath();
+      ctx.ellipse(
+        wx,
+        wy,
+        dp(2.2 + u * 5.4),
+        dp(0.85 + v * 1.75),
+        angle + (u - 0.5) * 0.55,
+        0,
+        6.28
+      );
+      ctx.fill();
+
+      if(v > 0.62) {
+        const px = wx + nx * side * dp(1.4 + u * 2.0);
+        const py = wy + ny * side * dp(1.4 + u * 2.0);
+        const prx = dp(0.65 + u * 1.35);
+        const pry = prx * (0.38 + v * 0.28);
+        drawEarthPebbleStamp(ctx, px, py, prx, pry, angle + (v - 0.5), 'rgba(82,57,35,0.70)', 0.10, 0.01);
+      }
+
+      if(i % (stride * 2) === 1) {
+        const cu = seed01FromIds((e.id + 7) * 967 + i * 41, 1709);
+        const cx = s.x + nx * (cu - 0.5) * radius * 0.34;
+        const cy = s.y + ny * (cu - 0.5) * radius * 0.34;
+        const scuffLen = dp(3.5 + cu * 8.0);
+        ctx.globalAlpha = 0.045 + cu * 0.03;
+        ctx.strokeStyle = 'rgba(235,207,158,0.70)';
+        ctx.lineWidth = dp(0.45 + cu * 0.45);
+        ctx.beginPath();
+        ctx.moveTo(cx - Math.cos(angle) * scuffLen * 0.5, cy - Math.sin(angle) * scuffLen * 0.5);
+        ctx.lineTo(cx + Math.cos(angle) * scuffLen * 0.5, cy + Math.sin(angle) * scuffLen * 0.5);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+
   /*
    * ===== G（ゲーム状態） =====
    * セーブ・ロードの対象。食料・卵・アリ数・レベル・上限など「数値」をまとめて保持。
@@ -21994,6 +22067,13 @@ function syncFermenterUnlockUI() {
       const count = Math.max(1, Math.floor(stamps.length * S.edgeFrac[i]));
       drawStamps(g, stamps, count, 0.68, view, soilTop, soilBottom, stampPad);
       drawEdgeRoomConnectorCaps(g, e, count, 0.68, view, soilTop, soilBottom, stampPad);
+    });
+    S.full.edges.forEach((e,i)=>{
+      if(!shouldDrawEdgeProgress(i)) return;
+      const stamps = e.stamps;
+      if(!stamps || stamps.length===0) return;
+      const count = Math.max(1, Math.floor(stamps.length * S.edgeFrac[i]));
+      drawPassageCarveMarks(g, e, count, 1.0, view, soilTop, soilBottom, stampPad);
     });
     g.restore();
 

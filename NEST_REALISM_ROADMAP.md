@@ -10,7 +10,7 @@ handoffs, call these phases "nest realism F1-F6" to avoid ambiguity.
 | --- | ---: | --- |
 | F1: Soil cross-section density | 70-80% | Pebbles, soil grains, fine roots, clods, surface grass, depth gradient, and static-cache rendering are in. Moisture variation and stronger layer differences still need work. |
 | F2: Dug chamber interiors | 75-80% | Shared chamber floor texture, bowl lighting, foreground rims, gritty rim chips, ceiling-collapse shadow, compacted floor highlight, and scuffs are in. Remaining work is visual tuning against real-device screenshots. |
-| F3: Natural passage carving | 50-60% | Darker walls, brighter center, tunnel-mouth contact shadow/pebbles, and room-connection fixes are in. Irregular passage edges are still too tube-like. |
+| F3: Natural passage carving | 65-70% | Darker walls, brighter center, tunnel-mouth contact shadow/pebbles, room-connection fixes, and deterministic wall scrape/crumb marks are in. Remaining work is stronger silhouette irregularity if screenshots still read too tube-like. |
 | F4: Inventory piles | 25-35% | Food/eggs/larvae/waste are drawn as particles, but not yet as floor-integrated piles with depth shading. |
 | F5: Ant integration | 35-45% | Foreground room rims mask some ant spill. Tunnel ants still need smaller/darker silhouettes and stronger clipping/rim treatment. |
 | F6: UI pass | 0% | Keep HUD/glass UI for later after the nest body is stable. |
@@ -40,6 +40,11 @@ Current implementation notes:
 - Make passage edges less uniform so they do not read as smooth tubes.
 - Add collapsed soil, pebbles, and contact shadow at chamber mouths.
 - Keep passage centers slightly brighter and walls darker.
+
+Current implementation notes:
+
+- `drawPassageCarveMarks()` bakes deterministic wall-side scrape marks, tiny crumbs, and subtle center scuffs into the static soil layer.
+- The passage graph, pathfinding, and save data are unchanged; this is visual-only and runs through the cached nest soil layer.
 
 ## F4: Inventory Piles
 

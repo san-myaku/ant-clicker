@@ -1,5 +1,13 @@
 # Development Log
 
+## 2026-06-19 Nest realism F3: passage scrape marks
+
+Continued from `NEST_REALISM_ROADMAP.md` into F3, focused on making passages feel less like uniform tubes without touching topology, pathfinding, or save data.
+
+- Added `drawPassageCarveMarks()` to bake deterministic wall-side scrape marks, tiny soil crumbs, and subtle center scuffs into the static soil layer.
+- Wired the marks after the existing tunnel wall darkening and center highlight passes, so the old readability of passages is preserved while the edges become less mechanically smooth.
+- Updated the roadmap F3 progress to 65-70%; remaining F3 work is stronger silhouette irregularity only if real-device screenshots still read too tube-like.
+
 ## 2026-06-19 巣リアリズム計画の固定 + F2空洞表現の追加
 
 ユーザー提示の F1〜F6 を既存のメッシュ構造フェーズと混同しないよう、`NEST_REALISM_ROADMAP.md` として保存した。以後は「巣リアリズムF1〜F6」と呼び、F1土断面/F2掘られた空洞/F3自然な通路/F4在庫の山/F5アリの馴染ませ/F6 UI最後、の順で参照する。
