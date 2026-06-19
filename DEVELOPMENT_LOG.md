@@ -1,5 +1,14 @@
 # Development Log
 
+## 2026-06-19 Nest realism F5: ant integration pass
+
+Continued from `NEST_REALISM_ROADMAP.md` F5. The change is visual-only: ant task logic, pathfinding, room coordinates, and save data are unchanged.
+
+- Added draw profiles for action ants and crowd ants so passage ants render smaller, lower-alpha, and closer to black silhouettes in vector, sprite, dot, and crowdSprite modes.
+- Tightened draw-only passage lane offsets to reduce apparent wall spill without changing movement coordinates.
+- Strengthened `drawRoomForegroundRims()` with a wider lower occlusion band so ants inside rooms tuck farther under the front soil lip.
+- Updated F5 progress to 60-70%; remaining work is visual tuning against real-device screenshots if tunnels become too dark or rims too heavy.
+
 ## 2026-06-19 Nest realism F4: floor-integrated inventory piles
 
 Continued from `NEST_REALISM_ROADMAP.md` F4. The change is visual-only: inventory counts, room ownership, save data, and hauling logic are unchanged.

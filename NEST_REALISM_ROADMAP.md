@@ -12,7 +12,7 @@ handoffs, call these phases "nest realism F1-F6" to avoid ambiguity.
 | F2: Dug chamber interiors | 75-80% | Shared chamber floor texture, bowl lighting, foreground rims, gritty rim chips, ceiling-collapse shadow, compacted floor highlight, and scuffs are in. Remaining work is visual tuning against real-device screenshots. |
 | F3: Natural passage carving | 65-70% | Darker walls, brighter center, tunnel-mouth contact shadow/pebbles, room-connection fixes, and deterministic wall scrape/crumb marks are in. Remaining work is stronger silhouette irregularity if screenshots still read too tube-like. |
 | F4: Inventory piles | 50-60% | Food/eggs/larvae/waste now render as floor-integrated piles with mound bases, contact shadows, and back/front depth shading. Remaining work is screenshot tuning of pile density and scale. |
-| F5: Ant integration | 35-45% | Foreground room rims mask some ant spill. Tunnel ants still need smaller/darker silhouettes and stronger clipping/rim treatment. |
+| F5: Ant integration | 60-70% | Tunnel ants now draw smaller/darker across vector, sprite, dot, and crowd modes, and the foreground room rim has stronger lower occlusion. Remaining work is screenshot tuning for over-dark passages or over-heavy rims. |
 | F6: UI pass | 0% | Keep HUD/glass UI for later after the nest body is stable. |
 
 ## F1: Soil Cross-Section Density
@@ -63,6 +63,12 @@ Current implementation notes:
 - Strengthen the foreground rim layer so ants inside rooms tuck under the lip.
 - Draw ants on passages slightly smaller and closer to black silhouettes.
 - Prefer clipping/rims over coordinate changes when ants appear outside walls or rooms.
+
+Current implementation notes:
+
+- `getAntDrawProfile()` applies draw-only tunnel styling for action ants; movement/path coordinates remain unchanged.
+- `getCrowdAntDrawProfile()` applies the same smaller black-silhouette treatment to `crowdSprite` passage ants.
+- `drawRoomForegroundRims()` now extends the lower foreground occlusion band so room ants tuck farther under the chamber lip.
 
 ## F6: UI Last
 

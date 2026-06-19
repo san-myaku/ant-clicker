@@ -20321,6 +20321,39 @@ function syncFermenterUnlockUI() {
     return false;
   }
 
+  function getAntDrawProfile(a) {
+    const edge = isAntOnEdgeForDraw(a);
+    if(!edge) return { edge:false, scale:1, alpha:1 };
+    return {
+      edge:true,
+      scale:0.82,
+      alpha:0.88,
+      bodyColor: a && a.golden ? '#8a5a07' : '#050505',
+      legStroke: 'rgba(4, 7, 10, 0.86)',
+      legShadow: 'rgba(0, 0, 0, 0.18)'
+    };
+  }
+
+  function getAntProfileBaseColor(a, profile) {
+    if(profile && profile.edge) return profile.bodyColor || '#050505';
+    return getAntBaseColor(a);
+  }
+
+  function getVectorAntBodyColor(a, isResting, profile) {
+    if(profile && profile.edge) return profile.bodyColor || '#050505';
+    let color = (isResting && a.role === 'worker') ? '#334155' : '#111';
+    if(a.role === 'builder') color = '#b45309';
+    if(a.role === 'nurse') color = '#be185d';
+    if(a.role === 'soldier') color = '#3b82f6';
+    if(a.golden) color = '#f59e0b';
+    return color;
+  }
+
+  function getCrowdAntDrawProfile(routeKind) {
+    if(routeKind !== CROWD_ROUTE_EDGE) return { edge:false, scale:1, alpha:1, roleSilhouette:false };
+    return { edge:true, scale:0.80, alpha:0.84, roleSilhouette:true };
+  }
+
   function getActionAntLaneOffset(a) {
     if(!a) return 0;
     if(!Number.isFinite(a._laneOffset)) {
@@ -20336,7 +20369,7 @@ function syncFermenterUnlockUI() {
     const e = S.full.edges[eid];
     if(!e || !S.nodeVis[e.u] || !S.nodeVis[e.v]) return { x:0, y:0 };
     const f = clamp(S.edgeFrac[eid] || 0, 0, 1);
-    const max = (typeof maxOffset === 'number') ? maxOffset : (f >= 0.99 ? dp(4.4) : dp(2.4));
+    const max = (typeof maxOffset === 'number') ? maxOffset : (f >= 0.99 ? dp(3.0) : dp(2.0));
     const l = clamp(lane || 0, -max, max);
     const r = Number.isFinite(rot) ? rot : 0;
     return {
@@ -20353,15 +20386,20 @@ function syncFermenterUnlockUI() {
 
   function drawAntDot(a) {
     const pose = getActionAntDrawPose(a, a.rot || 0);
+    const profile = getAntDrawProfile(a);
     ctx.save();
     ctx.translate(pose.x, pose.y);
+    if(profile.edge) {
+      ctx.globalAlpha *= profile.alpha;
+      ctx.scale(profile.scale, profile.scale);
+    }
     if(a.golden) {
       const anim = a.anim || 0;
       const pulse = (Math.sin(S.t*4 + anim) + 1) * 0.5;
       ctx.fillStyle = `rgba(250, 204, 21, ${0.18 + 0.18*pulse})`;
       ctx.beginPath(); ctx.arc(0, 0, dp(4) + pulse*dp(1.4), 0, 6.28); ctx.fill();
     }
-    ctx.fillStyle = getAntBaseColor(a);
+    ctx.fillStyle = getAntProfileBaseColor(a, profile);
     ctx.beginPath(); ctx.arc(0, 0, dp(2.2), 0, 6.28); ctx.fill();
     // 追加: 幼虫運搬(larva)のアイコン表示対応
     const carry = a.cargo || a.carryType;
@@ -20419,19 +20457,28 @@ function syncFermenterUnlockUI() {
     for(const a of ants) {
       if(!a) continue;
       const pose = getActionAntDrawPose(a, a.rot || 0);
+      const profile = getAntDrawProfile(a);
       const x = pose.x, y = pose.y;
       if(a.golden) {
-        goldenGlow.push({ x, y, anim: a.anim || 0 });
+        goldenGlow.push({ x, y, anim: a.anim || 0, scale: profile.scale });
       }
-      addBatchPoint(baseGroups, getAntBaseColor(a), x, y);
+      const baseColor = getAntProfileBaseColor(a, profile);
+      addBatchPoint(baseGroups, `${baseColor}|${Math.round(profile.scale * 100)}`, x, y, {
+        color: baseColor,
+        radius: dotR * profile.scale
+      });
       const carry = a.cargo || a.carryType;
-      if(carry === 'food') foodCarry.push({ x: x + dp(3.3), y, seed:getAntFoodSeed(a, 5), scale:0.48 });
-      else if(carry === 'egg') addBatchPoint(carryGroups, '#fef3c7', x + dp(3.3), y);
-      else if(carry === 'larva') addBatchPoint(carryGroups, '#fef3c7', x + dp(3.3), y);
-      else if(carry === 'waste') addBatchPoint(carryGroups, '#6b7280', x + dp(3.2), y);
-      else if(carry === 'cookie') addBatchPoint(carryGroups, '#fcd34d', x + dp(3.4), y);
-      else if(carry === 'soil') addBatchPoint(carryGroups, '#5b2a0f', x + dp(3.1), y);
-      if(a.panic && a.role === 'worker') panic.push({ x, y });
+      const carryExtra = (color) => ({
+        color,
+        radius: carryR * profile.scale
+      });
+      if(carry === 'food') foodCarry.push({ x: x + dp(3.3) * profile.scale, y, seed:getAntFoodSeed(a, 5), scale:0.48 * profile.scale });
+      else if(carry === 'egg') addBatchPoint(carryGroups, `#fef3c7|${Math.round(profile.scale * 100)}`, x + dp(3.3) * profile.scale, y, carryExtra('#fef3c7'));
+      else if(carry === 'larva') addBatchPoint(carryGroups, `#fef3c7|${Math.round(profile.scale * 100)}`, x + dp(3.3) * profile.scale, y, carryExtra('#fef3c7'));
+      else if(carry === 'waste') addBatchPoint(carryGroups, `#6b7280|${Math.round(profile.scale * 100)}`, x + dp(3.2) * profile.scale, y, carryExtra('#6b7280'));
+      else if(carry === 'cookie') addBatchPoint(carryGroups, `#fcd34d|${Math.round(profile.scale * 100)}`, x + dp(3.4) * profile.scale, y, carryExtra('#fcd34d'));
+      else if(carry === 'soil') addBatchPoint(carryGroups, `#5b2a0f|${Math.round(profile.scale * 100)}`, x + dp(3.1) * profile.scale, y, carryExtra('#5b2a0f'));
+      if(a.panic && a.role === 'worker') panic.push({ x, y, radius: dp(5.5) * profile.scale });
     }
 
     let batches = 0;
@@ -20439,19 +20486,25 @@ function syncFermenterUnlockUI() {
       const pulseBase = (Math.sin(S.t * 4) + 1) * 0.5;
       batches += drawCircleBatchDynamic(
         goldenGlow,
-        p => dp(4) + ((Math.sin(S.t * 4 + p.anim) + 1) * 0.5) * dp(1.4),
+        p => (dp(4) + ((Math.sin(S.t * 4 + p.anim) + 1) * 0.5) * dp(1.4)) * (p.scale || 1),
         `rgba(250, 204, 21, ${0.18 + 0.18 * pulseBase})`
       );
     }
-    for(const color of Object.keys(baseGroups)) batches += drawCircleBatch(baseGroups[color], dotR, color);
-    for(const color of Object.keys(carryGroups)) batches += drawCircleBatch(carryGroups[color], carryR, color);
+    for(const key of Object.keys(baseGroups)) {
+      const group = baseGroups[key];
+      batches += drawCircleBatchDynamic(group, p => p.radius || dotR, (group[0] && group[0].color) || '#111');
+    }
+    for(const key of Object.keys(carryGroups)) {
+      const group = carryGroups[key];
+      batches += drawCircleBatchDynamic(group, p => p.radius || carryR, (group[0] && group[0].color) || '#fef3c7');
+    }
     for(const p of foodCarry) drawFoodSeedGrain(ctx, p.x, p.y, p.seed, p.scale);
     if(panic.length) {
       ctx.strokeStyle = 'rgba(248, 113, 113, 0.85)';
       ctx.lineWidth = dp(1);
       ctx.beginPath();
-      const r = dp(5.5);
       for(const p of panic) {
+        const r = p.radius || dp(5.5);
         ctx.moveTo(p.x + r, p.y);
         ctx.arc(p.x, p.y, r, 0, 6.28);
       }
@@ -20463,14 +20516,19 @@ function syncFermenterUnlockUI() {
 
   function drawAntSprite(a) {
     const pose = getActionAntDrawPose(a, a.rot || 0);
+    const profile = getAntDrawProfile(a);
     ctx.save(); ctx.translate(pose.x, pose.y); ctx.rotate(a.rot||0);
+    if(profile.edge) {
+      ctx.globalAlpha *= profile.alpha;
+      ctx.scale(profile.scale, profile.scale);
+    }
     if(a.golden) {
       const anim = a.anim || 0;
       const pulse = (Math.sin(S.t*4 + anim) + 1) * 0.5;
       ctx.fillStyle = `rgba(250, 204, 21, ${0.2 + 0.2*pulse})`;
       ctx.beginPath(); ctx.arc(0, 0, dp(7) + pulse*dp(2), 0, 6.28); ctx.fill();
     }
-    ctx.fillStyle = getAntBaseColor(a);
+    ctx.fillStyle = getAntProfileBaseColor(a, profile);
     ctx.beginPath(); ctx.ellipse(-dp(4), 0, dp(3.2), dp(2.4), 0, 0, 6.28); ctx.fill();
     ctx.beginPath(); ctx.ellipse(0, 0, dp(2.2), dp(2.2), 0, 0, 6.28); ctx.fill();
     ctx.beginPath(); ctx.ellipse(dp(3.4), 0, dp(2.0), dp(1.9), 0, 0, 6.28); ctx.fill();
@@ -20975,12 +21033,13 @@ function syncFermenterUnlockUI() {
       if(hideSoldiers && roleIdxRaw === 3) { culled++; continue; }
       const x = crowd.x[i], y = crowd.y[i];
       if(x < minX || x > maxX || y < minY || y > maxY) { culled++; continue; }
-      const roleIdx = _colorMode ? roleIdxRaw : 0;
+      const profile = getCrowdAntDrawProfile(crowd.routeKind[i]);
+      const roleIdx = profile.roleSilhouette ? 0 : (_colorMode ? roleIdxRaw : 0);
       const rot = ((crowd.rot[i] % tau) + tau) % tau;
       let drawX = x, drawY = y;
       if(crowd.routeKind[i] === CROWD_ROUTE_EDGE) {
         const lane = (seed01FromIds(i + 17, (crowd.edgeId[i] || 0) + 31) - 0.5) * dp(7.0);
-        const off = getEdgeLaneDrawOffset(crowd.edgeId[i], rot, lane, dp(4.2));
+        const off = getEdgeLaneDrawOffset(crowd.edgeId[i], rot, lane, dp(2.8));
         drawX += off.x;
         drawY += off.y;
       }
@@ -20989,7 +21048,16 @@ function syncFermenterUnlockUI() {
       const frameIdx = Math.floor(phase / tau * CROWD_ANT_FRAMES) % CROWD_ANT_FRAMES;
       const sx = dirIdx * fw;
       const sy = (roleIdx * CROWD_ANT_FRAMES + frameIdx) * fh;
-      ctx.drawImage(atlas.canvas, sx, sy, fw, fh, drawX - fw * 0.5, drawY - fh * 0.5, fw, fh);
+      const dw = fw * profile.scale;
+      const dh = fh * profile.scale;
+      if(profile.edge) {
+        ctx.save();
+        ctx.globalAlpha *= profile.alpha;
+        ctx.drawImage(atlas.canvas, sx, sy, fw, fh, drawX - dw * 0.5, drawY - dh * 0.5, dw, dh);
+        ctx.restore();
+      } else {
+        ctx.drawImage(atlas.canvas, sx, sy, fw, fh, drawX - dw * 0.5, drawY - dh * 0.5, dw, dh);
+      }
       drawn++;
     }
     return { drawn, culled, total: crowd.count, atlasFrames: atlas.frames };
@@ -21521,14 +21589,23 @@ function syncFermenterUnlockUI() {
       if(n.y < view.y - pad || n.y > view.y + view.h + pad) return;
       ctx.save();
       clipBlobPath(ctx, n);
-      const frontTop = n.y + rr.ry * (mesh ? 0.12 : 0.18);
+      const frontTop = n.y + rr.ry * (mesh ? 0.04 : 0.10);
       const frontBottom = n.y + rr.ry * 1.12;
       const grd = ctx.createLinearGradient(0, frontTop, 0, frontBottom);
       grd.addColorStop(0, 'rgba(0,0,0,0)');
-      grd.addColorStop(0.55, mesh ? 'rgba(56,35,18,0.16)' : 'rgba(45,28,16,0.18)');
-      grd.addColorStop(1, mesh ? 'rgba(41,25,13,0.42)' : 'rgba(32,20,12,0.34)');
+      grd.addColorStop(0.50, mesh ? 'rgba(56,35,18,0.20)' : 'rgba(45,28,16,0.22)');
+      grd.addColorStop(1, mesh ? 'rgba(41,25,13,0.52)' : 'rgba(32,20,12,0.42)');
       ctx.fillStyle = grd;
       ctx.fillRect(n.x - rr.rx * 1.35, frontTop, rr.rx * 2.7, Math.max(dp(1), frontBottom - frontTop));
+      const lipY = n.y + rr.ry * 0.86;
+      const lipGrd = ctx.createLinearGradient(0, lipY - rr.ry * 0.16, 0, lipY + rr.ry * 0.24);
+      lipGrd.addColorStop(0, 'rgba(0,0,0,0)');
+      lipGrd.addColorStop(0.5, mesh ? 'rgba(37,22,11,0.18)' : 'rgba(31,19,11,0.16)');
+      lipGrd.addColorStop(1, mesh ? 'rgba(69,42,21,0.26)' : 'rgba(54,34,20,0.20)');
+      ctx.fillStyle = lipGrd;
+      ctx.beginPath();
+      ctx.ellipse(n.x, lipY, rr.rx * 0.92, rr.ry * 0.26, 0, 0, 6.28);
+      ctx.fill();
       ctx.restore();
 
       drawRoomSoilLip(ctx, n, view, true);
@@ -23044,7 +23121,12 @@ function syncFermenterUnlockUI() {
         a._drawRot += diff * Math.min(1, lerpSpeed * (S.perf.dt || 0.016));
       }
       const pose = getActionAntDrawPose(a, a._drawRot);
+      const antProfile = getAntDrawProfile(a);
       ctx.save(); ctx.translate(pose.x,pose.y); ctx.rotate(a._drawRot);
+      if(antProfile.edge) {
+        ctx.globalAlpha *= antProfile.alpha;
+        ctx.scale(antProfile.scale, antProfile.scale);
+      }
       if(isGolden) {
         const pulse = (Math.sin(S.t*4 + a.anim) + 1) * 0.5;
         ctx.fillStyle = `rgba(250, 204, 21, ${0.22 + 0.25*pulse})`;
@@ -23072,7 +23154,7 @@ function syncFermenterUnlockUI() {
       // legs: darker + thinner
       const legSeg = (sx, sy, kx, ky, fx, fy) => {
         // shadow (thicker, lighter)
-        ctx.strokeStyle = 'rgba(0,0,0,0.22)';
+        ctx.strokeStyle = antProfile.legShadow || 'rgba(0,0,0,0.22)';
         ctx.lineWidth = dp(1.5);
         ctx.beginPath();
         ctx.moveTo(sx, sy);
@@ -23081,7 +23163,7 @@ function syncFermenterUnlockUI() {
         ctx.stroke();
 
         // main line (thinner, darker)
-        ctx.strokeStyle = 'rgba(15, 23, 42, 0.75)';
+        ctx.strokeStyle = antProfile.legStroke || 'rgba(15, 23, 42, 0.75)';
         ctx.lineWidth = dp(0.95);
         ctx.beginPath();
         ctx.moveTo(sx, sy);
@@ -23127,18 +23209,14 @@ function syncFermenterUnlockUI() {
       drawLegSide(-1, 0.55);
       drawLegSide( 1, 0.92);
 
-      ctx.fillStyle = (isResting && a.role==='worker') ? '#334155' : '#111';
-      if(a.role==='builder') ctx.fillStyle='#b45309';
-      if(a.role==='nurse') ctx.fillStyle='#be185d';
-      if(a.role==='soldier') ctx.fillStyle='#3b82f6';
-      if(isGolden) ctx.fillStyle='#f59e0b';
+      ctx.fillStyle = getVectorAntBodyColor(a, isResting, antProfile);
 
       ctx.beginPath(); ctx.ellipse(-dp(5),0,dp(4),dp(3),0,0,6.28); ctx.fill();
       ctx.beginPath(); ctx.ellipse(0,0,dp(2.5),dp(2.5),0,0,6.28); ctx.fill();
       ctx.beginPath(); ctx.ellipse(dp(4),0,dp(2.5),dp(2.5),0,0,6.28); ctx.fill();
 
       // antennae (simple)
-      ctx.strokeStyle = 'rgba(15, 23, 42, 0.75)';
+      ctx.strokeStyle = antProfile.legStroke || 'rgba(15, 23, 42, 0.75)';
       ctx.lineWidth = dp(0.95);
       ctx.lineCap = 'round';
       const antSw = grooming
@@ -23160,7 +23238,7 @@ function syncFermenterUnlockUI() {
         const la = _ct.ang - (a._drawRot || 0);          // 相手方向（ローカル角）
         const quiver = Math.sin(S.t*18 + a.anim) * dp(0.6);
         const rx = Math.cos(la) * dp(8.6), ry = Math.sin(la) * dp(8.6) + quiver;
-        ctx.strokeStyle = 'rgba(15, 23, 42, 0.8)';
+        ctx.strokeStyle = antProfile.legStroke || 'rgba(15, 23, 42, 0.8)';
         ctx.lineWidth = dp(0.95);
         ctx.beginPath();
         ctx.moveTo(hx, 0);
