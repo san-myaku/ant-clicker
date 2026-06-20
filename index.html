@@ -3788,6 +3788,7 @@
   const SURFACE_CUT_TEXTURE_SCALE = 0.82;
   const SURFACE_HORIZON_TEXTURE_SRC = 'assets/textures/surface-horizon-tile-v1.png';
   const SURFACE_HORIZON_TEXTURE_SCALE = 0.82;
+  const SKY_ATMOSPHERE_TEXTURE_SRC = 'assets/textures/sky-atmosphere-panorama-v1.png';
   // 襲撃バランス（後から調整しやすいように定数化）
   const RAID_CFG = {
     enemyBase: 50,
@@ -6831,6 +6832,7 @@ function ensureRestSlots(n){
     surfaceCutTextureImg: null, surfaceCutTextureLoaded: false, surfaceCutTextureFailed: false,
     surfaceCutTexturePattern: null, surfaceCutTexturePatternCtx: null,
     surfaceHorizonTextureImg: null, surfaceHorizonTextureLoaded: false, surfaceHorizonTextureFailed: false,
+    skyAtmosphereTextureImg: null, skyAtmosphereTextureLoaded: false, skyAtmosphereTextureFailed: false,
     surfacePts: [], surfaceStep: 0,
     surfaceDebris: [],
     surfacePattern: null, surfacePatternCanvas: null,
@@ -7339,6 +7341,19 @@ window._dbg = {
         invalidateTerrainVisualCache();
       };
       img.src = SURFACE_HORIZON_TEXTURE_SRC;
+    }
+    if(!S.skyAtmosphereTextureImg) {
+      const img = new Image();
+      S.skyAtmosphereTextureImg = img;
+      img.onload = () => {
+        S.skyAtmosphereTextureLoaded = true;
+        S.skyAtmosphereTextureFailed = false;
+      };
+      img.onerror = () => {
+        S.skyAtmosphereTextureLoaded = false;
+        S.skyAtmosphereTextureFailed = true;
+      };
+      img.src = SKY_ATMOSPHERE_TEXTURE_SRC;
     }
   }
 
@@ -7955,6 +7970,28 @@ window._dbg = {
     }
     ctx.lineTo(x0, surfaceY(x0) + bottom);
     ctx.closePath();
+  }
+
+  function drawSkyAtmosphereTexture(ctx, view, skyTop, skyBottom, daylight) {
+    const img = S.skyAtmosphereTextureLoaded ? S.skyAtmosphereTextureImg : null;
+    if(!img || !img.width || !img.height || skyBottom <= skyTop) return false;
+    const dstTop = -SKY_HEADROOM;
+    const dstH = Math.max(dp(120), S.full.sy + SKY_HEADROOM);
+    const tileW = Math.max(dp(320), img.width * (dstH / img.height));
+    const skyAlpha = 0.16 + 0.62 * clamp(daylight, 0, 1);
+    const xOffset = view.x * 0.18;
+    const startX = Math.floor((view.x - xOffset - tileW) / tileW) * tileW + xOffset;
+    const endX = view.x + view.w + tileW;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(view.x, skyTop, view.w, skyBottom - skyTop);
+    ctx.clip();
+    ctx.globalAlpha = skyAlpha;
+    for(let x=startX; x<endX; x+=tileW) {
+      ctx.drawImage(img, x, dstTop, tileW, dstH);
+    }
+    ctx.restore();
+    return true;
   }
 
   function drawSurfaceHorizonTexture(ctx, view) {
@@ -22659,6 +22696,7 @@ function syncFermenterUnlockUI() {
 
       // 太陽/月もフェードでつなぎ、夕方→夜の見た目の急変を抑える
       const daylight = getDaylightAmount(t);
+      drawSkyAtmosphereTexture(ctx, view, skyTop, skyBottom, daylight);
       const sunAlpha = clamp(daylight, 0, 1);
       const moonAlpha = clamp(1 - daylight, 0, 1);
       const dayProg = clamp((t - 5) / 15, 0, 1); // 5:00→20:00
@@ -22669,17 +22707,21 @@ function syncFermenterUnlockUI() {
         ctx.globalAlpha = sunAlpha;
         const sunX = view.x + view.w * dayProg;
         const sunY = -SKY_HEADROOM + (S.full.sy + SKY_HEADROOM) * 0.30;
-        const sunGlow = ctx.createRadialGradient(sunX, sunY, dp(10), sunX, sunY, dp(86));
-        sunGlow.addColorStop(0, 'rgba(253,224,71,0.35)');
-        sunGlow.addColorStop(0.35, 'rgba(251,191,36,0.12)');
+        const sunGlow = ctx.createRadialGradient(sunX, sunY, dp(8), sunX, sunY, dp(118));
+        sunGlow.addColorStop(0, 'rgba(255,246,180,0.42)');
+        sunGlow.addColorStop(0.38, 'rgba(253,224,71,0.16)');
         sunGlow.addColorStop(1, 'rgba(251,191,36,0)');
         ctx.fillStyle = sunGlow;
         ctx.beginPath();
-        ctx.arc(sunX, sunY, dp(86), 0, 6.28);
+        ctx.arc(sunX, sunY, dp(118), 0, 6.28);
         ctx.fill();
-        ctx.fillStyle = '#fde047';
+        const sunCore = ctx.createRadialGradient(sunX - dp(5), sunY - dp(6), dp(2), sunX, sunY, dp(21));
+        sunCore.addColorStop(0, 'rgba(255,255,218,0.98)');
+        sunCore.addColorStop(0.48, 'rgba(253,224,71,0.92)');
+        sunCore.addColorStop(1, 'rgba(245,158,11,0.48)');
+        ctx.fillStyle = sunCore;
         ctx.beginPath();
-        ctx.arc(sunX, sunY, dp(20), 0, 6.28);
+        ctx.arc(sunX, sunY, dp(21), 0, 6.28);
         ctx.fill();
         ctx.restore();
       }
@@ -22688,16 +22730,21 @@ function syncFermenterUnlockUI() {
         ctx.globalAlpha = moonAlpha;
         const moonX = view.x + view.w * moonProg;
         const moonY = -SKY_HEADROOM + (S.full.sy + SKY_HEADROOM) * 0.22;
-        const moonGlow = ctx.createRadialGradient(moonX, moonY, dp(8), moonX, moonY, dp(58));
-        moonGlow.addColorStop(0, 'rgba(226,232,240,0.28)');
+        const moonGlow = ctx.createRadialGradient(moonX, moonY, dp(7), moonX, moonY, dp(72));
+        moonGlow.addColorStop(0, 'rgba(240,247,255,0.34)');
+        moonGlow.addColorStop(0.42, 'rgba(203,213,225,0.13)');
         moonGlow.addColorStop(1, 'rgba(226,232,240,0)');
         ctx.fillStyle = moonGlow;
         ctx.beginPath();
-        ctx.arc(moonX, moonY, dp(58), 0, 6.28);
+        ctx.arc(moonX, moonY, dp(72), 0, 6.28);
         ctx.fill();
-        ctx.fillStyle = '#f1f5f9';
+        const moonCore = ctx.createRadialGradient(moonX - dp(4), moonY - dp(4), dp(2), moonX, moonY, dp(16));
+        moonCore.addColorStop(0, 'rgba(255,255,255,0.94)');
+        moonCore.addColorStop(0.62, 'rgba(226,232,240,0.85)');
+        moonCore.addColorStop(1, 'rgba(148,163,184,0.48)');
+        ctx.fillStyle = moonCore;
         ctx.beginPath();
-        ctx.arc(moonX, moonY, dp(15), 0, 6.28);
+        ctx.arc(moonX, moonY, dp(16), 0, 6.28);
         ctx.fill();
         ctx.restore();
       }
