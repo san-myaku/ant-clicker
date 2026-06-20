@@ -6831,7 +6831,6 @@ function ensureRestSlots(n){
     surfaceCutTextureImg: null, surfaceCutTextureLoaded: false, surfaceCutTextureFailed: false,
     surfaceCutTexturePattern: null, surfaceCutTexturePatternCtx: null,
     surfaceHorizonTextureImg: null, surfaceHorizonTextureLoaded: false, surfaceHorizonTextureFailed: false,
-    surfaceHorizonTexturePattern: null, surfaceHorizonTexturePatternCtx: null,
     surfacePts: [], surfaceStep: 0,
     surfaceDebris: [],
     surfacePattern: null, surfacePatternCanvas: null,
@@ -7277,8 +7276,6 @@ window._dbg = {
     S.cavityTexturePatternCtx = null;
     S.surfaceCutTexturePattern = null;
     S.surfaceCutTexturePatternCtx = null;
-    S.surfaceHorizonTexturePattern = null;
-    S.surfaceHorizonTexturePatternCtx = null;
   }
 
   function preloadTerrainTextures() {
@@ -7385,18 +7382,6 @@ window._dbg = {
       applyPatternScale(pattern, SURFACE_CUT_TEXTURE_SCALE);
       S.surfaceCutTexturePattern = pattern;
       S.surfaceCutTexturePatternCtx = g;
-    }
-    return pattern;
-  }
-
-  function getSurfaceHorizonTexturePattern(g) {
-    if(!S.surfaceHorizonTextureLoaded || !S.surfaceHorizonTextureImg || !g || typeof g.createPattern !== 'function') return null;
-    if(S.surfaceHorizonTexturePattern && S.surfaceHorizonTexturePatternCtx === g) return S.surfaceHorizonTexturePattern;
-    const pattern = g.createPattern(S.surfaceHorizonTextureImg, 'repeat');
-    if(pattern) {
-      applyPatternScale(pattern, SURFACE_HORIZON_TEXTURE_SCALE);
-      S.surfaceHorizonTexturePattern = pattern;
-      S.surfaceHorizonTexturePatternCtx = g;
     }
     return pattern;
   }
@@ -7974,15 +7959,17 @@ window._dbg = {
 
   function drawSurfaceHorizonTexture(ctx, view) {
     if(!S.full || !S.surfacePts || S.surfacePts.length < 2) return false;
-    const pattern = getSurfaceHorizonTexturePattern(ctx);
-    if(!pattern) return false;
+    const img = S.surfaceHorizonTextureLoaded ? S.surfaceHorizonTextureImg : null;
+    if(!img || !img.width || !img.height) return false;
     const pad = dp(SURF_BAND_PAD);
     const x0 = clamp(view.x - pad, 0, S.full.w);
     const x1 = clamp(view.x + view.w + pad, 0, S.full.w);
     if(x1 <= x0) return false;
     const step = S.surfaceStep || dp(SURF_STEP);
-    const top = dp(116);
-    const bottom = dp(8);
+    const tileW = Math.max(dp(120), img.width * SURFACE_HORIZON_TEXTURE_SCALE);
+    const tileH = Math.max(dp(40), img.height * SURFACE_HORIZON_TEXTURE_SCALE);
+    const top = tileH - dp(8);
+    const bottom = dp(16);
     const yL = surfaceY(x0);
     const yR = surfaceY(x1);
     const minY = Math.min(yL, yR) - top - dp(20);
@@ -7992,8 +7979,13 @@ window._dbg = {
     traceSurfaceTextureBand(ctx, x0, x1, top, bottom, step);
     ctx.clip();
     ctx.globalAlpha = 0.82;
-    ctx.fillStyle = pattern;
-    ctx.fillRect(view.x - pad, minY, view.w + pad * 2, Math.max(dp(1), maxY - minY));
+    const startX = Math.floor((view.x - pad) / tileW) * tileW;
+    const endX = view.x + view.w + pad;
+    for(let x=startX; x<endX; x+=tileW) {
+      const anchorX = clamp(x + tileW * 0.5, 0, S.full.w);
+      const y = surfaceY(anchorX) - tileH + dp(28);
+      ctx.drawImage(img, x, y, tileW, tileH);
+    }
     ctx.restore();
     return true;
   }
