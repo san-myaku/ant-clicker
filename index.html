@@ -3788,7 +3788,7 @@
   const SURFACE_CUT_TEXTURE_SCALE = 0.82;
   const SURFACE_HORIZON_TEXTURE_SRC = 'assets/textures/surface-horizon-tile-v1.png';
   const SURFACE_HORIZON_TEXTURE_SCALE = 0.82;
-  const SKY_ATMOSPHERE_TEXTURE_SRC = 'assets/textures/sky-atmosphere-panorama-v1.png';
+  const SKY_ATMOSPHERE_TEXTURE_SRC = 'assets/textures/sky-atmosphere-panorama-v2.png';
   // 襲撃バランス（後から調整しやすいように定数化）
   const RAID_CFG = {
     enemyBase: 50,
@@ -7978,7 +7978,7 @@ window._dbg = {
     const dstTop = -SKY_HEADROOM;
     const dstH = Math.max(dp(120), S.full.sy + SKY_HEADROOM);
     const tileW = Math.max(dp(320), img.width * (dstH / img.height));
-    const skyAlpha = 0.16 + 0.62 * clamp(daylight, 0, 1);
+    const skyAlpha = 0.04 + 0.92 * clamp(daylight, 0, 1);
     const xOffset = view.x * 0.18;
     const startX = Math.floor((view.x - xOffset - tileW) / tileW) * tileW + xOffset;
     const endX = view.x + view.w + tileW;
