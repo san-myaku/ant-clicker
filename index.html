@@ -20844,6 +20844,16 @@ function syncFermenterUnlockUI() {
     return '#111';
   }
 
+  function getAntTunnelBodyColor(a) {
+    if(a && a.golden) return '#8a5a07';
+    if(!_colorMode) return '#050505';
+    if(a && a.role === 'builder') return '#8a4b12';
+    if(a && a.role === 'nurse') return '#9d174d';
+    if(a && a.role === 'soldier') return '#2563eb';
+    if(a && a.task === 'rest' && a.role === 'worker') return '#1f2937';
+    return '#111111';
+  }
+
   function isAntOnEdgeForDraw(a) {
     if(!a || a.eid == null || a.eid < 0) return false;
     if(a.phase === 'walk') return true;
@@ -20859,7 +20869,7 @@ function syncFermenterUnlockUI() {
       edge:true,
       scale:0.82,
       alpha:0.88,
-      bodyColor: a && a.golden ? '#8a5a07' : '#050505',
+      bodyColor: getAntTunnelBodyColor(a),
       legStroke: 'rgba(4, 7, 10, 0.86)',
       legShadow: 'rgba(0, 0, 0, 0.18)'
     };
@@ -20882,7 +20892,7 @@ function syncFermenterUnlockUI() {
 
   function getCrowdAntDrawProfile(routeKind) {
     if(routeKind !== CROWD_ROUTE_EDGE) return { edge:false, scale:1, alpha:1, roleSilhouette:false };
-    return { edge:true, scale:0.80, alpha:0.84, roleSilhouette:true };
+    return { edge:true, scale:0.80, alpha:0.84, roleSilhouette:false };
   }
 
   function getActionAntLaneOffset(a) {
