@@ -7247,6 +7247,7 @@ function ensureRestSlots(n){
         mainTipId: this.mainTipId,
         nodes: this.full.nodes.map(n => ({
           id:n.id, x:n.x, y:n.y, r:n.r, type:n.type, main: !!n.main, branch: !!n.branch,
+          band: (typeof n.band === 'number') ? n.band : null,
           invEgg:n.invEgg||0, invGoldenEgg:n.invGoldenEgg||0, invFood:n.invFood||0, invCookie:n.invCookie||0,
           // 追加在庫（卵→幼虫→成虫の拡張用）
           invLarva:n.invLarva||0, invGoldenLarva:n.invGoldenLarva||0, invLarvaFood:n.invLarvaFood||0, invWaste:n.invWaste||0,
@@ -7257,6 +7258,8 @@ function ensureRestSlots(n){
         edges: this.full.edges.map(e => ({ u:e.u, v:e.v, p0:e.p0, p1:e.p1, p2:e.p2, p3:e.p3, kind: e.kind || null })),
         nodeVis: this.nodeVis,
         edgeFrac: this.edgeFrac,
+        meshNest: !!this._meshNest,
+        meshGrowth: !!this._meshGrowth,
         band: {
           top: this.band.top,
           bottom: this.band.bottom,
@@ -7276,8 +7279,8 @@ function ensureRestSlots(n){
 
     deserializeWorld(savedWorld) {
       if(!savedWorld || !savedWorld.nodes || !savedWorld.edges) return false;
-      this._meshNest = false;
-      this._meshGrowth = false;
+      this._meshNest = !!savedWorld.meshNest;
+      this._meshGrowth = !!(savedWorld.meshNest && savedWorld.meshGrowth);
       this._devTransientWorld = false;
 
       // 旧セーブの広い巣は、新しい基準幅へ中心基準で圧縮する。
@@ -7300,6 +7303,7 @@ function ensureRestSlots(n){
         type: n.type === 'mushroom' ? 'food' : n.type,
         main: !!n.main,
         branch: !!n.branch,
+        band: (typeof n.band === 'number') ? n.band : undefined,
         invEgg: n.invEgg || 0,
         invGoldenEgg: n.invGoldenEgg || 0,
         invFood: n.invFood || 0,
@@ -7404,6 +7408,7 @@ window._dbg = {
   findNodePath,
   getPath,
   getPathDebugStats,
+  initLegacyWorld,
 };
 
   // ------------------------------------------------------------
@@ -8615,8 +8620,13 @@ window._dbg = {
     ctx.globalAlpha = 1;
   }
 
-  // 巣を一から生成。入口・女王の間・最初の通路を作り、band（掘る範囲）を初期化する
+  // New games now use the production mesh-growth nest as the main colony layout.
   function initWorld() {
+    return generateMeshNest({ growth: true, production: true, transient: false, toast: false });
+  }
+
+  // Legacy fallback generator kept for debugging/migration checks.
+  function initLegacyWorld() {
     S._meshNest = false;
     S._meshGrowth = false;
     S._devTransientWorld = false;
@@ -8762,9 +8772,10 @@ S.band.forceShaft = 0;
   function generateMeshNest(userOpts) {
     const opt = Object.assign({}, MESH_GEN_DEFAULTS, userOpts || {});
     const growthMode = !!(opt.growth || opt.preview === false);
+    const transientWorld = !(opt.production || opt.transient === false);
     S._meshNest = true; // F2: blob輪郭/トンネル形状をmesh専用に切替（旧巣には影響させない）
     S._meshGrowth = growthMode;
-    S._devTransientWorld = true;
+    S._devTransientWorld = transientWorld;
     const W = WORLD_W_BASE;
     const sy = dp(160);
     const nodes = [], edges = [], byNode = [];
@@ -9073,7 +9084,7 @@ S.band.forceShaft = 0;
 
     const info = { nodes: nodes.length, edges: edges.length, bands: opt.bands };
     info.growth = growthMode;
-    if(typeof toast === 'function') {
+    if(opt.toast !== false && typeof toast === 'function') {
       const label = growthMode ? '成長メッシュ巣を生成（入口から建築開始）' : '新メッシュ巣を生成';
       toast(`🕸️ ${label}（部屋${nodes.length}・通路${edges.length}）`);
     }

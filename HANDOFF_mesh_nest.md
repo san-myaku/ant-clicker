@@ -1,5 +1,12 @@
 # 引き継ぎ: メッシュ巣リライト（F1/F2/F3 + F4 dev成長/初期室 + Realism F1 済み → F5以降）
 
+## 2026-06-21 採用メモ
+
+- メッシュ成長巣を新規ゲームのデフォルト形状にした。`initWorld()` は `generateMeshNest({ growth:true, production:true, transient:false, toast:false })` へ委譲する。
+- 旧初期巣ジェネレーターは `initLegacyWorld()` として残し、`window._dbg.initLegacyWorld` から確認できる。
+- 本番メッシュ巣は保存対象。`S.serializeWorld()` は `meshNest` / `meshGrowth` / node `band` を保存し、`S.deserializeWorld()` はそれを復元する。
+- devボタンや `window._dbg.generateMeshNest()` の手動実験は従来どおり transient 扱いなので、通常セーブ保護は維持される。
+
 > Codex/次セッション向け。`NEST_STRUCTURE_REDESIGN_PLAN.md` の続き。コールドで読んで続行できるように。
 > 作業ブランチ: **`claude/nest-structure-redesign-osdsa8`**（origin にプッシュ済みの基準は `1ca35b7`。その後のローカル差分は `git diff` 参照）。
 
