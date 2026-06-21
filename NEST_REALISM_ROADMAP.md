@@ -14,7 +14,7 @@ handoffs, call these phases "nest realism F1-F6" to avoid ambiguity.
 | F4: Inventory piles | 50-60% | Food/eggs/larvae/waste now render as floor-integrated piles with mound bases, contact shadows, and back/front depth shading. Remaining work is screenshot tuning of pile density and scale. |
 | F5: Ant integration | 60-70% | Tunnel ants now draw smaller/darker across vector, sprite, dot, and crowd modes, and the foreground room rim has stronger lower occlusion. Remaining work is screenshot tuning for over-dark passages or over-heavy rims. |
 | F5.5: Surface raster layer | 25-35% | The heavy procedural surface pass was reverted. Surface detail now uses two raster tiles: a static cached cut-face cap and a transparent horizon/grass strip. Remaining work is art tuning of the PNGs, not more per-frame object drawing. |
-| F6: UI pass | 0% | Keep HUD/glass UI for later after the nest body is stable. |
+| F6: UI pass | 35-45% | First glass HUD pass is in: darker translucent side panel, stronger resource tiles, segmented icon tabs, glass cards/buttons, and unified dock/list styling. Remaining work is screenshot tuning and any larger layout changes such as a separate bottom command dock. |
 
 ## F1: Soil Cross-Section Density
 
@@ -85,8 +85,14 @@ Current implementation notes:
 
 ## F6: UI Last
 
-- The dark glass HUD direction is attractive, but leave UI until the nest body is closer.
-- Touching UI at the same time makes visual comparison harder.
+- The dark glass HUD direction is now applied as a first pass.
+- Keep later UI work focused on screenshot tuning and layout ergonomics.
+
+Current implementation notes:
+
+- The F6 CSS pass keeps the existing DOM and game logic intact.
+- `#side-pane`, `#top-bar`, `#control-panel`, resource boxes, tabs, cards, dock items, and ant rows now share a darker translucent glass material.
+- Control tabs now read as a segmented icon navigation without moving the existing tab system.
 
 ## Suggested Implementation Order
 
