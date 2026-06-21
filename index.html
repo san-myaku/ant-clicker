@@ -5850,17 +5850,63 @@ function clipBlobPath(ctx, n){
   return true;
 }
 
+function getRoomInteriorEllipse(n, margin) {
+  const rr = getRoomVisualRadii(n);
+  const m = (typeof margin === 'number') ? margin : dp(5);
+  const rest = n && n.type === 'rest';
+  return {
+    cx: n.x,
+    cy: n.y + rr.ry * (rest ? 0.07 : 0.02),
+    rx: Math.max(dp(6), rr.rx * (rest ? 0.76 : 0.84) - m),
+    ry: Math.max(dp(5), rr.ry * (rest ? 0.54 : 0.66) - m * 0.45)
+  };
+}
+
+function isPointInRoomInterior(n, x, y, margin) {
+  if(!n || n.type === 'shaft' || n.type === 'entrance') return true;
+  const e = getRoomInteriorEllipse(n, margin);
+  const nx = (x - e.cx) / e.rx;
+  const ny = (y - e.cy) / e.ry;
+  if(nx * nx + ny * ny > 1) return false;
+  if(n.blob && n.blob.length >= 3 && !pointInPolygon(n.blob, x, y)) return false;
+  return true;
+}
+
+function clampPointToRoomInterior(n, x, y, margin) {
+  if(!n || n.type === 'shaft' || n.type === 'entrance') return { x, y };
+  const e = getRoomInteriorEllipse(n, margin);
+  let dx = x - e.cx;
+  let dy = y - e.cy;
+  const d = Math.hypot(dx / e.rx, dy / e.ry);
+  if(d > 1 && d > 0) {
+    dx /= d;
+    dy /= d;
+  }
+  let px = e.cx + dx;
+  let py = e.cy + dy;
+  if(n.blob && n.blob.length >= 3) {
+    for(let i = 0; i < 6 && !pointInPolygon(n.blob, px, py); i++) {
+      px = (px + e.cx) * 0.5;
+      py = (py + e.cy) * 0.5;
+    }
+  }
+  return { x: px, y: py };
+}
+
 function ensureRestSlots(n){
   if(!n || n.type !== 'rest') return;
   if(n.restSlots && n.restSlots.length) return;
   const pool = (n.slots && n.slots.length) ? n.slots : [{ x:n.x, y:n.y }];
-  const take = Math.min(REST_SLOTS_PER_ROOM, pool.length);
-  const step = Math.max(1, Math.floor(pool.length / Math.max(1, take)));
+  const safePool = pool.filter(s => isPointInRoomInterior(n, s.x, s.y, dp(9)));
+  const src = safePool.length ? safePool : pool;
+  const take = Math.min(REST_SLOTS_PER_ROOM, src.length);
+  const step = Math.max(1, Math.floor(src.length / Math.max(1, take)));
   const start = Math.floor(Math.random() * step);
   n.restSlots = [];
   for(let i=0; i<take; i++) {
-    const idx = (start + i * step) % pool.length;
-    n.restSlots.push(pool[idx]);
+    const idx = (start + i * step) % src.length;
+    const s = src[idx];
+    n.restSlots.push(clampPointToRoomInterior(n, s.x, s.y, dp(10)));
   }
 }
 
@@ -10418,6 +10464,9 @@ function expandMap(forcedType, isEmergency) {
       const d = Math.hypot(ox, oy);
       const maxR = n.r * 0.9;
       if(d > maxR && d > 0) { tx = n.x + ox / d * maxR; ty = n.y + oy / d * maxR; }
+      const safeTarget = clampPointToRoomInterior(n, tx, ty, n.type === 'rest' ? dp(9) : dp(4));
+      tx = safeTarget.x;
+      ty = safeTarget.y;
       a.wtx = tx; a.wty = ty;
     }
 
@@ -10430,14 +10479,9 @@ function expandMap(forcedType, isEmergency) {
       a.y += (dy / dist) * step;
       a.rot = Math.atan2(dy, dx);
     }
-    const ox = a.x - n.x;
-    const oy = a.y - n.y;
-    const d = Math.hypot(ox, oy);
-    if(d > n.r) {
-      const ang = Math.atan2(oy, ox);
-      a.x = n.x + Math.cos(ang) * n.r;
-      a.y = n.y + Math.sin(ang) * n.r;
-    }
+    const safePos = clampPointToRoomInterior(n, a.x, a.y, n.type === 'rest' ? dp(8) : dp(4));
+    a.x = safePos.x;
+    a.y = safePos.y;
   }
 
   function getRoomWanderStepSpeed(a, roomWander) {
@@ -10683,10 +10727,12 @@ function expandMap(forcedType, isEmergency) {
     const slot = slots[a.restSlot];
     if(!slot) { clearRest(a); a.task='idle'; return; }
     a.restStay -= dt;
-    const jig = dp(2);
+    const base = clampPointToRoomInterior(room, slot.x, slot.y, dp(10));
+    const jig = dp(1.2);
     const t = S.t * 1.1 + a.anim;
-    a.x = slot.x + Math.sin(t) * jig;
-    a.y = slot.y + Math.cos(t * 0.9) * jig;
+    const p = clampPointToRoomInterior(room, base.x + Math.sin(t) * jig, base.y + Math.cos(t * 0.9) * jig, dp(8));
+    a.x = p.x;
+    a.y = p.y;
     a.rot = Math.sin(t * 0.4) * 0.2;
     if(a.restStay <= 0) { clearRest(a); a.task='idle'; }
   }
@@ -21069,10 +21115,43 @@ function syncFermenterUnlockUI() {
       ctx.fillStyle = `rgba(250, 204, 21, ${0.2 + 0.2*pulse})`;
       ctx.beginPath(); ctx.arc(0, 0, dp(7) + pulse*dp(2), 0, 6.28); ctx.fill();
     }
+    const walk = Math.sin(S.t * 15 + (a.anim || 0));
+    const legStroke = profile.legStroke || 'rgba(15, 23, 42, 0.78)';
+    const legShadow = profile.legShadow || 'rgba(0, 0, 0, 0.20)';
+    const drawSpriteLegs = (stroke, width, alpha) => {
+      ctx.save();
+      ctx.globalAlpha *= alpha;
+      ctx.strokeStyle = stroke;
+      ctx.lineWidth = width;
+      ctx.lineCap = 'round';
+      const leg = (sx, sy, kx, ky, fx, fy) => {
+        ctx.beginPath();
+        ctx.moveTo(dp(sx), dp(sy));
+        ctx.lineTo(dp(kx), dp(ky));
+        ctx.lineTo(dp(fx), dp(fy));
+        ctx.stroke();
+      };
+      for(const side of [-1, 1]) {
+        const s = side;
+        const w = walk * (side < 0 ? 1 : -1);
+        leg(-2.6,  1.5 * s, -5.4 + w * 0.7,  3.5 * s, -8.0 + w,  4.2 * s);
+        leg(-0.2,  0.7 * s, -2.7 - w * 0.4,  3.6 * s, -5.7 - w,  5.0 * s);
+        leg( 1.8,  1.1 * s,  4.4 + w * 0.5,  3.1 * s,  7.0 + w,  3.9 * s);
+      }
+      ctx.restore();
+    };
+    drawSpriteLegs(legShadow, dp(1.35), 0.42);
+    drawSpriteLegs(legStroke, dp(0.78), 0.86);
     ctx.fillStyle = getAntProfileBaseColor(a, profile);
     ctx.beginPath(); ctx.ellipse(-dp(4), 0, dp(3.2), dp(2.4), 0, 0, 6.28); ctx.fill();
     ctx.beginPath(); ctx.ellipse(0, 0, dp(2.2), dp(2.2), 0, 0, 6.28); ctx.fill();
     ctx.beginPath(); ctx.ellipse(dp(3.4), 0, dp(2.0), dp(1.9), 0, 0, 6.28); ctx.fill();
+    ctx.strokeStyle = legStroke;
+    ctx.lineWidth = dp(0.75);
+    ctx.lineCap = 'round';
+    const antSw = Math.sin(S.t * 9 + (a.anim || 0)) * dp(0.45);
+    ctx.beginPath(); ctx.moveTo(dp(4.8), -dp(0.35)); ctx.quadraticCurveTo(dp(6.6) + antSw, -dp(1.8), dp(8.4), -dp(2.5)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(dp(4.8),  dp(0.35)); ctx.quadraticCurveTo(dp(6.6) + antSw,  dp(1.8), dp(8.4),  dp(2.5)); ctx.stroke();
     // 追加: 幼虫運搬(larva)のアイコン表示対応
     const carry = a.cargo || a.carryType;
     if(carry === 'food') drawCarriedFoodGrain(ctx, dp(6), 0, a, 0.62, 7);
