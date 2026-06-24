@@ -2971,15 +2971,15 @@
       opacity: 0.92;
       filter: drop-shadow(0 1px 4px rgba(0,0,0,0.4));
     }
-    #food-box .res-lbl::before { content: "🍃"; }
-    #cookie-box .res-lbl::before { content: "🍪"; }
-    #pop-box .res-lbl::before { content: "🐜"; }
-    #eggs-top-box .res-lbl::before { content: "🥚"; }
-    #larvae-top-box .res-lbl::before { content: "🍼"; }
+    #food-box .res-lbl::before { content: ""; }
+    #cookie-box .res-lbl::before { content: ""; }
+    #pop-box .res-lbl::before { content: ""; }
+    #eggs-top-box .res-lbl::before { content: ""; }
+    #larvae-top-box .res-lbl::before { content: ""; }
     #rate-box .res-lbl::before { content: "↗"; }
     #rest-box .res-lbl::before { content: "☕"; }
     #hygiene-box .res-lbl::before { content: "◇"; }
-    #season-box .res-lbl::before { content: "✦"; }
+    #season-box .res-lbl::before { content: ""; }
     #depth-box .res-lbl::before { content: "↓"; }
     .res-val {
       font-size: 15px;
@@ -3041,7 +3041,7 @@
       line-height: 1;
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
     }
-    #tab-btn-ants::before { content: "🐜"; }
+    #tab-btn-ants::before { content: ""; }
     #tab-btn-rooms::before { content: "⌂"; }
     #tab-btn-research::before { content: "⚗"; }
     .control-tab-btn.active {
@@ -3253,19 +3253,527 @@
       }
     }
 
+    /* ===== Minimal ecology HUD restore ===== */
+    :root {
+      --eco-panel: rgba(5, 11, 12, 0.68);
+      --eco-panel-strong: rgba(5, 11, 12, 0.86);
+      --eco-line: rgba(202, 169, 111, 0.18);
+      --eco-line-bright: rgba(218, 178, 104, 0.48);
+      --eco-text: rgba(238, 244, 238, 0.92);
+      --eco-muted: rgba(196, 209, 201, 0.62);
+      --eco-shadow: 0 6px 18px rgba(0, 0, 0, 0.24);
+      --eco-inset: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+    }
+    #top-bar,
+    #control-panel,
+    #side-pane,
+    #mobile-menu-sheet,
+    .mobile-menu-card,
+    .tab-card,
+    #upgradeDock,
+    .res-box,
+    .dock-item,
+    .btn,
+    .btn-up-sm,
+    .control-tab-btn,
+    .ant-icon,
+    .ant-count {
+      backdrop-filter: blur(5px) saturate(1.02);
+      -webkit-backdrop-filter: blur(5px) saturate(1.02);
+    }
+    #top-bar,
+    #control-panel,
+    .tab-card,
+    #upgradeDock,
+    .mobile-menu-card,
+    .res-box,
+    .dock-item,
+    .btn,
+    .btn-up-sm,
+    .control-tab-btn,
+    .ant-icon,
+    .ant-count {
+      border-color: var(--eco-line);
+      box-shadow: var(--eco-shadow), var(--eco-inset);
+      color: var(--eco-text);
+    }
+    .res-box::before,
+    .res-lbl::before {
+      display: none;
+      content: none;
+    }
+    .res-box {
+      border-radius: 7px;
+      background: var(--eco-panel);
+      box-shadow: var(--eco-inset);
+    }
+    #food-box,
+    #cookie-box,
+    #pop-box {
+      border-color: rgba(218, 178, 104, 0.28);
+      background: rgba(7, 15, 14, 0.74);
+    }
+    .res-lbl {
+      color: var(--eco-muted);
+      text-transform: none;
+      font-weight: 700;
+    }
+    .res-val,
+    .ant-count {
+      color: var(--eco-text);
+      text-shadow: none;
+    }
+    #next-goal-box {
+      border-color: rgba(218, 178, 104, 0.24);
+      background: rgba(9, 13, 8, 0.56);
+      box-shadow: var(--eco-inset);
+    }
+    .bar-wrap {
+      height: 6px;
+      background: rgba(0, 0, 0, 0.42);
+      border-color: rgba(255, 255, 255, 0.035);
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.46);
+    }
+    .bar-fill {
+      box-shadow: none;
+    }
+    #control-tabs {
+      padding: 2px;
+      border-color: rgba(255, 255, 255, 0.045);
+      background: rgba(0, 0, 0, 0.18);
+      box-shadow: inset 0 1px 5px rgba(0, 0, 0, 0.36);
+    }
+    .control-tab-btn {
+      min-height: 38px;
+      padding: 7px 8px;
+      background: rgba(8, 16, 17, 0.56);
+      border-color: transparent;
+      box-shadow: none;
+      color: rgba(219, 229, 224, 0.78);
+    }
+    .control-tab-btn::before,
+    #tab-btn-ants::before,
+    #tab-btn-rooms::before,
+    #tab-btn-research::before {
+      display: none;
+      content: none;
+    }
+    .control-tab-btn .ui-ico {
+      width: 20px;
+      height: 20px;
+      padding: 4px;
+      border-radius: 7px;
+      background: transparent;
+      box-shadow: none;
+      opacity: 0.78;
+    }
+    .control-tab-btn.active {
+      color: #fff7e2;
+      border-color: var(--eco-line-bright);
+      background: rgba(92, 65, 28, 0.22);
+      box-shadow: var(--eco-inset);
+    }
+    .control-tab-btn.active .ui-ico {
+      background: transparent;
+      box-shadow: none;
+    }
+    .tab-card,
+    #upgradeDock {
+      border-radius: 7px;
+      background: rgba(4, 10, 11, 0.54);
+      box-shadow: var(--eco-inset);
+    }
+    .tab-sec-title {
+      color: rgba(222, 213, 186, 0.70);
+      letter-spacing: 0;
+    }
+    .tab-sec-title::before {
+      width: 5px;
+      height: 5px;
+      background: rgba(218, 178, 104, 0.72);
+      box-shadow: none;
+    }
+    .dock-item,
+    .unlock-preview-item {
+      border-radius: 7px;
+      border-color: rgba(202, 169, 111, 0.16);
+      background: rgba(7, 15, 15, 0.56);
+      box-shadow: var(--eco-inset);
+    }
+    .dock-icon,
+    .ant-icon {
+      background: transparent;
+      border-color: transparent;
+      box-shadow: none;
+    }
+    .dock-item.can-buy {
+      animation: none;
+      border-color: rgba(218, 178, 104, 0.62);
+      box-shadow: 0 0 0 1px rgba(218, 178, 104, 0.08), 0 0 12px rgba(218, 178, 104, 0.18), var(--eco-inset);
+    }
+    .dock-item.tier-major::before,
+    #act-tap::after {
+      display: none;
+    }
+    #act-tap {
+      border-color: rgba(218, 178, 104, 0.58);
+      background: linear-gradient(135deg, #915117, #c77a27 58%, #8c4a16);
+      box-shadow: 0 8px 16px rgba(112, 56, 12, 0.20), var(--eco-inset);
+    }
+    .btn,
+    .btn-up-sm,
+    .dock-toggle,
+    .modal-btn,
+    .render-row select {
+      background: rgba(9, 17, 18, 0.66);
+      box-shadow: var(--eco-inset);
+    }
+    .btn:hover,
+    .dock-item:hover,
+    .control-tab-btn:hover,
+    .dock-toggle:hover,
+    .modal-btn:hover {
+      border-color: rgba(218, 178, 104, 0.34);
+      transform: none;
+    }
+
+    /* ===== SVG icon system ===== */
+    .ui-ico {
+      display: inline-flex;
+      width: 1.08em;
+      height: 1.08em;
+      flex: 0 0 auto;
+      vertical-align: -0.14em;
+      color: currentColor;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.75;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .ui-ico use {
+      pointer-events: none;
+    }
+    .ui-iconified {
+      font-size: 0;
+      line-height: 1;
+    }
+    .ui-iconified .ui-ico {
+      width: 17px;
+      height: 17px;
+      font-size: 17px;
+    }
+    #top-actions .res-box .ui-ico,
+    #btn-soldier .ui-ico,
+    #btn-expedition .ui-ico,
+    #btn-menu .ui-ico {
+      width: 18px;
+      height: 18px;
+      color: rgba(231, 225, 207, 0.82);
+    }
+    .dock-icon,
+    .ant-icon,
+    .goal-icon,
+    .exped-card-icon,
+    .research-branch-icon,
+    .rmeta-ic,
+    .room-pending-icon {
+      font-size: 0;
+    }
+    .dock-icon .ui-ico,
+    .ant-icon .ui-ico {
+      width: 22px;
+      height: 22px;
+      color: rgba(212, 198, 166, 0.72);
+    }
+    .goal-icon .ui-ico,
+    .exped-card-icon .ui-ico,
+    .research-branch-icon .ui-ico,
+    .rmeta-ic .ui-ico,
+    .room-pending-icon .ui-ico {
+      width: 18px;
+      height: 18px;
+      color: currentColor;
+    }
+    .ui-inline-icon {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+    .ui-inline-icon .ui-ico {
+      width: 1em;
+      height: 1em;
+    }
+
+    /* ===== Desktop concept layout ===== */
+    @media (min-width: 960px) {
+      #side-pane {
+        position: absolute;
+        inset: 0;
+        width: auto;
+        min-width: 0;
+        max-width: none;
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+        pointer-events: none;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+      }
+      #top-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 35;
+        display: flex;
+        align-items: stretch;
+        gap: 6px;
+        padding: 8px 10px 7px;
+        min-height: 62px;
+        border-radius: 0 0 8px 8px;
+        background: rgba(5, 11, 12, 0.86);
+        pointer-events: auto;
+      }
+      #control-panel {
+        position: fixed;
+        top: 104px;
+        right: 16px;
+        bottom: 16px;
+        z-index: 34;
+        width: clamp(360px, 26vw, 408px);
+        max-height: none;
+        padding: 10px 11px 14px;
+        gap: 8px;
+        border-radius: 10px;
+        background: rgba(5, 11, 12, 0.82);
+        pointer-events: auto;
+        overflow-y: auto;
+      }
+      #control-growth-bars {
+        position: fixed;
+        left: 22px;
+        bottom: 22px;
+        width: min(380px, calc(100vw - 456px));
+        z-index: 31;
+        padding: 8px 10px;
+        border: 1px solid rgba(202, 169, 111, 0.18);
+        border-radius: 8px;
+        background: rgba(5, 11, 12, 0.72);
+        box-shadow: var(--eco-inset);
+        pointer-events: auto;
+      }
+      #control-tabs {
+        order: 1;
+        position: sticky;
+        top: 0;
+        z-index: 4;
+        flex: 0 0 auto;
+        margin-top: 0;
+      }
+      #control-tab-panels {
+        order: 2;
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        padding-right: 1px;
+      }
+      #control-common-upgrade {
+        order: 3;
+      }
+      #act-tap {
+        order: 4;
+        flex: 0 0 auto;
+        position: sticky;
+        bottom: 0;
+        z-index: 5;
+        min-height: 88px;
+        margin-top: 2px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #act-tap .btn-main {
+        display: grid;
+        grid-template-columns: 42px 1fr;
+        grid-template-rows: auto auto;
+        align-items: center;
+        column-gap: 12px;
+        width: 100%;
+        max-width: 220px;
+      }
+      #act-tap .btn-main::before {
+        content: "";
+        grid-row: 1 / span 2;
+        width: 40px;
+        height: 40px;
+        border-radius: 999px;
+        background: radial-gradient(circle at 35% 28%, #fff8df, #d2a35e 44%, #7d4516 100%);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.45), 0 0 0 1px rgba(255,255,255,0.08);
+      }
+      #act-tap .btn-tit,
+      #act-tap .btn-sub {
+        text-align: left;
+      }
+      .dock-grid-tab {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 7px;
+      }
+      .dock-item {
+        min-height: 68px;
+      }
+      #dock-common-grid,
+      #dock-common-grid .dock-item {
+        min-height: 68px;
+      }
+      #game-pane::after {
+        background: linear-gradient(90deg, rgba(0,0,0,0) 66%, rgba(5, 10, 10, 0.32) 100%);
+      }
+    }
+
+    /* ===== Field-note toast ===== */
+    #toast-area {
+      top: clamp(86px, 9vh, 118px);
+      width: min(560px, calc(100% - 28px));
+      gap: 6px;
+      z-index: 38;
+    }
+    .toast {
+      --toast-accent: rgba(204, 164, 91, 0.95);
+      --toast-line: rgba(213, 176, 109, 0.22);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      width: fit-content;
+      max-width: 100%;
+      min-height: 0;
+      padding: 5px 10px 5px 8px;
+      border-radius: 7px;
+      color: rgba(239, 232, 214, 0.94);
+      background: linear-gradient(180deg, rgba(30, 25, 17, 0.76), rgba(13, 15, 12, 0.82));
+      border: 1px solid var(--toast-line);
+      border-left-color: var(--toast-line);
+      box-shadow: 0 3px 9px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.04);
+      backdrop-filter: blur(4px) saturate(0.9);
+      font-size: 10.5px;
+      line-height: 1.28;
+      letter-spacing: 0;
+      text-align: left;
+      animation: toastFieldIn 0.18s ease-out;
+    }
+    .toast.info,
+    .toast.success,
+    .toast.warn {
+      border-left-color: var(--toast-line);
+    }
+    .toast.warn,
+    .toast[data-kind="warn"],
+    .toast[data-kind="raid"] {
+      --toast-accent: rgba(191, 103, 69, 0.96);
+      --toast-line: rgba(191, 103, 69, 0.32);
+      color: rgba(250, 231, 218, 0.96);
+    }
+    .toast[data-kind="success"] {
+      --toast-accent: rgba(129, 164, 106, 0.96);
+      --toast-line: rgba(129, 164, 106, 0.26);
+    }
+    .toast[data-kind="research"] {
+      --toast-accent: rgba(119, 151, 143, 0.96);
+      --toast-line: rgba(119, 151, 143, 0.26);
+    }
+    .toast[data-kind="resource"] {
+      --toast-accent: rgba(207, 172, 91, 0.96);
+      --toast-line: rgba(207, 172, 91, 0.28);
+    }
+    .toast[data-kind="build"] {
+      --toast-accent: rgba(166, 135, 95, 0.96);
+      --toast-line: rgba(166, 135, 95, 0.28);
+    }
+    .toast[data-kind="system"] {
+      --toast-accent: rgba(132, 151, 156, 0.96);
+      --toast-line: rgba(132, 151, 156, 0.24);
+    }
+    .toast-mark {
+      flex: 0 0 auto;
+      width: 5px;
+      height: 5px;
+      border-radius: 999px;
+      background: var(--toast-accent);
+      box-shadow: none;
+      opacity: 0.92;
+    }
+    .toast-text {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    @keyframes toastFieldIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @media (max-width: 959px) {
+      #toast-area {
+        top: max(76px, calc(env(safe-area-inset-top) + 72px));
+        width: calc(100% - 20px);
+      }
+      .toast {
+        font-size: 10px;
+        padding: 5px 9px 5px 8px;
+      }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       #act-tap::after {
         animation: none;
       }
       .dock-item.can-buy,
       .dock-item.tier-major::before,
-      .goal-item.active {
+      .goal-item.active,
+      .toast {
         animation: none;
       }
     }
   </style>
 </head>
 <body>
+
+<svg class="ui-icon-sprite" width="0" height="0" style="position:absolute; width:0; height:0; overflow:hidden;" aria-hidden="true" focusable="false">
+  <symbol id="ui-ico-ant" viewBox="0 0 24 24"><path d="M9 12c0-2 1.3-3.4 3-3.4s3 1.4 3 3.4-1.3 3.4-3 3.4-3-1.4-3-3.4Z"/><path d="M6.5 13.3c-1.5.7-2.5 1.8-3.2 3.3M6.5 10.7C5 10 4 8.9 3.3 7.4M17.5 13.3c1.5.7 2.5 1.8 3.2 3.3M17.5 10.7c1.5-.7 2.5-1.8 3.2-3.3M9.3 9.2 6.9 6.8M14.7 9.2l2.4-2.4M9.3 14.8l-2.4 2.4M14.7 14.8l2.4 2.4"/><path d="M7.2 12h9.6"/></symbol>
+  <symbol id="ui-ico-room" viewBox="0 0 24 24"><path d="M4 15c1.2-4.8 4.1-7.2 8-7.2s6.8 2.4 8 7.2v3.2H4Z"/><path d="M8 15.2h8M10 11.5c1.1-.5 2.9-.5 4 0"/></symbol>
+  <symbol id="ui-ico-research" viewBox="0 0 24 24"><path d="M9 3h6M10 3v5.2l-4.3 8A3.2 3.2 0 0 0 8.5 21h7a3.2 3.2 0 0 0 2.8-4.8l-4.3-8V3"/><path d="M8.2 15h7.6"/></symbol>
+  <symbol id="ui-ico-save" viewBox="0 0 24 24"><path d="M5 4h12l2 2v14H5Z"/><path d="M8 4v6h7V4M8 17h8"/></symbol>
+  <symbol id="ui-ico-export" viewBox="0 0 24 24"><path d="M12 16V4M8 8l4-4 4 4"/><path d="M5 14v5h14v-5"/></symbol>
+  <symbol id="ui-ico-import" viewBox="0 0 24 24"><path d="M12 4v12M8 12l4 4 4-4"/><path d="M5 14v5h14v-5"/></symbol>
+  <symbol id="ui-ico-queen" viewBox="0 0 24 24"><path d="M5 8.5 8.5 13 12 6l3.5 7L19 8.5 17.8 18H6.2Z"/><path d="M7 21h10"/></symbol>
+  <symbol id="ui-ico-goals" viewBox="0 0 24 24"><path d="M5 5h14v14H5Z"/><path d="m8 12 2.2 2.2L16 8.8"/></symbol>
+  <symbol id="ui-ico-stats" viewBox="0 0 24 24"><path d="M5 19V5M5 19h14"/><path d="M8 16v-4M12 16V8M16 16v-6"/></symbol>
+  <symbol id="ui-ico-color" viewBox="0 0 24 24"><path d="M12 4a8 8 0 0 0 0 16h1.2a1.8 1.8 0 0 0 1-3.3 1.7 1.7 0 0 1 .8-3.2h1.2A3.8 3.8 0 0 0 20 9.7C20 6.5 16.5 4 12 4Z"/><circle cx="8.2" cy="10" r=".8"/><circle cx="11.2" cy="7.8" r=".8"/><circle cx="14.8" cy="8.6" r=".8"/></symbol>
+  <symbol id="ui-ico-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="m15.3 8.7-2 5.3-5.3 2 2-5.3Z"/></symbol>
+  <symbol id="ui-ico-warn" viewBox="0 0 24 24"><path d="M12 4 21 20H3Z"/><path d="M12 9v5M12 17h.01"/></symbol>
+  <symbol id="ui-ico-sword" viewBox="0 0 24 24"><path d="M14 5h5v5L9 20l-5-5Z"/><path d="M12 17 7 12M5 19l-2 2"/></symbol>
+  <symbol id="ui-ico-expedition" viewBox="0 0 24 24"><path d="M5 18 9 7l4 8 2-5 4 8Z"/><path d="M4 18h16"/></symbol>
+  <symbol id="ui-ico-menu" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></symbol>
+  <symbol id="ui-ico-food" viewBox="0 0 24 24"><path d="M5 15c6.5.5 11-3 14-10-7 1-12 4.5-14 10Z"/><path d="M5 15c2.6-.1 5.2-1.2 8-3.5"/></symbol>
+  <symbol id="ui-ico-cookie" viewBox="0 0 24 24"><path d="M19 11.5A7.5 7.5 0 1 1 12.5 5c.1 2.7 1.8 4.4 4.5 4.5.5.9 1.2 1.5 2 2Z"/><circle cx="9" cy="10" r=".8"/><circle cx="11" cy="15" r=".8"/><circle cx="15" cy="13" r=".8"/></symbol>
+  <symbol id="ui-ico-egg" viewBox="0 0 24 24"><path d="M12 4c4 0 6 5.3 6 9.2 0 4-2.4 6.8-6 6.8s-6-2.8-6-6.8C6 9.3 8 4 12 4Z"/></symbol>
+  <symbol id="ui-ico-nurse" viewBox="0 0 24 24"><path d="M8 11c0-2.2 1.8-4 4-4s4 1.8 4 4"/><path d="M6 18c1.2-2.8 3.2-4.2 6-4.2s4.8 1.4 6 4.2"/><path d="M12 9v5M9.5 11.5h5"/></symbol>
+  <symbol id="ui-ico-builder" viewBox="0 0 24 24"><path d="m4 20 7-7"/><path d="m10 6 8 8"/><path d="m13 3 8 8-3 3-8-8Z"/></symbol>
+  <symbol id="ui-ico-shield" viewBox="0 0 24 24"><path d="M12 3 19 6v5.5c0 4.5-2.5 7.4-7 9.5-4.5-2.1-7-5-7-9.5V6Z"/></symbol>
+  <symbol id="ui-ico-ferment" viewBox="0 0 24 24"><path d="M9 4h6M10 4v6l-3.5 5.8A3 3 0 0 0 9.1 20h5.8a3 3 0 0 0 2.6-4.2L14 10V4"/><path d="M8.5 15h7"/></symbol>
+  <symbol id="ui-ico-waste" viewBox="0 0 24 24"><path d="M6 7h12M9 7V5h6v2M8 10l1 10h6l1-10"/></symbol>
+  <symbol id="ui-ico-star" viewBox="0 0 24 24"><path d="m12 4 2.2 5 5.4.5-4.1 3.6 1.2 5.3L12 15.7l-4.7 2.7 1.2-5.3-4.1-3.6 5.4-.5Z"/></symbol>
+  <symbol id="ui-ico-depth" viewBox="0 0 24 24"><path d="M5 7c3-2 11-2 14 0"/><path d="M5 7c1.5 8 12.5 8 14 0"/><path d="M8 13h8"/></symbol>
+  <symbol id="ui-ico-box" viewBox="0 0 24 24"><path d="M5 8 12 4l7 4v8l-7 4-7-4Z"/><path d="M5 8l7 4 7-4M12 12v8"/></symbol>
+  <symbol id="ui-ico-lock" viewBox="0 0 24 24"><rect x="6" y="10" width="12" height="9" rx="2"/><path d="M9 10V7a3 3 0 0 1 6 0v3"/></symbol>
+  <symbol id="ui-ico-check" viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"/></symbol>
+  <symbol id="ui-ico-arrow" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+  <symbol id="ui-ico-trophy" viewBox="0 0 24 24"><path d="M8 5h8v4a4 4 0 0 1-8 0Z"/><path d="M8 7H5a3 3 0 0 0 3 4M16 7h3a3 3 0 0 1-3 4M12 13v4M9 20h6"/></symbol>
+  <symbol id="ui-ico-insight" viewBox="0 0 24 24"><path d="M8 13a5 5 0 1 1 8 0c-1.3 1.2-2 2.2-2 4h-4c0-1.8-.7-2.8-2-4Z"/><path d="M10 20h4"/></symbol>
+  <symbol id="ui-ico-tree" viewBox="0 0 24 24"><path d="M12 4v16"/><path d="M12 8 7 5M12 12l5-4M12 16l-6-3"/></symbol>
+  <symbol id="ui-ico-list" viewBox="0 0 24 24"><path d="M8 7h11M8 12h11M8 17h11"/><path d="M5 7h.01M5 12h.01M5 17h.01"/></symbol>
+  <symbol id="ui-ico-dot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/></symbol>
+</svg>
 
 <div id="wrap">
   <div id="layout">
@@ -3283,7 +3791,7 @@
           <div id="raid-vignette"></div>
           <div id="raid-banner">
             <div style="display:flex; flex-direction:column; gap:3px; min-width:0;">
-              <div id="raid-title">🚨 襲撃警報</div>
+              <div id="raid-title"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-warn"></use></svg> 襲撃警報</div>
               <div id="raid-sub">外敵が地表から接近中。兵隊で迎撃せよ。</div>
             </div>
             <div id="raid-timer">--</div>
@@ -3328,7 +3836,7 @@
         </div>
         <div class="res-box" id="season-box">
           <div class="res-lbl">季節</div>
-          <div class="res-val" id="v-season" style="font-size:11px;">🌸 春</div>
+          <div class="res-val" id="v-season" style="font-size:11px;">春</div>
         </div>
         <div class="res-box" id="depth-box">
           <div class="res-lbl">深度</div>
@@ -3339,19 +3847,19 @@
           <div id="next-goal-text" style="font-size:11px; color:#fcd34d; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></div>
         </div>
         <div id="top-actions">
-          <button class="res-box" id="btn-save" style="cursor:pointer; border-color:#64748b;" data-menu-label="セーブ" aria-label="セーブ">💾</button>
-          <button class="res-box" id="btn-save-export" style="cursor:pointer; border-color:#334155; font-size:9px; color:#64748b;" title="セーブデータを書き出し" data-menu-label="エクスポート" aria-label="エクスポート">📤</button>
-          <button class="res-box" id="btn-save-import" style="cursor:pointer; border-color:#334155; font-size:9px; color:#64748b;" title="セーブデータを読み込み" data-menu-label="ロード" aria-label="ロード">📥</button>
-          <button class="res-box" id="btn-diary" style="cursor:pointer; border-color:#8b5cf6;" title="女王の日記" data-menu-label="日記" aria-label="女王の日記">👑</button>
-          <button class="res-box" id="btn-goals" style="cursor:pointer; border-color:#22c55e;" title="コロニーの目標" data-menu-label="目標" aria-label="コロニーの目標">🗺️</button>
-          <button class="res-box" id="btn-stats" style="cursor:pointer; border-color:#38bdf8;" title="コロニー統計" data-menu-label="統計" aria-label="コロニー統計">📊</button>
-          <button class="res-box" id="btn-color-mode" style="cursor:pointer; border-color:#7c3aed;" title="カラーモード切替" data-menu-label="カラー" aria-label="カラーモード">🎨</button>
-          <button class="res-box" id="btn-fit" style="cursor:pointer; border-color:#22c55e;" title="全体表示" data-menu-label="全体表示" aria-label="全体表示">🧭</button>
-          <button class="res-box" id="btn-err" style="cursor:pointer; border-color:#ef4444;" title="エラー詳細" data-menu-label="エラー" aria-label="エラー詳細">⚠</button>
+          <button class="res-box ui-iconified" id="btn-save" style="cursor:pointer; border-color:#64748b;" data-menu-label="セーブ" aria-label="セーブ"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-save"></use></svg></button>
+          <button class="res-box ui-iconified" id="btn-save-export" style="cursor:pointer; border-color:#334155; font-size:9px; color:#64748b;" title="セーブデータを書き出し" data-menu-label="エクスポート" aria-label="エクスポート"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-export"></use></svg></button>
+          <button class="res-box ui-iconified" id="btn-save-import" style="cursor:pointer; border-color:#334155; font-size:9px; color:#64748b;" title="セーブデータを読み込み" data-menu-label="ロード" aria-label="ロード"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-import"></use></svg></button>
+          <button class="res-box ui-iconified" id="btn-diary" style="cursor:pointer; border-color:#8b5cf6;" title="女王の日記" data-menu-label="日記" aria-label="女王の日記"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-queen"></use></svg></button>
+          <button class="res-box ui-iconified" id="btn-goals" style="cursor:pointer; border-color:#22c55e;" title="コロニーの目標" data-menu-label="目標" aria-label="コロニーの目標"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-goals"></use></svg></button>
+          <button class="res-box ui-iconified" id="btn-stats" style="cursor:pointer; border-color:#38bdf8;" title="コロニー統計" data-menu-label="統計" aria-label="コロニー統計"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-stats"></use></svg></button>
+          <button class="res-box ui-iconified" id="btn-color-mode" style="cursor:pointer; border-color:#7c3aed;" title="カラーモード切替" data-menu-label="カラー" aria-label="カラーモード"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-color"></use></svg></button>
+          <button class="res-box ui-iconified" id="btn-fit" style="cursor:pointer; border-color:#22c55e;" title="全体表示" data-menu-label="全体表示" aria-label="全体表示"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-compass"></use></svg></button>
+          <button class="res-box ui-iconified" id="btn-err" style="cursor:pointer; border-color:#ef4444;" title="エラー詳細" data-menu-label="エラー" aria-label="エラー詳細"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-warn"></use></svg></button>
         </div>
-        <button class="res-box" id="btn-soldier" type="button" style="cursor:pointer; border-color:#60a5fa;" title="兵隊パネル" aria-label="兵隊パネル">⚔️</button>
-        <button class="res-box" id="btn-expedition" type="button" style="cursor:pointer; border-color:#14b8a6;" title="遠征" aria-label="遠征">🏕️</button>
-        <button class="res-box" id="btn-menu" type="button" aria-expanded="false" aria-controls="mobile-menu-sheet" title="メニュー">⚙</button>
+        <button class="res-box ui-iconified" id="btn-soldier" type="button" style="cursor:pointer; border-color:#60a5fa;" title="兵隊パネル" aria-label="兵隊パネル"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-sword"></use></svg></button>
+        <button class="res-box ui-iconified" id="btn-expedition" type="button" style="cursor:pointer; border-color:#14b8a6;" title="遠征" aria-label="遠征"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-expedition"></use></svg></button>
+        <button class="res-box ui-iconified" id="btn-menu" type="button" aria-expanded="false" aria-controls="mobile-menu-sheet" title="メニュー"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-menu"></use></svg></button>
       </div>
 
       <div id="mobile-menu-sheet" aria-hidden="true">
@@ -3393,15 +3901,15 @@
         </div>
         <div class="row-group" id="dev-raid-tools" style="display:none; align-items:center;">
           <span style="font-size:10px; color:#94a3b8; white-space:nowrap; align-self:center;">強制レイド:</span>
-          <button class="btn-up-sm" id="btn-dev-raid-normal" style="width:60px;">🐜<br>通常</button>
-          <button class="btn-up-sm" id="btn-dev-raid-samurai" style="width:60px;">⚔️<br>奴隷狩り</button>
-          <button class="btn-up-sm" id="btn-dev-raid-spider" style="width:60px;">🕷️<br>クモ</button>
-          <button class="btn-up-sm" id="btn-dev-mole" style="width:60px;">🦫<br>モグラ</button>
+          <button class="btn-up-sm" id="btn-dev-raid-normal" style="width:60px;"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-ant"></use></svg><br>通常</button>
+          <button class="btn-up-sm" id="btn-dev-raid-samurai" style="width:60px;"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-sword"></use></svg><br>奴隷狩り</button>
+          <button class="btn-up-sm" id="btn-dev-raid-spider" style="width:60px;"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-warn"></use></svg><br>クモ</button>
+          <button class="btn-up-sm" id="btn-dev-mole" style="width:60px;"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-warn"></use></svg><br>モグラ</button>
         </div>
         <div class="row-group" id="dev-nestgen-tools" style="display:none; align-items:center;">
           <span style="font-size:10px; color:#94a3b8; white-space:nowrap; align-self:center;">巣生成(試作):</span>
-          <button class="btn-up-sm" id="btn-dev-mesh-nest" style="width:90px;">🕸️<br>新メッシュ巣</button>
-          <button class="btn-up-sm" id="btn-dev-mesh-growth" style="width:92px;">🌱<br>成長メッシュ</button>
+          <button class="btn-up-sm" id="btn-dev-mesh-nest" style="width:90px;"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-tree"></use></svg><br>新メッシュ巣</button>
+          <button class="btn-up-sm" id="btn-dev-mesh-growth" style="width:92px;"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-food"></use></svg><br>成長メッシュ</button>
         </div>
         <div class="row-group" id="normal-tools">
           <button class="btn" id="btn-render-settings-pub" style="flex:1;">描画設定</button>
@@ -3417,15 +3925,15 @@
 
         <div id="control-tabs" role="tablist" aria-label="操作タブ">
           <button type="button" class="control-tab-btn active" id="tab-btn-ants" data-tab="ants" role="tab" aria-selected="true">
-            蟻
+            <svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-ant"></use></svg><span>蟻</span>
             <span class="tab-alert" id="tab-alert-ants" aria-label="蟻タブ通知">0</span>
           </button>
           <button type="button" class="control-tab-btn" id="tab-btn-rooms" data-tab="rooms" role="tab" aria-selected="false">
-            部屋
+            <svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-room"></use></svg><span>部屋</span>
             <span class="tab-alert" id="tab-alert-rooms" aria-label="部屋タブ通知">0</span>
           </button>
           <button type="button" class="control-tab-btn" id="tab-btn-research" data-tab="research" role="tab" aria-selected="false">
-            🔬研究
+            <svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-research"></use></svg><span>研究</span>
             <span class="tab-alert" id="tab-alert-research" aria-label="研究タブ通知">0</span>
           </button>
         </div>
@@ -3433,7 +3941,7 @@
         <div id="control-tab-panels">
           <section class="control-tab-panel active" id="tab-panel-ants" role="tabpanel" aria-labelledby="tab-btn-ants">
             <div class="tab-card">
-              <div class="tab-sec-title">蟻アップグレード</div>
+              <div class="tab-sec-title">蟻・女王アップグレード</div>
               <div id="dock-ants-grid" class="dock-grid dock-grid-tab"></div>
             </div>
             <div class="tab-card">
@@ -3465,7 +3973,7 @@
               <div class="tab-sec-title">研究センター</div>
               <div class="research-lead" id="research-lead">研究は巣全体のルールを書き換える上位システムです。</div>
               <div class="research-meta" id="research-meta" style="display:none;"></div>
-              <div class="research-lock" id="research-lock-note">🔒 研究未解放: 生体が400匹に達すると解放されます。</div>
+              <div class="research-lock" id="research-lock-note"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-lock"></use></svg> 研究未解放: 生体が400匹に達すると解放されます。</div>
               <div class="research-overview" id="research-overview"></div>
               <div class="research-view-toggle" id="research-view-toggle"></div>
               <div class="research-branch-list" id="research-branch-list"></div>
@@ -3482,154 +3990,154 @@
           <div class="dock-body">
             <div id="upgradeDockGrid" class="dock-grid">
               <button class="dock-item tier-major" type="button" id="act-up-queen" data-upkey="queen"><!-- // MAJOR_UPGRADE: 女王アップグレードは常に目立たせる -->
-                <div class="dock-icon">👑</div>
+                <div class="dock-icon"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-queen"></use></svg></div>
                 <div class="dock-meta">
                   <div class="dock-name">女王 <span id="lbl-qlv">Lv.0</span></div>
-                  <div class="dock-cost">🍪 <span id="c-queen">1</span></div>
+                  <div class="dock-cost"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-cookie"></use></svg> <span id="c-queen">1</span></div>
                 </div>
                 <span class="dock-badge new" data-badge="new">NEW</span>
-                <span class="dock-badge lock" data-badge="lock">🔒</span>
+                <span class="dock-badge lock" data-badge="lock"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-lock"></use></svg></span>
               </button>
               <!-- // MAJOR_UPGRADE: パッシブ系メジャーアップグレード -->
               <button class="dock-item tier-major" type="button" id="btn-major-golden2x" data-upkey="major-golden2x">
-                <div class="dock-icon">🌟</div>
+                <div class="dock-icon"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-star"></use></svg></div>
                 <div class="dock-meta">
                   <div class="dock-name">黄金の指 <span id="lbl-major-golden-finger-lv">Lv.0</span></div>
-                  <div class="dock-cost">🍪 <span id="c-major-golden2x">20</span></div>
+                  <div class="dock-cost"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-cookie"></use></svg> <span id="c-major-golden2x">20</span></div>
                 </div>
                 <span class="dock-badge new" data-badge="new">NEW</span>
-                <span class="dock-badge lock" data-badge="lock">🔒</span>
+                <span class="dock-badge lock" data-badge="lock"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-lock"></use></svg></span>
               </button>
               <button class="dock-item tier-major" type="button" id="btn-major-cookie2x" data-upkey="major-cookie2x">
-                <div class="dock-icon">🍪</div>
+                <div class="dock-icon"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-cookie"></use></svg></div>
                 <div class="dock-meta">
                   <div class="dock-name">クッキー出現 x2</div>
-                  <div class="dock-cost">🍪 <span id="c-major-cookie2x">40</span></div>
+                  <div class="dock-cost"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-cookie"></use></svg> <span id="c-major-cookie2x">40</span></div>
                 </div>
                 <span class="dock-badge new" data-badge="new">NEW</span>
-                <span class="dock-badge lock" data-badge="lock">🔒</span>
+                <span class="dock-badge lock" data-badge="lock"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-lock"></use></svg></span>
               </button>
               <button class="dock-item tier-major" type="button" id="btn-major-jaw2x" data-upkey="major-jaw2x">
-                <div class="dock-icon">⚔️</div>
+                <div class="dock-icon"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-sword"></use></svg></div>
                 <div class="dock-meta">
                   <div class="dock-name">兵隊攻撃 x2</div>
-                  <div class="dock-cost">🍪 <span id="c-major-jaw2x">60</span></div>
+                  <div class="dock-cost"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-cookie"></use></svg> <span id="c-major-jaw2x">60</span></div>
                 </div>
                 <span class="dock-badge new" data-badge="new">NEW</span>
-                <span class="dock-badge lock" data-badge="lock">🔒</span>
+                <span class="dock-badge lock" data-badge="lock"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-lock"></use></svg></span>
               </button>
               <button class="dock-item tier-major" type="button" id="btn-major-depth2" data-upkey="major-depth2">
-                <div class="dock-icon">⬇️</div>
+                <div class="dock-icon"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-depth"></use></svg></div>
                 <div class="dock-meta">
                   <div class="dock-name">深度II解放</div>
-                  <div class="dock-cost">🍪 <span id="c-major-depth2">15</span></div>
+                  <div class="dock-cost"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-cookie"></use></svg> <span id="c-major-depth2">15</span></div>
                 </div>
                 <span class="dock-badge new" data-badge="new">NEW</span>
-                <span class="dock-badge lock" data-badge="lock">🔒</span>
+                <span class="dock-badge lock" data-badge="lock"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-lock"></use></svg></span>
               </button>
               <button class="dock-item tier-major" type="button" id="btn-major-depth3" data-upkey="major-depth3">
-                <div class="dock-icon">🕳️</div>
+                <div class="dock-icon"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-depth"></use></svg></div>
                 <div class="dock-meta">
                   <div class="dock-name">深度III解放</div>
-                  <div class="dock-cost">🍪 <span id="c-major-depth3">40</span></div>
+                  <div class="dock-cost"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-cookie"></use></svg> <span id="c-major-depth3">40</span></div>
                 </div>
                 <span class="dock-badge new" data-badge="new">NEW</span>
-                <span class="dock-badge lock" data-badge="lock">🔒</span>
+                <span class="dock-badge lock" data-badge="lock"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-lock"></use></svg></span>
               </button>
               <button class="dock-item tier-major" type="button" id="btn-major-barracks" data-upkey="major-barracks">
-                <div class="dock-icon">🛡️</div>
+                <div class="dock-icon"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-shield"></use></svg></div>
                 <div class="dock-meta">
                   <div class="dock-name">兵舎設計図</div>
-                  <div class="dock-cost">🍪 <span id="c-major-barracks">25</span></div>
+                  <div class="dock-cost"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-cookie"></use></svg> <span id="c-major-barracks">25</span></div>
                   <div class="dock-desc">兵士上限+20/室</div>
                 </div>
                 <span class="dock-badge new" data-badge="new">NEW</span>
-                <span class="dock-badge lock" data-badge="lock">🔒</span>
+                <span class="dock-badge lock" data-badge="lock"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-lock"></use></svg></span>
               </button>
               <button class="dock-item tier-major" type="button" id="btn-major-worker-clean" data-upkey="major-worker-clean" hidden aria-hidden="true">
-                <div class="dock-icon">🧹</div>
+                <div class="dock-icon"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-waste"></use></svg></div>
                 <div class="dock-meta">
                   <div class="dock-name">お掃除はおまかせ</div>
-                  <div class="dock-cost">🍪 <span id="c-major-worker-clean">20</span></div>
+                  <div class="dock-cost"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-cookie"></use></svg> <span id="c-major-worker-clean">20</span></div>
                 </div>
                 <span class="dock-badge new" data-badge="new">NEW</span>
-                <span class="dock-badge lock" data-badge="lock">🔒</span>
+                <span class="dock-badge lock" data-badge="lock"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-lock"></use></svg></span>
               </button>
               <button class="dock-item tier-major" type="button" id="btn-major-worker-bigcarry" data-upkey="major-worker-bigcarry">
-                <div class="dock-icon">📦</div>
+                <div class="dock-icon"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-box"></use></svg></div>
                 <div class="dock-meta">
                   <div class="dock-name">大物運搬</div>
-                  <div class="dock-cost">🍪 <span id="c-major-worker-bigcarry">5</span></div>
+                  <div class="dock-cost"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-cookie"></use></svg> <span id="c-major-worker-bigcarry">5</span></div>
                 </div>
                 <span class="dock-badge new" data-badge="new">NEW</span>
-                <span class="dock-badge lock" data-badge="lock">🔒</span>
+                <span class="dock-badge lock" data-badge="lock"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-lock"></use></svg></span>
               </button>
               <button class="dock-item" type="button" id="btn-up-worker" data-upkey="worker">
-                <div class="dock-icon">🐜</div>
+                <div class="dock-icon"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-ant"></use></svg></div>
                 <div class="dock-meta">
                   <div class="dock-name">働き <span id="lbl-wlv">未強化</span></div>
-                  <div class="dock-cost">🍃 <span id="c-up-w">50</span></div>
+                  <div class="dock-cost"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-food"></use></svg> <span id="c-up-w">50</span></div>
                 </div>
                 <span class="dock-badge new" data-badge="new">NEW</span>
-                <span class="dock-badge lock" data-badge="lock">🔒</span>
+                <span class="dock-badge lock" data-badge="lock"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-lock"></use></svg></span>
               </button>
               <button class="dock-item" type="button" id="btn-up-nurse" data-upkey="nurse">
-                <div class="dock-icon">🍼</div>
+                <div class="dock-icon"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-nurse"></use></svg></div>
                 <div class="dock-meta">
                   <div class="dock-name">育児 <span id="lbl-nlv">Lv.0</span></div>
-                  <div class="dock-cost">🍃 <span id="c-up-n">300</span></div>
+                  <div class="dock-cost"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-food"></use></svg> <span id="c-up-n">300</span></div>
                 </div>
                 <span class="dock-badge new" data-badge="new">NEW</span>
-                <span class="dock-badge lock" data-badge="lock">🔒</span>
+                <span class="dock-badge lock" data-badge="lock"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-lock"></use></svg></span>
               </button>
               <button class="dock-item" type="button" id="btn-up-builder" data-upkey="builder">
-                <div class="dock-icon">⛏️</div>
+                <div class="dock-icon"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-builder"></use></svg></div>
                 <div class="dock-meta">
                   <div class="dock-name">建築 <span id="lbl-blv">Lv.0</span></div>
-                  <div class="dock-cost">🍃 <span id="c-up-b">500</span></div>
+                  <div class="dock-cost"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-food"></use></svg> <span id="c-up-b">500</span></div>
                 </div>
                 <span class="dock-badge new" data-badge="new">NEW</span>
-                <span class="dock-badge lock" data-badge="lock">🔒</span>
+                <span class="dock-badge lock" data-badge="lock"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-lock"></use></svg></span>
               </button>
               <!-- ゴミ室建設（Part7A・予約制） -->
               <button class="dock-item" type="button" id="btn-unlock-waste" data-upkey="waste">
-                <div class="dock-icon">🗑️</div>
+                <div class="dock-icon"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-waste"></use></svg></div>
                 <div class="dock-meta">
                   <div class="dock-name">ゴミ室建設</div>
-                  <div class="dock-cost">🍃 <span id="c-unlock-waste">1500</span></div>
+                  <div class="dock-cost"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-food"></use></svg> <span id="c-unlock-waste">1500</span></div>
                   <div class="dock-desc">清掃を強化・病気予防 / 複数建設可</div>
                 </div>
                 <span class="dock-badge new" data-badge="new">NEW</span>
-                <span class="dock-badge lock" data-badge="lock">🔒</span>
+                <span class="dock-badge lock" data-badge="lock"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-lock"></use></svg></span>
               </button>
               <button class="dock-item" type="button" id="btn-build-ferment" data-upkey="ferment_room">
-                <div class="dock-icon">🧪</div>
+                <div class="dock-icon"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-ferment"></use></svg></div>
                 <div class="dock-meta">
                   <div class="dock-name">発酵室建設</div>
-                  <div class="dock-cost">🍃 <span id="c-build-ferment">2000</span></div>
-                  <div class="dock-desc">食料→🍪変換 発酵アリ強化</div>
+                  <div class="dock-cost"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-food"></use></svg> <span id="c-build-ferment">2000</span></div>
+                  <div class="dock-desc">食料からクッキーへ変換 発酵アリ強化</div>
                 </div>
                 <span class="dock-badge new" data-badge="new">NEW</span>
-                <span class="dock-badge lock" data-badge="lock">🔒</span>
+                <span class="dock-badge lock" data-badge="lock"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-lock"></use></svg></span>
               </button>
               <button class="dock-item" type="button" id="btn-build-cookieroom" data-upkey="cookieroom_build">
-                <div class="dock-icon">🍪</div>
+                <div class="dock-icon"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-cookie"></use></svg></div>
                 <div class="dock-meta">
                   <div class="dock-name">クッキー室建設</div>
-                  <div class="dock-cost">🍪 <span id="c-build-cookieroom">30</span></div>
+                  <div class="dock-cost"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-cookie"></use></svg> <span id="c-build-cookieroom">30</span></div>
                   <div class="dock-desc">クッキー発見率+1%/室 納品+1(20%)</div>
                 </div>
                 <span class="dock-badge new" data-badge="new">NEW</span>
-                <span class="dock-badge lock" data-badge="lock">🔒</span>
+                <span class="dock-badge lock" data-badge="lock"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-lock"></use></svg></span>
               </button>
               <button class="dock-item" type="button" id="btn-up-soldier" data-upkey="soldier">
-                <div class="dock-icon">🛡️</div>
+                <div class="dock-icon"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-shield"></use></svg></div>
                 <div class="dock-meta">
                   <div class="dock-name">兵隊 <span id="lbl-slv">Lv.0</span></div>
-                  <div class="dock-cost">🍃 <span id="c-up-s">2000</span></div>
+                  <div class="dock-cost"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-food"></use></svg> <span id="c-up-s">2000</span></div>
                 </div>
                 <span class="dock-badge new" data-badge="new">NEW</span>
-                <span class="dock-badge lock" data-badge="lock">🔒</span>
+                <span class="dock-badge lock" data-badge="lock"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-lock"></use></svg></span>
               </button>
             </div>
             <button class="dock-more" id="upgradeDockMoreBtn" type="button" style="display:none;">もっと見る</button>
@@ -3639,7 +4147,7 @@
 
         <div class="ant-list" id="ant-list">
           <div class="ant-row" id="row-worker">
-            <div class="ant-icon">🐜</div>
+            <div class="ant-icon"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-ant"></use></svg></div>
             <div class="btn ant-buy disabled" id="act-worker">
               <div>
                 <span class="btn-tit">働きアリ</span>
@@ -3649,43 +4157,43 @@
             <div class="ant-count" id="c-worker">0</div>
           </div>
           <div class="ant-row" id="row-nurse">
-            <div class="ant-icon">🍼</div>
+            <div class="ant-icon"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-nurse"></use></svg></div>
             <button class="btn ant-buy" id="act-nurse">
               <div>
                 <span class="btn-tit">育児アリ</span>
-                <span class="btn-sub txt-green" id="cost-nurse">🍃 50</span>
+                <span class="btn-sub txt-green" id="cost-nurse"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-food"></use></svg> 50</span>
               </div>
             </button>
             <div class="ant-count" id="c-nurse">0</div>
           </div>
           <div class="ant-row" id="row-builder">
-            <div class="ant-icon">⛏️</div>
+            <div class="ant-icon"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-builder"></use></svg></div>
             <button class="btn ant-buy" id="act-builder">
               <div>
                 <span class="btn-tit">建築アリ</span>
-                <span class="btn-sub txt-green" id="cost-builder">🍃 100</span>
+                <span class="btn-sub txt-green" id="cost-builder"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-food"></use></svg> 100</span>
                 <div class="btn-sub" id="desc-b" style="margin-top:2px;">待機中...</div>
               </div>
             </button>
             <div class="ant-count" id="c-builder">0</div>
           </div>
           <div class="ant-row locked" id="grp-soldier">
-            <div class="ant-icon">🛡️</div>
+            <div class="ant-icon"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-shield"></use></svg></div>
             <button class="btn ant-buy" id="act-soldier">
               <div>
                 <span class="btn-tit">兵隊アリ</span>
-                <span class="btn-sub txt-green" id="cost-soldier">🍃 500</span>
+                <span class="btn-sub txt-green" id="cost-soldier"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-food"></use></svg> 500</span>
                 <div class="btn-sub" id="desc-soldier-lock" style="margin-top:2px;">兵舎設計図が必要</div>
               </div>
             </button>
             <div class="ant-count" id="c-soldier">0</div>
           </div>
           <div class="ant-row locked" id="grp-fermenter">
-            <div class="ant-icon">🧪</div>
+            <div class="ant-icon"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-ferment"></use></svg></div>
             <button class="btn ant-buy" id="act-fermenter">
               <div>
                 <span class="btn-tit">発酵アリ</span>
-                <span class="btn-sub txt-green" id="cost-fermenter">🍃 800</span>
+                <span class="btn-sub txt-green" id="cost-fermenter"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-food"></use></svg> 800</span>
                 <div class="btn-sub" id="desc-fermenter-lock" style="margin-top:2px;">研究「発酵アリ解放」で雇用可能</div>
               </div>
             </button>
@@ -3716,7 +4224,7 @@
 <!-- ===== Cookie Discovery Modal ===== -->
 <div id="cookie-discovery">
   <div class="cookie-box">
-    <span class="cookie-emoji">🍪</span>
+    <span class="cookie-emoji"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-cookie"></use></svg></span>
     <div class="cookie-title">クッキーを発見！</div>
     <div class="cookie-desc">働きアリが地表から持ち帰る特別なお菓子。<br>女王のアップグレードや特殊能力の解放に使える。<br><b style="color:#fcd34d;">クッキーは巣を開いている間に集まる</b>（一部の研究を取ればお留守番中も少しだけ）。<br>クッキー室を作ると見つけやすくなるよ！</div>
     <button class="cookie-ok" id="cookie-ok-btn">わかった！</button>
@@ -3726,13 +4234,13 @@
 <!-- ===== Goals Modal ===== -->
 <div id="modal-goals" class="modal-overlay">
   <div class="modal-box" style="max-width:420px; text-align:left;">
-    <div style="font-size:18px; font-weight:bold; color:#fcd34d; margin-bottom:4px;">🗺️ コロニーの目標</div>
+    <div style="font-size:18px; font-weight:bold; color:#fcd34d; margin-bottom:4px;"><span class="ui-inline-icon"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-goals"></use></svg><span>コロニーの目標</span></span></div>
     <div style="font-size:11px; color:#64748b; margin-bottom:12px;">達成すると女王の日記に記録される</div>
     <div class="goal-tree" id="goal-tree-list"></div>
     <div id="prestige-section">
       <div style="border-top:1px solid #334155; margin: 12px 0 8px;"></div>
-      <div style="font-size:11px; color:#a78bfa; margin-bottom:6px;">✨ すべての目標を達成した！新たな旅を始めよう</div>
-      <button class="btn-prestige" id="btn-prestige">♻️ 転生する（コロニーをリセット＋ボーナス引継ぎ）</button>
+      <div style="font-size:11px; color:#a78bfa; margin-bottom:6px;"><span class="ui-inline-icon"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-check"></use></svg><span>すべての目標を達成した！新たな旅を始めよう</span></span></div>
+      <button class="btn-prestige" id="btn-prestige">転生する（コロニーをリセット＋ボーナス引継ぎ）</button>
     </div>
     <button class="modal-btn" id="btn-goals-close">閉じる</button>
   </div>
@@ -3754,7 +4262,7 @@
 
 <div id="modal-raid-result" class="modal-overlay">
   <div class="modal-box" style="max-width:420px; text-align:left;">
-    <div id="raid-result-title" style="font-size:18px; font-weight:bold; color:#fcd34d; margin-bottom:8px;">⚔️ 防衛結果</div>
+    <div id="raid-result-title" style="font-size:18px; font-weight:bold; color:#fcd34d; margin-bottom:8px;"><span class="ui-inline-icon"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-sword"></use></svg><span>防衛結果</span></span></div>
     <div id="raid-result-body" style="white-space:pre-wrap; background:rgba(0,0,0,0.3); padding:10px; border-radius:8px; line-height:1.6;">...</div>
     <button class="modal-btn" id="btn-raid-result-close">閉じる</button>
   </div>
@@ -3762,7 +4270,7 @@
 
 <div id="modal-stats" class="modal-overlay">
   <div class="modal-box" style="max-width:560px; text-align:left;">
-    <div style="font-size:18px; font-weight:bold; color:#fcd34d; margin-bottom:4px;">📊 コロニー統計</div>
+    <div style="font-size:18px; font-weight:bold; color:#fcd34d; margin-bottom:4px;"><span class="ui-inline-icon"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-stats"></use></svg><span>コロニー統計</span></span></div>
     <div style="font-size:11px; color:#64748b; margin-bottom:8px;">現在の巣・成長・防衛の状態</div>
     <div id="stats-body" class="stats-grid"></div>
     <button class="modal-btn" id="btn-stats-close">閉じる</button>
@@ -3771,7 +4279,7 @@
 
 <div id="modal-diary" class="modal-overlay">
     <div class="modal-box">
-        <div style="font-size:18px; font-weight:bold; color:#fcd34d; margin-bottom:10px;">👑 女王の日記</div>
+        <div style="font-size:18px; font-weight:bold; color:#fcd34d; margin-bottom:10px;"><span class="ui-inline-icon"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-queen"></use></svg><span>女王の日記</span></span></div>
         <div id="diary-text" style="text-align:left; white-space:pre-wrap; background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; font-size:13px; line-height:1.6;">...</div>
         <button class="modal-btn">閉じる</button>
     </div>
@@ -3819,7 +4327,7 @@
 
 <div id="modal-expedition" class="modal-overlay">
   <div class="modal-box exped-modal-box" style="max-width:480px;">
-    <div style="font-size:18px; font-weight:bold; color:#14b8a6; margin-bottom:2px;">🏕️ 遠征</div>
+    <div style="font-size:18px; font-weight:bold; color:#14b8a6; margin-bottom:2px;"><span class="ui-inline-icon"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-expedition"></use></svg><span>遠征</span></span></div>
     <div style="font-size:11px; color:#64748b; margin-bottom:12px;">アリを外界へ派遣して食料やクッキーを獲得する</div>
     <div id="expedition-content"></div>
     <button class="modal-btn" id="btn-expedition-close">閉じる</button>
@@ -3828,7 +4336,7 @@
 
 <div id="modal-soldier" class="modal-overlay">
   <div class="modal-box exped-modal-box" style="max-width:480px;">
-    <div style="font-size:18px; font-weight:bold; color:#60a5fa; margin-bottom:2px;">⚔️ 兵隊パネル</div>
+    <div style="font-size:18px; font-weight:bold; color:#60a5fa; margin-bottom:2px;"><span class="ui-inline-icon"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-sword"></use></svg><span>兵隊パネル</span></span></div>
     <div style="font-size:11px; color:#64748b; margin-bottom:12px;">兵隊アリの兵種編成と防衛状況</div>
     <div id="soldier-content"></div>
     <button class="modal-btn" id="btn-soldier-close">閉じる</button>
@@ -3838,7 +4346,7 @@
 <div id="modal-research-tree" class="modal-overlay">
   <div class="modal-box rtree-modal-box">
     <div class="rtree-modal-head">
-      <span class="rtree-modal-title">🌳 研究ツリー</span>
+      <span class="rtree-modal-title"><span class="ui-inline-icon"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-tree"></use></svg><span>研究ツリー</span></span></span>
       <div class="rtree-zoom-ctrls">
         <button class="rtree-zoom-btn" id="btn-rtree-zoom-out" type="button" title="縮小" aria-label="縮小">−</button>
         <button class="rtree-zoom-btn" id="btn-rtree-zoom-reset" type="button" title="リセット" aria-label="ズームリセット">⤢</button>
@@ -3854,6 +4362,7 @@
 </div>
 
 <script>
+
 /*
  * ========================================
  * アリコロニー シミュレーションゲーム
@@ -7478,16 +7987,49 @@ window._dbg = {
     return { x: S.cam.x, y: S.cam.y, w: canvas.width / scale, h: canvas.height / scale };
   }
 
+  function getCameraSafeInsetsPx() {
+    if(!canvas || !window.matchMedia || !window.matchMedia('(min-width: 960px)').matches) {
+      return { left: 0, right: 0, top: 0, bottom: 0 };
+    }
+    const rect = canvas.getBoundingClientRect();
+    const dpr = canvas.width / Math.max(1, rect.width || window.innerWidth || 1);
+    const panel = document.getElementById('control-panel');
+    let right = 0;
+    if(panel) {
+      const pr = panel.getBoundingClientRect();
+      if(pr.width > 0 && pr.left < window.innerWidth) {
+        right = Math.max(0, window.innerWidth - pr.left + 18) * dpr;
+      }
+    }
+    return {
+      left: 0,
+      right: Math.min(canvas.width * 0.42, right),
+      top: 0,
+      bottom: 0
+    };
+  }
+
+  function getCameraSafeViewSize(scale = S.cam.scale) {
+    const safe = getCameraSafeInsetsPx();
+    return {
+      w: Math.max(1, (canvas.width - safe.left - safe.right) / scale),
+      h: Math.max(1, (canvas.height - safe.top - safe.bottom) / scale)
+    };
+  }
+
   function getFitScale(pad = 0.95) {
     if(!S.full) return 1;
-    const sx = canvas.width / S.full.w;
-    const sy = canvas.height / S.full.h;
+    const safe = getCameraSafeInsetsPx();
+    const sx = Math.max(1, canvas.width - safe.left - safe.right) / S.full.w;
+    const sy = Math.max(1, canvas.height - safe.top - safe.bottom) / S.full.h;
     return Math.min(sx, sy) * pad;
   }
 
   function updateCameraLimits() {
     const fit = getFitScale(0.95);
-    const widthFit = (S.full && S.full.w) ? (canvas.width / S.full.w) : fit;
+    const safe = getCameraSafeInsetsPx();
+    const safeW = Math.max(1, canvas.width - safe.left - safe.right);
+    const widthFit = (S.full && S.full.w) ? (safeW / S.full.w) : fit;
     // Prevent zooming out so far that the view exceeds the world's max width.
     S.cam.minScale = Math.max(0.08, Math.min(fit, 0.6), widthFit);
     S.cam.maxScale = Math.max(3.0, S.cam.minScale);
@@ -7508,9 +8050,8 @@ window._dbg = {
   function clampCameraTargets() {
     if(!S.full) return;
     S.cam.tScale = clamp(S.cam.tScale, S.cam.minScale, S.cam.maxScale);
-    const viewW = canvas.width / S.cam.tScale;
-    const viewH = canvas.height / S.cam.tScale;
-    const b = getCamBounds(viewW, viewH);
+    const view = getCameraSafeViewSize(S.cam.tScale);
+    const b = getCamBounds(view.w, view.h);
     S.cam.tx = clamp(S.cam.tx, b.minX, b.maxX);
     S.cam.ty = clamp(S.cam.ty, b.minY, b.maxY);
   }
@@ -7518,9 +8059,8 @@ window._dbg = {
   function clampCameraPosition() {
     if(!S.full) return;
     S.cam.scale = clamp(S.cam.scale, S.cam.minScale, S.cam.maxScale);
-    const viewW = canvas.width / S.cam.scale;
-    const viewH = canvas.height / S.cam.scale;
-    const b = getCamBounds(viewW, viewH);
+    const view = getCameraSafeViewSize(S.cam.scale);
+    const b = getCamBounds(view.w, view.h);
     S.cam.x = clamp(S.cam.x, b.minX, b.maxX);
     S.cam.y = clamp(S.cam.y, b.minY, b.maxY);
   }
@@ -7570,11 +8110,10 @@ window._dbg = {
     if(!S.full) return;
     updateCameraLimits();
     const scale = getFitScale(pad);
-    const viewW = canvas.width / scale;
-    const viewH = canvas.height / scale;
+    const view = getCameraSafeViewSize(scale);
     S.cam.tScale = scale;
-    S.cam.tx = (S.full.w - viewW) * 0.5;
-    S.cam.ty = (S.full.h - viewH) * 0.5;
+    S.cam.tx = (S.full.w - view.w) * 0.5;
+    S.cam.ty = (S.full.h - view.h) * 0.5;
     clampCameraTargets();
     if(snap) {
       S.cam.scale = S.cam.tScale;
@@ -13435,7 +13974,7 @@ function expandMap(forcedType, isEmergency) {
   function setRaidUI(show, txtTitle, txtSub, timerText) {
     if(!raidUI) return;
     raidUI.classList.toggle("show", !!show);
-    if(txtTitle && raidTitleEl) raidTitleEl.textContent = txtTitle;
+    if(txtTitle && raidTitleEl) setIconifiedTitle(raidTitleEl, txtTitle, 'warn');
     if(txtSub && raidSubEl) raidSubEl.textContent = txtSub;
     if(raidTimerEl) raidTimerEl.textContent = timerText || "--";
   }
@@ -13512,6 +14051,7 @@ function expandMap(forcedType, isEmergency) {
         `被害: 働きアリ -${Math.floor(out.loseWorkers || 0)}\n` +
         `兵隊アリは兵舎へ帰還中`;
     }
+    setIconifiedTitle(raidResultTitleEl, raidResultTitleEl.textContent, out.win ? 'check' : 'warn');
     raidResultModal.classList.add('show');
   }
 
@@ -13709,6 +14249,7 @@ function expandMap(forcedType, isEmergency) {
       html += `<div class="exped-locked">🔒 研究「兵種分化」(防衛枝) を取ると、斥候・重装などの兵種を編成できます</div>`;
     }
     el.innerHTML = html;
+    hydrateUiIcons(el);
   }
 
   let _soldierTimerInterval = null;
@@ -14079,6 +14620,7 @@ function expandMap(forcedType, isEmergency) {
     }
     html += '</div>';
     el.innerHTML = html;
+    hydrateUiIcons(el);
   }
 
   let _expedTimerInterval = null;
@@ -16456,6 +16998,149 @@ function expandMap(forcedType, isEmergency) {
 
 
   const setText = (elem, val) => { if(elem) elem.textContent = val; };
+  const setHtml = (elem, val) => { if(elem) elem.innerHTML = val; };
+  const UI_ICON_KEYS = new Set([
+    'ant','room','research','save','export','import','queen','goals','stats','color','compass','warn','sword','expedition','menu',
+    'food','cookie','egg','nurse','builder','shield','ferment','waste','star','depth','box','lock','check','arrow','trophy','insight',
+    'tree','list','dot'
+  ]);
+  const UI_ICON_BY_EMOJI = {
+    '🐜':'ant','🦗':'ant','🐛':'ant',
+    '⌂':'room','🏚':'room','🏰':'room',
+    '🔬':'research','⚗':'research',
+    '💾':'save','📤':'export','📥':'import',
+    '👑':'queen','👸':'queen','🤱':'nurse',
+    '🗺':'goals','📊':'stats','🎨':'color','🧭':'compass','⚠':'warn','🚨':'warn','❌':'warn','🦠':'warn','🕷':'warn','🦫':'warn','💀':'warn','☠':'warn',
+    '⚔':'sword','🏕':'expedition','⚙':'menu',
+    '🍃':'food','🌿':'food','🌲':'tree','🌰':'food','🌱':'food',
+    '🍪':'cookie','🥚':'egg','🍼':'nurse','⛏':'builder','🔨':'builder','🛡':'shield','🧪':'ferment','🏺':'ferment',
+    '🗑':'waste','🧹':'waste','📦':'box','🌟':'star','✨':'star','✦':'star','💎':'star','🏆':'trophy',
+    '🕳':'depth','🔒':'lock','✅':'check','▶':'arrow','♻':'arrow','🧠':'insight','💡':'insight',
+    '🌳':'tree','🕸':'tree','📋':'list',
+    '🌸':'food','☀':'star','🍂':'food','❄':'star','🌧':'star','🌬':'star','🔥':'warn','⛈':'warn','🌫':'star','🌨':'star','🌪':'warn','🚧':'warn','👁':'warn','🌊':'warn','🏗':'builder','💥':'warn','💧':'star'
+  };
+  const UI_EMOJI_RE = /(?:[\u{1F1E6}-\u{1F1FF}\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]\uFE0F?|\u{1F3D5}\uFE0F?|\u{1F573}\uFE0F?|\u{1F6E1}\uFE0F?|\u{2694}\uFE0F?|\u{26A0}\uFE0F?|\u{2699}\uFE0F?)/gu;
+
+  function normalizeUiIconToken(token) {
+    return String(token ?? '').replace(/[\uFE0F\u200D]/g, '').trim();
+  }
+
+  function uiIconKey(token, fallback = 'dot') {
+    const raw = String(token ?? '').trim();
+    const normalized = normalizeUiIconToken(raw);
+    if(UI_ICON_KEYS.has(raw)) return raw;
+    if(UI_ICON_KEYS.has(normalized)) return normalized;
+    if(UI_ICON_BY_EMOJI[raw]) return UI_ICON_BY_EMOJI[raw];
+    if(UI_ICON_BY_EMOJI[normalized]) return UI_ICON_BY_EMOJI[normalized];
+    const firstEmoji = raw.match(UI_EMOJI_RE);
+    if(firstEmoji && firstEmoji[0]) {
+      const first = firstEmoji[0];
+      const firstNorm = normalizeUiIconToken(first);
+      if(UI_ICON_BY_EMOJI[first]) return UI_ICON_BY_EMOJI[first];
+      if(UI_ICON_BY_EMOJI[firstNorm]) return UI_ICON_BY_EMOJI[firstNorm];
+      if(first !== raw && firstNorm !== normalized) return uiIconKey(first, fallback);
+    }
+    return UI_ICON_KEYS.has(fallback) ? fallback : 'dot';
+  }
+
+  function uiIconSvg(token, extraClass = '') {
+    const key = uiIconKey(token);
+    const cls = extraClass ? ` ui-ico-${extraClass}` : '';
+    return `<svg class="ui-ico${cls}" aria-hidden="true" focusable="false"><use href="#ui-ico-${key}"></use></svg>`;
+  }
+
+  function uiIconHtml(token) {
+    return uiIconSvg(token);
+  }
+
+  function uiIconWithText(icon, text) {
+    return `<span class="ui-inline-icon">${uiIconSvg(icon)}<span>${escapeHtml(String(text ?? ''))}</span></span>`;
+  }
+
+  function uiCostIcon(icon, amount) {
+    return `${uiIconSvg(icon)} ${escapeHtml(String(amount ?? ''))}`;
+  }
+
+  function hasUiEmoji(text) {
+    UI_EMOJI_RE.lastIndex = 0;
+    const ok = UI_EMOJI_RE.test(String(text ?? ''));
+    UI_EMOJI_RE.lastIndex = 0;
+    return ok;
+  }
+
+  function escapeHtml(s) {
+    return String(s ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function stripUiEmojiText(text) {
+    return String(text ?? '')
+      .replace(UI_EMOJI_RE, ' ')
+      .replace(/[\uFE0F\u200D]/g, '')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+  }
+
+  function setIconifiedTitle(elem, rawTitle, fallbackIcon = 'warn') {
+    if(!elem) return;
+    const raw = String(rawTitle ?? '');
+    const text = stripUiEmojiText(raw) || raw;
+    const iconSource = hasUiEmoji(raw) ? raw : fallbackIcon;
+    elem.innerHTML = `${uiIconSvg(iconSource)} ${escapeHtml(text)}`;
+  }
+
+  function replaceEmojiTextNode(node) {
+    if(!node || !node.nodeValue || !hasUiEmoji(node.nodeValue)) return;
+    const text = node.nodeValue;
+    UI_EMOJI_RE.lastIndex = 0;
+    const frag = document.createDocumentFragment();
+    let last = 0;
+    let match;
+    while((match = UI_EMOJI_RE.exec(text))) {
+      const before = text.slice(last, match.index);
+      if(before) frag.appendChild(document.createTextNode(before));
+      const span = document.createElement('span');
+      span.className = 'ui-inline-icon';
+      span.innerHTML = uiIconSvg(match[0]);
+      frag.appendChild(span);
+      last = match.index + match[0].length;
+    }
+    const after = text.slice(last);
+    if(after) frag.appendChild(document.createTextNode(after));
+    node.parentNode.replaceChild(frag, node);
+  }
+
+  function iconifySingleGlyphElement(el) {
+    if(!el || el.dataset.uiIconified === '1') return;
+    const raw = el.textContent.trim();
+    if(!raw || !hasUiEmoji(raw)) return;
+    el.innerHTML = uiIconHtml(raw);
+    el.dataset.uiIconified = '1';
+  }
+
+  function hydrateUiIcons(root = document) {
+    const base = root || document;
+    base.querySelectorAll('.dock-icon,.ant-icon,.dock-badge,.goal-icon,.goal-check,.exped-card-icon,.research-branch-icon,.rmeta-ic,.room-pending-icon,.cookie-emoji,.gb-emoji').forEach(iconifySingleGlyphElement);
+    base.querySelectorAll('.dock-cost,.dock-desc,.btn-sub,.research-lock,.exped-locked,.exped-section,.stats-section,.goal-item,.goal-reward,.modal-box,.mobile-menu-card').forEach((el) => {
+      const stack = [el];
+      while(stack.length) {
+        const cur = stack.pop();
+        if(!cur || cur.closest('script,style,svg,canvas,pre,textarea')) continue;
+        Array.from(cur.childNodes).forEach((node) => {
+          if(node.nodeType === Node.TEXT_NODE) {
+            replaceEmojiTextNode(node);
+          } else if(node.nodeType === Node.ELEMENT_NODE) {
+            stack.push(node);
+          }
+        });
+      }
+    });
+  }
+
   function fmtCount(n) {
     const num = Math.floor(n || 0);
     if(num < 1000) return String(num);
@@ -16523,7 +17208,7 @@ function expandMap(forcedType, isEmergency) {
   };
 
   const upgradeTabGroupByKey = {
-    queen: 'common',
+    queen: 'ants',
     worker: 'ants',
     nurse: 'ants',
     soldier: 'ants',
@@ -16654,9 +17339,9 @@ function expandMap(forcedType, isEmergency) {
   function formatResearchCost(def){
     const c = getResearchNodeCost(def, researchLevel(def.id));
     const parts = [];
-    if(c.cookie > 0) parts.push(`🍪${fmtCount(c.cookie)}`);
-    if(c.food > 0) parts.push(`🍃${fmtCount(c.food)}`);
-    if(c.fang > 0) parts.push(`🧪${fmtCount(c.fang)}`);
+    if(c.cookie > 0) parts.push(uiCostIcon('cookie', fmtCount(c.cookie)));
+    if(c.food > 0) parts.push(uiCostIcon('food', fmtCount(c.food)));
+    if(c.fang > 0) parts.push(uiCostIcon('ferment', fmtCount(c.fang)));
     return (parts.length > 0) ? parts.join(' + ') : '-';
   }
 
@@ -16857,7 +17542,7 @@ function expandMap(forcedType, isEmergency) {
       <section class="research-branch${branchOpen ? '' : ' is-locked'}" style="--branch-color:${branch.accent || '#38bdf8'}">
         <div class="research-branch-head">
           <div class="research-branch-title">
-            <span class="research-branch-icon">${branch.icon || '•'}</span>
+            <span class="research-branch-icon">${uiIconHtml(branch.icon || 'dot')}</span>
             <span>
               <span class="research-branch-name">${branch.label}</span>
               <div class="research-branch-desc">${branch.desc || ''}</div>
@@ -16898,10 +17583,10 @@ function expandMap(forcedType, isEmergency) {
 
   function renderResearchViewToggle(view){
     const tree = (view !== 'classic');
-    let html = `<button type="button" class="rview-btn${tree ? ' is-active' : ''}" data-research-view="tree">🌳 系統樹</button>`
-             + `<button type="button" class="rview-btn${tree ? '' : ' is-active'}" data-research-view="classic">📋 クラシック</button>`;
+    let html = `<button type="button" class="rview-btn${tree ? ' is-active' : ''}" data-research-view="tree">${uiIconWithText('tree', '系統樹')}</button>`
+             + `<button type="button" class="rview-btn${tree ? '' : ' is-active'}" data-research-view="classic">${uiIconWithText('list', 'クラシック')}</button>`;
     // 系統樹のときだけ「拡大表示」ボタンを出す（大画面で全体を大きく見るためのモーダル）
-    if(tree) html += `<button type="button" class="rview-btn rview-expand" data-research-expand="1" title="大きく表示" aria-label="研究ツリーを拡大表示">⛶</button>`;
+    if(tree) html += `<button type="button" class="rview-btn rview-expand" data-research-expand="1" title="大きく表示" aria-label="研究ツリーを拡大表示">${uiIconSvg('compass')}</button>`;
     return html;
   }
 
@@ -16979,7 +17664,7 @@ function expandMap(forcedType, isEmergency) {
     if(repeatable) cls.push('is-repeatable');
     if(isResearchMastered(def)) cls.push('is-mastered');  // A2: 全節目達成=極
     const mark = getResearchStatusMark(status, canResearch);
-    const icon = getResearchBranchDef(def.branch).icon || '•';
+    const icon = getResearchBranchDef(def.branch).icon || 'dot';
     const cost = formatResearchCost(def);
     const reason = getResearchNodeReason(def, status, canResearch);
     // フッター: 完了=済 / 上限=上限 / それ以外=次レベルのコスト
@@ -16991,7 +17676,7 @@ function expandMap(forcedType, isEmergency) {
     const msText = getResearchMilestoneText(def);
     const tip = `${def.name} ｜ ${def.desc}${lvTip}${effPreview ? '\n' + effPreview : ''}${msText ? '\n' + msText : ''}\n状態: ${getResearchStatusLabel(status)}${reason ? '（' + reason + '）' : ''}\nコスト: ${cost}`;
     return `<button type="button" class="${cls.join(' ')}" style="left:${cx}px;top:${cy}px;--branch-color:${accent}" data-research-buy="${def.id}" title="${escResearchTip(tip)}" aria-label="${escResearchTip(def.name)}">`
-      + `<span class="rtree-node-dot"><span class="rtree-node-ic">${icon}</span><span class="rtree-node-mk">${mark}</span>${lvBadge}</span>`
+      + `<span class="rtree-node-dot"><span class="rtree-node-ic">${uiIconHtml(icon)}</span><span class="rtree-node-mk">${mark}</span>${lvBadge}</span>`
       + `<span class="rtree-node-nm">${def.name}</span>`
       + `<span class="rtree-node-ct">${footer}</span>`
       + `</button>`;
@@ -17012,7 +17697,7 @@ function expandMap(forcedType, isEmergency) {
       const stateTxt = !rs.unlocked ? '研究未解放'
         : (!branchOpen ? 'ロック中' : (total > 0 ? `${doneCount}/${total}` : '今後解放'));
       laneBands.push(`<div class="rtree-lane${branchOpen ? '' : ' is-locked'}" style="left:${lane.left}px;width:${lane.width}px;right:auto;top:${lane.top}px;height:${lane.height}px;--branch-color:${accent}">`
-        + `<div class="rtree-lane-head"><span class="rtree-lane-icon">${branch.icon || '•'}</span><span class="rtree-lane-name">${branch.label}</span><span class="rtree-lane-state">${stateTxt}</span></div>`
+        + `<div class="rtree-lane-head"><span class="rtree-lane-icon">${uiIconHtml(branch.icon || 'dot')}</span><span class="rtree-lane-name">${branch.label}</span><span class="rtree-lane-state">${stateTxt}</span></div>`
         + `</div>`);
       if(!lane.hasNodes) continue;
       for(const n of lane.nodes){
@@ -17261,8 +17946,8 @@ function expandMap(forcedType, isEmergency) {
     }
     const done = getResearchDoneCount();
     const total = RESEARCH_NODE_DEFS.length;
-    const hub = `<div class="rtree-queen-hub" style="left:${L.cx0}px;top:${L.cy0}px;">👸<span>女王</span><small>Lv${Math.floor(G.qLv||0)} / 研究 ${done}/${total}</small></div>`;
-    const labels = L.hubs.map(h => `<div class="rtree-spoke-label" style="left:${h.cx}px;top:${h.cy}px;--branch-color:${h.branch.accent||'#38bdf8'}">${h.branch.icon||'•'} ${h.branch.label}</div>`).join('');
+    const hub = `<div class="rtree-queen-hub" style="left:${L.cx0}px;top:${L.cy0}px;">${uiIconSvg('queen')}<span>女王</span><small>Lv${Math.floor(G.qLv||0)} / 研究 ${done}/${total}</small></div>`;
+    const labels = L.hubs.map(h => `<div class="rtree-spoke-label" style="left:${h.cx}px;top:${h.cy}px;--branch-color:${h.branch.accent||'#38bdf8'}">${uiIconSvg(h.branch.icon || 'dot')} ${h.branch.label}</div>`).join('');
     const ringLabels = L.ringLabels.map(r => `<div class="rtree-ring-label" style="left:${r.cx}px;top:${r.cy}px">${r.label}</div>`).join('');
     const gateLabels = L.gates.map(g => {
       const s = gateState[g.id] || {};
@@ -17289,12 +17974,12 @@ function expandMap(forcedType, isEmergency) {
       const cost = maxed ? 0 : getMetaCost(def, lv);
       const can = !maxed && insight >= cost;
       return `<div class="rmeta-row">`
-        + `<span class="rmeta-ic">${def.icon}</span>`
+        + `<span class="rmeta-ic">${uiIconHtml(def.icon)}</span>`
         + `<span class="rmeta-body"><span class="rmeta-name">${def.name}${lv > 0 ? ` <b>Lv${lv}</b>` : ''}</span><span class="rmeta-desc">${def.desc}</span></span>`
-        + `<button type="button" class="rmeta-buy${can ? '' : ' disabled'}" data-meta-buy="${def.key}">${maxed ? '上限' : '🧠' + fmtCount(cost)}</button>`
+        + `<button type="button" class="rmeta-buy${can ? '' : ' disabled'}" data-meta-buy="${def.key}">${maxed ? '上限' : uiCostIcon('insight', fmtCount(cost))}</button>`
         + `</div>`;
     }).join('');
-    return `<div class="rmeta-head"><span class="rmeta-title">🧠 知見（転生で獲得・恒久）</span><span class="rmeta-balance">${fmtCount(insight)}</span></div>${rows}`;
+    return `<div class="rmeta-head"><span class="rmeta-title">${uiIconWithText('insight', '知見（転生で獲得・恒久）')}</span><span class="rmeta-balance">${fmtCount(insight)}</span></div>${rows}`;
   }
 
   // 拡大モーダル: 女王を中心に据えた放射状（蜘蛛の巣）レイアウトで全体を描き、モーダルに収まる倍率へ縮小する。
@@ -17365,7 +18050,7 @@ function expandMap(forcedType, isEmergency) {
       if(!rs.unlocked) {
         const popPart = remain > 0 ? `生体あと${remain}匹` : '生体✓';
         const qPart = qRemain > 0 ? `女王Lv${qlv}/${RESEARCH_UNLOCK_QLV}` : '女王Lv✓';
-        researchUI.lock.textContent = `🔒 研究未解放: 生体${RESEARCH_UNLOCK_POP}匹＋女王Lv${RESEARCH_UNLOCK_QLV}で解放（${popPart} / ${qPart}）。`;
+        researchUI.lock.innerHTML = `${uiIconSvg('lock')} 研究未解放: 生体${RESEARCH_UNLOCK_POP}匹＋女王Lv${RESEARCH_UNLOCK_QLV}で解放（${popPart} / ${qPart}）。`;
       }
     }
     if(researchUI.overview) {
@@ -17447,9 +18132,9 @@ function expandMap(forcedType, isEmergency) {
     const barBuilding  = unbuiltCount('soldier');
 
     const rows = [
-      { icon:'🧪', label:'発酵室',      pending: ferPending,  building: ferBuilding  },
-      { icon:'🍪', label:'クッキー室',  pending: ckPending,   building: ckBuilding   },
-      { icon:'🛡️', label:'兵舎',        pending: barPending,  building: barBuilding  },
+      { icon:'ferment', label:'発酵室',      pending: ferPending,  building: ferBuilding  },
+      { icon:'cookie',  label:'クッキー室',  pending: ckPending,   building: ckBuilding   },
+      { icon:'shield',  label:'兵舎',        pending: barPending,  building: barBuilding  },
     ].filter(r => r.pending > 0 || r.building > 0);
 
     panel.style.display = rows.length ? '' : 'none';
@@ -17460,10 +18145,10 @@ function expandMap(forcedType, isEmergency) {
         ? `<span class="room-pending-count">予約 ${r.pending}</span>`
         : '';
       const buildEl = r.building > 0
-        ? `<span class="room-pending-building">⛏️ 掘削中…</span>`
+        ? `<span class="room-pending-building">${uiIconWithText('builder', '掘削中…')}</span>`
         : '';
       return `<div class="room-pending-row">
-        <span class="room-pending-icon">${r.icon}</span>
+        <span class="room-pending-icon">${uiIconHtml(r.icon)}</span>
         <span class="room-pending-label">${r.label}</span>
         ${buildEl}${countEl}
       </div>`;
@@ -17991,6 +18676,9 @@ function syncFermenterUnlockUI() {
     grouped.common.sort(sorter);
     grouped.ants.sort(sorter);
     grouped.rooms.sort(sorter);
+
+    const commonPanel = document.getElementById('control-common-upgrade');
+    if(commonPanel) commonPanel.style.display = grouped.common.length ? '' : 'none';
 
     // 日本語: 毎フレーム appendChild するとタップ中にDOMが動いてクリックが失われるため、
     // 並び順や親コンテナが変わる時だけ再配置する。
@@ -18814,18 +19502,18 @@ function syncFermenterUnlockUI() {
       if(phase === 'attack') sfxRaid();
       if(phase === 'warn') {
         if(raidUiEl) raidUiEl.classList.add('show');
-        if(titleEl2) titleEl2.innerHTML = '👁️ 警戒警報';
+        if(titleEl2) setIconifiedTitle(titleEl2, '警戒警報', 'warn');
         if(subEl2) subEl2.textContent = '遠くに影が見える。兵隊を準備せよ。';
         if(banner) banner.style.background = 'linear-gradient(135deg,rgba(71,35,0,0.92),rgba(120,53,15,0.88))';
         toast('👁️ 遠くに敵の影が見える！');
         addQueenWhisper('地表が騒がしい……何か来るわ', 'raidwarn');
       } else if(phase === 'close') {
-        if(titleEl2) titleEl2.innerHTML = '⚠️ 敵接近中';
+        if(titleEl2) setIconifiedTitle(titleEl2, '敵接近中', 'warn');
         if(subEl2) subEl2.textContent = '外敵が巣に近づいている！急いで迎撃準備を！';
         if(banner) banner.style.background = 'linear-gradient(135deg,rgba(120,20,0,0.92),rgba(180,60,0,0.88))';
         toast('⚠️ 敵が接近中！兵隊アリを配備しよう', true);
       } else {
-        if(titleEl2) titleEl2.innerHTML = '🚨 襲撃警報';
+        if(titleEl2) setIconifiedTitle(titleEl2, '襲撃警報', 'warn');
         if(subEl2) subEl2.textContent = '外敵が地表から接近中。兵隊で迎撃せよ。';
         if(banner) banner.style.background = '';
       }
@@ -18876,8 +19564,8 @@ function syncFermenterUnlockUI() {
   function formatGoalReward(reward) {
     if(!reward) return '';
     const parts = [];
-    if(reward.food) parts.push(`🍃+${Math.floor(reward.food)}`);
-    if(reward.cookie) parts.push(`🍪+${Math.floor(reward.cookie)}`);
+    if(reward.food) parts.push(`食料+${Math.floor(reward.food)}`);
+    if(reward.cookie) parts.push(`クッキー+${Math.floor(reward.cookie)}`);
     return parts.join(' / ');
   }
 
@@ -18918,11 +19606,11 @@ function syncFermenterUnlockUI() {
     }
     if(nextGoal) {
       box.style.display = '';
-      txt.textContent = `${nextGoal.icon} ${nextGoal.name}（${nextGoal.prog()}）`;
+      txt.innerHTML = `${uiIconSvg(nextGoal.icon)} ${escapeHtml(nextGoal.name)}（${escapeHtml(nextGoal.prog())}）`;
       txt.style.color = '#fcd34d';
     } else {
       box.style.display = '';
-      txt.textContent = '🌟 全目標達成！転生の準備ができた';
+      txt.innerHTML = `${uiIconSvg('star')} 全目標達成！転生の準備ができた`;
       txt.style.color = '#a78bfa';
     }
   }
@@ -18938,11 +19626,11 @@ function syncFermenterUnlockUI() {
       const prevDone = i===0 || (!!G.achievements[COLONY_GOALS[i-1].id] || COLONY_GOALS[i-1].check());
       const locked = !prevDone && !done;
       let cls = 'goal-item'; let chk = '○';
-      if(done) { cls += ' done'; chk = '✅'; }
-      else if(!locked && firstActive) { cls += ' active'; firstActive = false; chk = '▶'; }
-      else if(locked) { cls += ' locked'; chk = '🔒'; }
+      if(done) { cls += ' done'; chk = uiIconSvg('check'); }
+      else if(!locked && firstActive) { cls += ' active'; firstActive = false; chk = uiIconSvg('arrow'); }
+      else if(locked) { cls += ' locked'; chk = uiIconSvg('lock'); }
       const reward = formatGoalReward(goal.reward);
-      return `<div class="${cls}"><div class="goal-icon">${goal.icon}</div><div class="goal-text"><div class="goal-name">${goal.name}</div><div class="goal-prog">${goal.prog()}</div>${reward ? `<div class="goal-reward">報酬 ${reward}</div>` : ''}</div><div class="goal-check">${chk}</div></div>`;
+      return `<div class="${cls}"><div class="goal-icon">${uiIconHtml(goal.icon)}</div><div class="goal-text"><div class="goal-name">${goal.name}</div><div class="goal-prog">${goal.prog()}</div>${reward ? `<div class="goal-reward">報酬 ${reward}</div>` : ''}</div><div class="goal-check">${chk}</div></div>`;
     }).join('');
     const allDone = COLONY_GOALS.every(g => !!G.achievements[g.id] || g.check());
     const ps = document.getElementById('prestige-section');
@@ -19553,7 +20241,8 @@ function syncFermenterUnlockUI() {
       const wr = clamp(S._wasteRatio || 0, 0, 1);
       const pct = Math.round(wr * 100);
       const diseased = !!(S._disease && S._disease.active);
-      setText(el.hygiene, diseased ? `🦠 ${pct}%` : `${pct}%`);
+      if(diseased) setHtml(el.hygiene, uiCostIcon('warn', `${pct}%`));
+      else setText(el.hygiene, `${pct}%`);
       // 緑(清潔)→黄→赤(危険/病気)
       const color = diseased ? '#f87171' : (wr >= 0.7 ? '#fb923c' : (wr >= 0.4 ? '#fbbf24' : '#4ade80'));
       el.hygiene.style.color = color;
@@ -19565,7 +20254,8 @@ function syncFermenterUnlockUI() {
     if(el.season) {
       const sn = getCurrentSeason();
       const dayLeft = SEASON_DAY_LENGTH - S.season.day;
-      setText(el.season, `${sn.label} ${S.weather.label} (残${dayLeft}日)`);
+      const seasonText = `${stripUiEmojiText(sn.label)} ${stripUiEmojiText(S.weather.label)} (残${dayLeft}日)`;
+      setHtml(el.season, uiIconWithText(sn.label, seasonText));
     }
 
     // 深度表示
@@ -19610,10 +20300,10 @@ function syncFermenterUnlockUI() {
       const wastePenalty = Math.round((1 - wasteCoef) * 100);
       const capFull = (G.tot >= G.caps.pop);
       if(foodCoef < 0.995) {
-        factors.push(`<span class="support" title="給餌は成長を止める条件ではなく、幼虫の成長速度を上げる加速要素">🍃給餌加速 x${foodCoef.toFixed(2)}</span>`);
+        factors.push(`<span class="support" title="給餌は成長を止める条件ではなく、幼虫の成長速度を上げる加速要素">${uiIconWithText('food', `給餌加速 x${foodCoef.toFixed(2)}`)}</span>`);
       }
-      if(wastePenalty >= 10) factors.push(`<span class="penalty" title="幼虫室のゴミ蓄積">🗑ゴミ -${wastePenalty}%</span>`);
-      if(capFull && larvaTotal > 0) factors.push(`<span class="blocker" title="個体数上限に到達">🚧収容上限</span>`);
+      if(wastePenalty >= 10) factors.push(`<span class="penalty" title="幼虫室のゴミ蓄積">${uiIconWithText('waste', `ゴミ -${wastePenalty}%`)}</span>`);
+      if(capFull && larvaTotal > 0) factors.push(`<span class="blocker" title="個体数上限に到達">${uiIconWithText('warn', '収容上限')}</span>`);
       el.larvaBottleneck.classList.toggle('ok', factors.length <= 0 && larvaTotal > 0);
       if(larvaTotal <= 0) {
         el.larvaBottleneck.textContent = '';
@@ -19637,10 +20327,10 @@ function syncFermenterUnlockUI() {
     setText(el.c_soldier, fmtCount(G.ants.soldier));
     setText(el.c_fermenter, fmtCount(G.ants.fermenter || 0));
 
-    setText(el.cost_n, `🍃 ${G.getCost('nurse')}`);
-    setText(el.cost_b, `🍃 ${G.getCost('builder')}`);
-    setText(el.cost_s, `🍃 ${G.getCost('soldier')}`);
-    setText(el.cost_f, `🍃 ${G.getCost('fermenter')}`);
+    setHtml(el.cost_n, uiCostIcon('food', G.getCost('nurse')));
+    setHtml(el.cost_b, uiCostIcon('food', G.getCost('builder')));
+    setHtml(el.cost_s, uiCostIcon('food', G.getCost('soldier')));
+    setHtml(el.cost_f, uiCostIcon('food', G.getCost('fermenter')));
     syncSoldierUnlockUI();
     syncFermenterUnlockUI();
 
@@ -19833,21 +20523,71 @@ function syncFermenterUnlockUI() {
     return 'info';
   }
 
+  function stripToastEmojiText(text) {
+    let out = String(text ?? '');
+    try {
+      out = out.replace(/(?:\p{Extended_Pictographic}|\p{Emoji_Presentation})\uFE0F?(?:\u200D(?:\p{Extended_Pictographic}|\p{Emoji_Presentation})\uFE0F?)*/gu, ' ');
+    } catch(_) {
+      out = out.replace(/[\u{1F1E6}-\u{1F1FF}\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]\uFE0F?/gu, ' ');
+    }
+    return out
+      .replace(/[\uFE0F\u200D]/g, '')
+      .replace(/\s+([、。！？!?:：）\)])/g, '$1')
+      .replace(/([（\(])\s+/g, '$1')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+  }
+
+  function inferToastKind(rawText, type, warnOrOptions) {
+    const optionKind = warnOrOptions && typeof warnOrOptions === 'object' ? warnOrOptions.kind : '';
+    if(['info', 'success', 'warn', 'research', 'raid', 'resource', 'build', 'system'].includes(optionKind)) {
+      return optionKind;
+    }
+    const text = String(rawText ?? '');
+    if(/敵|襲撃|レイド|クモ|サムライ|モグラ|外敵|戦闘|敗北|勝利|フェロモン/.test(text)) return 'raid';
+    if(type === 'warn' && /病気|ゴミ|清掃|不足|足り|無効|失敗|エラー|奪われ|破壊|崩落/.test(text)) return 'warn';
+    if(/研究|知見|毒嚢|発酵|毒牙|進化/.test(text)) return 'research';
+    if(/建設|部屋|掘|完成|崩落|巣は|搬入|予約/.test(text)) return 'build';
+    if(/食料|クッキー|卵|幼虫|女王|黄金|資源|個|匹|LvUP/.test(text)) return 'resource';
+    if(/セーブ|保存|コピー|インポート|開発者|テスト用|自動保存/.test(text)) return 'system';
+    if(type === 'warn') return 'warn';
+    if(type === 'success' || /成功|達成|解放|完了|突破/.test(text)) return 'success';
+    return 'info';
+  }
+
+  function normalizeToastMessage(msg, warnOrOptions=false) {
+    const raw = String(msg ?? '');
+    const type = normalizeToastType(warnOrOptions);
+    const text = stripToastEmojiText(raw) || '通知';
+    return {
+      text,
+      type,
+      kind: inferToastKind(raw, type, warnOrOptions)
+    };
+  }
+
   function toast(msg, warnOrOptions=false) {
     const area = document.getElementById('toast-area');
+    const normalized = normalizeToastMessage(msg, warnOrOptions);
     if(!area) {
-      console.log('[toast]', msg);
+      console.log('[toast]', normalized.text);
       return;
     }
-    const type = normalizeToastType(warnOrOptions);
     while(area.children.length >= TOAST.maxVisible) {
       area.firstElementChild.remove();
     }
     const d = document.createElement('div');
-    d.className = `toast ${type}`;
-    d.textContent = String(msg ?? '');
-    d.setAttribute('role', type === 'warn' ? 'alert' : 'status');
-    d.setAttribute('aria-live', type === 'warn' ? 'assertive' : 'polite');
+    d.className = `toast ${normalized.type}`;
+    d.dataset.kind = normalized.kind;
+    d.setAttribute('role', normalized.type === 'warn' ? 'alert' : 'status');
+    d.setAttribute('aria-live', normalized.type === 'warn' ? 'assertive' : 'polite');
+    const mark = document.createElement('span');
+    mark.className = 'toast-mark';
+    mark.setAttribute('aria-hidden', 'true');
+    const text = document.createElement('span');
+    text.className = 'toast-text';
+    text.textContent = normalized.text;
+    d.append(mark, text);
     area.appendChild(d);
     setTimeout(()=>d.remove(), TOAST.durationMs);
   }
@@ -20514,6 +21254,7 @@ function syncFermenterUnlockUI() {
       ['建築枠', `${fmtStatNum(builderStats.assignedSlots || 0)}/${fmtStatNum(builderStats.workSlots || 0)}`],
       ['建築補助', `x${(builderStats.assistMul || 1).toFixed(2)}`]
     ]);
+    hydrateUiIcons(statsBody);
   }
 
   function openStatsModal() {
@@ -24479,10 +25220,9 @@ function syncFermenterUnlockUI() {
     if(S.full) {
       updateCameraLimits();
       if(centerX != null && centerY != null) {
-        const viewW = canvas.width / S.cam.scale;
-        const viewH = canvas.height / S.cam.scale;
-        S.cam.x = centerX - viewW * 0.5;
-        S.cam.y = centerY - viewH * 0.5;
+        const view = getCameraSafeViewSize(S.cam.scale);
+        S.cam.x = centerX - view.w * 0.5;
+        S.cam.y = centerY - view.h * 0.5;
         S.cam.tx = S.cam.x;
         S.cam.ty = S.cam.y;
       }
@@ -24515,10 +25255,9 @@ function syncFermenterUnlockUI() {
       const targetScale = clamp(1, S.cam.minScale, S.cam.maxScale);
       S.cam.scale = targetScale;
       S.cam.tScale = targetScale;
-      const viewW = canvas.width / targetScale;
-      const viewH = canvas.height / targetScale;
-      S.cam.x = focus.x - viewW * 0.5;
-      S.cam.y = focus.y - viewH * 0.5;
+      const view = getCameraSafeViewSize(targetScale);
+      S.cam.x = focus.x - view.w * 0.5;
+      S.cam.y = focus.y - view.h * 0.5;
       S.cam.tx = S.cam.x;
       S.cam.ty = S.cam.y;
       clampCameraPosition();
@@ -24554,6 +25293,10 @@ function syncFermenterUnlockUI() {
   _cookiePrevCount = Math.floor(G.cookie);
   // 目標達成チェック（ロード直後）
   checkGoalAchievements();
+  ['top-bar','control-panel','modal-goals','modal-stats','modal-diary','modal-expedition','modal-soldier','modal-raid-result','modal-research-tree','cookie-discovery'].forEach((id) => {
+    const root = document.getElementById(id);
+    if(root) hydrateUiIcons(root);
+  });
 
   // ===== メインループ（requestAnimationFrame で毎フレーム呼ばれる） =====
   let lt=0;
@@ -24596,6 +25339,8 @@ function syncFermenterUnlockUI() {
   requestAnimationFrame(loop);
 
 })();
+
+
 </script>
 
   <!-- エラーログ表示（大量のコンソールエラー対策） -->
