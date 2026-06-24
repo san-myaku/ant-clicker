@@ -3177,8 +3177,6 @@
           linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0)),
           linear-gradient(180deg, rgba(7, 14, 16, 0.86), rgba(4, 9, 12, 0.95));
         border-color: var(--hud-line);
-        backdrop-filter: blur(14px) saturate(1.08);
-        -webkit-backdrop-filter: blur(14px) saturate(1.08);
       }
       #top-bar {
         grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -3266,7 +3264,6 @@
     }
     #top-bar,
     #control-panel,
-    #side-pane,
     #mobile-menu-sheet,
     .mobile-menu-card,
     .tab-card,
@@ -23698,8 +23695,7 @@ function syncFermenterUnlockUI() {
     if(!meta || !isNestLayerCacheCoveringView(meta)) return false;
     if(visualSignature && meta.visualSignature !== visualSignature) return false;
     const ratio = Math.max(0.001, S.cam.scale || 1) / Math.max(0.001, meta.scale || 1);
-    if(Math.abs(ratio - 1) <= 0.01) return true;
-    return isCameraInteracting() && ratio >= 0.76 && ratio <= 1.32;
+    return ratio >= 0.76 && ratio <= 1.32;
   }
 
   function drawTransformedNestLayerCache(cvs, meta, shakeX, shakeY) {
@@ -24102,7 +24098,6 @@ function syncFermenterUnlockUI() {
   // 巣・アリ・地表・エフェクトをキャンバスに描画（world 座標のまま描く）
   function render() {
     if(!S.full) { if(S.perf) S.perf.antsDrawn = 0; return; }
-    if(canvasBitmapNeedsResize()) resizeCanvas();
     const w=canvas.width, h=canvas.height;
     const t=S.time;
     const view = getViewRect();
@@ -25194,47 +25189,18 @@ function syncFermenterUnlockUI() {
     if(S.raidSoldiers) S.raidSoldiers.forEach(s => { s.x += dx; if(s.homeX != null) s.homeX += dx; });
   }
 
-  function getCanvasTargetSize() {
+  function resizeCanvas() {
     const d = window.devicePixelRatio || 1;
     const pane = document.getElementById('game-pane');
-    if(!pane) return null;
+    if(!pane) return;
     const rect = pane.getBoundingClientRect();
-    return {
-      rect,
-      w: Math.max(1, Math.round(rect.width * d)),
-      h: Math.max(1, Math.round(rect.height * d))
-    };
-  }
-
-  function canvasBitmapNeedsResize() {
-    const target = getCanvasTargetSize();
-    if(!target) return false;
-    return Math.abs(canvas.width - target.w) > 1 || Math.abs(canvas.height - target.h) > 1;
-  }
-
-  function invalidateScreenSpaceCanvasCaches() {
-    S.antCrowdAtlas = null;
-    S._soilLayerCvs = null;
-    S._soilLayerCtx = null;
-    S._soilLayerKey = '';
-    S._soilLayerMeta = null;
-    S._fogCvs = null;
-    S._fogCtx = null;
-    S._fogKey = '';
-    S._fogMeta = null;
-  }
-
-  function resizeCanvas() {
-    const target = getCanvasTargetSize();
-    if(!target) return false;
-    const rect = target.rect;
-    const newW = target.w;
-    const newH = target.h;
+    const newW = Math.max(1, Math.round(rect.width * d));
+    const newH = Math.max(1, Math.round(rect.height * d));
     const oldW = canvas.width;
     const oldH = canvas.height;
     canvas.style.width = `${rect.width}px`;
     canvas.style.height = `${rect.height}px`;
-    if(newW === oldW && newH === oldH) return false;
+    if(newW === oldW && newH === oldH) return;
 
     let centerX = null;
     let centerY = null;
@@ -25246,7 +25212,7 @@ function syncFermenterUnlockUI() {
     }
 
     canvas.width = newW; canvas.height = newH;
-    invalidateScreenSpaceCanvasCaches();
+    S.antCrowdAtlas = null;
 
     if(S.full) {
       updateCameraLimits();
@@ -25261,7 +25227,6 @@ function syncFermenterUnlockUI() {
       clampCameraTargets();
       buildBackgroundAssets(false);
     }
-    return true;
   }
 
   function initGame() {
@@ -25312,11 +25277,7 @@ function syncFermenterUnlockUI() {
     didInit = true;
   }
 
-  window.addEventListener('resize', resizeCanvas);
-  if(window.visualViewport) {
-    window.visualViewport.addEventListener('resize', resizeCanvas, { passive: true });
-    window.visualViewport.addEventListener('scroll', resizeCanvas, { passive: true });
-  }
+  window.onresize = resizeCanvas;
   resizeCanvas();
   initGame();
 
