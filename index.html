@@ -3713,26 +3713,6 @@
       to { opacity: 1; transform: translateY(0); }
     }
     @media (max-width: 959px) {
-      #top-bar,
-      #control-panel,
-      #control-growth-bars,
-      #side-pane,
-      #mobile-menu-sheet,
-      #next-goal-card,
-      #upgradeDock,
-      .mobile-menu-card,
-      .tab-card,
-      .res-box,
-      .dock-item,
-      .btn,
-      .btn-up-sm,
-      .control-tab-btn,
-      .ant-icon,
-      .ant-count,
-      .toast {
-        backdrop-filter: none !important;
-        -webkit-backdrop-filter: none !important;
-      }
       #toast-area {
         top: max(76px, calc(env(safe-area-inset-top) + 72px));
         width: calc(100% - 20px);
@@ -23118,12 +23098,12 @@ function syncFermenterUnlockUI() {
     ctx.save();
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.strokeStyle = foreground ? 'rgba(18,11,6,0.66)' : 'rgba(26,17,10,0.42)';
-    ctx.lineWidth = mesh ? dp(foreground ? 2.8 : 2.2) : dp(foreground ? 2.4 : 1.9);
+    ctx.strokeStyle = foreground ? 'rgba(38,24,13,0.30)' : 'rgba(26,17,10,0.22)';
+    ctx.lineWidth = mesh ? dp(foreground ? 2.2 : 2.0) : dp(foreground ? 1.8 : 1.6);
     strokeBlobPath(ctx, n);
     if(!foreground) {
-      ctx.strokeStyle = 'rgba(225,181,118,0.18)';
-      ctx.lineWidth = mesh ? dp(1.2) : dp(1.0);
+      ctx.strokeStyle = 'rgba(139,96,58,0.18)';
+      ctx.lineWidth = mesh ? dp(1.0) : dp(0.8);
       strokeBlobPath(ctx, n);
     }
 
@@ -23209,104 +23189,36 @@ function syncFermenterUnlockUI() {
     if(f >= 0.98) drawTunnelMouthDetail(ctx, e, e.v, e.stamps[e.stamps.length - 1], view, soilTop, soilBottom, 211);
   }
 
-  function strokeVisibleTunnelPath(ctx, stamps, max, step) {
-    let started = false;
-    ctx.beginPath();
-    for(let i = 0; i < max; i += step) {
-      const st = stamps[i];
-      if(!st) continue;
-      if(!started) {
-        ctx.moveTo(st.x, st.y);
-        started = true;
-      } else {
-        ctx.lineTo(st.x, st.y);
-      }
-    }
-    if(started && max > 1) {
-      const last = stamps[max - 1];
-      if(last) ctx.lineTo(last.x, last.y);
-    }
-    if(started) ctx.stroke();
-  }
-
-  function drawForegroundTunnelDefinition(ctx, view, soilTop, soilBottom) {
-    if(!S.full || !S.full.edges) return;
-    const pad = dp(80);
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(view.x, soilTop, view.w, soilBottom - soilTop);
-    ctx.clip();
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    S.full.edges.forEach((e, i) => {
-      if(!shouldDrawEdgeProgress(i)) return;
-      if(!e.stamps) buildEdgeStamps(e, S.full.nodes);
-      const stamps = e.stamps;
-      if(!stamps || stamps.length < 2) return;
-      const max = Math.min(stamps.length, Math.max(2, Math.floor(stamps.length * (S.edgeFrac[i] || 0))));
-      if(max < 2) return;
-      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-      for(let k = 0; k < max; k += Math.max(1, Math.floor(max / 8))) {
-        const st = stamps[k];
-        if(!st) continue;
-        minX = Math.min(minX, st.x - st.r);
-        maxX = Math.max(maxX, st.x + st.r);
-        minY = Math.min(minY, st.y - st.r);
-        maxY = Math.max(maxY, st.y + st.r);
-      }
-      const last = stamps[max - 1];
-      if(last) {
-        minX = Math.min(minX, last.x - last.r);
-        maxX = Math.max(maxX, last.x + last.r);
-        minY = Math.min(minY, last.y - last.r);
-        maxY = Math.max(maxY, last.y + last.r);
-      }
-      if(maxX < view.x - pad || minX > view.x + view.w + pad || maxY < soilTop - pad || minY > soilBottom + pad) return;
-      const mid = stamps[Math.floor((max - 1) * 0.5)] || stamps[0];
-      const baseW = Math.max(dp(3.4), (mid.r || dp(4)) * 1.55);
-      const step = Math.max(1, Math.floor(max / 34));
-      ctx.strokeStyle = 'rgba(22,14,8,0.40)';
-      ctx.lineWidth = baseW * 1.35;
-      strokeVisibleTunnelPath(ctx, stamps, max, step);
-      ctx.strokeStyle = 'rgba(218,184,132,0.18)';
-      ctx.lineWidth = Math.max(dp(1.1), baseW * 0.42);
-      strokeVisibleTunnelPath(ctx, stamps, max, step);
-    });
-    ctx.restore();
-  }
-
   function drawRoomForegroundRims(ctx, view) {
     if(!S.full || !S.full.nodes) return;
     const mesh = !!S._meshNest;
     const pad = dp(120);
     S.full.nodes.forEach((n, i) => {
       if(!S.nodeVis[i]) return;
-      if(!n || n.type === 'shaft' || n.type === 'entrance') return;
+      if(!n || n.type === 'shaft' || n.type === 'entrance' || n.type === 'queen') return;
       const rr = getRoomVisualRadii(n);
       if(n.x < view.x - pad || n.x > view.x + view.w + pad) return;
       if(n.y < view.y - pad || n.y > view.y + view.h + pad) return;
-      if(n.type !== 'queen') {
-        ctx.save();
-        clipBlobPath(ctx, n);
-        const frontTop = n.y + rr.ry * (mesh ? 0.04 : 0.10);
-        const frontBottom = n.y + rr.ry * 1.12;
-        const grd = ctx.createLinearGradient(0, frontTop, 0, frontBottom);
-        grd.addColorStop(0, 'rgba(0,0,0,0)');
-        grd.addColorStop(0.50, mesh ? 'rgba(56,35,18,0.20)' : 'rgba(45,28,16,0.22)');
-        grd.addColorStop(1, mesh ? 'rgba(41,25,13,0.52)' : 'rgba(32,20,12,0.42)');
-        ctx.fillStyle = grd;
-        ctx.fillRect(n.x - rr.rx * 1.35, frontTop, rr.rx * 2.7, Math.max(dp(1), frontBottom - frontTop));
-        const lipY = n.y + rr.ry * 0.86;
-        const lipGrd = ctx.createLinearGradient(0, lipY - rr.ry * 0.16, 0, lipY + rr.ry * 0.24);
-        lipGrd.addColorStop(0, 'rgba(0,0,0,0)');
-        lipGrd.addColorStop(0.5, mesh ? 'rgba(37,22,11,0.18)' : 'rgba(31,19,11,0.16)');
-        lipGrd.addColorStop(1, mesh ? 'rgba(69,42,21,0.26)' : 'rgba(54,34,20,0.20)');
-        ctx.fillStyle = lipGrd;
-        ctx.beginPath();
-        ctx.ellipse(n.x, lipY, rr.rx * 0.92, rr.ry * 0.26, 0, 0, 6.28);
-        ctx.fill();
-        ctx.restore();
-      }
+      ctx.save();
+      clipBlobPath(ctx, n);
+      const frontTop = n.y + rr.ry * (mesh ? 0.04 : 0.10);
+      const frontBottom = n.y + rr.ry * 1.12;
+      const grd = ctx.createLinearGradient(0, frontTop, 0, frontBottom);
+      grd.addColorStop(0, 'rgba(0,0,0,0)');
+      grd.addColorStop(0.50, mesh ? 'rgba(56,35,18,0.20)' : 'rgba(45,28,16,0.22)');
+      grd.addColorStop(1, mesh ? 'rgba(41,25,13,0.52)' : 'rgba(32,20,12,0.42)');
+      ctx.fillStyle = grd;
+      ctx.fillRect(n.x - rr.rx * 1.35, frontTop, rr.rx * 2.7, Math.max(dp(1), frontBottom - frontTop));
+      const lipY = n.y + rr.ry * 0.86;
+      const lipGrd = ctx.createLinearGradient(0, lipY - rr.ry * 0.16, 0, lipY + rr.ry * 0.24);
+      lipGrd.addColorStop(0, 'rgba(0,0,0,0)');
+      lipGrd.addColorStop(0.5, mesh ? 'rgba(37,22,11,0.18)' : 'rgba(31,19,11,0.16)');
+      lipGrd.addColorStop(1, mesh ? 'rgba(69,42,21,0.26)' : 'rgba(54,34,20,0.20)');
+      ctx.fillStyle = lipGrd;
+      ctx.beginPath();
+      ctx.ellipse(n.x, lipY, rr.rx * 0.92, rr.ry * 0.26, 0, 0, 6.28);
+      ctx.fill();
+      ctx.restore();
 
       drawRoomSoilLip(ctx, n, view, true);
     });
@@ -23786,9 +23698,7 @@ function syncFermenterUnlockUI() {
     if(!meta || !isNestLayerCacheCoveringView(meta)) return false;
     if(visualSignature && meta.visualSignature !== visualSignature) return false;
     const ratio = Math.max(0.001, S.cam.scale || 1) / Math.max(0.001, meta.scale || 1);
-    const nearNativeScale = Math.abs(ratio - 1) <= 0.015;
-    if(nearNativeScale) return true;
-    return isCameraInteracting() && ratio >= 0.76 && ratio <= 1.32;
+    return ratio >= 0.76 && ratio <= 1.32;
   }
 
   function drawTransformedNestLayerCache(cvs, meta, shakeX, shakeY) {
@@ -24136,34 +24046,16 @@ function syncFermenterUnlockUI() {
         fc.fill();
 
         fc.globalCompositeOperation = 'destination-out';
-        fc.save();
-        fc.setTransform(sc, 0, 0, sc, -cacheView.x * sc, -cacheView.y * sc);
-        fc.fillStyle = '#000';
-        S.full.edges.forEach((e, i) => {
-          const f = S.edgeFrac[i] || 0;
-          if(f <= 0) return;
-          if(!e.stamps) buildEdgeStamps(e, S.full.nodes);
-          const cnt = Math.max(1, Math.floor(e.stamps.length * f));
-          drawStamps(fc, e.stamps, cnt, 1.12, cacheView, soilRange.top, soilRange.bottom, dp(70));
-          drawEdgeRoomConnectorCaps(fc, e, cnt, 1.12, cacheView, soilRange.top, soilRange.bottom, dp(70));
-        });
+        const fogPad = dp(110);
         S.full.nodes.forEach((n, i) => {
           if(!S.nodeVis[i]) return;
-          fillBlobPath(fc, n);
-        });
-        fc.restore();
-
-        const nodeFogPad = dp(26);
-        const edgeFogPad = dp(12);
-        S.full.nodes.forEach((n, i) => {
-          if(!S.nodeVis[i]) return;
-          const vr = n.r + nodeFogPad;
+          const vr = n.r + fogPad;
           const sx = toSX(n.x), sy = toSY(n.y), sr = toSR(vr);
           if(sx + sr < 0 || sx - sr > cacheW || sy + sr < 0 || sy - sr > cacheH) return;
-          const ir = toSR(Math.max(n.r * 0.94, n.r + dp(3)));
+          const ir = toSR(n.r * 0.3);
           const grd = fc.createRadialGradient(sx, sy, ir, sx, sy, sr);
           grd.addColorStop(0,   'rgba(0,0,0,1)');
-          grd.addColorStop(0.86, 'rgba(0,0,0,1)');
+          grd.addColorStop(0.5, 'rgba(0,0,0,1)');
           grd.addColorStop(1,   'rgba(0,0,0,0)');
           fc.fillStyle = grd;
           fc.beginPath(); fc.arc(sx, sy, sr, 0, 6.28); fc.fill();
@@ -24176,13 +24068,13 @@ function syncFermenterUnlockUI() {
           for(let k = 0; k < cnt; k += 3) {
             const st = e.stamps[k];
             if(!st) continue;
-            const er = st.r + edgeFogPad;
+            const er = st.r + fogPad * 0.55;
             const sx = toSX(st.x), sy = toSY(st.y), sr = toSR(er);
             if(sx + sr < 0 || sx - sr > cacheW || sy + sr < 0 || sy - sr > cacheH) return;
-            const ir = toSR(Math.max(st.r * 0.94, st.r + dp(1)));
+            const ir = toSR(st.r * 0.1);
             const grd = fc.createRadialGradient(sx, sy, ir, sx, sy, sr);
             grd.addColorStop(0,   'rgba(0,0,0,1)');
-            grd.addColorStop(0.86,'rgba(0,0,0,1)');
+            grd.addColorStop(0.55,'rgba(0,0,0,1)');
             grd.addColorStop(1,   'rgba(0,0,0,0)');
             fc.fillStyle = grd;
             fc.beginPath(); fc.arc(sx, sy, sr, 0, 6.28); fc.fill();
@@ -24209,7 +24101,6 @@ function syncFermenterUnlockUI() {
   // 巣・アリ・地表・エフェクトをキャンバスに描画（world 座標のまま描く）
   function render() {
     if(!S.full) { if(S.perf) S.perf.antsDrawn = 0; return; }
-    if(canvasBitmapNeedsResize()) resizeCanvas();
     const w=canvas.width, h=canvas.height;
     const t=S.time;
     const view = getViewRect();
@@ -24629,7 +24520,6 @@ function syncFermenterUnlockUI() {
     // ===== フォグオブウォー（未掘削エリアを暗闇で覆う） =====
     if(soilBottom > soilTop) {
       drawCachedFogLayer(view, soilTop, soilBottom, shakeX, shakeY);
-      drawForegroundTunnelDefinition(ctx, view, soilTop, soilBottom);
     }
 
     // ===== 掘削中のエッジを光らせる =====
@@ -25302,48 +25192,18 @@ function syncFermenterUnlockUI() {
     if(S.raidSoldiers) S.raidSoldiers.forEach(s => { s.x += dx; if(s.homeX != null) s.homeX += dx; });
   }
 
-  function getCanvasTargetSize() {
+  function resizeCanvas() {
     const d = window.devicePixelRatio || 1;
     const pane = document.getElementById('game-pane');
-    if(!pane) return null;
+    if(!pane) return;
     const rect = pane.getBoundingClientRect();
-    return {
-      d,
-      rect,
-      w: Math.max(1, Math.round(rect.width * d)),
-      h: Math.max(1, Math.round(rect.height * d))
-    };
-  }
-
-  function canvasBitmapNeedsResize() {
-    const target = getCanvasTargetSize();
-    if(!target) return false;
-    return Math.abs(canvas.width - target.w) > 1 || Math.abs(canvas.height - target.h) > 1;
-  }
-
-  function invalidateScreenSpaceCanvasCaches() {
-    S.antCrowdAtlas = null;
-    S._soilLayerCvs = null;
-    S._soilLayerCtx = null;
-    S._soilLayerKey = '';
-    S._soilLayerMeta = null;
-    S._fogCvs = null;
-    S._fogCtx = null;
-    S._fogKey = '';
-    S._fogMeta = null;
-  }
-
-  function resizeCanvas() {
-    const target = getCanvasTargetSize();
-    if(!target) return false;
-    const rect = target.rect;
-    const newW = target.w;
-    const newH = target.h;
+    const newW = Math.max(1, Math.round(rect.width * d));
+    const newH = Math.max(1, Math.round(rect.height * d));
     const oldW = canvas.width;
     const oldH = canvas.height;
     canvas.style.width = `${rect.width}px`;
     canvas.style.height = `${rect.height}px`;
-    if(newW === oldW && newH === oldH) return false;
+    if(newW === oldW && newH === oldH) return;
 
     let centerX = null;
     let centerY = null;
@@ -25355,7 +25215,7 @@ function syncFermenterUnlockUI() {
     }
 
     canvas.width = newW; canvas.height = newH;
-    invalidateScreenSpaceCanvasCaches();
+    S.antCrowdAtlas = null;
 
     if(S.full) {
       updateCameraLimits();
@@ -25370,7 +25230,6 @@ function syncFermenterUnlockUI() {
       clampCameraTargets();
       buildBackgroundAssets(false);
     }
-    return true;
   }
 
   function initGame() {
@@ -25421,21 +25280,7 @@ function syncFermenterUnlockUI() {
     didInit = true;
   }
 
-  let resizeCanvasRaf = 0;
-  function scheduleResizeCanvas() {
-    if(resizeCanvasRaf) return;
-    resizeCanvasRaf = requestAnimationFrame(() => {
-      resizeCanvasRaf = 0;
-      resizeCanvas();
-    });
-  }
-
-  window.addEventListener('resize', scheduleResizeCanvas, { passive: true });
-  window.addEventListener('orientationchange', scheduleResizeCanvas, { passive: true });
-  if(window.visualViewport) {
-    window.visualViewport.addEventListener('resize', scheduleResizeCanvas, { passive: true });
-    window.visualViewport.addEventListener('scroll', scheduleResizeCanvas, { passive: true });
-  }
+  window.onresize = resizeCanvas;
   resizeCanvas();
   initGame();
 
