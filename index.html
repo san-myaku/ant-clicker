@@ -2336,6 +2336,42 @@
     .goal-prog { font-size: 11px; color: #94a3b8; margin-top: 2px; }
     .goal-reward { font-size: 10px; color: #fcd34d; margin-top: 2px; }
     .goal-check { font-size: 16px; flex-shrink: 0; }
+    .trophy-summary { font-size: 11px; color: #94a3b8; margin: 6px 0 10px; }
+    .trophy-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .trophy-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      min-height: 72px;
+      background: rgba(15,23,42,0.72);
+      border: 1px solid rgba(250,204,21,0.22);
+      border-radius: 8px;
+      padding: 8px;
+    }
+    .trophy-item.locked {
+      filter: grayscale(100%);
+      opacity: 0.45;
+      border-color: rgba(148,163,184,0.16);
+    }
+    .pixel-trophy-icon {
+      display: grid;
+      grid-template-columns: repeat(8, 4px);
+      grid-template-rows: repeat(8, 4px);
+      width: 32px;
+      height: 32px;
+      flex: 0 0 32px;
+      background: rgba(2,6,23,0.55);
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.10), 0 2px 0 rgba(0,0,0,0.35);
+      image-rendering: pixelated;
+    }
+    .pixel-trophy-cell { width: 4px; height: 4px; }
+    .trophy-name { font-size: 12px; font-weight: 800; color: #f8fafc; line-height: 1.25; }
+    .trophy-desc { font-size: 10px; color: #94a3b8; line-height: 1.35; margin-top: 3px; }
 
     /* ===== Prestige button ===== */
     #prestige-section { display: none; margin-top: 8px; }
@@ -2393,6 +2429,40 @@
     }
     .exped-btn:disabled { background: #334155; color: #64748b; cursor: not-allowed; }
     .exped-locked { background: rgba(30,41,59,0.5); border: 1px dashed #334155; border-radius: 8px; padding: 16px; text-align: center; color: #64748b; font-size: 13px; }
+    .top-stat-link { cursor: pointer; }
+    .top-stat-link:focus-visible {
+      outline: 2px solid rgba(56,189,248,0.85);
+      outline-offset: 2px;
+    }
+    .top-stat-link:hover { border-color: rgba(56,189,248,0.55); }
+    .stats-chart-panel {
+      background: rgba(0,0,0,0.30);
+      border: 1px solid rgba(56,189,248,0.22);
+      border-radius: 8px;
+      padding: 9px;
+      margin-top: 10px;
+    }
+    .stats-chart-title { font-size: 11px; font-weight: 700; color: #7dd3fc; margin-bottom: 6px; }
+    #stats-chart {
+      display: block;
+      width: 100%;
+      height: 180px;
+      border-radius: 6px;
+      background: rgba(15,23,42,0.74);
+    }
+    .stats-chart-legend { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+    .stats-chart-key {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10px;
+      color: #cbd5e1;
+      background: rgba(15,23,42,0.72);
+      border: 1px solid rgba(148,163,184,0.16);
+      border-radius: 999px;
+      padding: 3px 7px;
+    }
+    .stats-chart-swatch { width: 8px; height: 8px; border-radius: 2px; box-shadow: 0 0 0 1px rgba(255,255,255,0.12) inset; }
     .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
     .stats-section { background: rgba(0,0,0,0.28); border: 1px solid rgba(148,163,184,0.18); border-radius: 8px; padding: 9px; }
     .stats-section-title { font-size: 11px; font-weight: 700; color: #fcd34d; margin-bottom: 6px; }
@@ -2417,6 +2487,14 @@
     .locked { filter: grayscale(100%); opacity: 0.55; pointer-events: none; }
     #grp-soldier.locked { pointer-events: auto; }
     #grp-fermenter.locked { pointer-events: auto; }
+    .res-box.panel-locked {
+      filter: grayscale(100%);
+      opacity: 0.42;
+      cursor: not-allowed !important;
+      border-color: #334155 !important;
+      box-shadow: none;
+    }
+    .res-box.panel-locked .ui-ico { color: #64748b; }
 
     /* ===== Raid FX Overlay ===== */
     #raid-ui {
@@ -3818,35 +3896,35 @@
 
     <aside id="side-pane">
       <div id="top-bar">
-        <div class="res-box" id="food-box">
+        <div class="res-box top-stat-link" id="food-box" role="button" tabindex="0" data-stats-link="food" title="統計を開く">
           <div class="res-lbl">食料</div>
           <div class="res-val txt-green" id="v-food">0</div>
         </div>
-        <div class="res-box" id="cookie-box">
+        <div class="res-box top-stat-link" id="cookie-box" role="button" tabindex="0" data-stats-link="cookie" title="統計を開く">
           <div class="res-lbl">クッキー</div>
           <div class="res-val txt-gold" id="v-cookie">0</div>
         </div>
-        <div class="res-box" id="pop-box">
+        <div class="res-box top-stat-link" id="pop-box" role="button" tabindex="0" data-stats-link="pop" title="統計を開く">
           <div class="res-lbl">個体数</div>
           <div class="res-val txt-blue" id="v-pop">0</div>
         </div>
-        <div class="res-box" id="eggs-top-box">
+        <div class="res-box top-stat-link" id="eggs-top-box" role="button" tabindex="0" data-stats-link="eggs" title="統計を開く">
           <div class="res-lbl">卵</div>
           <div class="res-val" id="v-eggs-top">0</div>
         </div>
-        <div class="res-box" id="larvae-top-box">
+        <div class="res-box top-stat-link" id="larvae-top-box" role="button" tabindex="0" data-stats-link="larvae" title="統計を開く">
           <div class="res-lbl">幼虫</div>
           <div class="res-val" id="v-larvae-top">0</div>
         </div>
-        <div class="res-box" id="rate-box">
+        <div class="res-box top-stat-link" id="rate-box" role="button" tabindex="0" data-stats-link="rate" title="統計を開く">
           <div class="res-lbl">増加速度</div>
           <div class="res-val" id="v-rate" style="font-size:11px;">0/s</div>
         </div>
-        <div class="res-box" id="rest-box">
+        <div class="res-box top-stat-link" id="rest-box" role="button" tabindex="0" data-stats-link="rooms" title="統計を開く">
           <div class="res-lbl">休憩室</div>
           <div class="res-val" id="v-rest" style="font-size:11px;">0/0</div>
         </div>
-        <div class="res-box" id="hygiene-box" title="巣のゴミ総量。満タンになると病気でアリが減る。ゴミ室と清掃で下げよう">
+        <div class="res-box top-stat-link" id="hygiene-box" role="button" tabindex="0" data-stats-link="hygiene" title="統計を開く">
           <div class="res-lbl">ゴミ</div>
           <div class="res-val" id="v-hygiene" style="font-size:11px;">0%</div>
         </div>
@@ -3868,6 +3946,7 @@
           <button class="res-box ui-iconified" id="btn-save-import" style="cursor:pointer; border-color:#334155; font-size:9px; color:#64748b;" title="セーブデータを読み込み" data-menu-label="ロード" aria-label="ロード"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-import"></use></svg></button>
           <button class="res-box ui-iconified" id="btn-diary" style="cursor:pointer; border-color:#8b5cf6;" title="女王の日記" data-menu-label="日記" aria-label="女王の日記"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-queen"></use></svg></button>
           <button class="res-box ui-iconified" id="btn-goals" style="cursor:pointer; border-color:#22c55e;" title="コロニーの目標" data-menu-label="目標" aria-label="コロニーの目標"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-goals"></use></svg></button>
+          <button class="res-box ui-iconified" id="btn-trophies" style="cursor:pointer; border-color:#f59e0b;" title="トロフィー" data-menu-label="トロフィー" aria-label="トロフィー"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-trophy"></use></svg></button>
           <button class="res-box ui-iconified" id="btn-stats" style="cursor:pointer; border-color:#38bdf8;" title="コロニー統計" data-menu-label="統計" aria-label="コロニー統計"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-stats"></use></svg></button>
           <button class="res-box ui-iconified" id="btn-color-mode" style="cursor:pointer; border-color:#7c3aed;" title="カラーモード切替" data-menu-label="カラー" aria-label="カラーモード"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-color"></use></svg></button>
           <button class="res-box ui-iconified" id="btn-fit" style="cursor:pointer; border-color:#22c55e;" title="全体表示" data-menu-label="全体表示" aria-label="全体表示"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-compass"></use></svg></button>
@@ -4262,6 +4341,15 @@
   </div>
 </div>
 
+<div id="modal-trophies" class="modal-overlay">
+  <div class="modal-box" style="max-width:560px; text-align:left;">
+    <div style="font-size:18px; font-weight:bold; color:#f59e0b; margin-bottom:4px;"><span class="ui-inline-icon"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-trophy"></use></svg><span>トロフィー</span></span></div>
+    <div id="trophy-summary" class="trophy-summary"></div>
+    <div id="trophy-grid" class="trophy-grid"></div>
+    <button class="modal-btn" id="btn-trophies-close">閉じる</button>
+  </div>
+</div>
+
 <div id="modal-off" class="modal-overlay">
     <div class="modal-box">
         <div style="font-size:18px; font-weight:bold; color:#fcd34d; margin-bottom:10px;">お帰りなさい</div>
@@ -4288,6 +4376,11 @@
   <div class="modal-box" style="max-width:560px; text-align:left;">
     <div style="font-size:18px; font-weight:bold; color:#fcd34d; margin-bottom:4px;"><span class="ui-inline-icon"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-stats"></use></svg><span>コロニー統計</span></span></div>
     <div style="font-size:11px; color:#64748b; margin-bottom:8px;">現在の巣・成長・防衛の状態</div>
+    <div class="stats-chart-panel">
+      <div class="stats-chart-title">リアルタイム推移</div>
+      <canvas id="stats-chart" width="640" height="220"></canvas>
+      <div id="stats-chart-legend" class="stats-chart-legend"></div>
+    </div>
     <div id="stats-body" class="stats-grid"></div>
     <button class="modal-btn" id="btn-stats-close">閉じる</button>
   </div>
@@ -4417,6 +4510,8 @@
   const CROWD_ANT_FRAMES = 6;
   const CROWD_ROUTE_ROOM = 0;
   const CROWD_ROUTE_EDGE = 1;
+  const CROWD_LAYOUT_VERSION = 2;
+  const DRAW_UNDERGROUND_EDGE_ANTS = false;
   // 描画設定（幼虫うねうねON/OFFを追加）
   const DEFAULT_RENDER_SETTINGS = { mode:'auto', lod:true, cap:VISUAL_ANT_HARD_CAP, larvaWiggle:true };
   const VERSION_STR = "V23.0 Season & Invaders";
@@ -7367,6 +7462,50 @@ function ensureRestSlots(n){
     ctx.restore();
   }
 
+  function drawPassageWallBands(ctx, e, count, rScale, view, soilTop, soilBottom, pad){
+    if(!e || !e.stamps || e.stamps.length < 3 || count <= 2) return;
+    const stamps = e.stamps;
+    const max = Math.min(count, stamps.length);
+    if(max <= 2) return;
+    const stride = Math.max(1, Math.floor(max / 42));
+    const viewPad = Math.max(pad || 0, dp(34));
+    const drawBand = (side, strokeStyle, lineWidth, alpha, offsetMul) => {
+      ctx.save();
+      ctx.globalAlpha *= alpha;
+      ctx.strokeStyle = strokeStyle;
+      ctx.lineWidth = lineWidth;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      let open = false;
+      for(let i=1; i<max-1; i+=stride) {
+        const s = stamps[i];
+        if(!s) continue;
+        if(s.x < view.x - viewPad || s.x > view.x + view.w + viewPad || s.y < soilTop - viewPad || s.y > soilBottom + viewPad) {
+          open = false;
+          continue;
+        }
+        const prev = stamps[Math.max(0, i - 1)];
+        const next = stamps[Math.min(max - 1, i + 1)];
+        const tx = (next ? next.x : s.x) - (prev ? prev.x : s.x);
+        const ty = (next ? next.y : s.y) - (prev ? prev.y : s.y);
+        const len = Math.hypot(tx, ty);
+        if(len <= 1e-4) { open = false; continue; }
+        const nx = -ty / len;
+        const ny = tx / len;
+        const r = Math.max(dp(2.5), s.r * rScale);
+        const x = s.x + nx * side * r * offsetMul;
+        const y = s.y + ny * side * r * offsetMul;
+        if(!open) { ctx.moveTo(x, y); open = true; }
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      ctx.restore();
+    };
+    drawBand( 1, 'rgba(28,17,9,0.92)', dp(2.1), 0.22, 0.54);
+    drawBand(-1, 'rgba(239,205,151,0.76)', dp(1.1), 0.12, 0.42);
+  }
+
   /*
    * ===== G（ゲーム状態） =====
    * セーブ・ロードの対象。食料・卵・アリ数・レベル・上限など「数値」をまとめて保持。
@@ -7401,6 +7540,7 @@ function ensureRestSlots(n){
     prestigeCount: 0,
     legacyBonus: 0,
     achievements: {},
+    trophies: {},
     raidWins: 0,
     raidTotal: 0,
     queenLog: [],
@@ -7560,6 +7700,7 @@ function ensureRestSlots(n){
         prestigeCount: this.prestigeCount || 0,
         legacyBonus: this.legacyBonus || 0,
         achievements: this.achievements || {},
+        trophies: this.trophies || {},
         raidWins: this.raidWins || 0,
         raidTotal: this.raidTotal || 0,
         queenLog: (this.queenLog || []).slice(-50),
@@ -7669,6 +7810,7 @@ function ensureRestSlots(n){
         this.prestigeCount = Math.max(0, Math.floor(+d.prestigeCount || 0));
         this.legacyBonus = Math.max(0, +d.legacyBonus || 0);
         this.achievements = (d.achievements && typeof d.achievements === 'object') ? d.achievements : {};
+        this.trophies = (d.trophies && typeof d.trophies === 'object') ? d.trophies : {};
         this.raidWins = Math.max(0, Math.floor(+d.raidWins || 0));
         this.raidTotal = Math.max(0, Math.floor(+d.raidTotal || 0));
         this.queenLog = Array.isArray(d.queenLog) ? d.queenLog : [];
@@ -7734,6 +7876,7 @@ function ensureRestSlots(n){
     frameCount: 0,
     ants: [], effects: [], dust: [], trails: [],
     antCrowd: null, antCrowdAtlas: null,
+    statsHistory: [], statsHistoryLastMs: 0,
     enemies: [],
     raidSoldiers: [],    // Phase 7B-2: 地表レイドの兵隊アリ（表示演出用・ランタイム専用・非保存）
     invaders: [],        // 地下侵略者（害虫）。モグラ(ボス)も isBoss:true でここに入る
@@ -14077,7 +14220,7 @@ function expandMap(forcedType, isEmergency) {
   // ===== 遠征システム =====
 
   function isExpeditionUnlocked() {
-    return isResearchBranchUnlocked('expedition');
+    return !!S._devMode || isResearchBranchUnlocked('expedition');
   }
 
   // 遠征枝の解放: 女王Lv8＋働きアリ250匹に到達したら一度だけ解放
@@ -14164,8 +14307,9 @@ function expandMap(forcedType, isEmergency) {
 
   // ===== 兵種カースト ヘルパー =====
   function getSoldierCasteDef(id) { return SOLDIER_CASTE_DEFS.find(c => c.id === id) || SOLDIER_CASTE_DEFS[0]; }
-  function isCasteSystemUnlocked() { return hasResearchUnlock('casteSystem'); }
+  function isCasteSystemUnlocked() { return !!S._devMode || hasResearchUnlock('casteSystem'); }
   function isCasteUnlocked(casteId) {
+    if(S._devMode) return true;
     if(casteId === 'standard') return true;
     if(casteId === 'scout') return hasResearchNode('caste_scout');
     if(casteId === 'heavy') return hasResearchNode('caste_heavy');
@@ -14246,6 +14390,11 @@ function expandMap(forcedType, isEmergency) {
   function renderSoldierModal() {
     const el = document.getElementById('soldier-content');
     if(!el) return;
+    if(!isSoldierPanelUnlocked()) {
+      el.innerHTML = `<div class="exped-locked">🔒 ${escapeHtml(getSoldierPanelLockText())}</div>`;
+      hydrateUiIcons(el);
+      return;
+    }
     const total = Math.max(0, Math.floor(G.ants.soldier || 0));
     const power = (typeof getColonyCombatPower === 'function') ? getColonyCombatPower() : 0;
     const deployed = getDeployedSoldiers();
@@ -17197,7 +17346,7 @@ function expandMap(forcedType, isEmergency) {
     if(!valueEl) return;
     valueEl.title = text;
     const box = valueEl.closest ? valueEl.closest('.res-box') : null;
-    if(box) box.title = text;
+    if(box) box.title = box.dataset && box.dataset.statsLink ? `${text} / クリックで統計` : text;
   }
 
   const upgradeDock = {
@@ -18472,6 +18621,42 @@ function getSoldierLockText() {
   return '防衛任務に配備できる';
 }
 
+function isSoldierPanelUnlocked() {
+  return !!S._devMode || isCasteSystemUnlocked();
+}
+
+function getSoldierPanelLockText() {
+  if(S._devMode) return '開発モード: 兵隊構成を確認できます';
+  if(!isSoldierUnlocked()) return getSoldierLockText();
+  return '研究「兵種分化」で兵隊構成が解放されます';
+}
+
+function getExpeditionPanelLockText() {
+  if(S._devMode) return '開発モード: 遠征を確認できます';
+  const qlv = Math.floor(G.qLv || 0);
+  const wk = Math.floor(G.ants.worker || 0);
+  return `遠征枝は女王Lv${EXPED_BRANCH_QLV}＋働きアリ${EXPED_BRANCH_WORKERS}匹で解放（現在 Lv${qlv} / 働き${wk}匹）`;
+}
+
+function syncFeaturePanelButtons() {
+  const btnExp = document.getElementById('btn-expedition');
+  if(btnExp) {
+    const locked = !isExpeditionUnlocked();
+    btnExp.disabled = locked;
+    btnExp.classList.toggle('panel-locked', locked);
+    btnExp.setAttribute('aria-disabled', locked ? 'true' : 'false');
+    btnExp.title = locked ? getExpeditionPanelLockText() : '遠征';
+  }
+  const btnSol = document.getElementById('btn-soldier');
+  if(btnSol) {
+    const locked = !isSoldierPanelUnlocked();
+    btnSol.disabled = locked;
+    btnSol.classList.toggle('panel-locked', locked);
+    btnSol.setAttribute('aria-disabled', locked ? 'true' : 'false');
+    btnSol.title = locked ? getSoldierPanelLockText() : '兵隊構成';
+  }
+}
+
 function getFermenterLockText() {
   if(!isFermenterUnlocked()) {
     const visible = getFermentRoomNodeCount(false);
@@ -19690,6 +19875,352 @@ function syncFermenterUnlockUI() {
   if(modalGoals) modalGoals.addEventListener('click', e => { if(e.target===modalGoals) modalGoals.classList.remove('show'); });
 
   // ============================================================
+  // ===== トロフィー棚 =====
+  // ============================================================
+  const TROPHY_DEFS = [
+    {
+      id:'crumb_auditor', name:'パンくず監査役', desc:'初めてクッキーを見つけた。たぶん全員で見た。',
+      check:()=>!!G.cookieDiscovered,
+      colors:{ '1':'#f59e0b', '2':'#78350f', '3':'#fde68a' },
+      pixel:['........','..1111..','.113211.','.112111.','.111211.','..1111..','........','........']
+    },
+    {
+      id:'floor_nursery', name:'床という名の保育器', desc:'卵と幼虫が合計80を超えた。もう床も育児担当。',
+      check:()=>((G.eggs || 0) + (G.larvae || 0)) >= 80,
+      colors:{ '1':'#fef3c7', '2':'#f472b6', '3':'#92400e' },
+      pixel:['........','..11.11.','.111111.','.112111.','..1111..','.33..33.','........','........']
+    },
+    {
+      id:'paper_barracks', name:'設計図だけは勇ましい', desc:'兵舎設計図を入手。紙の上ではもう強い。',
+      check:()=>hasBarracksBlueprint(),
+      colors:{ '1':'#e5e7eb', '2':'#60a5fa', '3':'#1e3a8a' },
+      pixel:['.111111.','.122221.','.121121.','.122221.','.121121.','.122221.','.111111.','........']
+    },
+    {
+      id:'jaw_first_day', name:'大顎、初出勤', desc:'兵隊アリを初雇用。本人はたぶん緊張している。',
+      check:()=>((G.ants && G.ants.soldier) || 0) >= 1,
+      colors:{ '1':'#1d4ed8', '2':'#93c5fd', '3':'#0f172a' },
+      pixel:['........','...22...','..2112..','.213312.','..1111..','..1..1..','.1....1.','........']
+    },
+    {
+      id:'porch_legend', name:'玄関先の武勇伝', desc:'最初のレイドに勝利。話が少しずつ盛られる。',
+      check:()=>((G.raidWins || 0) >= 1),
+      colors:{ '1':'#facc15', '2':'#ef4444', '3':'#713f12' },
+      pixel:['..1111..','.122221.','11222211','..1221..','...11...','..3333..','.333333.','........']
+    },
+    {
+      id:'awkward_ferment', name:'発酵の気まずい匂い', desc:'発酵が成功。良い匂いかどうかは会議中。',
+      check:()=>!!G.fermentFirstCompleted || !!G._fermentCookieMade,
+      colors:{ '1':'#a78bfa', '2':'#fcd34d', '3':'#4c1d95' },
+      pixel:['..3333..','...11...','..1221..','.122221.','.122221.','..1111..','..2..2..','........']
+    },
+    {
+      id:'floor_retired', name:'床の概念が消えた日', desc:'ゴミが半分ラインを超えた。これは反省文案件。',
+      check:()=>((S._wasteRatio || 0) >= 0.5),
+      colors:{ '1':'#78716c', '2':'#a3e635', '3':'#292524' },
+      pixel:['........','.1.2.1..','..111...','.11311..','..111.2.','.2.11...','........','........']
+    },
+    {
+      id:'golden_problem', name:'金ピカ問題児', desc:'黄金の子が現れた。目立つのでサボれない。',
+      check:()=>((G.goldenEggs || 0) + (G.goldenLarvae || 0) + (G.goldenCount || 0)) > 0,
+      colors:{ '1':'#facc15', '2':'#fef08a', '3':'#a16207' },
+      pixel:['...22...','..2112..','.211112.','.111111.','..1331..','..1111..','...11...','........']
+    },
+    {
+      id:'thousand_meeting', name:'千匹会議', desc:'個体数1000。議事録係が泣いている。',
+      check:()=>G.tot >= 1000,
+      colors:{ '1':'#111827', '2':'#60a5fa', '3':'#f8fafc' },
+      pixel:['.1.1.1.1','11111111','.111111.','11111111','.111111.','1.1.1.1.','........','........']
+    },
+    {
+      id:'basement_two', name:'第二地下会議室', desc:'深度II解放。まだ地下なのに、なぜか上司がいる。',
+      check:()=>hasDepth2Unlock(),
+      colors:{ '1':'#8b5e34', '2':'#d6a15d', '3':'#1f1308' },
+      pixel:['11111111','13333331','13222231','13322331','13222231','13333331','11111111','........']
+    }
+  ];
+
+  const TROPHY_ICON_PALETTES = [
+    { '1':'#f59e0b', '2':'#fde68a', '3':'#78350f' },
+    { '1':'#22c55e', '2':'#bbf7d0', '3':'#14532d' },
+    { '1':'#38bdf8', '2':'#bae6fd', '3':'#0c4a6e' },
+    { '1':'#f472b6', '2':'#fbcfe8', '3':'#831843' },
+    { '1':'#a78bfa', '2':'#ddd6fe', '3':'#4c1d95' },
+    { '1':'#f87171', '2':'#fecaca', '3':'#7f1d1d' },
+    { '1':'#d6a15d', '2':'#fef3c7', '3':'#3b2412' },
+    { '1':'#94a3b8', '2':'#e2e8f0', '3':'#1e293b' }
+  ];
+
+  const TROPHY_PIXEL_PATTERNS = [
+    ['........','...11...','..1221..','.122221.','.121221.','..1111..','...33...','........'],
+    ['........','..1111..','.122221.','.123321.','.122221.','..1111..','........','........'],
+    ['...11...','..1221..','.122221.','11233211','.122221.','..1221..','...11...','........'],
+    ['........','..1331..','.132231.','.122221.','.132231.','..1331..','........','........'],
+    ['..1111..','.122221.','11222211','..1221..','..1221..','..1331..','.333333.','........'],
+    ['........','...22...','..2112..','.211112.','.113311.','..1111..','...11...','........'],
+    ['11111111','13333331','13222231','13322331','13222231','13333331','11111111','........'],
+    ['........','.1.1.1..','1111111.','.122221.','.133331.','..1111..','........','........']
+  ];
+
+  function trophyHash(str) {
+    let h = 0;
+    for(let i = 0; i < String(str).length; i++) h = ((h << 5) - h + String(str).charCodeAt(i)) | 0;
+    return Math.abs(h);
+  }
+
+  function makeTrophyPixel(seed) {
+    const base = TROPHY_PIXEL_PATTERNS[seed % TROPHY_PIXEL_PATTERNS.length];
+    return base.map((row, y) => row.split('').map((ch, x) => {
+      if(ch === '.' && ((seed + x * 7 + y * 11) % 41 === 0)) return '3';
+      if(ch === '1' && ((seed + x * 5 + y * 3) % 19 === 0)) return '2';
+      return ch;
+    }).join(''));
+  }
+
+  function makeExtraTrophy(spec, idx) {
+    const seed = trophyHash(spec.id) + idx * 17;
+    return Object.assign({
+      colors: TROPHY_ICON_PALETTES[seed % TROPHY_ICON_PALETTES.length],
+      pixel: makeTrophyPixel(seed)
+    }, spec);
+  }
+
+  function trophyExpeditions() {
+    return Array.isArray(G.expeditions) ? G.expeditions : [];
+  }
+
+  function trophyResolvedExpeditionCount() {
+    return trophyExpeditions().filter(e => e && e.resolved).length;
+  }
+
+  function trophyWonExpeditionCount() {
+    return trophyExpeditions().filter(e => e && e.resolved && e.win).length;
+  }
+
+  const TROPHY_EXTRA_SPECS = [
+    ...[
+      [10, '十匹そろって朝礼', '10匹になった。議題は主に「食料どこ」。'],
+      [50, '点呼係の敗北', '50匹になった。もう途中から雰囲気で数える。'],
+      [100, '百匹委員会', '100匹になった。委員長だけで揉めている。'],
+      [250, '通路渋滞予報', '250匹になった。右側通行の概念が生まれた。'],
+      [500, '五百匹のざわめき', '500匹になった。巣の壁がずっと小声で鳴る。'],
+      [2000, '二千匹の足音', '2000匹になった。静寂という言葉を忘れた。'],
+      [5000, '床が動いて見える', '5000匹になった。床ではない、全員だ。'],
+      [10000, '一万匹の会議室', '10000匹になった。会議室が議題になった。'],
+      [50000, '地底の満員電車', '50000匹になった。降りる方が先です。'],
+      [100000, 'もはや気象現象', '100000匹になった。これは群れというより天気。']
+    ].map(([n, name, desc]) => ({ id:`pop_${n}`, name, desc, check:()=>G.tot >= n })),
+
+    ...[
+      [100, '葉っぱ小銭入れ', '食料100を所持。財布の音がする。'],
+      [1000, '倉庫の背伸び', '食料1000を所持。棚が少し偉そう。'],
+      [5000, '食料山脈', '食料5000を所持。地図に載せるか迷う。'],
+      [10000, '貯蔵室の沈黙', '食料10000を所持。誰も在庫係に逆らえない。'],
+      [50000, '葉っぱ銀行', '食料50000を所持。利息はたぶん乾燥。'],
+      [100000, '緑の国家予算', '食料100000を所持。予算委員会が葉っぱ臭い。']
+    ].map(([n, name, desc]) => ({ id:`food_${n}`, name, desc, check:()=>G.food >= n })),
+
+    ...[
+      [1, '甘味の目撃者', 'クッキー1枚を所持。全員が証言したがる。'],
+      [10, '十枚の誘惑', 'クッキー10枚を所持。棚の前に列ができた。'],
+      [50, '甘党派閥', 'クッキー50枚を所持。政策が甘くなった。'],
+      [100, '百枚会計', 'クッキー100枚を所持。数える係がちょっと丸くなった。'],
+      [500, '焼き菓子金庫', 'クッキー500枚を所持。金庫から良い匂いがする。'],
+      [1000, '千枚の外交問題', 'クッキー1000枚を所持。他の巣に見せてはいけない。']
+    ].map(([n, name, desc]) => ({ id:`cookie_${n}`, name, desc, check:()=>G.cookie >= n })),
+
+    ...[
+      [10, '卵の小皿', '卵10個を所持。小皿では足りない。'],
+      [50, '卵棚の悲鳴', '卵50個を所持。棚が育児休暇を申請した。'],
+      [200, 'まるい未来', '卵200個を所持。未来がだいぶ丸い。'],
+      [1000, '千個の白い圧', '卵1000個を所持。見守る側の目が足りない。']
+    ].map(([n, name, desc]) => ({ id:`eggs_${n}`, name, desc, check:()=>G.eggs >= n })),
+
+    ...[
+      [1, 'はじめてのうにょうにょ', '幼虫1匹を所持。言い方は会議で却下された。'],
+      [25, '幼虫昼寝隊', '幼虫25匹を所持。寝相で部屋割りが変わる。'],
+      [100, 'ぷにぷに渋滞', '幼虫100匹を所持。通路ではなく保育室でお願いします。'],
+      [500, '未来の足音未満', '幼虫500匹を所持。まだ足音はないが圧はある。']
+    ].map(([n, name, desc]) => ({ id:`larvae_${n}`, name, desc, check:()=>G.larvae >= n })),
+
+    ...[
+      [500, '保育室の定員会議', '卵と幼虫が合計500を超えた。議題は置き場所。'],
+      [5000, '未来が山盛り', '卵と幼虫が合計5000を超えた。夢も床もいっぱい。']
+    ].map(([n, name, desc]) => ({ id:`brood_total_${n}`, name, desc, check:()=>((G.eggs || 0) + (G.larvae || 0)) >= n })),
+
+    ...[
+      [20, '働き手の小隊', '働きアリ20匹。今日も地表は通常営業。'],
+      [100, '働き手の部署化', '働きアリ100匹。部署名だけで半日かかる。'],
+      [1000, '働きすぎ注意報', '働きアリ1000匹。休憩室がこちらを見ている。']
+    ].map(([n, name, desc]) => ({ id:`worker_${n}`, name, desc, check:()=>((G.ants && G.ants.worker) || 0) >= n })),
+
+    ...[
+      [1, '育児係、着任', '育児アリ1匹。小さな命に急に責任感。'],
+      [25, '保育シフト表', '育児アリ25匹。シフト表が巣の壁一面になった。'],
+      [100, '保育園から都市へ', '育児アリ100匹。連絡帳の量がすごい。']
+    ].map(([n, name, desc]) => ({ id:`nurse_${n}`, name, desc, check:()=>((G.ants && G.ants.nurse) || 0) >= n })),
+
+    ...[
+      [1, '掘る担当、誕生', '建築アリ1匹。壁を見る目つきが変わった。'],
+      [10, '土木課の創設', '建築アリ10匹。ヘルメットは心の中にある。'],
+      [50, '巣穴ゼネコン', '建築アリ50匹。見積書が土でできている。']
+    ].map(([n, name, desc]) => ({ id:`builder_${n}`, name, desc, check:()=>((G.ants && G.ants.builder) || 0) >= n })),
+
+    ...[
+      [10, '大顎小隊', '兵隊アリ10匹。廊下ですれ違うと少し緊張する。'],
+      [100, '門番の圧', '兵隊アリ100匹。侵入者より受付が怖い。'],
+      [500, '顎だらけの安心感', '兵隊アリ500匹。安心だが笑顔は少なめ。']
+    ].map(([n, name, desc]) => ({ id:`soldier_${n}`, name, desc, check:()=>((G.ants && G.ants.soldier) || 0) >= n })),
+
+    ...[
+      [1, '発酵係、鼻をそむける', '発酵アリ1匹。本人も匂いの説明に困っている。'],
+      [10, '醸造班の結成', '発酵アリ10匹。会議室がほんのり甘い。'],
+      [50, '地下の甘味工房', '発酵アリ50匹。品質管理の表情が真剣。']
+    ].map(([n, name, desc]) => ({ id:`fermenter_${n}`, name, desc, check:()=>((G.ants && G.ants.fermenter) || 0) >= n })),
+
+    ...[
+      [1, '女王、やる気を出す', '女王Lv1。最初のやる気はだいたい甘い。'],
+      [3, '産卵リズム体操', '女王Lv3。リズムに合わせて床が忙しい。'],
+      [8, '女王業の板につき方', '女王Lv8。もはや産む姿勢に貫禄がある。']
+    ].map(([n, name, desc]) => ({ id:`queen_lv_${n}`, name, desc, check:()=>G.qLv >= n })),
+
+    ...[
+      [1, '働き方改革初日', '働き強化Lv1。改革の中身は走る速度。'],
+      [5, '採集足腰強化', '働き強化Lv5。帰り道の顔が違う。'],
+      [10, '労働哲学の完成', '働き強化Lv10。効率という言葉が巣に刻まれた。']
+    ].map(([n, name, desc]) => ({ id:`worker_lv_${n}`, name, desc, check:()=>G.wLv >= n })),
+
+    ...[
+      [1, '育児研修修了', '育児Lv1。研修資料は卵より薄い。'],
+      [5, '保育のプロ', '育児Lv5。泣き声のない現場でなぜか忙しい。'],
+      [10, '孵化の段取り職人', '育児Lv10。段取りだけで拍手が起きる。']
+    ].map(([n, name, desc]) => ({ id:`nurse_lv_${n}`, name, desc, check:()=>G.nLv >= n })),
+
+    ...[
+      [1, '土の読み書き', '建築Lv1。土の顔色がわかり始めた。'],
+      [5, '壁と会話する者', '建築Lv5。返事はないが進捗はある。'],
+      [10, '地下建築士', '建築Lv10。図面がなくても土が道を譲る。']
+    ].map(([n, name, desc]) => ({ id:`builder_lv_${n}`, name, desc, check:()=>G.bLv >= n })),
+
+    ...[
+      [1, '顎トレ開始', '兵隊Lv1。まずは噛む前に構える。'],
+      [5, '前線の作法', '兵隊Lv5。威嚇にもフォームがある。'],
+      [10, '大顎師範', '兵隊Lv10。顎だけで空気が変わる。']
+    ].map(([n, name, desc]) => ({ id:`soldier_lv_${n}`, name, desc, check:()=>G.sLv >= n })),
+
+    ...[
+      [5, '五部屋アパート', '部屋数5。そろそろ住所が必要。'],
+      [15, '地下マンション', '部屋数15。迷子が仕様になった。'],
+      [50, '巣内区画整理', '部屋数50。案内板を置く場所を掘る。'],
+      [100, '地下都市計画', '部屋数100。都市計画課が土まみれ。']
+    ].map(([n, name, desc]) => ({ id:`rooms_${n}`, name, desc, check:()=>((S.roomTotal || 0) >= n) })),
+
+    ...[
+      [1, 'はじめての休憩室', '休憩室1室。働かないための努力が始まった。'],
+      [5, '休憩の制度化', '休憩室5室。休むにも運用がいる。']
+    ].map(([n, name, desc]) => ({ id:`rest_rooms_${n}`, name, desc, check:()=>((S.restCount || 0) >= n) })),
+
+    { id:'barracks_room_1', name:'兵舎、開店', desc:'兵舎1室。看板だけは強そう。', check:()=>((S.barracksCount || 0) >= 1) },
+    { id:'ferment_room_1', name:'発酵室、換気待ち', desc:'発酵室1室。換気計画は後で考える。', check:()=>((S.fermentCount || 0) >= 1) },
+    { id:'cookie_room_1', name:'クッキー室の甘い罠', desc:'クッキー室1室。誰が管理するかで目が泳ぐ。', check:()=>((S.cookieRoomCount || 0) >= 1) },
+    { id:'waste_room_1', name:'ゴミにも住所', desc:'ゴミ室1室。ゴミが初めて居場所を得た。', check:()=>((S.wasteCount || 0) >= 1) || !!G.unlockWasteRoom },
+
+    ...[
+      [1, '初陣の受付印', 'レイドを1回経験。受付印は少し震えている。'],
+      [5, '襲撃対応マニュアル', 'レイドを5回経験。マニュアルが急に厚い。'],
+      [25, '非常ベルの常連', 'レイドを25回経験。非常ベルとも顔なじみ。']
+    ].map(([n, name, desc]) => ({ id:`raid_total_${n}`, name, desc, check:()=>((G.raidTotal || 0) >= n) })),
+
+    ...[
+      [5, '門前払い五連判', 'レイド5勝。玄関先の評判が上がった。'],
+      [25, '防衛課の誇り', 'レイド25勝。勝利報告の書式が整った。'],
+      [100, '外敵お断り百回', 'レイド100勝。看板を出すまでもない。']
+    ].map(([n, name, desc]) => ({ id:`raid_wins_${n}`, name, desc, check:()=>((G.raidWins || 0) >= n) })),
+
+    { id:'venom_sac_1', name:'毒嚢というお土産', desc:'毒嚢を1個所持。持ち帰り方は聞かない。', check:()=>((G.venomSac || 0) >= 1) },
+    { id:'caste_system_first', name:'兵種会議、紛糾', desc:'兵種分化を解放。標準派がやや不満そう。', check:()=>hasResearchUnlock('casteSystem') || hasResearchNode('caste_unlock') },
+
+    { id:'research_wakeup', name:'研究という名の沼', desc:'研究システムを解放。もう後戻りできない。', check:()=>isResearchSystemUnlocked() },
+    { id:'research_expedition_branch', name:'外の世界、ちら見', desc:'遠征枝を解放。玄関の外が急に広い。', check:()=>isResearchBranchUnlocked('expedition') },
+    { id:'research_gather_2', name:'採集メモの二冊目', desc:'採集効率IIを研究。メモ帳が食料臭い。', check:()=>hasResearchNode('gather_2') },
+    { id:'research_brood_2', name:'幼虫給餌の段取り', desc:'幼虫給餌改善を研究。給餌係の目が真剣。', check:()=>hasResearchNode('brood_2') },
+    { id:'research_hygiene_worker', name:'清掃当番表、掲示', desc:'働きアリの清掃参加を解放。当番表から逃げられない。', check:()=>hasWorkerWasteCleanup() || hasResearchNode(HYGIENE_WORKER_CLEAN_NODE) },
+    { id:'research_ferment_unlock', name:'発酵という選択肢', desc:'発酵室を解放。甘い未来と怪しい匂い。', check:()=>hasResearchNode('ferment_unlock') },
+    { id:'research_depth3', name:'第三地下の押印', desc:'深度IIIを解放。書類上はさらに地下。', check:()=>hasDepth3Unlock() },
+    { id:'research_golden_auto', name:'黄金、勤務シフト入り', desc:'黄金の自動産卵を研究。光る子にも勤務表。', check:()=>hasResearchUnlock('goldenAutoLay') || hasResearchNode('golden_auto') },
+
+    { id:'expedition_first_return', name:'遠征隊、ただいま', desc:'遠征が1回帰還。お土産話が長い。', check:()=>trophyResolvedExpeditionCount() >= 1 },
+    { id:'expedition_first_win', name:'外勤成功報告', desc:'遠征に1回成功。報告書の字が少し大きい。', check:()=>trophyWonExpeditionCount() >= 1 }
+  ];
+
+  TROPHY_DEFS.push(...TROPHY_EXTRA_SPECS.map(makeExtraTrophy));
+
+  function isTrophyAchieved(def) {
+    try { return !!(def && typeof def.check === 'function' && def.check()); }
+    catch(_) { return false; }
+  }
+
+  function trophyPixelIconHtml(def, unlocked) {
+    const colors = def.colors || {};
+    const cells = [];
+    for(const row of (def.pixel || [])) {
+      for(const ch of row) {
+        const color = ch === '.' ? 'transparent' : (unlocked ? (colors[ch] || '#e5e7eb') : '#475569');
+        cells.push(`<span class="pixel-trophy-cell" style="background:${color}"></span>`);
+      }
+    }
+    return `<span class="pixel-trophy-icon" aria-hidden="true">${cells.join('')}</span>`;
+  }
+
+  function unlockTrophy(def, showToast) {
+    if(!def || !def.id) return false;
+    if(!G.trophies) G.trophies = {};
+    if(G.trophies[def.id]) return false;
+    G.trophies[def.id] = true;
+    if(showToast) toast(`🏆 トロフィー獲得：${def.name}`);
+    return true;
+  }
+
+  function checkTrophies(showToast = true) {
+    if(!G.trophies) G.trophies = {};
+    let changed = false;
+    for(const def of TROPHY_DEFS) {
+      if(!G.trophies[def.id] && isTrophyAchieved(def)) changed = unlockTrophy(def, showToast) || changed;
+    }
+    const modal = document.getElementById('modal-trophies');
+    if(changed && modal && modal.classList.contains('show')) renderTrophyShelf();
+  }
+
+  function renderTrophyShelf() {
+    const grid = document.getElementById('trophy-grid');
+    const summary = document.getElementById('trophy-summary');
+    if(!grid || !summary) return;
+    const got = TROPHY_DEFS.filter(t => G.trophies && G.trophies[t.id]).length;
+    summary.textContent = `獲得 ${got}/${TROPHY_DEFS.length}`;
+    grid.innerHTML = TROPHY_DEFS.map((def) => {
+      const unlocked = !!(G.trophies && G.trophies[def.id]);
+      const name = unlocked ? def.name : '未発見';
+      const desc = unlocked ? def.desc : 'まだ女王が棚を空けて待っている。';
+      return `<div class="trophy-item ${unlocked ? '' : 'locked'}">`
+        + trophyPixelIconHtml(def, unlocked)
+        + `<div><div class="trophy-name">${escapeHtml(name)}</div><div class="trophy-desc">${escapeHtml(desc)}</div></div>`
+        + `</div>`;
+    }).join('');
+  }
+
+  const modalTrophies = document.getElementById('modal-trophies');
+  const btnTrophies = document.getElementById('btn-trophies');
+  const btnTrophiesClose = document.getElementById('btn-trophies-close');
+  function openTrophyModal() {
+    checkTrophies(false);
+    renderTrophyShelf();
+    if(modalTrophies) modalTrophies.classList.add('show');
+  }
+  if(btnTrophies) btnTrophies.onclick = openTrophyModal;
+  if(btnTrophiesClose) btnTrophiesClose.onclick = () => { if(modalTrophies) modalTrophies.classList.remove('show'); };
+  if(modalTrophies) modalTrophies.addEventListener('click', e => { if(e.target===modalTrophies) modalTrophies.classList.remove('show'); });
+
+  // ============================================================
   // ===== Phase 3: 転生システム =====
   // ============================================================
   const btnPrestige = document.getElementById('btn-prestige');
@@ -19795,6 +20326,7 @@ function syncFermenterUnlockUI() {
     S._devMode = true;
     if(typeof unlockResearchSystem === 'function') unlockResearchSystem();
     if(typeof updateResearchUI === 'function') updateResearchUI();
+    if(typeof updateUI === 'function') updateUI();
     if(showToast) toast('⚙️ 開発者モード ON（研究も解放）');
     const raidKinds = [
       { id: 'btn-dev-raid-normal',  kind: 'normal'  },
@@ -20544,6 +21076,8 @@ function syncFermenterUnlockUI() {
     // 改善: プログレッシブUI・タップボタン更新
     updateProgressiveUI();
     updateTapButtonUI();
+    syncFeaturePanelButtons();
+    setupTopStatLinks();
     checkCookieDiscovery();
     // Debug overlay refresh (throttled)
     updateDebugOverlay();
@@ -21150,6 +21684,17 @@ function syncFermenterUnlockUI() {
   const btnStats = document.getElementById('btn-stats');
   const btnStatsClose = document.getElementById('btn-stats-close');
   const statsBody = document.getElementById('stats-body');
+  const statsChart = document.getElementById('stats-chart');
+  const statsChartLegend = document.getElementById('stats-chart-legend');
+  const STATS_SAMPLE_MS = 1000;
+  const STATS_HISTORY_MAX = 180;
+  const STATS_SERIES = [
+    { key:'food', label:'食料', color:'#4ade80' },
+    { key:'pop', label:'個体数', color:'#60a5fa' },
+    { key:'eggs', label:'卵', color:'#fbbf24' },
+    { key:'larvae', label:'幼虫', color:'#f472b6' },
+    { key:'cookie', label:'クッキー', color:'#facc15' }
+  ];
 
   function fmtStatNum(v, digits = 0) {
     const n = Number(v);
@@ -21166,6 +21711,122 @@ function syncFermenterUnlockUI() {
   function fmtStatPct(v) {
     const n = Number(v);
     return Number.isFinite(n) ? `${Math.round(n * 100)}%` : '-';
+  }
+
+  function getStatsSnapshot() {
+    return {
+      t: Date.now(),
+      food: Math.max(0, Number(G.food) || 0),
+      cookie: Math.max(0, Number(G.cookie) || 0),
+      pop: Math.max(0, Number(G.tot) || 0),
+      eggs: Math.max(0, Number(G.eggs) || 0),
+      larvae: Math.max(0, Number(G.larvae) || 0),
+      soldiers: Math.max(0, Number(G.ants && G.ants.soldier) || 0),
+      wastePct: clamp((S._wasteRatio || 0) * 100, 0, 100)
+    };
+  }
+
+  function sampleStatsHistory(force = false) {
+    if(!S.statsHistory) S.statsHistory = [];
+    const now = Date.now();
+    if(!force && now - (S.statsHistoryLastMs || 0) < STATS_SAMPLE_MS) return;
+    S.statsHistoryLastMs = now;
+    const snap = getStatsSnapshot();
+    const last = S.statsHistory[S.statsHistory.length - 1];
+    if(last && Math.abs(snap.t - last.t) < 250) S.statsHistory[S.statsHistory.length - 1] = snap;
+    else S.statsHistory.push(snap);
+    while(S.statsHistory.length > STATS_HISTORY_MAX) S.statsHistory.shift();
+  }
+
+  function renderStatsChartLegend(snapshot) {
+    if(!statsChartLegend) return;
+    const snap = snapshot || getStatsSnapshot();
+    statsChartLegend.innerHTML = STATS_SERIES.map((s) => {
+      const val = snap[s.key];
+      return `<span class="stats-chart-key"><span class="stats-chart-swatch" style="background:${s.color}"></span>${escapeHtml(s.label)} ${escapeHtml(fmtStatNum(val))}</span>`;
+    }).join('');
+  }
+
+  function drawStatsChart() {
+    if(!statsChart) return;
+    const histRaw = (S.statsHistory && S.statsHistory.length) ? S.statsHistory : [getStatsSnapshot()];
+    const now = Date.now();
+    const cutoff = now - STATS_HISTORY_MAX * 1000;
+    const hist = histRaw.filter(p => p && p.t >= cutoff);
+    const data = hist.length >= 2 ? hist : [hist[0] || getStatsSnapshot(), getStatsSnapshot()];
+    const rect = statsChart.getBoundingClientRect();
+    const cssW = Math.max(260, Math.floor(rect.width || 640));
+    const cssH = Math.max(150, Math.floor(rect.height || 180));
+    const dpr = window.devicePixelRatio || 1;
+    const w = Math.floor(cssW * dpr);
+    const h = Math.floor(cssH * dpr);
+    if(statsChart.width !== w || statsChart.height !== h) {
+      statsChart.width = w;
+      statsChart.height = h;
+    }
+    const g = statsChart.getContext('2d');
+    if(!g) return;
+    g.save();
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, cssW, cssH);
+    g.fillStyle = 'rgba(15,23,42,0.88)';
+    g.fillRect(0, 0, cssW, cssH);
+
+    const padL = 30, padR = 10, padT = 12, padB = 22;
+    const plotW = Math.max(1, cssW - padL - padR);
+    const plotH = Math.max(1, cssH - padT - padB);
+    g.strokeStyle = 'rgba(148,163,184,0.13)';
+    g.lineWidth = 1;
+    for(let i=0; i<=4; i++) {
+      const y = padT + plotH * i / 4;
+      g.beginPath();
+      g.moveTo(padL, y);
+      g.lineTo(padL + plotW, y);
+      g.stroke();
+    }
+    for(let i=0; i<=5; i++) {
+      const x = padL + plotW * i / 5;
+      g.beginPath();
+      g.moveTo(x, padT);
+      g.lineTo(x, padT + plotH);
+      g.stroke();
+    }
+
+    const minT = data[0].t;
+    const maxT = Math.max(minT + 1, data[data.length - 1].t);
+    for(const series of STATS_SERIES) {
+      let min = Infinity, max = -Infinity;
+      for(const p of data) {
+        const v = Number(p[series.key]) || 0;
+        if(v < min) min = v;
+        if(v > max) max = v;
+      }
+      if(!Number.isFinite(min) || !Number.isFinite(max)) continue;
+      if(Math.abs(max - min) < 1e-6) {
+        min = Math.max(0, min - 1);
+        max = max + 1;
+      }
+      g.strokeStyle = series.color;
+      g.lineWidth = 2;
+      g.beginPath();
+      let started = false;
+      for(const p of data) {
+        const x = padL + ((p.t - minT) / (maxT - minT)) * plotW;
+        const y = padT + (1 - ((Number(p[series.key]) || 0) - min) / (max - min)) * plotH;
+        if(!started) { g.moveTo(x, y); started = true; }
+        else g.lineTo(x, y);
+      }
+      g.stroke();
+    }
+
+    g.fillStyle = 'rgba(203,213,225,0.72)';
+    g.font = '10px system-ui, sans-serif';
+    g.textAlign = 'left';
+    g.textBaseline = 'alphabetic';
+    g.fillText('今', padL + plotW - 12, cssH - 7);
+    g.fillText('-3分', padL, cssH - 7);
+    g.restore();
+    renderStatsChartLegend(data[data.length - 1]);
   }
 
   function addStatsSection(title, rows) {
@@ -21297,18 +21958,60 @@ function syncFermenterUnlockUI() {
     hydrateUiIcons(statsBody);
   }
 
-  function openStatsModal() {
+  let _statsTimerInterval = null;
+
+  function refreshStatsModal() {
+    sampleStatsHistory(true);
     buildStatsModal();
+    drawStatsChart();
+  }
+
+  function openStatsModal() {
+    refreshStatsModal();
     if(modalStats) modalStats.classList.add('show');
+    requestAnimationFrame(drawStatsChart);
+    if(_statsTimerInterval) clearInterval(_statsTimerInterval);
+    _statsTimerInterval = setInterval(() => {
+      if(!modalStats || !modalStats.classList.contains('show')) {
+        clearInterval(_statsTimerInterval);
+        _statsTimerInterval = null;
+        return;
+      }
+      refreshStatsModal();
+    }, 1000);
   }
 
   function closeStatsModal() {
     if(modalStats) modalStats.classList.remove('show');
+    if(_statsTimerInterval) { clearInterval(_statsTimerInterval); _statsTimerInterval = null; }
+  }
+
+  function setupTopStatLinks() {
+    document.querySelectorAll('[data-stats-link]').forEach((box) => {
+      if(box._statsLinkWired) return;
+      box._statsLinkWired = true;
+    });
+    if(setupTopStatLinks._delegated) return;
+    setupTopStatLinks._delegated = true;
+    document.addEventListener('click', (e) => {
+      const box = e.target && e.target.closest ? e.target.closest('[data-stats-link]') : null;
+      if(!box) return;
+      e.preventDefault();
+      openStatsModal();
+    });
+    document.addEventListener('keydown', (e) => {
+      if(e.key !== 'Enter' && e.key !== ' ') return;
+      const box = e.target && e.target.closest ? e.target.closest('[data-stats-link]') : null;
+      if(!box) return;
+      e.preventDefault();
+      openStatsModal();
+    });
   }
 
   if(btnStats) btnStats.addEventListener('click', openStatsModal);
   if(btnStatsClose) btnStatsClose.addEventListener('click', closeStatsModal);
   if(modalStats) modalStats.addEventListener('click', (e)=>{ if(e.target === modalStats) closeStatsModal(); });
+  setupTopStatLinks();
 
   // ===== Diary =====
   // 遠征モーダル
@@ -21317,7 +22020,10 @@ function syncFermenterUnlockUI() {
     const btnExpClose = document.getElementById('btn-expedition-close');
     const mExp = document.getElementById('modal-expedition');
     const expContent = document.getElementById('expedition-content');
-    if(btnExp) btnExp.onclick = () => openExpeditionModal();
+    if(btnExp) btnExp.onclick = () => {
+      if(!isExpeditionUnlocked()) { toast(getExpeditionPanelLockText(), true); return; }
+      openExpeditionModal();
+    };
     if(btnExpClose) btnExpClose.onclick = () => closeExpeditionModal();
     if(mExp) mExp.addEventListener('click', e => { if(e.target === mExp) closeExpeditionModal(); });
     if(expContent) expContent.addEventListener('click', e => {
@@ -21340,7 +22046,10 @@ function syncFermenterUnlockUI() {
     const btnSolClose = document.getElementById('btn-soldier-close');
     const mSol = document.getElementById('modal-soldier');
     const solContent = document.getElementById('soldier-content');
-    if(btnSol) btnSol.onclick = () => openSoldierModal();
+    if(btnSol) btnSol.onclick = () => {
+      if(!isSoldierPanelUnlocked()) { toast(getSoldierPanelLockText(), true); return; }
+      openSoldierModal();
+    };
     if(btnSolClose) btnSolClose.onclick = () => closeSoldierModal();
     if(mSol) mSol.addEventListener('click', e => { if(e.target === mSol) closeSoldierModal(); });
     if(solContent) solContent.addEventListener('click', e => {
@@ -21576,6 +22285,8 @@ function syncFermenterUnlockUI() {
     updateQueenWhisper(dt);
     TUT.tick();
     checkGoalAchievements();
+    checkTrophies(true);
+    sampleStatsHistory(false);
     maybeAutoSave();
 
     if(S.shake.t > 0) {
@@ -21943,6 +22654,7 @@ function syncFermenterUnlockUI() {
   function getAntDrawProfile(a) {
     const edge = isAntOnEdgeForDraw(a);
     if(!edge) return { edge:false, scale:1, alpha:1 };
+    if(!DRAW_UNDERGROUND_EDGE_ANTS) return { edge:true, hidden:true, scale:0, alpha:0 };
     return {
       edge:true,
       scale:0.82,
@@ -21969,7 +22681,8 @@ function syncFermenterUnlockUI() {
   }
 
   function getCrowdAntDrawProfile(routeKind) {
-    if(routeKind !== CROWD_ROUTE_EDGE) return { edge:false, scale:1, alpha:1, roleSilhouette:false };
+    if(routeKind === CROWD_ROUTE_EDGE && !DRAW_UNDERGROUND_EDGE_ANTS) return { edge:true, hidden:true, scale:0, alpha:0, roleSilhouette:false };
+    if(routeKind !== CROWD_ROUTE_EDGE) return { edge:false, scale:0.86, alpha:0.90, roleSilhouette:false };
     return { edge:true, scale:0.80, alpha:0.84, roleSilhouette:false };
   }
 
@@ -22263,7 +22976,7 @@ function syncFermenterUnlockUI() {
 
   function getCrowdPools() {
     const pools = {
-      all: [], queen: [], food: [], nursery: [], soldier: [], shaft: [], entrance: [], work: [], edges: []
+      all: [], rooms: [], queen: [], food: [], nursery: [], soldier: [], rest: [], shaft: [], entrance: [], work: [], edges: []
     };
     if(!S.full || !S.full.nodes) return pools;
     for(let i=0; i<S.full.nodes.length; i++) {
@@ -22275,9 +22988,13 @@ function syncFermenterUnlockUI() {
       else if(n.type === 'food' || n.type === 'cookieroom') pools.food.push(i);
       else if(n.type === 'nursery') pools.nursery.push(i);
       else if(n.type === 'soldier') pools.soldier.push(i);
+      else if(n.type === 'rest') pools.rest.push(i);
       else if(n.type === 'shaft') pools.shaft.push(i);
       else if(n.type === 'entrance') pools.entrance.push(i);
-      if(n.type !== 'entrance') pools.work.push(i);
+      if(n.type !== 'shaft' && n.type !== 'entrance') {
+        pools.rooms.push(i);
+        if(n.type !== 'queen') pools.work.push(i);
+      }
     }
     if(S.full.edges) {
       for(let eid=0; eid<S.full.edges.length; eid++) {
@@ -22291,35 +23008,39 @@ function syncFermenterUnlockUI() {
   }
 
   function pickCrowdNodeForRole(roleIdx, pools) {
-    const fallback = pickCrowdArray(pools.all, S.full ? S.full.qid : 0);
+    const fallback = pickCrowdArray(pools.rooms, pickCrowdArray(pools.queen, S.full ? S.full.qid : 0));
     if(roleIdx === 1) return pickCrowdArray(pools.nursery, pickCrowdArray(pools.queen, fallback));
-    if(roleIdx === 2) return pickCrowdArray(pools.shaft, pickCrowdArray(pools.work, fallback));
-    if(roleIdx === 3) return pickCrowdArray(pools.soldier, pickCrowdArray(pools.entrance, fallback));
+    if(roleIdx === 2) return pickCrowdArray(pools.work, fallback);
+    if(roleIdx === 3) return pickCrowdArray(pools.soldier, pickCrowdArray(pools.rest, fallback));
     return pickCrowdArray(pools.food, pickCrowdArray(pools.work, fallback));
   }
 
   function placeCrowdAntInNode(crowd, idx, nodeId, keepPosition = false) {
     const n = S.full && S.full.nodes ? S.full.nodes[nodeId] : null;
     if(!n) return;
-    const slotPool = n.slots || [];
-    const sx = (n.blobScaleX != null) ? n.blobScaleX : 1;
-    const sy = (n.blobScaleY != null) ? n.blobScaleY : 0.78;
+    if(n.type === 'shaft' || n.type === 'entrance') {
+      const pools = getCrowdPools();
+      const fallbackNode = pickCrowdNodeForRole(crowd.role[idx] | 0, pools);
+      if(fallbackNode != null && fallbackNode !== nodeId) {
+        placeCrowdAntInNode(crowd, idx, fallbackNode, false);
+      }
+      return;
+    }
+    const interior = getRoomInteriorEllipse(n, dp(8));
     if(keepPosition && Number.isFinite(crowd.x[idx]) && Number.isFinite(crowd.y[idx])) {
-      const dx = (crowd.x[idx] - n.x) / Math.max(0.001, sx);
-      const dy = (crowd.y[idx] - n.y) / Math.max(0.001, sy * 0.62);
-      const maxRadius = Math.min(n.r * 0.62, dp(18));
-      crowd.roomRadius[idx] = clamp(Math.hypot(dx, dy), dp(3), maxRadius);
+      const dx = (crowd.x[idx] - interior.cx) / Math.max(1, interior.rx);
+      const dy = (crowd.y[idx] - interior.cy) / Math.max(1, interior.ry);
+      crowd.roomRadius[idx] = clamp(Math.hypot(dx, dy), 0.14, 0.92);
       crowd.roomAngle[idx] = Math.atan2(dy, dx);
-    } else if(slotPool.length && Math.random() < 0.45) {
-      const s = slotPool[(Math.random() * slotPool.length) | 0];
-      crowd.x[idx] = s.x + (Math.random() - 0.5) * dp(4);
-      crowd.y[idx] = s.y + (Math.random() - 0.5) * dp(3);
     } else {
       const ang = Math.random() * Math.PI * 2;
-      const rr = Math.sqrt(Math.random()) * Math.min(n.r * 0.68, dp(26));
-      crowd.x[idx] = n.x + Math.cos(ang) * rr * sx;
-      crowd.y[idx] = n.y + Math.sin(ang) * rr * sy;
+      const openFloorBias = n.type === 'queen' ? 0.78 : 0.94;
+      const rr = Math.sqrt(Math.random()) * openFloorBias;
+      crowd.roomRadius[idx] = clamp(rr, 0.10, 0.94);
+      crowd.roomAngle[idx] = ang;
     }
+    crowd.x[idx] = interior.cx + Math.cos(crowd.roomAngle[idx]) * interior.rx * crowd.roomRadius[idx];
+    crowd.y[idx] = interior.cy + Math.sin(crowd.roomAngle[idx]) * interior.ry * crowd.roomRadius[idx];
     crowd.nodeId[idx] = nodeId;
     crowd.routeKind[idx] = CROWD_ROUTE_ROOM;
     crowd.edgeId[idx] = -1;
@@ -22329,7 +23050,7 @@ function syncFermenterUnlockUI() {
     crowd.role[idx] = roleIdx;
     crowd.gaitPhase[idx] = Math.random() * Math.PI * 2;
     crowd.speed[idx] = dp(12 + Math.random() * 16);
-    crowd.roomRadius[idx] = dp(5 + Math.random() * 16);
+    crowd.roomRadius[idx] = 0.12 + Math.sqrt(Math.random()) * 0.78;
     crowd.roomAngle[idx] = Math.random() * Math.PI * 2;
     crowd.nextSwitchAt[idx] = S.t + 2.0 + Math.random() * 6.0;
     crowd.rot[idx] = Math.random() * Math.PI * 2;
@@ -22456,7 +23177,7 @@ function syncFermenterUnlockUI() {
     const total = ANT_ROLES.reduce((sum, r) => sum + (targets[r] || 0), 0);
     const pools = getCrowdPools();
     const targetSignature = [targets.worker, targets.nurse, targets.builder, targets.soldier].join(':');
-    const mapSignature = [pools.all.length, pools.edges.length, S.full.nodes.length, S.full.edges.length].join(':');
+    const mapSignature = [CROWD_LAYOUT_VERSION, pools.rooms.length, pools.edges.length, S.full.nodes.length, S.full.edges.length].join(':');
     const crowd = ensureAntCrowdCapacity(total);
     if(crowd.signature === targetSignature && crowd.mapSignature === mapSignature && crowd.count === total) return;
 
@@ -22511,6 +23232,7 @@ function syncFermenterUnlockUI() {
   }
 
   function startCrowdEdge(crowd, idx, nodeId) {
+    if(!DRAW_UNDERGROUND_EDGE_ANTS) return false;
     if(!S.full || !S.full.byNode || !S.full.byNode[nodeId]) return false;
     const connected = S.full.byNode[nodeId];
     if(!connected.length) return false;
@@ -22536,63 +23258,46 @@ function syncFermenterUnlockUI() {
     if(!S.full || !crowd || crowd.count <= 0) return;
     const stepDt = Math.min(Math.max(0, dt || 0), 0.05);
     const nodes = S.full.nodes;
-    const edges = S.full.edges;
     for(let i=0; i<crowd.count; i++) {
       crowd.gaitPhase[i] += stepDt * (3.4 + crowd.speed[i] / Math.max(1, dp(24)));
       if(crowd.routeKind[i] === CROWD_ROUTE_EDGE) {
-        const eid = crowd.edgeId[i];
-        const e = edges[eid];
-        if(!e || !S.nodeVis[e.u] || !S.nodeVis[e.v]) {
-          const pools = getCrowdPools();
-          initCrowdAnt(crowd, i, crowd.role[i], pools);
-          continue;
-        }
-        const len = getCrowdEdgeLen(e);
-        const dir = crowd.dir[i] >= 0 ? 1 : -1;
-        let tt = crowd.t[i] + dir * (crowd.speed[i] / len) * stepDt;
-        if(tt <= 0 || tt >= 1) {
-          tt = clamp(tt, 0, 1);
-          const nodeId = dir > 0 ? e.v : e.u;
-          placeCrowdAntInNode(crowd, i, nodeId, true);
-          crowd.nextSwitchAt[i] = S.t + 2.0 + Math.random() * 5.0;
-          continue;
-        }
-        crowd.t[i] = tt;
-        const p = cubic(e.p0, e.p1, e.p2, e.p3, tt);
-        const t0 = clamp(tt - 0.025 * dir, 0, 1);
-        const t1 = clamp(tt + 0.025 * dir, 0, 1);
-        const p0 = cubic(e.p0, e.p1, e.p2, e.p3, t0);
-        const p1 = cubic(e.p0, e.p1, e.p2, e.p3, t1);
-        crowd.x[i] = p.x;
-        crowd.y[i] = p.y;
-        crowd.rot[i] = Math.atan2(p1.y - p0.y, p1.x - p0.x);
-      } else {
-        let nodeId = crowd.nodeId[i];
-        let n = nodes[nodeId];
-        if(!n || !S.nodeVis[nodeId]) {
-          const pools = getCrowdPools();
-          initCrowdAnt(crowd, i, crowd.role[i], pools);
-          continue;
-        }
-        const roleIdx = crowd.role[i] | 0;
-        const leaveChance = (roleIdx === 1) ? 0.06 : 0.14;
-        if(S.t >= crowd.nextSwitchAt[i] && Math.random() < leaveChance && startCrowdEdge(crowd, i, nodeId)) {
-          crowd.nextSwitchAt[i] = S.t + 2.0 + Math.random() * 4.0;
-          continue;
-        }
-        if(S.t >= crowd.nextSwitchAt[i]) crowd.nextSwitchAt[i] = S.t + 2.0 + Math.random() * 5.0;
-        const sx = (n.blobScaleX != null) ? n.blobScaleX : 1;
-        const sy = (n.blobScaleY != null) ? n.blobScaleY : 0.78;
-        const oldX = crowd.x[i], oldY = crowd.y[i];
-        const roomSpin = (roleIdx === 1) ? 0.035 : 0.055;
-        const ang = crowd.roomAngle[i] + crowd.gaitPhase[i] * roomSpin;
-        const radius = Math.min(crowd.roomRadius[i], n.r * 0.72);
-        const wob = Math.sin(crowd.gaitPhase[i] * 0.42 + i) * dp(0.55);
-        crowd.x[i] = n.x + Math.cos(ang) * (radius + wob) * sx;
-        crowd.y[i] = n.y + Math.sin(ang) * (radius * 0.62 + wob * 0.35) * sy;
-        const dx = crowd.x[i] - oldX, dy = crowd.y[i] - oldY;
-        if(Math.abs(dx) + Math.abs(dy) > 0.05) crowd.rot[i] = Math.atan2(dy, dx);
+        const pools = getCrowdPools();
+        const fallbackNode = pickCrowdNodeForRole(crowd.role[i] | 0, pools);
+        placeCrowdAntInNode(crowd, i, fallbackNode, false);
+        crowd.nextSwitchAt[i] = S.t + 1.2 + Math.random() * 4.0;
+        continue;
       }
+      let nodeId = crowd.nodeId[i];
+      let n = nodes[nodeId];
+      if(!n || !S.nodeVis[nodeId]) {
+        const pools = getCrowdPools();
+        initCrowdAnt(crowd, i, crowd.role[i], pools);
+        continue;
+      }
+      const roleIdx = crowd.role[i] | 0;
+      const leaveChance = (roleIdx === 1) ? 0.06 : 0.14;
+      if(S.t >= crowd.nextSwitchAt[i] && Math.random() < leaveChance && startCrowdEdge(crowd, i, nodeId)) {
+        crowd.nextSwitchAt[i] = S.t + 2.0 + Math.random() * 4.0;
+        continue;
+      }
+      if(S.t >= crowd.nextSwitchAt[i]) crowd.nextSwitchAt[i] = S.t + 2.0 + Math.random() * 5.0;
+      if(n.type === 'shaft' || n.type === 'entrance') {
+        const pools = getCrowdPools();
+        initCrowdAnt(crowd, i, crowd.role[i], pools);
+        continue;
+      }
+      const oldX = crowd.x[i], oldY = crowd.y[i];
+      const interior = getRoomInteriorEllipse(n, dp(8));
+      const driftDir = (seed01FromIds(i + 31, (crowd.nodeId[i] || 0) + roleIdx * 17) < 0.5) ? -1 : 1;
+      const roomSpin = ((roleIdx === 1) ? 0.012 : 0.018) * driftDir;
+      const ang = crowd.roomAngle[i] + crowd.gaitPhase[i] * roomSpin;
+      const baseRadius = clamp(crowd.roomRadius[i] || 0.35, 0.08, 0.94);
+      const wob = Math.sin(crowd.gaitPhase[i] * 0.42 + i) * 0.025;
+      const radius = clamp(baseRadius + wob, 0.06, 0.96);
+      crowd.x[i] = interior.cx + Math.cos(ang) * interior.rx * radius;
+      crowd.y[i] = interior.cy + Math.sin(ang) * interior.ry * radius;
+      const dx = crowd.x[i] - oldX, dy = crowd.y[i] - oldY;
+      if(Math.abs(dx) + Math.abs(dy) > 0.05) crowd.rot[i] = Math.atan2(dy, dx);
     }
   }
 
@@ -22686,6 +23391,7 @@ function syncFermenterUnlockUI() {
       const x = crowd.x[i], y = crowd.y[i];
       if(x < minX || x > maxX || y < minY || y > maxY) { culled++; continue; }
       const profile = getCrowdAntDrawProfile(crowd.routeKind[i]);
+      if(profile.hidden || profile.alpha <= 0 || profile.scale <= 0) { culled++; continue; }
       const roleIdx = profile.roleSilhouette ? 0 : (_colorMode ? roleIdxRaw : 0);
       const rot = ((crowd.rot[i] % tau) + tau) % tau;
       let drawX = x, drawY = y;
@@ -22702,14 +23408,10 @@ function syncFermenterUnlockUI() {
       const sy = (roleIdx * CROWD_ANT_FRAMES + frameIdx) * fh;
       const dw = fw * profile.scale;
       const dh = fh * profile.scale;
-      if(profile.edge) {
-        ctx.save();
-        ctx.globalAlpha *= profile.alpha;
-        ctx.drawImage(atlas.canvas, sx, sy, fw, fh, drawX - dw * 0.5, drawY - dh * 0.5, dw, dh);
-        ctx.restore();
-      } else {
-        ctx.drawImage(atlas.canvas, sx, sy, fw, fh, drawX - dw * 0.5, drawY - dh * 0.5, dw, dh);
-      }
+      ctx.save();
+      ctx.globalAlpha *= profile.alpha;
+      ctx.drawImage(atlas.canvas, sx, sy, fw, fh, drawX - dw * 0.5, drawY - dh * 0.5, dw, dh);
+      ctx.restore();
       drawn++;
     }
     return { drawn, culled, total: crowd.count, atlasFrames: atlas.frames };
@@ -23088,6 +23790,26 @@ function syncFermenterUnlockUI() {
     ctx.fillStyle = floor;
     ctx.beginPath();
     ctx.ellipse(n.x, n.y + rr.ry * 0.44, rr.rx * 0.82, rr.ry * 0.36, 0, 0, 6.28);
+    ctx.fill();
+
+    const sideShade = ctx.createLinearGradient(n.x - rr.rx, 0, n.x + rr.rx, 0);
+    sideShade.addColorStop(0, mesh ? 'rgba(20,12,6,0.30)' : 'rgba(20,12,6,0.24)');
+    sideShade.addColorStop(0.22, 'rgba(0,0,0,0)');
+    sideShade.addColorStop(0.74, 'rgba(0,0,0,0)');
+    sideShade.addColorStop(1, mesh ? 'rgba(20,12,6,0.28)' : 'rgba(20,12,6,0.22)');
+    ctx.fillStyle = sideShade;
+    ctx.fillRect(n.x - rr.rx * 1.02, n.y - rr.ry * 0.88, rr.rx * 2.04, rr.ry * 1.82);
+
+    const floorContact = ctx.createRadialGradient(
+      n.x + rr.rx * 0.06, n.y + rr.ry * 0.62, dp(2),
+      n.x, n.y + rr.ry * 0.66, Math.max(rr.rx, rr.ry) * 0.78
+    );
+    floorContact.addColorStop(0, 'rgba(29,18,10,0.04)');
+    floorContact.addColorStop(0.58, 'rgba(29,18,10,0.13)');
+    floorContact.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = floorContact;
+    ctx.beginPath();
+    ctx.ellipse(n.x, n.y + rr.ry * 0.64, rr.rx * 0.70, rr.ry * 0.22, 0, 0, 6.28);
     ctx.fill();
 
     const scuffCount = Math.min(18, Math.max(6, Math.round(rr.rx / dp(9))));
@@ -23789,13 +24511,14 @@ function syncFermenterUnlockUI() {
     const rx = r * (n.blobScaleX || 1);
     const ry = r * (n.blobScaleY || 0.8);
     const cx = n.x;
-    const cy = n.y + ry * 0.22;                 // 明点は床側（光は上から＝天井側は影に）
-    const inner = Math.max(dp(2), Math.min(rx, ry) * 0.18);
+    const cy = n.y + ry * 0.28;                 // 明点は床側（光は上から＝天井側は影に）
+    const inner = Math.max(dp(2), Math.min(rx, ry) * 0.16);
     const outer = Math.max(rx, ry) * 1.18;
     const grad = g.createRadialGradient(cx, cy, inner, cx, cy, outer);
-    grad.addColorStop(0,   'rgba(238,218,184,0.52)'); // 光の当たる床
-    grad.addColorStop(0.5, 'rgba(180,145,105,0.14)');
-    grad.addColorStop(1,   'rgba(62,39,23,0.52)');     // 縁・天井の陰（疑似AO）
+    grad.addColorStop(0,   'rgba(245,225,188,0.46)'); // 光の当たる床
+    grad.addColorStop(0.38, 'rgba(190,153,108,0.16)');
+    grad.addColorStop(0.74, 'rgba(79,50,29,0.24)');
+    grad.addColorStop(1,   'rgba(39,24,13,0.58)');     // 縁・天井の陰（疑似AO）
     return grad;
   }
 
@@ -23937,6 +24660,7 @@ function syncFermenterUnlockUI() {
       if(!stamps || stamps.length===0) return;
       const count = Math.max(1, Math.floor(stamps.length * S.edgeFrac[i]));
       drawPassageCarveMarks(g, e, count, 1.0, view, soilTop, soilBottom, stampPad);
+      drawPassageWallBands(g, e, count, 1.0, view, soilTop, soilBottom, stampPad);
     });
     g.restore();
 
@@ -24703,7 +25427,11 @@ function syncFermenterUnlockUI() {
     // Phase 7B-2: レイド攻撃/結果フェーズ中は地下の兵隊アリを描画しない。
     // 兵隊は地表の S.raidSoldiers が代表として戦うため、入口での二重表示（青い兵隊）を避ける。
     const hideUndergroundSoldiers = isUndergroundSoldierHiddenForRaid();
-    const baseDrawAnts = hideUndergroundSoldiers ? S.ants.filter(a => a.role !== 'soldier') : S.ants;
+    const baseDrawAnts = S.ants.filter(a => {
+      if(hideUndergroundSoldiers && a.role === 'soldier') return false;
+      if(!DRAW_UNDERGROUND_EDGE_ANTS && isAntOnEdgeForDraw(a)) return false;
+      return true;
+    });
     if(antRender.mode === 'crowdSprite') {
       const crowdStats = drawAntCrowd(ctx, view, hideUndergroundSoldiers);
       antsDrawn += crowdStats.drawn;
@@ -25333,7 +26061,8 @@ function syncFermenterUnlockUI() {
   _cookiePrevCount = Math.floor(G.cookie);
   // 目標達成チェック（ロード直後）
   checkGoalAchievements();
-  ['top-bar','control-panel','modal-goals','modal-stats','modal-diary','modal-expedition','modal-soldier','modal-raid-result','modal-research-tree','cookie-discovery'].forEach((id) => {
+  checkTrophies(false);
+  ['top-bar','control-panel','modal-goals','modal-trophies','modal-stats','modal-diary','modal-expedition','modal-soldier','modal-raid-result','modal-research-tree','cookie-discovery'].forEach((id) => {
     const root = document.getElementById(id);
     if(root) hydrateUiIcons(root);
   });
