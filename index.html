@@ -3320,6 +3320,25 @@
       color: var(--eco-text);
       text-shadow: none;
     }
+    @media (max-width: 959px) {
+      #top-bar > .res-box:not(.ui-iconified) {
+        flex: 1 1 48px;
+        padding-left: 5px;
+        padding-right: 5px;
+      }
+      #top-bar > #btn-soldier,
+      #top-bar > #btn-expedition,
+      #top-bar > #btn-menu {
+        flex: 0 0 42px;
+        min-width: 42px;
+      }
+      #top-bar > .res-box:not(.ui-iconified) .res-val {
+        font-size: 11px;
+        line-height: 1.1;
+        overflow: visible;
+        text-overflow: clip;
+      }
+    }
     #next-goal-box {
       border-color: rgba(218, 178, 104, 0.24);
       background: rgba(9, 13, 8, 0.56);
@@ -17165,6 +17184,22 @@ function expandMap(forcedType, isEmergency) {
     return (num >= 100000) ? fmtCount(num) : String(num);
   }
 
+  function isCompactTopHud() {
+    return !!(window.matchMedia && window.matchMedia('(max-width: 959px)').matches);
+  }
+
+  function fmtTopHudNumber(n) {
+    const num = Math.floor(n || 0);
+    return (num >= 100000) ? fmtCount(num) : String(num);
+  }
+
+  function setTopHudTitle(valueEl, text) {
+    if(!valueEl) return;
+    valueEl.title = text;
+    const box = valueEl.closest ? valueEl.closest('.res-box') : null;
+    if(box) box.title = text;
+  }
+
   const upgradeDock = {
     wrap: document.getElementById('upgradeDock'),
     grid: document.getElementById('upgradeDockGrid'),
@@ -20213,9 +20248,16 @@ function syncFermenterUnlockUI() {
   }
 
   function updateUI() {
-    setText(el.food, fmtFood(G.food)+"/"+fmtFood(G.caps.food));
-    setText(el.cookie, Math.floor(G.cookie));
-    setText(el.pop, G.tot+"/"+G.caps.pop);
+    const compactTopHud = isCompactTopHud();
+    const foodFull = fmtFood(G.food)+"/"+fmtFood(G.caps.food);
+    const cookieFull = String(Math.floor(G.cookie));
+    const popFull = G.tot+"/"+G.caps.pop;
+    setText(el.food, compactTopHud ? fmtTopHudNumber(G.food) : foodFull);
+    setText(el.cookie, compactTopHud ? fmtTopHudNumber(G.cookie) : cookieFull);
+    setText(el.pop, compactTopHud ? fmtTopHudNumber(G.tot) : popFull);
+    setTopHudTitle(el.food, `食料 ${foodFull}`);
+    setTopHudTitle(el.cookie, `クッキー ${cookieFull}`);
+    setTopHudTitle(el.pop, `個体数 ${popFull}`);
 
     setText(el.rate, `+${G.getAntsPerSec()}/s`);
     const eggsVal = Math.floor(G.eggs);
@@ -20238,8 +20280,9 @@ function syncFermenterUnlockUI() {
       const wr = clamp(S._wasteRatio || 0, 0, 1);
       const pct = Math.round(wr * 100);
       const diseased = !!(S._disease && S._disease.active);
-      if(diseased) setHtml(el.hygiene, uiCostIcon('warn', `${pct}%`));
+      if(diseased && !compactTopHud) setHtml(el.hygiene, uiCostIcon('warn', `${pct}%`));
       else setText(el.hygiene, `${pct}%`);
+      setTopHudTitle(el.hygiene, `ゴミ ${pct}%${diseased ? '（病気発生中）' : ''}`);
       // 緑(清潔)→黄→赤(危険/病気)
       const color = diseased ? '#f87171' : (wr >= 0.7 ? '#fb923c' : (wr >= 0.4 ? '#fbbf24' : '#4ade80'));
       el.hygiene.style.color = color;
