@@ -2405,6 +2405,202 @@
     .exped-modal-box { max-height: 80vh; overflow-y: auto; text-align: left; }
     .exped-section { margin-bottom: 14px; }
     .exped-section-title { font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+    .soldier-modal-box { width: min(92vw, 560px); max-width: 560px; }
+    .soldier-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .soldier-stat,
+    .soldier-effect-card {
+      background: rgba(15,23,42,0.58);
+      border: 1px solid rgba(148,163,184,0.16);
+      border-radius: 8px;
+      padding: 9px 10px;
+    }
+    .soldier-stat-label,
+    .soldier-effect-label {
+      font-size: 10px;
+      color: #94a3b8;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      margin-bottom: 4px;
+    }
+    .soldier-stat-value {
+      font-size: 18px;
+      line-height: 1.15;
+      color: #f8fafc;
+      font-weight: 800;
+    }
+    .soldier-stat-note,
+    .soldier-effect-note,
+    .soldier-hint {
+      margin-top: 4px;
+      color: #64748b;
+      font-size: 10px;
+      line-height: 1.35;
+    }
+    .soldier-section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 7px;
+    }
+    .soldier-section-head .exped-section-title { margin-bottom: 0; }
+    .soldier-section-sub {
+      color: #94a3b8;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+    .soldier-composition-bar {
+      display: flex;
+      height: 10px;
+      overflow: hidden;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.18);
+      background: rgba(15,23,42,0.74);
+      margin-bottom: 9px;
+    }
+    .soldier-composition-bar span {
+      display: block;
+      min-width: 0;
+      background: var(--caste-color);
+    }
+    .soldier-caste-list {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    .soldier-caste-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid rgba(148,163,184,0.16);
+      border-left: 3px solid var(--caste-color);
+      border-radius: 8px;
+      background: rgba(2,6,8,0.42);
+      padding: 8px 9px;
+    }
+    .soldier-caste-row.locked-caste { opacity: 0.54; }
+    .soldier-caste-name {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #f1f5f9;
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.25;
+    }
+    .soldier-caste-name .ui-ico {
+      width: 15px;
+      height: 15px;
+      color: var(--caste-color);
+      flex: 0 0 auto;
+    }
+    .soldier-caste-desc {
+      margin-top: 3px;
+      color: #94a3b8;
+      font-size: 11px;
+      line-height: 1.35;
+    }
+    .soldier-caste-meta {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      color: #cbd5e1;
+      white-space: nowrap;
+    }
+    .soldier-caste-count {
+      min-width: 44px;
+      text-align: right;
+      font-size: 11px;
+      color: #94a3b8;
+    }
+    .soldier-caste-pct {
+      min-width: 44px;
+      text-align: right;
+      font-size: 15px;
+      color: #f8fafc;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+    .soldier-caste-auto,
+    .soldier-caste-locked {
+      min-width: 62px;
+      text-align: right;
+      color: #94a3b8;
+      font-size: 11px;
+    }
+    .soldier-stepper {
+      display: inline-flex;
+      gap: 5px;
+      align-items: center;
+    }
+    .caste-step {
+      min-width: 34px;
+      height: 28px;
+      border: 1px solid rgba(148,163,184,0.22);
+      border-radius: 6px;
+      background: rgba(30,41,59,0.86);
+      color: #e2e8f0;
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .caste-step.plus {
+      border-color: rgba(20,184,166,0.42);
+      background: rgba(20,184,166,0.92);
+      color: #05231f;
+    }
+    .caste-step:disabled {
+      opacity: 0.36;
+      cursor: not-allowed;
+    }
+    .soldier-effect-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .soldier-effect-value {
+      color: #f8fafc;
+      font-size: 15px;
+      font-weight: 800;
+    }
+    .soldier-lock-note {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      border: 1px dashed rgba(148,163,184,0.24);
+      border-radius: 8px;
+      background: rgba(15,23,42,0.45);
+      color: #94a3b8;
+      font-size: 12px;
+      line-height: 1.45;
+      padding: 11px 12px;
+      margin-bottom: 14px;
+    }
+    .soldier-lock-note .ui-ico {
+      width: 15px;
+      height: 15px;
+      color: #94a3b8;
+      flex: 0 0 auto;
+      margin-top: 1px;
+    }
+    @media (max-width: 520px) {
+      .soldier-effect-grid { grid-template-columns: 1fr 1fr; }
+      .soldier-caste-row { grid-template-columns: 1fr; }
+      .soldier-caste-meta { justify-content: space-between; }
+      .soldier-section-head { align-items: flex-start; flex-direction: column; gap: 3px; }
+      .soldier-section-sub { white-space: normal; }
+    }
+    @media (max-width: 380px) {
+      .soldier-summary-grid,
+      .soldier-effect-grid { grid-template-columns: 1fr; }
+    }
     .exped-card {
       background: rgba(20,184,166,0.08); border: 1px solid rgba(20,184,166,0.25);
       border-radius: 8px; padding: 10px 12px; margin-bottom: 8px;
@@ -3952,7 +4148,7 @@
           <button class="res-box ui-iconified" id="btn-fit" style="cursor:pointer; border-color:#22c55e;" title="全体表示" data-menu-label="全体表示" aria-label="全体表示"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-compass"></use></svg></button>
           <button class="res-box ui-iconified" id="btn-err" style="cursor:pointer; border-color:#ef4444;" title="エラー詳細" data-menu-label="エラー" aria-label="エラー詳細"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-warn"></use></svg></button>
         </div>
-        <button class="res-box ui-iconified" id="btn-soldier" type="button" style="cursor:pointer; border-color:#60a5fa;" title="兵隊パネル" aria-label="兵隊パネル"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-sword"></use></svg></button>
+        <button class="res-box ui-iconified" id="btn-soldier" type="button" style="cursor:pointer; border-color:#60a5fa;" title="兵隊編成" aria-label="兵隊編成"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-sword"></use></svg></button>
         <button class="res-box ui-iconified" id="btn-expedition" type="button" style="cursor:pointer; border-color:#14b8a6;" title="遠征" aria-label="遠征"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-expedition"></use></svg></button>
         <button class="res-box ui-iconified" id="btn-menu" type="button" aria-expanded="false" aria-controls="mobile-menu-sheet" title="メニュー"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-menu"></use></svg></button>
       </div>
@@ -4444,9 +4640,9 @@
 </div>
 
 <div id="modal-soldier" class="modal-overlay">
-  <div class="modal-box exped-modal-box" style="max-width:480px;">
-    <div style="font-size:18px; font-weight:bold; color:#60a5fa; margin-bottom:2px;"><span class="ui-inline-icon"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-sword"></use></svg><span>兵隊パネル</span></span></div>
-    <div style="font-size:11px; color:#64748b; margin-bottom:12px;">兵隊アリの兵種編成と防衛状況</div>
+  <div class="modal-box exped-modal-box soldier-modal-box">
+    <div style="font-size:18px; font-weight:bold; color:#60a5fa; margin-bottom:2px;"><span class="ui-inline-icon"><svg class="ui-ico" aria-hidden="true"><use href="#ui-ico-sword"></use></svg><span>兵隊編成</span></span></div>
+    <div style="font-size:11px; color:#64748b; margin-bottom:12px;">兵種の配分と、防衛・遠征への影響</div>
     <div id="soldier-content"></div>
     <button class="modal-btn" id="btn-soldier-close">閉じる</button>
   </div>
@@ -14341,36 +14537,104 @@ function expandMap(forcedType, isEmergency) {
     return sum / cnt.total;
   }
 
+  function getCasteRatioWeightedMul(key) {
+    if(!isCasteSystemUnlocked()) return 1;
+    const r = getCasteRatio();
+    let sum = 0;
+    for(const def of SOLDIER_CASTE_DEFS) {
+      sum += ((r[def.id] || 0) / 100) * (def[key] != null ? def[key] : 1);
+    }
+    return sum || 1;
+  }
+
+  function getCasteUiColor(id) {
+    if(id === 'scout') return '#14b8a6';
+    if(id === 'heavy') return '#60a5fa';
+    return '#cbd5e1';
+  }
+
+  function getCasteUiIcon(id) {
+    if(id === 'scout') return 'compass';
+    if(id === 'heavy') return 'shield';
+    return 'ant';
+  }
+
+  function renderSoldierStatCard(label, value, note = '') {
+    return `<div class="soldier-stat">`
+      + `<div class="soldier-stat-label">${escapeHtml(label)}</div>`
+      + `<div class="soldier-stat-value">${value}</div>`
+      + (note ? `<div class="soldier-stat-note">${escapeHtml(note)}</div>` : '')
+      + `</div>`;
+  }
+
+  function renderSoldierEffectCard(label, value, note) {
+    return `<div class="soldier-effect-card">`
+      + `<div class="soldier-effect-label">${escapeHtml(label)}</div>`
+      + `<div class="soldier-effect-value">${escapeHtml(value)}</div>`
+      + `<div class="soldier-effect-note">${escapeHtml(note)}</div>`
+      + `</div>`;
+  }
+
   // 兵種編成UI（コロニー全体）。casteSystem 未解放なら空。
   function renderCasteSection() {
     if(!isCasteSystemUnlocked()) return '';
     const r = getCasteRatio();
     const counts = getSoldierCasteCounts();
-    const powerMul = getCasteWeightedMul('powerMul');
-    const expedMul = getCasteWeightedMul('expeditionMul');
+    const powerMul = getCasteRatioWeightedMul('powerMul');
+    const hpMul = getCasteRatioWeightedMul('hpMul');
+    const expedMul = getCasteRatioWeightedMul('expeditionMul');
+    const appliedText = counts.total > 0 ? `${fmtCount(counts.total)}匹に適用` : '次の雇用に予約';
+    const hintText = counts.total > 0
+      ? '斥候・重装を増やすと、標準兵の割合がその分だけ減ります。'
+      : '兵隊が0匹でも、ここで決めた比率は次に雇う兵隊へ反映されます。';
+    const bar = SOLDIER_CASTE_DEFS.map(def => {
+      const pct = Math.max(0, r[def.id] || 0);
+      return `<span style="width:${pct}%;--caste-color:${getCasteUiColor(def.id)}" title="${escapeHtml(def.name)} ${pct}%"></span>`;
+    }).join('');
     let rows = '';
     for(const def of SOLDIER_CASTE_DEFS) {
       const pct = r[def.id] || 0;
       const cnt = counts[def.id] || 0;
       const unlocked = isCasteUnlocked(def.id);
+      const color = getCasteUiColor(def.id);
       let controls;
       if(def.id === 'standard') {
-        controls = `<span style="font-size:12px;color:#cbd5e1;min-width:54px;text-align:right;">${pct}%（残り）</span>`;
+        controls = `<span class="soldier-caste-auto">残り</span>`;
       } else if(!unlocked) {
-        controls = `<span style="font-size:11px;color:#64748b;min-width:54px;text-align:right;">研究で解放</span>`;
+        controls = `<span class="soldier-caste-locked">${uiIconWithText('lock', '研究')}</span>`;
       } else {
-        controls = `<button class="caste-step" data-caste-adj="${def.id}:-5" style="width:24px;height:24px;border:none;border-radius:5px;background:#334155;color:#e2e8f0;font-weight:700;cursor:pointer;">−</button>`
-          + `<span style="font-size:12px;color:#e2e8f0;min-width:34px;text-align:center;font-weight:700;">${pct}%</span>`
-          + `<button class="caste-step" data-caste-adj="${def.id}:5" style="width:24px;height:24px;border:none;border-radius:5px;background:#14b8a6;color:#0f172a;font-weight:700;cursor:pointer;">＋</button>`;
+        const canDec = pct > 0;
+        const canInc = def.id === 'scout' ? pct < 100 - (r.heavy || 0) : pct < 100 - (r.scout || 0);
+        controls = `<span class="soldier-stepper">`
+          + `<button type="button" class="caste-step minus" data-caste-adj="${def.id}:-5" aria-label="${escapeHtml(def.name)}を5%減らす"${canDec ? '' : ' disabled'}>-5%</button>`
+          + `<button type="button" class="caste-step plus" data-caste-adj="${def.id}:5" aria-label="${escapeHtml(def.name)}を5%増やす"${canInc ? '' : ' disabled'}>+5%</button>`
+          + `</span>`;
       }
-      rows += `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;${unlocked ? '' : 'opacity:0.5;'}">`
-        + `<span style="font-size:12px;color:#f1f5f9;flex:1;">${def.icon} ${def.name}<span style="font-size:10px;color:#94a3b8;"> ${cnt}匹</span></span>`
-        + controls + `</div>`;
+      rows += `<div class="soldier-caste-row${unlocked ? '' : ' locked-caste'}" style="--caste-color:${color}">`
+        + `<div class="soldier-caste-main">`
+        + `<div class="soldier-caste-name">${uiIconHtml(getCasteUiIcon(def.id))}<span>${escapeHtml(def.name)}</span></div>`
+        + `<div class="soldier-caste-desc">${escapeHtml(def.desc)}</div>`
+        + `</div>`
+        + `<div class="soldier-caste-meta">`
+        + `<span class="soldier-caste-count">${fmtCount(cnt)}匹</span>`
+        + `<span class="soldier-caste-pct">${pct}%</span>`
+        + controls
+        + `</div>`
+        + `</div>`;
     }
     return `<div class="exped-section">`
-      + `<div class="exped-section-title">兵種編成（コロニー全体）</div>`
-      + `<div style="font-size:11px;color:#94a3b8;margin-bottom:4px;">防衛火力 ×${powerMul.toFixed(2)} ／ 遠征適性 ×${expedMul.toFixed(2)}</div>`
-      + rows + `</div>`;
+      + `<div class="soldier-section-head"><div class="exped-section-title">兵種配分</div><div class="soldier-section-sub">${escapeHtml(appliedText)} / 標準は残り</div></div>`
+      + `<div class="soldier-composition-bar" aria-label="兵種配分">${bar}</div>`
+      + `<div class="soldier-caste-list">${rows}</div>`
+      + `<div class="soldier-hint">${escapeHtml(hintText)}</div>`
+      + `</div>`
+      + `<div class="exped-section">`
+      + `<div class="exped-section-title">編成効果</div>`
+      + `<div class="soldier-effect-grid">`
+      + renderSoldierEffectCard('防衛火力', `x${powerMul.toFixed(2)}`, '敵を倒す速さ')
+      + renderSoldierEffectCard('耐久', `x${hpMul.toFixed(2)}`, '兵隊の倒れにくさ')
+      + renderSoldierEffectCard('遠征適性', `x${expedMul.toFixed(2)}`, '遠征の成功補正')
+      + `</div></div>`;
   }
 
   // 兵種比率を増減（scout/heavy。standardは残り。scout+heavy≤100）
@@ -14391,27 +14655,26 @@ function expandMap(forcedType, isEmergency) {
     const el = document.getElementById('soldier-content');
     if(!el) return;
     if(!isSoldierPanelUnlocked()) {
-      el.innerHTML = `<div class="exped-locked">🔒 ${escapeHtml(getSoldierPanelLockText())}</div>`;
+      el.innerHTML = `<div class="exped-locked">${uiIconHtml('lock')} ${escapeHtml(getSoldierPanelLockText())}</div>`;
       hydrateUiIcons(el);
       return;
     }
     const total = Math.max(0, Math.floor(G.ants.soldier || 0));
     const power = (typeof getColonyCombatPower === 'function') ? getColonyCombatPower() : 0;
     const deployed = getDeployedSoldiers();
+    const available = Math.max(0, total - deployed);
+    const cap = Math.max(0, Math.floor(G.caps.soldier || 0));
     let html = '';
-    html += `<div class="exped-section"><div class="exped-section-title">兵隊の状況</div>`
-      + `<div style="font-size:12px;color:#cbd5e1;line-height:1.8;">`
-      + `⚔️ 兵隊アリ: <b>${total}</b>匹${deployed > 0 ? `（うち ${deployed}匹 は遠征中）` : ''}<br>`
-      + `🛡️ 防衛力: <b>${fmtCount(Math.round(power))}</b><br>`
-      + `次の兵隊コスト: 🍃 ${fmtCount(G.getCost('soldier'))}`
-      + `</div></div>`;
+    html += `<div class="soldier-summary-grid">`
+      + renderSoldierStatCard('兵隊数', `${fmtCount(total)}匹`, cap > 0 ? `上限 ${fmtCount(cap)}匹` : '兵舎で上限が増える')
+      + renderSoldierStatCard('防衛待機', `${fmtCount(available)}匹`, deployed > 0 ? `遠征中 ${fmtCount(deployed)}匹` : '全員が巣に待機')
+      + renderSoldierStatCard('防衛力', fmtCount(Math.round(power)), '兵隊数・Lv・兵種で変化')
+      + renderSoldierStatCard('次の雇用', uiCostIcon('food', fmtCount(G.getCost('soldier'))), '働きアリも1匹必要')
+      + `</div>`;
     if(isCasteSystemUnlocked()){
       html += renderCasteSection();
-      html += `<div class="exped-section"><div class="exped-section-title">兵種の特徴</div>`
-        + SOLDIER_CASTE_DEFS.map(d => `<div style="font-size:11px;color:#94a3b8;padding:3px 0;line-height:1.4;"><span style="color:#e2e8f0;font-weight:700;">${d.icon} ${d.name}</span> — ${d.desc}</div>`).join('')
-        + `</div>`;
     } else {
-      html += `<div class="exped-locked">🔒 研究「兵種分化」(防衛枝) を取ると、斥候・重装などの兵種を編成できます</div>`;
+      html += `<div class="soldier-lock-note">${uiIconHtml('lock')}<span>研究「兵種分化」(防衛枝) を取ると、斥候・重装の比率をここで調整できます。今は全員が標準兵として扱われます。</span></div>`;
     }
     el.innerHTML = html;
     hydrateUiIcons(el);
