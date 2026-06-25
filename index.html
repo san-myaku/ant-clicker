@@ -4510,8 +4510,8 @@
   const CROWD_ANT_FRAMES = 6;
   const CROWD_ROUTE_ROOM = 0;
   const CROWD_ROUTE_EDGE = 1;
-  const CROWD_LAYOUT_VERSION = 2;
-  const DRAW_UNDERGROUND_EDGE_ANTS = false;
+  const CROWD_LAYOUT_VERSION = 3;
+  const DRAW_UNDERGROUND_EDGE_ANTS = true;
   // 描画設定（幼虫うねうねON/OFFを追加）
   const DEFAULT_RENDER_SETTINGS = { mode:'auto', lod:true, cap:VISUAL_ANT_HARD_CAP, larvaWiggle:true };
   const VERSION_STR = "V23.0 Season & Invaders";
@@ -23258,13 +23258,39 @@ function syncFermenterUnlockUI() {
     if(!S.full || !crowd || crowd.count <= 0) return;
     const stepDt = Math.min(Math.max(0, dt || 0), 0.05);
     const nodes = S.full.nodes;
+    const edges = S.full.edges;
     for(let i=0; i<crowd.count; i++) {
       crowd.gaitPhase[i] += stepDt * (3.4 + crowd.speed[i] / Math.max(1, dp(24)));
       if(crowd.routeKind[i] === CROWD_ROUTE_EDGE) {
-        const pools = getCrowdPools();
-        const fallbackNode = pickCrowdNodeForRole(crowd.role[i] | 0, pools);
-        placeCrowdAntInNode(crowd, i, fallbackNode, false);
-        crowd.nextSwitchAt[i] = S.t + 1.2 + Math.random() * 4.0;
+        const eid = crowd.edgeId[i];
+        const e = edges[eid];
+        if(!e || !S.nodeVis[e.u] || !S.nodeVis[e.v] || (S.edgeFrac[eid] || 0) < 1) {
+          const pools = getCrowdPools();
+          initCrowdAnt(crowd, i, crowd.role[i], pools);
+          continue;
+        }
+        const len = getCrowdEdgeLen(e);
+        const dir = crowd.dir[i] >= 0 ? 1 : -1;
+        let tt = crowd.t[i] + dir * (crowd.speed[i] / len) * stepDt;
+        if(tt <= 0 || tt >= 1) {
+          tt = clamp(tt, 0, 1);
+          const nodeId = dir > 0 ? e.v : e.u;
+          const p = cubic(e.p0, e.p1, e.p2, e.p3, tt);
+          crowd.x[i] = p.x;
+          crowd.y[i] = p.y;
+          placeCrowdAntInNode(crowd, i, nodeId, true);
+          crowd.nextSwitchAt[i] = S.t + 2.0 + Math.random() * 5.0;
+          continue;
+        }
+        crowd.t[i] = tt;
+        const p = cubic(e.p0, e.p1, e.p2, e.p3, tt);
+        const t0 = clamp(tt - 0.025 * dir, 0, 1);
+        const t1 = clamp(tt + 0.025 * dir, 0, 1);
+        const p0 = cubic(e.p0, e.p1, e.p2, e.p3, t0);
+        const p1 = cubic(e.p0, e.p1, e.p2, e.p3, t1);
+        crowd.x[i] = p.x;
+        crowd.y[i] = p.y;
+        crowd.rot[i] = Math.atan2(p1.y - p0.y, p1.x - p0.x);
         continue;
       }
       let nodeId = crowd.nodeId[i];
