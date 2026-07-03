@@ -2,72 +2,72 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Shape
+## プロジェクトの形
 
-This is a single-file browser game: an ant colony clicker/idle sim ("Ant Colony V23"). `index.html` (~26k lines) is the **only runtime file** and contains all HTML, CSS (`<style>` block near the top), and JavaScript (one large `<script>` block wrapped in an IIFE). There is no build system, no package.json, no test framework, and no linter.
+単一ファイルのブラウザゲーム（アリコロニーのクリッカー/放置シム「Ant Colony V23」）。`index.html`（約26,000行）が**唯一のランタイムファイル**で、HTML・CSS（冒頭付近の `<style>` ブロック）・JavaScript（IIFE で包まれた1つの巨大な `<script>` ブロック）をすべて含む。ビルドシステム・package.json・テストフレームワーク・リンターは存在しない。
 
-- Deployed via GitHub Pages: https://san-myaku.github.io/ant-clicker/ (public but low-profile; `robots.txt` disallows crawling)
-- Saves live in each browser origin's `localStorage`, so local and online saves are separate
-- Code comments and much of the documentation are in Japanese; commit messages are in English
+- GitHub Pages で公開: https://san-myaku.github.io/ant-clicker/ （公開だが低プロファイル運用。`robots.txt` でクロール拒否）
+- セーブはブラウザオリジンごとの `localStorage` に保存されるため、ローカルとオンラインのセーブは別物
+- コードコメントとドキュメントの多くは日本語、コミットメッセージは英語
 
-## Commands
+## コマンド
 
-No build or install step. Common workflows:
+ビルドやインストールの手順はない。よく使うワークフロー:
 
 ```bash
-# Syntax-check the inline script after editing
+# 編集後にインラインスクリプトを構文チェック
 sed -n '/^<script>$/,/^<\/script>/p' index.html | sed '1d;$d' > /tmp/game.js && node --check /tmp/game.js
 
-# Serve locally for browser verification (dev mode via ?dev=1)
+# ブラウザ検証用にローカル配信（?dev=1 でdevモード）
 python3 -m http.server 8765
-# then open http://localhost:8765/?dev=1&cb=<timestamp>   (cb= busts cache)
+# その後 http://localhost:8765/?dev=1&cb=<timestamp> を開く（cb= はキャッシュバスト用）
 ```
 
-There are no unit tests. Verification is done by driving the page in a real browser (Playwright with the pre-installed Chromium works, including `file://` URLs with `?dev=1`), checking for console errors / pageerrors, and taking screenshots. Notes from `MEMORY.md`:
+ユニットテストはない。検証は実ブラウザでページを操作して行う（プリインストールの Chromium + Playwright が使える。`file://` URL + `?dev=1` も可）。コンソールエラー / pageerror の確認とスクリーンショット撮影が基本。`MEMORY.md` の注意点:
 
-- Prefer headless Chrome/CDP for UI, mobile-width, and console-error verification; don't waste time retrying flaky browser connections when static checks suffice.
-- Only require browser verification when visual layout, interaction, or runtime console behavior matters.
-- Headless "preview" tabs can stick at `visibilityState: hidden`, which stops `requestAnimationFrame` and breaks rendering/screenshots — use a real browser or CDP screenshots that force frame drawing.
+- UI・モバイル幅・コンソールエラーの検証には headless Chrome/CDP を優先する。静的チェックで足りる場合、不安定なブラウザ接続のリトライに時間をかけない。
+- ブラウザ検証を必須にするのは、見た目のレイアウト・インタラクション・ランタイムのコンソール挙動が関わる変更のみ。
+- headless の「プレビュー」タブは `visibilityState: hidden` に固着することがあり、`requestAnimationFrame` が止まって描画/スクショが壊れる。実ブラウザか、フレーム描画を強制する CDP スクリーンショットを使うこと。
 
-QA screenshots are committed under `qa_screenshots/`; UI concept boards live in `design_concepts/`.
+QA スクリーンショットは `qa_screenshots/` にコミットする。UI コンセプトボードは `design_concepts/` にある。
 
-## Documentation Discipline (critical)
+## ドキュメント運用（重要）
 
-For every meaningful game update, update **both** of these in the same commit as the code change:
+意味のあるゲーム更新のたびに、コード変更と**同じコミットで**以下の両方を更新する:
 
-- `DEVELOPMENT_LOG.md` — chronological change log (newest entries at top)
-- `CURRENT_SYSTEM_OVERVIEW.md` — the current source-of-truth system overview; keep it aligned with `index.html`
+- `DEVELOPMENT_LOG.md` — 時系列の変更ログ（新しいエントリが上）
+- `CURRENT_SYSTEM_OVERVIEW.md` — 現行システムの source-of-truth 概要。常に `index.html` と整合させる
 
-This applies whenever behavior, save shape, UI, AI, rendering, unlocks, public deployment assumptions, or known TODOs change. Other docs: `MEMORY.md` (verification/workflow notes), `HANDOFF_mesh_nest.md` (mesh-nest rewrite handoff), `NEST_REALISM_ROADMAP.md` and `NEST_STRUCTURE_REDESIGN_PLAN.md` (feature plans).
+挙動・セーブ形式・UI・AI・描画・アンロック・公開デプロイ前提・既知TODO のいずれかが変わったら適用する。その他のドキュメント: `MEMORY.md`（検証/ワークフローのメモ）、`HANDOFF_mesh_nest.md`（メッシュ巣リライトの引き継ぎ）、`NEST_REALISM_ROADMAP.md` と `NEST_STRUCTURE_REDESIGN_PLAN.md`（機能計画）。
 
-## Architecture
+## アーキテクチャ
 
-Everything lives in the single IIFE inside `index.html`. Only three things are exposed globally: `G`, `S`, and `window._dbg` (debug hooks: `generateMeshNest`, `findNodePath`, `getPath`, `getPathDebugStats`, `initLegacyWorld`, builder/dig internals, etc.). Search the file **by function name, not line number** — line numbers drift constantly.
+すべてが `index.html` 内の単一 IIFE に入っている。グローバルに公開されるのは `G`・`S`・`window._dbg`（デバッグフック: `generateMeshNest`、`findNodePath`、`getPath`、`getPathDebugStats`、`initLegacyWorld`、builder/掘削の内部関数など）の3つだけ。ファイル内の検索は**行番号ではなく関数名で**行うこと — 行番号は常にドリフトする。
 
-### State objects
+### 状態オブジェクト
 
-- **`G`** — persisted progression: resources (`food`, `cookie`, `eggs`, `larvae`, golden variants), upgrade levels (`qLv`, `nLv`, `bLv`, `sLv`, `wLv`), ant counts by role (`worker`, `nurse`, `builder`, `soldier`, `fermenter`), caps, research state, majors, special-room build reservations.
-- **`S`** — world/runtime state: the generated nest graph `S.full` (`nodes`, `edges`, `byNode`, entrance `eid`, queen room `qid`), simulated ants, effects, enemies/invaders, season/weather/buffs, camera `S.cam`, render settings, and runtime-only generated terrain/texture caches (never saved).
+- **`G`** — 永続化される進行状態: 資源（`food`、`cookie`、`eggs`、`larvae`、golden系）、アップグレードレベル（`qLv`、`nLv`、`bLv`、`sLv`、`wLv`）、役割ごとのアリ数（`worker`、`nurse`、`builder`、`soldier`、`fermenter`）、caps、リサーチ状態、major、特殊部屋の建設予約。
+- **`S`** — ワールド/ランタイム状態: 生成された巣グラフ `S.full`（`nodes`、`edges`、`byNode`、入口 `eid`、女王房 `qid`）、シミュレーション中のアリ、エフェクト、敵/侵略者、季節/天候/バフ、カメラ `S.cam`、レンダー設定、ランタイム限定の生成地形/テクスチャキャッシュ（保存されない）。
 
-### Save/load
+### セーブ/ロード
 
-`G.save()` writes `{ g: G.toSave(), world: S.serializeWorld(), last: timestamp }` to `localStorage`. Keys: `SAVE_KEY = "antSimV23_0"`, `SAVE_KEY_OLD = "antSimV22_2"`, `RENDER_SETTINGS_KEY = "ant_render_settings_v1"`. Load goes through repair/compatibility code (missing keys completed, removed systems converted, world width compressed to the current base). **Preserve save compatibility**: when changing saved state, extend the load-repair path rather than breaking old saves. Purely visual changes should not touch the save format — many past changes explicitly kept "game logic / save shape unchanged."
+`G.save()` は `{ g: G.toSave(), world: S.serializeWorld(), last: timestamp }` を `localStorage` に書く。キー: `SAVE_KEY = "antSimV23_0"`、`SAVE_KEY_OLD = "antSimV22_2"`、`RENDER_SETTINGS_KEY = "ant_render_settings_v1"`。ロードは修復/互換コードを通る（欠損キーの補完、廃止システムの変換、ワールド幅の現行ベースへの圧縮）。**セーブ互換性を守ること**: 保存される状態を変えるときは、旧セーブを壊すのではなくロード修復パスを拡張する。見た目だけの変更はセーブ形式に触れないこと — 過去の変更の多くが「ゲームロジック/セーブ形式は未変更」を明示的に守っている。
 
-### World: mesh nest
+### ワールド: メッシュ巣
 
-The mesh-growth nest is the default for new games: `initWorld()` delegates to `generateMeshNest({ growth:true, production:true, ... })`. The legacy generator survives as `initLegacyWorld()` (dev-only). Tuning constants live in `MESH_GEN_DEFAULTS`; the `S._meshNest` flag switches shared drawing code to mesh-specific room/edge shapes. Pathfinding (`findNodePath()` / `getPath()`) is weighted search over completed tunnels only (bezier length + congestion + jitter). Growth mode (`S._meshGrowth`) has builder AI progressively dig pre-generated hidden edges instead of the old `expandMap()` tree growth. See `HANDOFF_mesh_nest.md` for the full handoff.
+メッシュ成長巣が新規ゲームのデフォルト: `initWorld()` は `generateMeshNest({ growth:true, production:true, ... })` へ委譲する。旧ジェネレーターは `initLegacyWorld()`（dev専用）として残る。チューニング値は `MESH_GEN_DEFAULTS` に集約。`S._meshNest` フラグで共有描画コードがメッシュ専用の部屋/エッジ形状に切り替わる。経路探索（`findNodePath()` / `getPath()`）は完成済みトンネルのみを対象とした重み付き探索（ベジェ長＋混雑＋小さな揺らぎ）。成長モード（`S._meshGrowth`）では、旧 `expandMap()` の木構造成長の代わりに、建築AIが事前生成済みの未開通エッジを段階的に掘る。詳細は `HANDOFF_mesh_nest.md` を参照。
 
-### Rendering
+### 描画
 
-Canvas rendering with heavy caching: static soil/terrain layers are baked once (`buildBackgroundAssets()`, `drawBackgroundDetails()`) rather than drawn per frame; procedural patterns (`soilPatternCanvas`, `cavityPatternCanvas`) plus image textures from `assets/textures/`. Ants split into a small number of fully-simulated "action" ants and cheap "crowd" ants (representative-actor model — see overview §7–8). Render settings (vector/sprite/dot modes) persist separately from the save.
+Canvas 描画＋重いキャッシュ: 静的な土/地形レイヤーは毎フレームではなく一度だけ焼く（`buildBackgroundAssets()`、`drawBackgroundDetails()`）。プロシージャルパターン（`soilPatternCanvas`、`cavityPatternCanvas`）と `assets/textures/` の画像テクスチャを併用。アリは少数のフル シミュレーション「action」アリと軽量な「crowd」アリに分かれる（代表アクターモデル — 概要 §7–8 参照）。レンダー設定（vector/sprite/dot モード）はセーブとは別に永続化される。
 
 ### UI
 
-Right-side control panel with Ants / Rooms / Research tabs and an upgrade dock; on mobile (max-width 959px) the panel becomes a bottom sheet and the HUD compacts. Dev mode is activated with URL param `?dev=1` or a 5-second long-press on the version button; it adds mesh-nest experiment buttons and debug toggles.
+右側のコントロールパネルに Ants / Rooms / Research タブとアップグレードドック。モバイル（max-width 959px）ではパネルがボトムシートになり、HUD がコンパクト化する。dev モードは URL パラメータ `?dev=1`、またはバージョンボタンの5秒長押しで有効化。メッシュ巣の実験ボタンとデバッグトグルが追加される。
 
-## Conventions
+## 慣習
 
-- `.gitignore` excludes `.claude/`, `ant_colony_v22_*.html` backups, and `__tmp*.js` scratch files — don't commit scratch extractions of the inline script.
-- Dev-button / `window._dbg.generateMeshNest()` manual experiments are `transient` and must not overwrite normal saves (save guard).
-- When tuning mesh generation, experiment live via `generateMeshNest({...userOpts})` in the console, then bake good values into `MESH_GEN_DEFAULTS`.
-- `CURRENT_SYSTEM_OVERVIEW.md` §24 tracks current known issues/TODOs — check it before assuming something is a new bug.
+- `.gitignore` は `.claude/`、`ant_colony_v22_*.html` バックアップ、`__tmp*.js` スクラッチファイルを除外している — インラインスクリプトの抽出物をコミットしないこと。
+- dev ボタン / `window._dbg.generateMeshNest()` の手動実験は `transient` 扱いで、通常セーブを上書きしてはならない（セーブガード）。
+- メッシュ生成のチューニングは、コンソールで `generateMeshNest({...userOpts})` をライブ実行して試し、良い値を `MESH_GEN_DEFAULTS` に焼く。
+- `CURRENT_SYSTEM_OVERVIEW.md` §24 が既知の問題/TODO を管理している — 新しいバグだと判断する前に確認すること。
