@@ -1,24 +1,30 @@
 # Ant Colony V23 Current System Overview
 
-Last updated: 2026-06-19 (mesh realism F1 soil/cavity polish)
+Last updated: 2026-07-03 (publishing metadata / PWA / save hardening)
 Target file: `index.html`
 
 This document is the current implementation overview for the single-file ant clicker game. When gameplay, UI, save data, AI behavior, or public deployment assumptions change, update this file together with `DEVELOPMENT_LOG.md`.
 
 ## 1. Project Shape
 
-`index.html` is the only runtime game file. It contains HTML, CSS, and JavaScript in one static page.
+`index.html` is the main runtime game file. It contains HTML, CSS, and JavaScript in one static page. Publishing support files sit next to it:
 
 - Public entry point: `index.html`
+- `manifest.webmanifest`: PWA manifest (lang ja, standalone display, `#080e18` theme/background, 192/512/maskable icons). All paths are relative so GitHub Pages subpath serving works.
+- `sw.js`: Service Worker. Network-first for all same-origin GET requests, caching successful responses and falling back to cache only when offline (`ignoreSearch: true`, navigations fall back to the cached `index.html`). Online users always get the latest deploy; there is no stale-version pinning. Registered from `index.html` only on `http(s):` (never on `file://`).
+- `assets/icons/`: generated amber ant emblem icons (`icon-192.png`, `icon-512.png`, `icon-512-maskable.png`, `apple-touch-icon.png`).
+- `assets/og-image.png`: 1200x630 link-preview card (real game screenshot + icon + title), referenced by absolute URL in the OGP tags.
+- The head carries full publishing metadata: Japanese title (`アントコロニー — 蟻の巣育成クリッカー`; runtime `document.title` appends `VERSION_STR`), meta description, `theme-color`, OGP + Twitter card, favicon/apple-touch-icon links, manifest link, and apple web-app metas. A `<noscript>` fallback message is the first element in `<body>`.
 - GitHub repository: `https://github.com/san-myaku/ant-clicker`
 - GitHub Pages URL: `https://san-myaku.github.io/ant-clicker/`
-- Public operation is treated as low-profile sharing. The Pages URL is public, but `robots.txt` asks search engines not to crawl it.
+- Public operation is treated as low-profile sharing. The Pages URL is public, but `robots.txt` asks search engines not to crawl it and the page carries `meta robots noindex` for consistency.
 - Local saves and online saves are separate because saves live in each browser origin's `localStorage`.
 
 Important keys:
 
 - `SAVE_KEY = "antSimV23_0"`
 - `SAVE_KEY_OLD = "antSimV22_2"`
+- `SAVE_KEY_BACKUP = "antSimV23_0_bak"` (one-generation rollback copy of the previous good save)
 - `RENDER_SETTINGS_KEY = "ant_render_settings_v1"`
 - `VERSION_STR = "V23.0 Season & Invaders"`
 
@@ -102,6 +108,14 @@ When loading a saved world wider than the current base width, `deserializeWorld(
 ## 3. Save And Load
 
 `G.save()` writes to `localStorage`.
+
+Robustness (2026-07-03 save hardening):
+
+- Before overwriting `SAVE_KEY`, `G.save()` copies the previous raw save to `SAVE_KEY_BACKUP` (one-generation rollback).
+- The `localStorage.setItem` write is wrapped in try/catch. On failure (quota exceeded, private-mode restrictions) it shows a warning toast and returns `false` instead of throwing; success returns `true`.
+- `G.load()` parses via a `parsePack` helper. If the main save is missing, unparsable, or missing `pack.g`, it falls back to `SAVE_KEY_BACKUP`; a successful backup restore is written back to `SAVE_KEY` and announced with a warning toast after init (`G._restoredFromBackup`).
+- Leave-save: `pagehide` and `visibilitychange` (hidden) trigger an immediate silent `G.save({showToast:false})`, so mobile tab discards lose at most seconds instead of up to the 5-minute `AUTO_SAVE_INTERVAL_MS`. The dev transient-world guard still applies.
+- `S._suppressLeaveSave` is set before the intentional `location.reload()` paths (data reset, prestige, save import) so the leave-save cannot resurrect a save that was just deleted or replaced. Reset and prestige also delete `SAVE_KEY_BACKUP`.
 
 Saved payload:
 

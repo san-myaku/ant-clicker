@@ -1,5 +1,42 @@
 # Development Log
 
+## 2026-07-03 製品公開パス整備: 公開メタデータ / PWA / セーブ堅牢化
+
+製品版としてのパブリッシュに不足していた「公開品質」の穴を潰す回。ゲームロジック・バランス・描画は不変更。
+
+公開メタデータ（`index.html` head）:
+
+- 静的タイトルを「アントコロニー — 蟻の巣育成クリッカー」に変更し、ランタイムの `document.title` も日本語タイトル + `VERSION_STR` に統一
+- `meta description` / `theme-color (#080e18)` / OGP（og:title, og:description, og:url, og:image 1200x630, ja_JP）/ `twitter:card summary_large_image` を追加
+- 低プロファイル共有方針（robots.txt の Disallow）と整合する `meta robots noindex` を追加
+- favicon（PNG 192/512）と `apple-touch-icon`（180）を追加。アイコンは新規作成した琥珀色アリ紋章（`assets/icons/`）
+- `assets/og-image.png` は実ゲーム画面（チュートリアルスキップ後の巣断面）にアイコンとタイトルを合成して生成
+- `<noscript>` フォールバック（JS必須の案内）を body 先頭に追加
+
+PWA:
+
+- `manifest.webmanifest` 追加（lang ja / standalone / theme・background `#080e18` / 192・512・maskable アイコン）。GitHub Pages のサブパス配信に合わせ全て相対パス
+- `sw.js`（Service Worker）追加。**ネットワーク優先**＋成功レスポンスをキャッシュ、オフライン時のみキャッシュへフォールバック（`ignoreSearch: true` なので `?dev=1`/`?cb=` も同一キャッシュに解決）。オンライン時は常に最新版が配信されるため旧版固着は起きない
+- 登録は `http(s):` のみ（`file://` 直開きでは何もしない）
+
+セーブ堅牢化:
+
+- `SAVE_KEY_BACKUP = "antSimV23_0_bak"` を追加。`G.save()` は本体上書き前に直前セーブをバックアップへ退避し、`localStorage.setItem` を try/catch で保護（容量超過・プライベートモードで落ちずに警告トースト + `false` を返す）
+- `G.load()` は本体セーブが欠損/JSON破損/形式不正のとき、バックアップから復元して本体キーへ書き戻し、初期化後に警告トーストで通知
+- **離脱時の即時自動保存**を追加: `pagehide` と `visibilitychange(hidden)` で `G.save({showToast:false})`。モバイルのタブ破棄で最大5分（`AUTO_SAVE_INTERVAL_MS`）の進行が失われる問題への対策
+- リセット / 転生 / セーブインポートの `location.reload()` 経路には `S._suppressLeaveSave` ガードを追加し、離脱時保存が意図的なセーブ消去・差し替えを巻き戻さないようにした（リセット/転生はバックアップキーも削除）
+- dev transient world（試作メッシュ巣）の保存ブロックは離脱時保存にも適用
+
+リポジトリ掃除:
+
+- 追跡されていた `debug.log`（ローカルChromiumのノイズログ）を削除し `.gitignore` へ追加
+
+確認:
+
+- inline script の `node --check`、`sw.js` の `node --check`、manifest の JSON parse すべて成功
+- Playwright（headless Chromium, `http://127.0.0.1:8765`）で 22項目の自動チェック全PASS: メタタグ/アイコン/manifest/OG画像/sw.js の配信200、Service Worker 登録 active、新規ロード・復元ロード・モバイルともコンソール/pageerror 0、`visibilitychange(hidden)` で即時保存、`G.save()` でバックアップ世代退避、本体セーブを故意に破損させてリロード → バックアップから進行復元
+- デスクトップ/モバイルのスクリーンショットで表示崩れなし
+
 ## 2026-06-20 Nest realism F5.5: revert procedural surface, add raster layer
 
 The procedural surface-strengthening commits were reverted because they made the queen chamber area visually inconsistent, added draw cost, and were hard to tune. The replacement keeps the surface treatment image-based.
