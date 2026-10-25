@@ -68,8 +68,18 @@ replace('pack.builds.length!==4','pack.builds.length!==pack.rooms.length','saved
 replace('for(const rid of [2,3]){const b=pack.builds[rid];','for(const rid of pack.rooms.slice(2).map(r=>r.id)){const b=pack.builds[rid];','saved real branches');
 replace("['grainRoom',3]","['grainRoom',13]",'grain room tags');
 replace('!integer(a.id,1,64)','!integer(a.id,1,128)','stable ant ids');
+replace('material>2||carrier>64||','material>2||carrier>128||','bodies carried by stable ant ids');
 replace('![0,2,3].includes(j.rid)','![0,...s.roomIds()].includes(j.rid)','saved work room');
 replace('![1,2,3].includes(t.rid)','![1,...s.roomIds()].includes(t.rid)','saved item destination');
+replace('    tipFootprint(a,b){',`    // A footprint is pure geometry of its poses: no terrain, stock or actor
+    // state. Planning re-derives the same lane footprints on every pass as
+    // the colony grows, so reuse each result. Callers only read the grains.
+    footprintMemo(key,make){if(!this._footprints)this._footprints=new Map();let out=this._footprints.get(key);if(!out){if(this._footprints.size>=FOOTPRINT_MEMO)this._footprints.clear();out=make();this._footprints.set(key,out);}return out;}
+    tipFootprint(a,b){return this.footprintMemo('t:'+a.x+':'+a.y+':'+a.angle+':'+b.x+':'+b.y+':'+b.angle,()=>this.sweptTipFootprint(a,b));}
+    sweptTipFootprint(a,b){`,'reuse pure tip footprints');
+replace('    transportFootprint(a,b,widthA=null,widthB=null,shiftA=0,shiftB=0){const turn=',`    transportFootprint(a,b,widthA=null,widthB=null,shiftA=0,shiftB=0){return this.footprintMemo('l:'+a.x+':'+a.y+':'+a.angle+':'+b.x+':'+b.y+':'+b.angle+':'+widthA+':'+widthB+':'+shiftA+':'+shiftB,()=>this.sweptTransportFootprint(a,b,widthA,widthB,shiftA,shiftB));}
+    sweptTransportFootprint(a,b,widthA,widthB,shiftA,shiftB){const turn=`,'reuse pure lane footprints');
+replace("  const STEP=1/60, PICKUP_SECONDS","  const FOOTPRINT_MEMO=60000;\n  const STEP=1/60, PICKUP_SECONDS",'footprint memo bound');
 fs.writeFileSync(path.join(root,'core.js'),source);
 source=read('game.js');
 replace("FORMAT='ant-colony-1',KEY='antColonyGame_1',LIMIT=64","FORMAT='living-clicker-life-1',KEY='livingClicker_1',LIMIT=128",'independent lifecycle save');
@@ -77,5 +87,8 @@ replace("else root.ColonyGame=factory(root.LivingNest);","else root.ColonyLife=f
 replace("const rate=1+this.colony.upgrades.brood*.2;","const rate=this.broodRate?.()||1+this.colony.upgrades.brood*.2;",'actual development research');
 replace('this.colony.queen+dt)','this.colony.queen+dt*(this.layRate?.()||1))','actual queen research');
 replace('this.physics.remove(b);this.colony.brood=this.colony.brood.filter(a=>a!==e);','this.physics.remove(b);this.afterBirth?.(this.ants.at(-1));this.colony.brood=this.colony.brood.filter(a=>a!==e);','newborn chooses an actual free resting place');
+// The stock count is fixed during one ant's filter. Count it once when a wild
+// item asks, not by rescanning every body for every incoming item.
+replace("this._incoming=(all||[]).filter(b=>!feeding.has(b.id)&&(ant.role==='nurse'?b.kind==='egg':b.kind==='food'&&(!this.colony.wild.includes(b.id)||this.foodBodies().length<maximum)));","let stocked=null;\n      this._incoming=(all||[]).filter(b=>!feeding.has(b.id)&&(ant.role==='nurse'?b.kind==='egg':b.kind==='food'&&(!this.colony.wild.includes(b.id)||(stocked??=this.foodBodies().length)<maximum)));",'count stock once per filter');
 fs.writeFileSync(path.join(root,'lifecycle.js'),source);
 console.log('Organic core and lifecycle generated with checked hooks.');

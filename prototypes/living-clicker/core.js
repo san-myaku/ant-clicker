@@ -26,6 +26,7 @@
   }
   const GRAIN = grainUnit(4);
   const GRID = GRAIN.perUnit, FW = GRAIN.width, FH = GRAIN.height, FINE_SIZE = GRAIN.count, GRAIN_AREA = GRAIN.area;
+  const FOOTPRINT_MEMO=60000;
   const STEP=1/60, PICKUP_SECONDS=.2, SAVE_FORMAT='ant-colony-core-1', WALK_SPEED=9, MAX_LOAD=4, LANE_OFFSET=.35, CURVE_LANE_EXTRA=.18;
   const Physics = (function(){
 
@@ -231,7 +232,7 @@
       if(binary.length!==pack.count*STRIDE)fail();const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0)),v=new DataView(bytes.buffer);
       for(let i=0;i<pack.count;i++){
         const at=i*STRIDE,id=v.getUint32(at,true),kind=KINDS[v.getUint8(at+4)],material=v.getUint8(at+5),carrier=v.getUint8(at+6),state=STATES[v.getUint8(at+7)],values=['x','y','vx','vy'].map((_,k)=>v.getFloat64(at+8+k*8,true)),rest=v.getUint16(at+40,true),source=v.getInt32(at+42,true);
-        if(!id||id>=pack.nextId||this.byId.has(id)||!kind||material<1||material>2||carrier>64||!state||values.some(n=>!Number.isFinite(n))||Math.abs(values[2])>20||Math.abs(values[3])>20||rest>30||v.getUint32(at+46,true)!==0)fail();
+        if(!id||id>=pack.nextId||this.byId.has(id)||!kind||material<1||material>2||carrier>128||!state||values.some(n=>!Number.isFinite(n))||Math.abs(values[2])>20||Math.abs(values[3])>20||rest>30||v.getUint32(at+46,true)!==0)fail();
         const [x,y,vx,vy]=values,s=SHAPES[kind];
         if(x<s.hx-EPS||x>this.width-s.hx+EPS||y<s.hy-EPS||y>this.height-s.hy+EPS||(kind!=='soil'&&source!==-1))fail();
         this.spawn(kind,x,y,{id,material,carrier,state,vx,vy,rest,source});
@@ -989,7 +990,12 @@
       this.rooms[rid]={id:rid,x:target.x,y:target.y};
       return this.builds[rid]={tip:{x:root.x,y:root.y,angle:root.angle},target,history:[{x:root.x,y:root.y,angle:root.angle}],length:0,mode:'passage',complete:false,next:null};
     }
-    tipFootprint(a,b){
+    // A footprint is pure geometry of its poses: no terrain, stock or actor
+    // state. Planning re-derives the same lane footprints on every pass as
+    // the colony grows, so reuse each result. Callers only read the grains.
+    footprintMemo(key,make){if(!this._footprints)this._footprints=new Map();let out=this._footprints.get(key);if(!out){if(this._footprints.size>=FOOTPRINT_MEMO)this._footprints.clear();out=make();this._footprints.set(key,out);}return out;}
+    tipFootprint(a,b){return this.footprintMemo('t:'+a.x+':'+a.y+':'+a.angle+':'+b.x+':'+b.y+':'+b.angle,()=>this.sweptTipFootprint(a,b));}
+    sweptTipFootprint(a,b){
       const grains=new Set(),da=Math.atan2(Math.sin(b.angle-a.angle),Math.cos(b.angle-a.angle));
       let previous=null;
       const steps=a.x===b.x&&a.y===b.y&&da===0?0:16;
@@ -1003,7 +1009,8 @@
         if(previous)for(const g of this.sweptCargoCells(previous,{x,y},'soil'))grains.add(g);previous={x,y};
       }return [...grains];
     }
-    transportFootprint(a,b,widthA=null,widthB=null,shiftA=0,shiftB=0){const turn=Math.abs(Math.atan2(Math.sin(b.angle-a.angle),Math.cos(b.angle-a.angle))),width=LANE_OFFSET+CURVE_LANE_EXTRA*Math.min(1,turn/(Math.PI/4)),grains=new Set();for(const [reverse,backward] of [[false,false],[true,false],[true,true]]){
+    transportFootprint(a,b,widthA=null,widthB=null,shiftA=0,shiftB=0){return this.footprintMemo('l:'+a.x+':'+a.y+':'+a.angle+':'+b.x+':'+b.y+':'+b.angle+':'+widthA+':'+widthB+':'+shiftA+':'+shiftB,()=>this.sweptTransportFootprint(a,b,widthA,widthB,shiftA,shiftB));}
+    sweptTransportFootprint(a,b,widthA,widthB,shiftA,shiftB){const turn=Math.abs(Math.atan2(Math.sin(b.angle-a.angle),Math.cos(b.angle-a.angle))),width=LANE_OFFSET+CURVE_LANE_EXTRA*Math.min(1,turn/(Math.PI/4)),grains=new Set();for(const [reverse,backward] of [[false,false],[true,false],[true,true]]){
       const offset=(p,w,shift)=>{const travel=renderAngle(p.angle+(reverse?Math.PI:0)),angle=backward?p.angle:travel;return {x:p.x-Math.sin(p.angle)*shift-Math.sin(travel)*w,y:p.y+Math.cos(p.angle)*shift+Math.cos(travel)*w,angle};};
       for(const g of this.tipFootprint(offset(a,widthA??width,shiftA),offset(b,widthB??width,shiftB)))if(g>=0&&g<FINE_SIZE)grains.add(g);
     }return [...grains];}

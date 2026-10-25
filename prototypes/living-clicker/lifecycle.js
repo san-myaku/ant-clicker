@@ -133,7 +133,8 @@
       }
       const all=this._incoming,feeding=new Set(this.ants.filter(a=>a.itemTask?.purpose==='feed').map(a=>a.itemTask.target));
       const maximum=Math.max(10,Math.ceil(this.ants.length*1.2));
-      this._incoming=(all||[]).filter(b=>!feeding.has(b.id)&&(ant.role==='nurse'?b.kind==='egg':b.kind==='food'&&(!this.colony.wild.includes(b.id)||this.foodBodies().length<maximum)));
+      let stocked=null;
+      this._incoming=(all||[]).filter(b=>!feeding.has(b.id)&&(ant.role==='nurse'?b.kind==='egg':b.kind==='food'&&(!this.colony.wild.includes(b.id)||(stocked??=this.foodBodies().length)<maximum)));
       let result;try{result=super.stepItemTask(ant,dt,occupancy);}finally{this._incoming=all;}
       if(ant.itemTask?.phase==='store'&&this.colony.wild.includes(ant.itemTask.body)){
         this.colony.wild=this.colony.wild.filter(id=>id!==ant.itemTask.body);this.colony.stats.gathered++;
