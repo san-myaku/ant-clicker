@@ -6,10 +6,18 @@
 
 # Ant Colony V23 Current System Overview
 
-Last updated: 2026-10-26 (Claude handoff; game source unchanged)
+Last updated: 2026-10-26 (Claude cloud: living-clicker save fix, planning cache, scale measurement)
 Target file: `index.html`
 
 This document is the current implementation overview for the single-file ant clicker game. When gameplay, UI, save data, AI behavior, or public deployment assumptions change, update this file together with `DEVELOPMENT_LOG.md`.
+
+## 2026-10-26 クラウドでの継続（living-clicker）
+
+- 保存: 物体の運び手の番号は1〜128を受理（以前は64で、女王の包容力の後の保存を拒否していた）。129以上は拒否。
+- 計画処理: 通路の足跡は姿勢から決まる純粋な幾何として再利用（`_footprints`、保存しない、上限60000件）。動作/保存結果は修正前と同一であることを8つの保存で確認。
+- 測定: `verify-scale.cjs` / `qa/scale-results.json`。64匹の自然育成保存から研究後に注入なしで育て、300ゲーム秒ごとのコストと内訳を記録。
+- 既知の停止: 地表の土山が空の上端へ届くと運搬係が止まる（`qa/heap-ceiling.json`、5196.4秒/107匹/土2921粒）。捨て場の設計は未決定。
+- 増加要因: 搬出した土は全て地表の物体として残り、物体を走査する処理の費用が搬出量に比例する。大人口へ進む前の構造課題。
 
 ## 2026-10-26 Claudeへの引き継ぎ
 

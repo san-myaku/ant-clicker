@@ -1,8 +1,8 @@
 {
   "source": {
     "index.html": "fc34f4950adda40db5797096b41ff63421b009a47f83fe029045dbbab9564fbe",
-    "core.js": "471be2ba9453dbb1ff9861054377d5f0bab51e4b1d7ea8be07308a615e88cd7e",
-    "lifecycle.js": "d4f8d674f4bdf48dafc66e882667c58264f71aec25a504899c86e07f28ed1e29",
+    "core.js": "216fdbb74fe61cbe5b10ad2c8b00f9e4860b302181b6aefdc5bcc56adab50917",
+    "lifecycle.js": "9299a6f937d04a1de6f660099866052a36dc1f9884d1987ac8d946f18d1af7ed",
     "game.js": "eb0c67ee6aa16a747647bb54cfa7f8c7054c8efcfb2a28dea4f22151061d9bd4",
     "view.js": "59eb75e492335e0773e08bd8c106110b57d7da1517c1800a91c123acad717da8"
   },

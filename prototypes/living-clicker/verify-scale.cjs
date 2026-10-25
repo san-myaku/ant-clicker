@@ -29,6 +29,7 @@ function checkCarrier(){const b=s.physics.bodies.find(b=>b.carrier>64);if(!b)ret
   const bad=structuredClone(saved),bytes=Buffer.from(bad.world.physics.data,'base64');bytes[s.physics.bodies.indexOf(b)*50+6]=129;bad.world.physics.data=bytes.toString('base64');assert.throws(()=>Game.Simulation.restore(bad));
   carried={t:+s.time.toFixed(2),body:b.id,kind:b.kind,carrier:b.carrier,ants:s.ants.length};console.log('PASS carrier above 64 saves '+JSON.stringify(carried));}
 const snapshots=[];
+try{
 for(let at=began+every;at<=began+limit+1e-6;at+=every){
   while(s.time<at-1200*Game.STEP-Game.STEP/2){s.step(Game.STEP);if(!carried)checkCarrier();}
   const msPerStep=window(600,false),timedMs=window(600,true),phaseMs=Object.fromEntries(Object.entries(phases).map(([k,v])=>[k,+(v/600).toFixed(3)]));
@@ -37,6 +38,10 @@ for(let at=began+every;at<=began+limit+1e-6;at+=every){
   snapshots.push(snap);console.log(JSON.stringify({t:snap.t,ants:snap.ants,brood:snap.brood,bodies:snap.bodies,jobs:snap.jobs,flow:snap.flowCells,ms:snap.msPerStep,phase:snap.phaseMs}));
   fs.writeFileSync(path.join(qa,'scale-checkpoint.json'),JSON.stringify(saved));
   if(s.ants.length>=s.populationLimit())break;
+}
+}catch(e){
+  // Keep the measured growth and the exact stop. Nothing is retried or moved.
+  fs.writeFileSync(path.join(qa,'scale-failed.json'),JSON.stringify({error:String(e),t:s.time,ants:s.ants.length,collision:s.collision,carried,snapshots,hashes,inputHash:sha(input)},null,2));throw e;
 }
 for(const [n,h]of Object.entries(hashes))assert.equal(sha(fs.readFileSync(path.join(__dirname,n))),h,'source changed during scale measurement');
 if(s.ants.length>64)assert(carried,'no ant above 64 carried a body during the run');

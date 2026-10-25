@@ -35,4 +35,4 @@
 
 初期64匹、女王の包容力で128匹は初期設計。大人口の完成目標を128へ下げた決定/性能保証ではない。**全61研究・兵隊/戦闘/遠征/発酵/転生・放置進行・旧本編の正式移行は未統合**。前の確認版の機能/保存を比較入口に保持する。
 
-設計: [DESIGN.md](DESIGN.md)。検証: `verify-world.cjs` / `verify-depth.cjs`、身体/荷の旋回・収納前線・細道予約・岩の迂回・掘削姿勢の往復の6回帰、`verify-browser.cjs` / `verify-observation.cjs` / `verify-access.cjs` / `verify-previous.cjs`。結果/実測/限界は `qa/VERIFICATION.md`。
+設計: [DESIGN.md](DESIGN.md)。検証: `verify-world.cjs` / `verify-depth.cjs`、身体/荷の旋回・収納前線・細道予約・岩の迂回・掘削姿勢の往復の6回帰、`verify-scale.cjs`（64匹超の自然育成とコスト内訳）、`verify-browser.cjs` / `verify-observation.cjs` / `verify-access.cjs` / `verify-previous.cjs`。結果/実測/限界は `qa/VERIFICATION.md`。
