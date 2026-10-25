@@ -1,0 +1,41 @@
+const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),assert=require('node:assert/strict'),crypto=require('node:crypto');
+const {chromium,launchOptions}=require('./qa-runtime.cjs');
+const root=__dirname,qa=path.join(root,'qa');fs.mkdirSync(qa,{recursive:true});
+const files=['index.html','core.js','lifecycle.js','game.js','view.js'],server=http.createServer((req,res)=>{const name=new URL(req.url,'http://localhost').pathname.split('/').at(-1)||'index.html';if(!files.includes(name)){res.writeHead(404);return res.end();}res.setHeader('Content-Type',name.endsWith('.js')?'text/javascript; charset=utf-8':'text/html; charset=utf-8');res.end(fs.readFileSync(path.join(root,name)));});
+const hashes=Object.fromEntries(files.map(n=>[n,crypto.createHash('sha256').update(fs.readFileSync(path.join(root,n))).digest('hex')]));
+const results=[];let browser;
+(async()=>{try{
+ await new Promise(r=>server.listen(0,'127.0.0.1',r));browser=await chromium.launch(launchOptions);
+ const url='http://127.0.0.1:'+server.address().port+'/clicker/';
+ for(const width of [1440,393,320]){
+  const context=await browser.newContext({viewport:{width,height:width<600?852:950},deviceScaleFactor:width<600?2:1,isMobile:width<600,hasTouch:width<600});
+  const protectedKeys=['antSimV23_0','antResearchMeta','antColonyGame_1','antLivingNestPrototype_14','grainClicker_1_antSimV23_0'];
+  await context.addInitScript(keys=>{requestAnimationFrame=()=>1;for(const k of keys)localStorage.setItem(k,'PROTECTED_'+k);},protectedKeys);
+  const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(String(e)));await page.goto(url);await page.evaluate(()=>colonyGame.pause(true));
+  await page.screenshot({path:path.join(qa,`initial-${width}.png`),fullPage:true,scale:'css'});
+  const q=await page.evaluate(()=>colonyGame.sim.colony.queen);await page.locator('#lay').click();assert.equal(await page.evaluate(()=>colonyGame.sim.colony.queen),q+4);await page.waitForTimeout(350);
+  const roles=await page.evaluate(()=>colonyGame.sim.roleCounts(true));await page.locator('[data-role="forage"][data-delta="1"]').click();assert.equal(await page.evaluate(()=>colonyGame.sim.roleCounts(true).forage),roles.forage+1);
+  await page.locator('#speed').selectOption('10');await page.reload();assert.equal(await page.locator('#speed').inputValue(),'10');await page.evaluate(()=>colonyGame.pause(true));
+  await page.locator('#open-research').click();await page.locator('[data-research="geo_depth_2"]').click();assert.match(await page.locator('#research-condition').textContent(),/20匹/);assert(await page.locator('#research-buy').isDisabled());
+  await page.screenshot({path:path.join(qa,`research-${width}.png`),fullPage:true,scale:'css'});await page.locator('#close-research').click();
+  const worldPath=path.join(qa,process.env.LIVING_GROWN||'world-180.json');if(fs.existsSync(worldPath)){
+    const pack=JSON.parse(fs.readFileSync(worldPath));await page.evaluate(p=>colonyGame.load(p),pack);await page.locator('#focus').click();await page.screenshot({path:path.join(qa,`grown-${width}.png`),fullPage:true,scale:'css'});
+    await page.locator('#fit').click();await page.screenshot({path:path.join(qa,`whole-${width}.png`),fullPage:true,scale:'css'});
+    if(pack.world.time>=800){
+      await page.locator('#open-research').click();await page.locator('[data-research="dig_speed"]').click();const before=await page.evaluate(()=>({food:colonyGame.sim.foodBodies().length,grains:JSON.stringify(colonyGame.dump().world.grains)}));
+      assert(!await page.locator('#research-buy').isDisabled());await page.locator('#research-buy').click();assert.equal(await page.evaluate(()=>colonyGame.sim.level('dig_speed')),1);assert.equal(await page.evaluate(()=>colonyGame.sim.foodBodies().length),before.food-6);
+      await page.locator('[data-research="geo_depth_2"]').click();assert(!await page.locator('#research-buy').isDisabled());await page.locator('#research-buy').click();assert.equal(await page.evaluate(()=>colonyGame.sim.depthAbility()),2);assert.equal(await page.evaluate(()=>colonyGame.sim.progress.reached),1);assert.equal(await page.evaluate(()=>JSON.stringify(colonyGame.dump().world.grains)),before.grains);await page.locator('#close-research').click();
+    }
+  }
+  await page.locator('#settings>summary').click();await page.screenshot({path:path.join(qa,`settings-${width}.png`),fullPage:true,scale:'css'});
+  const exact=await page.evaluate(()=>JSON.stringify(colonyGame.dump()));await page.locator('#save').click();const saved=await page.evaluate(()=>localStorage.getItem('livingClicker_1'));await page.reload();await page.evaluate(()=>colonyGame.pause(true));assert.equal(await page.evaluate(()=>JSON.stringify(colonyGame.dump())),saved);
+  await page.locator('#settings>summary').click();await page.locator('#import').setInputFiles({name:'invalid.json',mimeType:'application/json',buffer:Buffer.from('{"format":"invalid"}')});await page.waitForFunction(()=>document.getElementById('message').textContent.includes('開けません'),null,{polling:100});assert.equal(await page.evaluate(()=>JSON.stringify(colonyGame.dump())),saved);assert.equal(await page.evaluate(()=>localStorage.getItem('livingClicker_1')),saved);
+  await page.locator('#reset').click();assert.equal(await page.evaluate(()=>colonyGame.sim.ants.length),12);await page.locator('#undo').click();assert.equal(await page.evaluate(()=>JSON.stringify(colonyGame.dump())),saved);
+  await page.evaluate(()=>{window.qaSetItem=Storage.prototype.setItem;Storage.prototype.setItem=function(){throw new DOMException('Quota exceeded','QuotaExceededError');};});await page.locator('#save').click();assert.match(await page.locator('#message').textContent(),/書き出/);await page.locator('#reset').click();assert.equal(await page.evaluate(()=>JSON.stringify(colonyGame.dump())),saved);await page.evaluate(()=>Storage.prototype.setItem=window.qaSetItem);
+  const report=await page.evaluate(keys=>({overflow:document.documentElement.scrollWidth>innerWidth,protected:keys.every(k=>localStorage.getItem(k)==='PROTECTED_'+k),camera:colonyGame.camera,selection:getComputedStyle(document.querySelector('#lay')).userSelect,viewport:document.querySelector('meta[name=viewport]').content}),protectedKeys);
+  assert(!report.overflow);assert(report.protected);assert.equal(report.selection,'none');assert.deepEqual(errors,[]);results.push({width,pass:true,...report,errors});console.log(width+' PASS');await context.close();
+ }
+ const context=await browser.newContext({viewport:{width:1440,height:950}}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(String(e)));await page.goto(url);await page.locator('#speed').selectOption('10');const start=await page.evaluate(()=>colonyGame.sim.time);await page.waitForTimeout(6000);await page.evaluate(()=>colonyGame.pause(true));const end=await page.evaluate(()=>({time:colonyGame.sim.time,distance:colonyGame.sim.stats.distance,dug:colonyGame.sim.stats.grainDug}));assert(end.time-start>20);assert(end.distance>10);assert.deepEqual(errors,[]);results.push({name:'live-10x',pass:true,...end,errors});console.log('10x PASS');
+ const broken=await browser.newContext();await broken.addInitScript(()=>{requestAnimationFrame=()=>1;localStorage.setItem('livingClicker_1','CORRUPTED_BYTES');});const bp=await broken.newPage();await bp.goto(url);await bp.locator('#settings>summary').click();await bp.locator('#save').click();assert.equal(await bp.evaluate(()=>localStorage.getItem('livingClicker_1')),'CORRUPTED_BYTES');results.push({name:'corrupt-save-protection',pass:true});await broken.close();
+ for(const [n,h]of Object.entries(hashes))assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(root,n))).digest('hex'),h,'source changed during browser verification');fs.writeFileSync(path.join(qa,'browser-results.json'),JSON.stringify({results,hashes},null,2));
+ }finally{if(browser)await browser.close();server.close();}})().catch(e=>{console.error(e);process.exitCode=1;});

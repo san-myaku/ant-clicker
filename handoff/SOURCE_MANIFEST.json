@@ -1,0 +1,528 @@
+{
+  "date": "2026-10-26",
+  "branch": "codex/living-clicker-handoff-20261026",
+  "base": "0ae52c1b951931347921b5ba5557fe9d150f64d6",
+  "gameBytesUnchanged": true,
+  "privatePatternFindings": 0,
+  "files": [
+    {
+      "path": "index.html",
+      "bytes": 1170358,
+      "sha256": "c5a0fddf222e50b21d94275114a5b6d14a241858d387a2f4147c7ab4ff3edd02"
+    },
+    {
+      "path": "prototypes/living-clicker/build-view.cjs",
+      "bytes": 9571,
+      "sha256": "51f47aed5c195f56f76dbe4b1ee0fc0ef235a5cbf739fad018261ddb163a53b4"
+    },
+    {
+      "path": "prototypes/living-clicker/build.cjs",
+      "bytes": 11587,
+      "sha256": "eae0c6650660b076a09b7f3cd51967ceaaa0302e352c021ef6d80231a49b1887"
+    },
+    {
+      "path": "prototypes/living-clicker/core.js",
+      "bytes": 113099,
+      "sha256": "471be2ba9453dbb1ff9861054377d5f0bab51e4b1d7ea8be07308a615e88cd7e"
+    },
+    {
+      "path": "prototypes/living-clicker/DESIGN.md",
+      "bytes": 3437,
+      "sha256": "d112659dfb2e52a6cf80bf1bb9efab54ed98900a32d37d5cd3a4787e755daeb7"
+    },
+    {
+      "path": "prototypes/living-clicker/game.js",
+      "bytes": 18914,
+      "sha256": "eb0c67ee6aa16a747647bb54cfa7f8c7054c8efcfb2a28dea4f22151061d9bd4"
+    },
+    {
+      "path": "prototypes/living-clicker/index.html",
+      "bytes": 14396,
+      "sha256": "fc34f4950adda40db5797096b41ff63421b009a47f83fe029045dbbab9564fbe"
+    },
+    {
+      "path": "prototypes/living-clicker/lifecycle.js",
+      "bytes": 14970,
+      "sha256": "d4f8d674f4bdf48dafc66e882667c58264f71aec25a504899c86e07f28ed1e29"
+    },
+    {
+      "path": "prototypes/living-clicker/queen-art.js",
+      "bytes": 3902,
+      "sha256": "fbc7cff35a3c57612f33ef7e25dda235f8363bca4e0ad7685ce7f99c2dfe1b46"
+    },
+    {
+      "path": "prototypes/living-clicker/README.md",
+      "bytes": 4075,
+      "sha256": "15cdd26633069604a5875f85f3f648c272ca9885a1700408247e143c93fdeae2"
+    },
+    {
+      "path": "prototypes/living-clicker/verify-access.cjs",
+      "bytes": 2340,
+      "sha256": "2504a03f044399e2c0b50b2c84c37417e2a1ec29252b4a5d2499e4c4d439aec8"
+    },
+    {
+      "path": "prototypes/living-clicker/verify-approach.cjs",
+      "bytes": 1235,
+      "sha256": "d8f87c8aca092c7b2b073a2bd10570df312e3c4235b701a700821f0ae28db80d"
+    },
+    {
+      "path": "prototypes/living-clicker/verify-browser.cjs",
+      "bytes": 8009,
+      "sha256": "fb6d5e823c47803ccaf2597e8ad281eec1a295d3ff30b453c29057695a6db16e"
+    },
+    {
+      "path": "prototypes/living-clicker/verify-cargo-turn.cjs",
+      "bytes": 1289,
+      "sha256": "3d61aae962d5024727c8498f275d350301a72a2dfe1ef17b38477ba180e7440b"
+    },
+    {
+      "path": "prototypes/living-clicker/verify-depth.cjs",
+      "bytes": 2882,
+      "sha256": "43b12997e7ca611a89857611402f97bc58616286f66abe2f563a9d57374ad8dd"
+    },
+    {
+      "path": "prototypes/living-clicker/verify-observation.cjs",
+      "bytes": 2512,
+      "sha256": "7860bac1d56a09edb4bc91832ad1d0ae82ed5d6b0a02bd2e40c38452675531fe"
+    },
+    {
+      "path": "prototypes/living-clicker/verify-previous.cjs",
+      "bytes": 1965,
+      "sha256": "50b31b67715660e9bb986ac4544479dbbc1c7cb15e8d3df1bc7ce392264ff2a0"
+    },
+    {
+      "path": "prototypes/living-clicker/verify-queen.cjs",
+      "bytes": 4512,
+      "sha256": "3c73aff8b8f7dc48a638df321af1673c3774d1309b84062e872d07e72a48ccb7"
+    },
+    {
+      "path": "prototypes/living-clicker/verify-reservation.cjs",
+      "bytes": 1338,
+      "sha256": "4af971734d9f497e2d158ac68fe14d9a7da0bf8d3bc668926c924e492fe9d0c4"
+    },
+    {
+      "path": "prototypes/living-clicker/verify-rock.cjs",
+      "bytes": 1324,
+      "sha256": "9b269439e6c675b2854d511a446013320d10567a59620589b7d37c344516c339"
+    },
+    {
+      "path": "prototypes/living-clicker/verify-storage.cjs",
+      "bytes": 1303,
+      "sha256": "c954a844bac672682ec4f35f433cb61054740a5d0ebcf12ceb6432a10f80457d"
+    },
+    {
+      "path": "prototypes/living-clicker/verify-touch.cjs",
+      "bytes": 7869,
+      "sha256": "2abb923615856c9bcae8605eac1b10b6e53a8482c002f87ce693ead10ec49b15"
+    },
+    {
+      "path": "prototypes/living-clicker/verify-turn.cjs",
+      "bytes": 1008,
+      "sha256": "d7a2e19a3b624a63efa9714ef26c9fcb12730f4413f6f2eecc8c89f2ce996c6c"
+    },
+    {
+      "path": "prototypes/living-clicker/verify-world.cjs",
+      "bytes": 3539,
+      "sha256": "91c8b8a2df86100eda26b510042957a9052f004b838cfe8b53d3248d41c638fd"
+    },
+    {
+      "path": "prototypes/living-clicker/view-research.js",
+      "bytes": 2527,
+      "sha256": "c31dd2bc873b2af11b8dffddd20025ca05c503c0cec10b5ab36cf9172601b990"
+    },
+    {
+      "path": "prototypes/living-clicker/view.js",
+      "bytes": 41433,
+      "sha256": "59eb75e492335e0773e08bd8c106110b57d7da1517c1800a91c123acad717da8"
+    },
+    {
+      "path": "prototypes/colony-game/index.html",
+      "bytes": 15334,
+      "sha256": "0399e8dfcafb515d7b01f1104f3b813b2398cbaa43e9061b21ca8183063a9856"
+    },
+    {
+      "path": "prototypes/colony-game/core.js",
+      "bytes": 112487,
+      "sha256": "2fc7db70e72d3f116e806705c9f626eb546669e861b43774a312c43d142aa5fd"
+    },
+    {
+      "path": "prototypes/colony-game/game.js",
+      "bytes": 14882,
+      "sha256": "b2c8162d2e9df5327ef0ccde7c2a4acceabb5b18d8184edf314a6683e7edc674"
+    },
+    {
+      "path": "prototypes/colony-game/view.js",
+      "bytes": 32155,
+      "sha256": "c57328e66463c4a9ff9c22f0c86282601d59ec774db8f39beb74bdb161968795"
+    },
+    {
+      "path": "prototypes/colony-game/README.md",
+      "bytes": 4501,
+      "sha256": "f3f83b95519b4f42d973f750552f789a296a0cb4adee1fb13f79772375650d6b"
+    },
+    {
+      "path": "prototypes/colony-game/DESIGN.md",
+      "bytes": 2881,
+      "sha256": "3ba3fce688566c93e1d425d005c1c77440b9996236337515574c0e6a0833ea28"
+    },
+    {
+      "path": "prototypes/living-nest/index.html",
+      "bytes": 11416,
+      "sha256": "d4dccd431bbf6097d9c1321af27d23576cfb81f4fa1b22d44a9026a484099a15"
+    },
+    {
+      "path": "prototypes/living-nest/simulation.js",
+      "bytes": 112408,
+      "sha256": "883fd1d27dc9933a5500272d355dc7ffbf46b60e119c17d50be5f836d6ff1a24"
+    },
+    {
+      "path": "prototypes/living-nest/view.js",
+      "bytes": 31096,
+      "sha256": "78a273ed6bc0aca7628476dfc72e62f48fd6fa366b4d6b7ca01d657da00af956"
+    },
+    {
+      "path": "prototypes/living-nest/server.cjs",
+      "bytes": 2445,
+      "sha256": "af66e39d9df3a1547beae56cf28695743efb9925c7cb6077b12d607d0a2c270d"
+    },
+    {
+      "path": "prototypes/living-nest/README.md",
+      "bytes": 9977,
+      "sha256": "39306bd1588ec44b785accda5c10ace124de1f15308363c3d1ac67dfc24cfa75"
+    },
+    {
+      "path": "prototypes/clicker-integration/build.cjs",
+      "bytes": 13307,
+      "sha256": "a1edae059e5de9505e5d7527c84824103512a0d690552b63a5aefac5e276e08c"
+    },
+    {
+      "path": "prototypes/clicker-integration/depth-integration.js",
+      "bytes": 8127,
+      "sha256": "86d573f399748c8c56e9eceb5397e45f1adcb5c1233cfa6039f74ad6716d0446"
+    },
+    {
+      "path": "prototypes/clicker-integration/DESIGN.md",
+      "bytes": 2809,
+      "sha256": "23ba07dbae19341ec3cd6dadee5aa79bfe6ab4443d3a6ab051aa1e85f9e8b4d4"
+    },
+    {
+      "path": "prototypes/clicker-integration/exploration.js",
+      "bytes": 2088,
+      "sha256": "84fd488abf472baf89384885f1c861c481244732e2d22d6141f5e99788e52c1e"
+    },
+    {
+      "path": "prototypes/clicker-integration/geology.js",
+      "bytes": 3010,
+      "sha256": "7004294f467216476b99c328a632cf64977d20ff2e6e5db2c8f974b48652c949"
+    },
+    {
+      "path": "prototypes/clicker-integration/index.html",
+      "bytes": 1214888,
+      "sha256": "7bf429328cbaaf614a6accc296d9aece3cb8b029161b4920d59081bf60a5451c"
+    },
+    {
+      "path": "prototypes/clicker-integration/nest.js",
+      "bytes": 27178,
+      "sha256": "fcdb5b95750693510e42d4fc99484a05764f553179d6e3b0ca82f38aa3e326eb"
+    },
+    {
+      "path": "prototypes/clicker-integration/persistence.js",
+      "bytes": 18221,
+      "sha256": "cd0404712bb59f5f401b2047b3c9ec976116fe6f3bd16263188c4911ba1f423a"
+    },
+    {
+      "path": "prototypes/clicker-integration/README.md",
+      "bytes": 6036,
+      "sha256": "6157bb4a8668ee1f0fe850f7b555e6ca9d200194062346a952794e22d77f6d27"
+    },
+    {
+      "path": "prototypes/clicker-integration/RESEARCH_UI_DESIGN.md",
+      "bytes": 3461,
+      "sha256": "cb66a52dc1dc62bce1abe3c944780176e40b4e0ec6ef588e0c5efdf178712556"
+    },
+    {
+      "path": "prototypes/clicker-integration/save-integration.js",
+      "bytes": 9392,
+      "sha256": "1533db810db7a9d9c324f65400d516f89280c8b68a97de65f90fa1046c8095d0"
+    },
+    {
+      "path": "prototypes/clicker-integration/SAVE_SAFETY.md",
+      "bytes": 6855,
+      "sha256": "3c0106988309400080e7c1a9adfc9d98994280ee3620898a1b8c971e90911118"
+    },
+    {
+      "path": "prototypes/clicker-integration/sprites.js",
+      "bytes": 7024,
+      "sha256": "bf92fdfcf8f1bb71dd7bbcd8f01488933120cbc0a2bd77b8c2287f3c07b7ad8d"
+    },
+    {
+      "path": "prototypes/clicker-integration/world-plan.js",
+      "bytes": 3557,
+      "sha256": "12891a448022460314fc8768078e9f55ac95d6d733cd0338e2caf110ea734449"
+    },
+    {
+      "path": "prototypes/clicker-integration/WORLD_WORK_CONTRACT.md",
+      "bytes": 5590,
+      "sha256": "3cd03928f364ed2cb6407f06884a5ed6d310d959aa4b52093a391e26374dfb52"
+    },
+    {
+      "path": "prototypes/living-clicker/qa/collision.json",
+      "bytes": 262788,
+      "sha256": "2fae75fa90a3e155ea897ae1917cd5ca07454d1a835ffb3e6b3d3bdf2054bac4"
+    },
+    {
+      "path": "prototypes/living-clicker/qa/deep-collision.json",
+      "bytes": 706879,
+      "sha256": "a14a100356a4ee26d7a47b87fb111bb4e42ab0efde7111195460e1bfacc84f7e"
+    },
+    {
+      "path": "prototypes/living-clicker/qa/storage-ring.json",
+      "bytes": 422593,
+      "sha256": "3612e952feade6687573daae0cdb755cc152c3e17a764778899ecaf1370a410a"
+    },
+    {
+      "path": "prototypes/living-clicker/qa/room-reservation.json",
+      "bytes": 304311,
+      "sha256": "472180f583e985defd92a10d259c89f0d4e6feb78d88b8e6815143021fb13140"
+    },
+    {
+      "path": "prototypes/living-clicker/qa/blocked-turn.json",
+      "bytes": 671888,
+      "sha256": "f8ce79a55c0e230905faac3ba4cdd5413644265bcd13161202f3784fa5ab0419"
+    },
+    {
+      "path": "prototypes/living-clicker/qa/approach-stall.json",
+      "bytes": 594469,
+      "sha256": "ee92727ebca1be9b768aa538f158539673c6ef3c962a17dab27dc014f86ad0cf"
+    },
+    {
+      "path": "prototypes/living-clicker/qa/world-900.json",
+      "bytes": 438184,
+      "sha256": "8064b29bcac4f4507e6d4256cab4426c30b98f41c77741c71d956438d7078aa9"
+    },
+    {
+      "path": "prototypes/living-clicker/qa/world-1200.json",
+      "bytes": 508225,
+      "sha256": "668b1573989e1de98a9b9607f61015dbd47bd75d61e11acadadc9c25b6a2b11d"
+    },
+    {
+      "path": "prototypes/living-clicker/qa/before-depth.json",
+      "bytes": 506982,
+      "sha256": "d95c1681ed50e6f0c7ff8d44f348e78cc60171523a0d3718d75a6f5b79cf60f7"
+    },
+    {
+      "path": "prototypes/living-clicker/qa/world-final.json",
+      "bytes": 737355,
+      "sha256": "150857282b6c9176bddf5bf543e4444086e6e6c1fa1b4ce152bb90d9f0546cf6"
+    },
+    {
+      "path": "prototypes/living-clicker/qa/first-loop-results.json",
+      "bytes": 10362,
+      "sha256": "b77072e7df5ed5112737205920561fdba3776b5376b896e3fa9b1e395575d2fa"
+    },
+    {
+      "path": "prototypes/living-clicker/qa/depth-results.json",
+      "bytes": 13955,
+      "sha256": "e28631dfa4d5a243ef21c3cc43a24c4505bf7bc00e4ac8e4d07dd64418d057f0"
+    },
+    {
+      "path": "prototypes/living-clicker/qa/turn-results.json",
+      "bytes": 134,
+      "sha256": "f0d93d19862d3dd80be1fd5cef503f63e61dbc3a4844df100d8186bc33273fe5"
+    },
+    {
+      "path": "prototypes/living-clicker/qa/cargo-turn-results.json",
+      "bytes": 127,
+      "sha256": "8fc21093a97a3d215f6a88a92a9981b5082d324c91e3d73612acb149e541b6cc"
+    },
+    {
+      "path": "prototypes/living-clicker/qa/storage-results.json",
+      "bytes": 254,
+      "sha256": "49841f9377b475466c8bdf4a31ba795c233561bae51d4a176b603ac8cfce9b6f"
+    },
+    {
+      "path": "prototypes/living-clicker/qa/reservation-results.json",
+      "bytes": 164,
+      "sha256": "c892429664a6dee8b10454864e208480385ae8821b106013238e07d9b2d56ce0"
+    },
+    {
+      "path": "prototypes/living-clicker/qa/rock-results.json",
+      "bytes": 372,
+      "sha256": "01b7c9ae5770ba1f7a3e8197324697e96050b8e1bdb1d6c458f4af2b4e809560"
+    },
+    {
+      "path": "prototypes/living-clicker/qa/approach-results.json",
+      "bytes": 227,
+      "sha256": "b2a1d13fa5e4b043cad3a4b3ee065cd58838b57cce469eb788a4fa3725136136"
+    },
+    {
+      "path": "prototypes/living-clicker/qa/VERIFICATION.md",
+      "bytes": 6490,
+      "sha256": "799b5325b6bf4895cf789441249681148b0d8420daf543baf27f20747e07040a"
+    },
+    {
+      "path": "prototypes/living-clicker/qa/queen-detail/before-view.js",
+      "bytes": 37545,
+      "sha256": "f1bf722ac880fb634d7dbc322a3dca88d40dad76ad3004619da786d6b31eb523"
+    },
+    {
+      "path": "prototypes/living-clicker/qa/queen-detail/results.json",
+      "bytes": 1913,
+      "sha256": "10eb704c5ceaa11150bc7ad4824682d6dbd142f4e0a774cc45b599dd635b2b63"
+    },
+    {
+      "path": "prototypes/living-clicker/qa/queen-detail/VERIFICATION.md",
+      "bytes": 3389,
+      "sha256": "12969002ca4428e59bcc2287a2a5b9b2b2423b097e4bc8dd70e39644748a88c7"
+    },
+    {
+      "path": "prototypes/living-clicker/qa/mobile-touch-confirmation/touch-results.json",
+      "bytes": 1719,
+      "sha256": "01058f9bea05dcdd22903b18b6eb933f73f77ae33e4695549d67b0480366e6ae"
+    },
+    {
+      "path": "prototypes/living-clicker/qa/mobile-touch-confirmation/VERIFICATION.md",
+      "bytes": 2107,
+      "sha256": "9e02b1addad005b719c3df63ee4c0e972fd9d77c6a0a034729bbf172f6641aba"
+    },
+    {
+      "path": "prototypes/clicker-integration/qa/journey-save.json",
+      "bytes": 1408086,
+      "sha256": "3aa240e1db6022cc5fd1780ea071b6a696ce9d16be27ac1275927fed31ccb707"
+    },
+    {
+      "path": "CURRENT_SYSTEM_OVERVIEW.md",
+      "bytes": 200271,
+      "sha256": "0903cfd44a9d2be593a73da2c9e223e74ac7c69eda387c6c2be14405959c5d7a"
+    },
+    {
+      "path": "DEVELOPMENT_LOG.md",
+      "bytes": 339463,
+      "sha256": "5c97797f5eae7b65a760238aca1d86692c9d69ded6c8fea3ddf71c0338251520"
+    },
+    {
+      "path": "RELEASE_ROADMAP.md",
+      "bytes": 24482,
+      "sha256": "8787f2d4581889c6c3ccdea63d068a521eff81a26fd48593d9a259390201c597"
+    },
+    {
+      "path": "RELEASE_ISSUE_COVERAGE.md",
+      "bytes": 18937,
+      "sha256": "c9df033e2877228f7c53a048d05744754fb5ab12cbda6748bd458d1ac50521d4"
+    },
+    {
+      "path": "RELEASE_AUDIT_2026-10-14.md",
+      "bytes": 23979,
+      "sha256": "2319e76bdbe2c66c9a4af42b203d53c09a8ab9fdd20b6ddbe8fa85fe9e17d25e"
+    },
+    {
+      "path": "FOCUSED_AUDIT_NEST_RESEARCH_ANTS.md",
+      "bytes": 15292,
+      "sha256": "d36a0477bf02ea041b33bfc4e5ba99eafe99f61db40ea63c20552a6ab792b861"
+    },
+    {
+      "path": "CLICKER_DEPTH_GEOLOGY_INTEGRATION_DESIGN.md",
+      "bytes": 23660,
+      "sha256": "8a72816baf8bf4d446872b4e53fcf6c7e6c6b0fd838d0f6919b6191ba5751b07"
+    },
+    {
+      "path": "LIVING_NEST_INTEGRATION_PLAN.md",
+      "bytes": 14276,
+      "sha256": "f05269bd21599af5664e8bb382dc33536a751eb5a6bb1ab1aef68ea3b2dbb8ba"
+    },
+    {
+      "path": "LIVING_NEST_REALISM_DESIGN.md",
+      "bytes": 20892,
+      "sha256": "a1f786c900b4dbcba2bc65ed89c200cdc7202957db91d0b24fb5ec1dcff06706"
+    },
+    {
+      "path": "prototypes/living-clicker/qa-runtime.cjs",
+      "bytes": 367,
+      "sha256": "a61ed6c2bade70894a97bc34ec4074057f1c89212795c2f41780f91fea20bf49"
+    },
+    {
+      "path": "package.json",
+      "bytes": 484,
+      "sha256": "d8dbade4fca51e89a70d1750bc2d3d8198e7f952d8eadbafab747f9b48b3711d"
+    },
+    {
+      "path": "scripts/build.cjs",
+      "bytes": 273,
+      "sha256": "e5f51b2849a9cdf56a1bfd90ad7d0054a31d72eab3d1463e1788fcf2db701474"
+    },
+    {
+      "path": "scripts/verify-cloud.cjs",
+      "bytes": 937,
+      "sha256": "c94b52a4fa982413b69b09d583e58c9dbf16285d7bc2bf48278670fdd64fd932"
+    },
+    {
+      "path": ".gitignore",
+      "bytes": 435,
+      "sha256": "5409d45ad9e758c14e0e7c7b5b19070a38de896502bfb32c93a48028209341d4"
+    },
+    {
+      "path": "AGENTS.md",
+      "bytes": 2188,
+      "sha256": "69eafe943b60e39a2adba4b6b39622be66d472fd6e9f1941059225545d9fa643"
+    },
+    {
+      "path": "CLAUDE.md",
+      "bytes": 110,
+      "sha256": "ad687a6b8a5aec231a19029f1865499b0cb8b56a7eb17e2159fb049e578a2a33"
+    },
+    {
+      "path": "README.md",
+      "bytes": 784,
+      "sha256": "00cd00c177357327e4a107e5e0c4e55494d23a11ec8da0e0888e07a3da43bec8"
+    },
+    {
+      "path": "HANDOFF_CLAUDE.md",
+      "bytes": 2531,
+      "sha256": "dbb69a4b76b64173eecf15b32371b0f0547cb64f6e5ee9b0a1fc4a87de9a9886"
+    },
+    {
+      "path": "handoff/PROJECT_CONTEXT.md",
+      "bytes": 5405,
+      "sha256": "35ff99f53ec16fa44fe1e3ba32e71f61ec29e454d5b6947fe4223ad0a0ae3748"
+    },
+    {
+      "path": "handoff/PROJECT_LOG.md",
+      "bytes": 288,
+      "sha256": "dfd3de0f8ce8550b4fb63a246b3d99d5a5f640b7d3ad7d132296cfed08ba03a7"
+    },
+    {
+      "path": ".gitattributes",
+      "bytes": 176,
+      "sha256": "c5044d67268c6d823cc79894d1cfd8dc5149444a0ead51aab2ea0f818913a009"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 1812,
+      "sha256": "61dd6989e28e83f2c51e35eae01642f5cc60377dc74fd1d2d8ebad51bb7bcc0a"
+    },
+    {
+      "path": "handoff/VALIDATION.md",
+      "bytes": 2251,
+      "sha256": "1b9e4a1ff7f45404647058cfe80aec945d8c586fc472f1de8eb978ed7c04af2a"
+    },
+    {
+      "path": "prototypes/living-clicker/qa/browser-results.json",
+      "bytes": 1988,
+      "sha256": "35a266f613bf94d82c5f6cbdc1b74c262801bc5d2bfac4ee4d1af4cba073bd62"
+    },
+    {
+      "path": "prototypes/living-clicker/qa/previous-save-results.json",
+      "bytes": 163,
+      "sha256": "d6aaec3b967b883af6616a56f0d8111c4667e143e42a3fb8ac4426b68a943f54"
+    }
+  ],
+  "excluded": [
+    "complete Obsidian vault",
+    "audit profiles and local logs",
+    "all screenshot archives",
+    "local export/record scripts",
+    "past prototype versions",
+    "private Tailnet endpoints",
+    "local browser storage"
+  ]
+}

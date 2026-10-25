@@ -1,0 +1,511 @@
+{
+  "results": [
+    {
+      "name": "queen-only-physical-start",
+      "pass": true
+    },
+    {
+      "name": "natural-forage-feed-hatch-excavate",
+      "pass": true,
+      "at": 1200,
+      "capacity": {
+        "larvae": 18,
+        "food": 38
+      },
+      "activity": {
+        "idle": 32,
+        "travel": 1,
+        "dig": 0,
+        "haul": 7,
+        "unload": 0
+      },
+      "shortages": {
+        "larvae": 0,
+        "food": 12
+      },
+      "blocked": [],
+      "building": [],
+      "ants": 40,
+      "jobs": 6,
+      "dug": 416,
+      "delivered": 411,
+      "nursery": 67,
+      "food": 50,
+      "passage": 236,
+      "distance": 68725.13649737647,
+      "yields": 0,
+      "waitSeconds": 86.61666666666304,
+      "backwardDistance": 3533.0984131177943,
+      "grainDug": 835,
+      "grainDelivered": 820,
+      "brood": {
+        "egg": 0,
+        "larva": 2,
+        "pupa": 2
+      },
+      "stock": 48,
+      "available": 48,
+      "roles": {
+        "forage": 14,
+        "nurse": 13,
+        "build": 13
+      },
+      "allocation": {
+        "forage": 14,
+        "nurse": 13,
+        "build": 13
+      },
+      "pendingRoles": 0,
+      "queen": 0.9879166666666427,
+      "canLay": true,
+      "births": 28,
+      "meals": 62,
+      "harvest": 106,
+      "cookie": 10,
+      "reached": 1,
+      "depthAbility": 1,
+      "populationLimit": 64,
+      "elapsedMs": 34135
+    },
+    {
+      "name": "locked-grains-never-cleared",
+      "pass": true,
+      "reached": 1
+    },
+    {
+      "name": "research-spends-real-unreserved-food",
+      "pass": true,
+      "cost": {
+        "food": 6,
+        "cookie": 0
+      },
+      "rate": 1.25
+    },
+    {
+      "name": "depth-purchase-does-not-open-air-or-reveal",
+      "pass": true,
+      "cost": {
+        "food": 24,
+        "cookie": 12
+      },
+      "reached": 1
+    }
+  ],
+  "snapshots": [
+    {
+      "at": 60,
+      "capacity": {
+        "larvae": 0,
+        "food": 0
+      },
+      "activity": {
+        "idle": 3,
+        "travel": 2,
+        "dig": 1,
+        "haul": 6,
+        "unload": 0
+      },
+      "shortages": {
+        "larvae": 8,
+        "food": 15
+      },
+      "blocked": [],
+      "building": [
+        {
+          "rid": 2,
+          "name": "育児室",
+          "stage": "passage"
+        },
+        {
+          "rid": 3,
+          "name": "食料庫",
+          "stage": "passage"
+        }
+      ],
+      "ants": 12,
+      "jobs": 4,
+      "dug": 14,
+      "delivered": 12,
+      "nursery": 0,
+      "food": 10,
+      "passage": 12,
+      "distance": 2099.337458930701,
+      "yields": 0,
+      "waitSeconds": 1.0500000000000012,
+      "backwardDistance": 103.41086413537451,
+      "grainDug": 37,
+      "grainDelivered": 32,
+      "brood": {
+        "egg": 1,
+        "larva": 3,
+        "pupa": 0
+      },
+      "stock": 6,
+      "available": 6,
+      "roles": {
+        "forage": 4,
+        "nurse": 4,
+        "build": 4
+      },
+      "allocation": {
+        "forage": 4,
+        "nurse": 4,
+        "build": 4
+      },
+      "pendingRoles": 0,
+      "queen": 0.499583333333337,
+      "canLay": true,
+      "births": 0,
+      "meals": 3,
+      "harvest": 7,
+      "cookie": 0,
+      "reached": 1,
+      "depthAbility": 1,
+      "populationLimit": 64,
+      "elapsedMs": 2844
+    },
+    {
+      "at": 180,
+      "capacity": {
+        "larvae": 0,
+        "food": 0
+      },
+      "activity": {
+        "idle": 7,
+        "travel": 3,
+        "dig": 0,
+        "haul": 5,
+        "unload": 0
+      },
+      "shortages": {
+        "larvae": 9,
+        "food": 18
+      },
+      "blocked": [],
+      "building": [
+        {
+          "rid": 2,
+          "name": "育児室",
+          "stage": "passage"
+        },
+        {
+          "rid": 3,
+          "name": "食料庫",
+          "stage": "passage"
+        }
+      ],
+      "ants": 15,
+      "jobs": 5,
+      "dug": 41,
+      "delivered": 38,
+      "nursery": 0,
+      "food": 17,
+      "passage": 38,
+      "distance": 6440.332804666169,
+      "yields": 0,
+      "waitSeconds": 1.7833333333333319,
+      "backwardDistance": 346.88396332780945,
+      "grainDug": 112,
+      "grainDelivered": 105,
+      "brood": {
+        "egg": 1,
+        "larva": 2,
+        "pupa": 1
+      },
+      "stock": 15,
+      "available": 15,
+      "roles": {
+        "forage": 5,
+        "nurse": 5,
+        "build": 5
+      },
+      "allocation": {
+        "forage": 5,
+        "nurse": 5,
+        "build": 5
+      },
+      "pendingRoles": 0,
+      "queen": 0.49833333333333707,
+      "canLay": true,
+      "births": 3,
+      "meals": 11,
+      "harvest": 22,
+      "cookie": 1,
+      "reached": 1,
+      "depthAbility": 1,
+      "populationLimit": 64,
+      "elapsedMs": 3636
+    },
+    {
+      "at": 360,
+      "capacity": {
+        "larvae": 0,
+        "food": 0
+      },
+      "activity": {
+        "idle": 13,
+        "travel": 2,
+        "dig": 0,
+        "haul": 4,
+        "unload": 0
+      },
+      "shortages": {
+        "larvae": 11,
+        "food": 26
+      },
+      "blocked": [],
+      "building": [
+        {
+          "rid": 2,
+          "name": "育児室",
+          "stage": "passage"
+        },
+        {
+          "rid": 3,
+          "name": "食料庫",
+          "stage": "passage"
+        }
+      ],
+      "ants": 19,
+      "jobs": 6,
+      "dug": 91,
+      "delivered": 87,
+      "nursery": 0,
+      "food": 26,
+      "passage": 87,
+      "distance": 14251.02630572448,
+      "yields": 0,
+      "waitSeconds": 9.083333333333364,
+      "backwardDistance": 751.6927307494569,
+      "grainDug": 209,
+      "grainDelivered": 203,
+      "brood": {
+        "egg": 0,
+        "larva": 2,
+        "pupa": 2
+      },
+      "stock": 26,
+      "available": 26,
+      "roles": {
+        "forage": 7,
+        "nurse": 6,
+        "build": 6
+      },
+      "allocation": {
+        "forage": 7,
+        "nurse": 6,
+        "build": 6
+      },
+      "pendingRoles": 0,
+      "queen": 0.9966666666666422,
+      "canLay": true,
+      "births": 7,
+      "meals": 21,
+      "harvest": 41,
+      "cookie": 2,
+      "reached": 1,
+      "depthAbility": 1,
+      "populationLimit": 64,
+      "elapsedMs": 6087
+    },
+    {
+      "at": 600,
+      "capacity": {
+        "larvae": 0,
+        "food": 0
+      },
+      "activity": {
+        "idle": 15,
+        "travel": 6,
+        "dig": 1,
+        "haul": 2,
+        "unload": 1
+      },
+      "shortages": {
+        "larvae": 13,
+        "food": 30
+      },
+      "blocked": [],
+      "building": [
+        {
+          "rid": 2,
+          "name": "育児室",
+          "stage": "passage"
+        },
+        {
+          "rid": 3,
+          "name": "食料庫",
+          "stage": "passage"
+        }
+      ],
+      "ants": 25,
+      "jobs": 5,
+      "dug": 169,
+      "delivered": 166,
+      "nursery": 0,
+      "food": 29,
+      "passage": 166,
+      "distance": 26101.028530003587,
+      "yields": 0,
+      "waitSeconds": 22.266666666666683,
+      "backwardDistance": 1339.9173542143205,
+      "grainDug": 396,
+      "grainDelivered": 390,
+      "brood": {
+        "egg": 0,
+        "larva": 2,
+        "pupa": 2
+      },
+      "stock": 29,
+      "available": 29,
+      "roles": {
+        "forage": 9,
+        "nurse": 8,
+        "build": 8
+      },
+      "allocation": {
+        "forage": 9,
+        "nurse": 8,
+        "build": 8
+      },
+      "pendingRoles": 0,
+      "queen": 0.9941666666666423,
+      "canLay": true,
+      "births": 13,
+      "meals": 33,
+      "harvest": 56,
+      "cookie": 4,
+      "reached": 1,
+      "depthAbility": 1,
+      "populationLimit": 64,
+      "elapsedMs": 15414
+    },
+    {
+      "at": 900,
+      "capacity": {
+        "larvae": 15,
+        "food": 21
+      },
+      "activity": {
+        "idle": 28,
+        "travel": 2,
+        "dig": 0,
+        "haul": 3,
+        "unload": 0
+      },
+      "shortages": {
+        "larvae": 0,
+        "food": 19
+      },
+      "blocked": [],
+      "building": [],
+      "ants": 33,
+      "jobs": 5,
+      "dug": 292,
+      "delivered": 289,
+      "nursery": 42,
+      "food": 40,
+      "passage": 236,
+      "distance": 46515.643121912915,
+      "yields": 0,
+      "waitSeconds": 52.016666666664996,
+      "backwardDistance": 2464.27907237735,
+      "grainDug": 640,
+      "grainDelivered": 635,
+      "brood": {
+        "egg": 1,
+        "larva": 2,
+        "pupa": 1
+      },
+      "stock": 40,
+      "available": 40,
+      "roles": {
+        "forage": 11,
+        "nurse": 11,
+        "build": 11
+      },
+      "allocation": {
+        "forage": 11,
+        "nurse": 11,
+        "build": 11
+      },
+      "pendingRoles": 0,
+      "queen": 0.4908333333333375,
+      "canLay": true,
+      "births": 21,
+      "meals": 47,
+      "harvest": 81,
+      "cookie": 7,
+      "reached": 1,
+      "depthAbility": 1,
+      "populationLimit": 64,
+      "elapsedMs": 30738
+    },
+    {
+      "at": 1200,
+      "capacity": {
+        "larvae": 18,
+        "food": 38
+      },
+      "activity": {
+        "idle": 32,
+        "travel": 1,
+        "dig": 0,
+        "haul": 7,
+        "unload": 0
+      },
+      "shortages": {
+        "larvae": 0,
+        "food": 12
+      },
+      "blocked": [],
+      "building": [],
+      "ants": 40,
+      "jobs": 6,
+      "dug": 416,
+      "delivered": 411,
+      "nursery": 67,
+      "food": 50,
+      "passage": 236,
+      "distance": 68725.13649737647,
+      "yields": 0,
+      "waitSeconds": 86.61666666666304,
+      "backwardDistance": 3533.0984131177943,
+      "grainDug": 835,
+      "grainDelivered": 820,
+      "brood": {
+        "egg": 0,
+        "larva": 2,
+        "pupa": 2
+      },
+      "stock": 48,
+      "available": 48,
+      "roles": {
+        "forage": 14,
+        "nurse": 13,
+        "build": 13
+      },
+      "allocation": {
+        "forage": 14,
+        "nurse": 13,
+        "build": 13
+      },
+      "pendingRoles": 0,
+      "queen": 0.9879166666666427,
+      "canLay": true,
+      "births": 28,
+      "meals": 62,
+      "harvest": 106,
+      "cookie": 10,
+      "reached": 1,
+      "depthAbility": 1,
+      "populationLimit": 64,
+      "elapsedMs": 34135
+    }
+  ],
+  "hashes": {
+    "core.js": "471be2ba9453dbb1ff9861054377d5f0bab51e4b1d7ea8be07308a615e88cd7e",
+    "lifecycle.js": "d4f8d674f4bdf48dafc66e882667c58264f71aec25a504899c86e07f28ed1e29",
+    "game.js": "eb0c67ee6aa16a747647bb54cfa7f8c7054c8efcfb2a28dea4f22151061d9bd4"
+  }
+}

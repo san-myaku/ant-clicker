@@ -1,0 +1,9 @@
+{
+  "pass": true,
+  "origin": "http://127.0.0.1:50493",
+  "population": 600,
+  "delivered": 5957,
+  "exactGrain": true,
+  "newKeyProtected": true,
+  "errors": []
+}

@@ -1,0 +1,6 @@
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),Game=require('./game.js');
+const pack=JSON.parse(fs.readFileSync(path.join(__dirname,'qa/storage-ring.json'))),s=Game.Simulation.restore(pack),grains=s.grains.slice(),pending=s.grainPending.slice(),bodies=JSON.stringify(s.physics.dump()),delivered=s.stats.grainDelivered;
+assert.equal(s.frontier(3).length,0);assert.equal(s.capacities().food,6);
+s.finishConstruction();assert.deepEqual(s.grains,grains);assert.deepEqual(s.grainPending,pending);assert.equal(JSON.stringify(s.physics.dump()),bodies);assert.equal(s.stats.grainDelivered,delivered);assert(s.frontier(3).length>0);assert(s.transportReady(3));assert(s.storageDestination(3,{cell:Game.idx(48,24)},'food')!==undefined);
+const before=s.capacities();s.advance(45);assert(s.stats.grainDelivered>delivered);s.assertLedger();assert.deepEqual(Game.Simulation.restore(s.dump()).dump(),s.dump());
+fs.writeFileSync(path.join(__dirname,'qa/storage-results.json'),JSON.stringify({pass:true,originalAt:pack.world.time,soilOpenedByRelabel:0,itemsMovedByRelabel:0,capacityAfterLabel:before,deliveredBefore:delivered,deliveredAfter:s.stats.grainDelivered,actualWorkResumed:true},null,2));console.log('PASS real widened floor remains connected to its next soil wall');

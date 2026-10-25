@@ -1,3 +1,17 @@
 .claude/
 ant_colony_v22_*.html
 __tmp*.js
+
+# Runtime and generated QA outputs
+node_modules/
+audit/
+*.log
+prototypes/**/qa/*.png
+prototypes/**/qa/*-checkpoint.json
+prototypes/**/qa/*-failed.json
+prototypes/**/qa/browser-results.json
+prototypes/**/qa/observation-results.json
+prototypes/**/qa/routing-results.json
+prototypes/**/qa/delivery-results.json
+prototypes/**/qa/mobile-touch-confirmation/*.png
+prototypes/**/qa/queen-detail/*.png

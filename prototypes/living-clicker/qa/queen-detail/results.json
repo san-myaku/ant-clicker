@@ -1,0 +1,62 @@
+{
+  "reports": [
+    {
+      "width": 1440,
+      "state": "initial",
+      "pass": true,
+      "beforeDotRatio": 3.555555555555556,
+      "afterDotRatio": 1,
+      "workerFramesUnchanged": true,
+      "savedWorldUnchanged": true,
+      "changedPixels": 6480,
+      "outsideQueenFrame": 0,
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "state": "grown",
+      "pass": true,
+      "beforeDotRatio": 3.555555555555556,
+      "afterDotRatio": 1,
+      "workerFramesUnchanged": true,
+      "savedWorldUnchanged": true,
+      "changedPixels": 6307,
+      "outsideQueenFrame": 0,
+      "errors": []
+    },
+    {
+      "width": 393,
+      "state": "initial",
+      "pass": true,
+      "beforeDotRatio": 3.5555555555555554,
+      "afterDotRatio": 1,
+      "workerFramesUnchanged": true,
+      "savedWorldUnchanged": true,
+      "changedPixels": 2524,
+      "outsideQueenFrame": 0,
+      "errors": []
+    },
+    {
+      "width": 393,
+      "state": "grown",
+      "pass": true,
+      "beforeDotRatio": 3.5555555555555554,
+      "afterDotRatio": 1,
+      "workerFramesUnchanged": true,
+      "savedWorldUnchanged": true,
+      "changedPixels": 2450,
+      "outsideQueenFrame": 0,
+      "errors": []
+    }
+  ],
+  "beforeView": "f1bf722ac880fb634d7dbc322a3dca88d40dad76ad3004619da786d6b31eb523",
+  "afterView": "59eb75e492335e0773e08bd8c106110b57d7da1517c1800a91c123acad717da8",
+  "hashes": {
+    "core.js": "471be2ba9453dbb1ff9861054377d5f0bab51e4b1d7ea8be07308a615e88cd7e",
+    "lifecycle.js": "d4f8d674f4bdf48dafc66e882667c58264f71aec25a504899c86e07f28ed1e29",
+    "game.js": "eb0c67ee6aa16a747647bb54cfa7f8c7054c8efcfb2a28dea4f22151061d9bd4",
+    "view.js": "59eb75e492335e0773e08bd8c106110b57d7da1517c1800a91c123acad717da8",
+    "queen-art.js": "fbc7cff35a3c57612f33ef7e25dda235f8363bca4e0ad7685ce7f99c2dfe1b46",
+    "build-view.cjs": "51f47aed5c195f56f76dbe4b1ee0fc0ef235a5cbf739fad018261ddb163a53b4"
+  }
+}

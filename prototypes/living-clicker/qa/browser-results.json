@@ -1,0 +1,77 @@
+{
+  "results": [
+    {
+      "width": 1440,
+      "pass": true,
+      "overflow": false,
+      "protected": true,
+      "camera": {
+        "x": 46,
+        "y": 21.5,
+        "zoom": 2.574493444576877,
+        "scale": 24,
+        "width": 1138,
+        "height": 839,
+        "dpr": 1
+      },
+      "selection": "none",
+      "viewport": "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
+      "errors": []
+    },
+    {
+      "width": 393,
+      "pass": true,
+      "overflow": false,
+      "protected": true,
+      "camera": {
+        "x": 46,
+        "y": 21.5,
+        "zoom": 3.682864450127877,
+        "scale": 15,
+        "width": 391,
+        "height": 451.546875,
+        "dpr": 2
+      },
+      "selection": "none",
+      "viewport": "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
+      "errors": []
+    },
+    {
+      "width": 320,
+      "pass": true,
+      "overflow": false,
+      "protected": true,
+      "camera": {
+        "x": 46,
+        "y": 21.5,
+        "zoom": 3.8400000000000003,
+        "scale": 12.72,
+        "width": 318,
+        "height": 451.546875,
+        "dpr": 2
+      },
+      "selection": "none",
+      "viewport": "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
+      "errors": []
+    },
+    {
+      "name": "live-10x",
+      "pass": true,
+      "time": 30.249999999999563,
+      "distance": 1014.4249069547576,
+      "dug": 18,
+      "errors": []
+    },
+    {
+      "name": "corrupt-save-protection",
+      "pass": true
+    }
+  ],
+  "hashes": {
+    "index.html": "fc34f4950adda40db5797096b41ff63421b009a47f83fe029045dbbab9564fbe",
+    "core.js": "471be2ba9453dbb1ff9861054377d5f0bab51e4b1d7ea8be07308a615e88cd7e",
+    "lifecycle.js": "d4f8d674f4bdf48dafc66e882667c58264f71aec25a504899c86e07f28ed1e29",
+    "game.js": "eb0c67ee6aa16a747647bb54cfa7f8c7054c8efcfb2a28dea4f22151061d9bd4",
+    "view.js": "59eb75e492335e0773e08bd8c106110b57d7da1517c1800a91c123acad717da8"
+  }
+}
