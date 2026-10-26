@@ -52,7 +52,7 @@
     }
     tap(){
       if(this.time-this.colony.lastTap<.35||!this.canLay())return false;
-      this.colony.lastTap=this.time;this.colony.queen=Math.min(40,this.colony.queen+4);return true;
+      this.colony.lastTap=this.time;this.colony.queen=Math.min(40,this.colony.queen+4*(this.tapPower?.()??1));return true;
     }
     canLay(){return this.colony.laying&&this.ants.length+this.colony.brood.length<LIMIT&&this.colony.brood.length<Math.max(4,Math.min(20,Math.ceil(this.ants.length*.65)))&&this.foodBodies().length>=2;}
     refreshDemand(){
@@ -154,8 +154,8 @@
       const rate=this.broodRate?.()||1+this.colony.upgrades.brood*.2;
       for(const e of this.colony.brood.slice()){
         const b=this.physics.byId.get(e.id);if(!b)throw new Error('育児の実体がありません');
-        if(e.stage==='egg'){e.age+=dt*rate;if(e.age>=35){e.stage='larva';e.age=0;}}
-        else if(e.stage==='larva'){if(e.feeds>=2){e.age+=dt*rate;if(e.age>=50){e.stage='pupa';e.age=0;}}}
+        if(e.stage==='egg'){e.age+=dt*rate*(this.stageRate?.('egg')??1);if(e.age>=35){e.stage='larva';e.age=0;}}
+        else if(e.stage==='larva'){if(e.feeds>=2){e.age+=dt*rate*(this.stageRate?.('larva')??1);if(e.age>=50){e.stage='pupa';e.age=0;}}}
         else{e.age+=dt*rate;if(e.age>=50)this.hatch(e,b);}
       }
       if(this.canLay())this.colony.queen=Math.min(40,this.colony.queen+dt*(this.layRate?.()||1));

@@ -139,5 +139,9 @@ replace('this.physics.remove(b);this.colony.brood=this.colony.brood.filter(a=>a!
 // The stock count is fixed during one ant's filter. Count it once when a wild
 // item asks, not by rescanning every body for every incoming item.
 replace("this._incoming=(all||[]).filter(b=>!feeding.has(b.id)&&(ant.role==='nurse'?b.kind==='egg':b.kind==='food'&&(!this.colony.wild.includes(b.id)||this.foodBodies().length<maximum)));","let stocked=null;\n      this._incoming=(all||[]).filter(b=>!feeding.has(b.id)&&(ant.role==='nurse'?b.kind==='egg':b.kind==='food'&&(!this.colony.wild.includes(b.id)||(stocked??=this.foodBodies().length)<maximum)));",'count stock once per filter');
+// Stage-specific brood studies and the tap study scale the same real timers.
+replace("if(e.stage==='egg'){e.age+=dt*rate;","if(e.stage==='egg'){e.age+=dt*rate*(this.stageRate?.('egg')??1);",'egg stage research');
+replace("if(e.feeds>=2){e.age+=dt*rate;","if(e.feeds>=2){e.age+=dt*rate*(this.stageRate?.('larva')??1);",'larva stage research');
+replace("this.colony.queen=Math.min(40,this.colony.queen+4);return true;","this.colony.queen=Math.min(40,this.colony.queen+4*(this.tapPower?.()??1));return true;",'tap research');
 fs.writeFileSync(path.join(root,'lifecycle.js'),source);
 console.log('Organic core and lifecycle generated with checked hooks.');

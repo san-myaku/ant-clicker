@@ -1,0 +1,85 @@
+{
+  "results": [
+    {
+      "name": "catalog-matches-original-61",
+      "pass": true,
+      "active": 16,
+      "planned": 45
+    },
+    {
+      "name": "planned-studies-cannot-be-bought",
+      "pass": true
+    },
+    {
+      "name": "queen-studies-change-real-laying",
+      "pass": true,
+      "bought": {
+        "queen_vitality": {
+          "food": 16,
+          "cookie": 4
+        },
+        "queen_double_lay": {
+          "food": 12,
+          "cookie": 4
+        },
+        "queen_pheromone": {
+          "food": 30,
+          "cookie": 12
+        }
+      }
+    },
+    {
+      "name": "gather-studies-change-forager-walking",
+      "pass": true,
+      "bought": {
+        "queen_vitality": {
+          "food": 16,
+          "cookie": 4
+        },
+        "queen_double_lay": {
+          "food": 12,
+          "cookie": 4
+        },
+        "queen_pheromone": {
+          "food": 30,
+          "cookie": 12
+        },
+        "gather_1": {
+          "food": 8,
+          "cookie": 0
+        },
+        "gather_2": {
+          "food": 12,
+          "cookie": 2
+        }
+      }
+    },
+    {
+      "name": "repeatable-cost-grows-from-real-units",
+      "pass": true
+    },
+    {
+      "name": "brood-stage-study-ages-a-real-egg-faster",
+      "pass": true,
+      "rate": 1.248,
+      "eggAge": 19.6333333333335
+    },
+    {
+      "name": "older-save-without-new-levels-loads-at-zero",
+      "pass": true
+    },
+    {
+      "name": "studies-keep-the-colony-working",
+      "pass": true,
+      "delivered": 7,
+      "gathered": 11,
+      "ants": 128
+    }
+  ],
+  "hashes": {
+    "core.js": "fa7c6189f73a1576bef313be6a93ddc31068a9c6c4ce8d4210883be86c572ffb",
+    "lifecycle.js": "82f6060a8aaa4001ea6b6ef1bafeedeee60d5c7f01fbbc02d369724d669992be",
+    "game.js": "b67bf67aad7eca26770dfc7ce315800d4bc047e7121212b52334a06c98795d75"
+  },
+  "inputHash": "702ec535fcfdf21597672276a09e29253337e38ae20336840653e7f2d3c7d3ca"
+}

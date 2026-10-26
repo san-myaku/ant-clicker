@@ -1,0 +1,830 @@
+[
+ {
+  "id": "gather_1",
+  "branch": "gather",
+  "name": "採集効率I",
+  "desc": "働きアリの食料収集効率 +10%",
+  "prereq": [],
+  "max": 1,
+  "cookie": 1,
+  "food": 0,
+  "growth": null,
+  "breakthrough": false
+ },
+ {
+  "id": "gather_2",
+  "branch": "gather",
+  "name": "採集効率II",
+  "desc": "働きアリの食料収集効率 +15%",
+  "prereq": [
+   "gather_1"
+  ],
+  "max": 1,
+  "cookie": 2,
+  "food": 0,
+  "growth": null,
+  "breakthrough": false
+ },
+ {
+  "id": "gather_inf",
+  "branch": "gather",
+  "name": "採集強化",
+  "desc": "食料収集効率 +5%/Lv（無限）",
+  "prereq": [
+   "gather_2"
+  ],
+  "max": "inf",
+  "cookie": 3,
+  "food": 0,
+  "growth": 1.5,
+  "breakthrough": false
+ },
+ {
+  "id": "brood_1",
+  "branch": "brood",
+  "name": "育児効率I",
+  "desc": "卵→幼虫速度 +10%",
+  "prereq": [],
+  "max": 1,
+  "cookie": 1,
+  "food": 0,
+  "growth": null,
+  "breakthrough": false
+ },
+ {
+  "id": "brood_2",
+  "branch": "brood",
+  "name": "幼虫給餌改善",
+  "desc": "幼虫→成虫速度 +8%",
+  "prereq": [
+   "brood_1"
+  ],
+  "max": 1,
+  "cookie": 2,
+  "food": 0,
+  "growth": null,
+  "breakthrough": false
+ },
+ {
+  "id": "brood_egg_inf",
+  "branch": "brood",
+  "name": "孵化強化",
+  "desc": "卵→幼虫速度 +4%/Lv（無限）",
+  "prereq": [
+   "brood_1"
+  ],
+  "max": "inf",
+  "cookie": 3,
+  "food": 0,
+  "growth": 1.5,
+  "breakthrough": false
+ },
+ {
+  "id": "brood_larva_inf",
+  "branch": "brood",
+  "name": "成長強化",
+  "desc": "幼虫→成虫速度 +3%/Lv（無限）",
+  "prereq": [
+   "brood_2"
+  ],
+  "max": "inf",
+  "cookie": 3,
+  "food": 0,
+  "growth": 1.5,
+  "breakthrough": false
+ },
+ {
+  "id": "golden_brood",
+  "branch": "brood",
+  "name": "英才教育",
+  "desc": "黄金卵・黄金幼虫を全室で最優先に育て、さらに黄金の成長を加速する。(通常時の黄金優先は控えめになる)",
+  "prereq": [
+   "brood_2"
+  ],
+  "max": 1,
+  "cookie": 25,
+  "food": 3000,
+  "growth": null,
+  "breakthrough": true
+ },
+ {
+  "id": "hygiene_1",
+  "branch": "hygiene",
+  "name": "衛生基礎",
+  "desc": "ゴミ発生量 -10%",
+  "prereq": [],
+  "max": 1,
+  "cookie": 1,
+  "food": 0,
+  "growth": null,
+  "breakthrough": false
+ },
+ {
+  "id": "hygiene_2",
+  "branch": "hygiene",
+  "name": "清掃効率I",
+  "desc": "清掃効率 +20%",
+  "prereq": [
+   "hygiene_1"
+  ],
+  "max": 1,
+  "cookie": 2,
+  "food": 0,
+  "growth": null,
+  "breakthrough": false
+ },
+ {
+  "id": "hygiene_3",
+  "branch": "hygiene",
+  "name": "お掃除はおまかせ",
+  "desc": "ゴミ室の運用を整え、働きアリの一部も低優先でゴミ掃除に参加する。清掃判断と運搬量も改善。",
+  "prereq": [
+   "hygiene_2"
+  ],
+  "max": 1,
+  "cookie": 6,
+  "food": 0,
+  "growth": null,
+  "breakthrough": false
+ },
+ {
+  "id": "hygiene_clean_bonus",
+  "branch": "hygiene",
+  "name": "清潔なコロニー",
+  "desc": "巣が清潔なら（幼虫室のゴミが少ないと）働きアリの食料収集 +20%。掃除を怠ると失われる、状況依存のボーナス。",
+  "prereq": [
+   "hygiene_2"
+  ],
+  "max": 1,
+  "cookie": 22,
+  "food": 2500,
+  "growth": null,
+  "breakthrough": true
+ },
+ {
+  "id": "hygiene_recycle",
+  "branch": "hygiene",
+  "name": "廃棄物リサイクル",
+  "desc": "たまった廃棄物を分解して、少しずつ食料に戻す。お荷物だったゴミが収入源になり、掃除も同時に進む。",
+  "prereq": [
+   "hygiene_3"
+  ],
+  "max": 1,
+  "cookie": 18,
+  "food": 2000,
+  "growth": null,
+  "breakthrough": true
+ },
+ {
+  "id": "ferment_unlock",
+  "branch": "ferment",
+  "name": "発酵室解放",
+  "desc": "発酵室を建設可能にする突破研究",
+  "prereq": [],
+  "max": 1,
+  "cookie": 30,
+  "food": 4000,
+  "growth": null,
+  "breakthrough": true
+ },
+ {
+  "id": "ferment_1",
+  "branch": "ferment",
+  "name": "発酵短縮I",
+  "desc": "発酵時間 45秒 → 38秒",
+  "prereq": [
+   "ferment_unlock"
+  ],
+  "max": 1,
+  "cookie": 4,
+  "food": 0,
+  "growth": null,
+  "breakthrough": false
+ },
+ {
+  "id": "ferment_2",
+  "branch": "ferment",
+  "name": "甘味濃縮",
+  "desc": "発酵完了時 10%でクッキー+1",
+  "prereq": [
+   "ferment_1"
+  ],
+  "max": 1,
+  "cookie": 6,
+  "food": 0,
+  "growth": null,
+  "breakthrough": false
+ },
+ {
+  "id": "ferment_3",
+  "branch": "ferment",
+  "name": "原料節約",
+  "desc": "発酵に必要な食料 100 → 90",
+  "prereq": [
+   "ferment_2"
+  ],
+  "max": 1,
+  "cookie": 8,
+  "food": 0,
+  "growth": null,
+  "breakthrough": false
+ },
+ {
+  "id": "ferment_worker_unlock",
+  "branch": "ferment",
+  "name": "発酵アリ解放",
+  "desc": "発酵室を2室建設し、巣内に出現させると発酵アリを雇用可能にする突破研究",
+  "prereq": [
+   "ferment_2"
+  ],
+  "max": 1,
+  "cookie": 20,
+  "food": 3000,
+  "growth": null,
+  "breakthrough": true
+ },
+ {
+  "id": "cookie_find_2x",
+  "branch": "ferment",
+  "name": "甘味探索",
+  "desc": "働きアリが甘い匂いを見つけやすくなり、クッキー発見の機会が増える。",
+  "prereq": [],
+  "max": 1,
+  "cookie": 40,
+  "food": 0,
+  "growth": null,
+  "breakthrough": false
+ },
+ {
+  "id": "ferment_mature",
+  "branch": "ferment",
+  "name": "熟成",
+  "desc": "蓄えたクッキーがゆっくり熟成し、所持量に応じて少しずつ増える。√所持で頭打ち＝貯めるほどお得だが暴走はしない、貯蓄の楽しみ。",
+  "prereq": [
+   "ferment_3"
+  ],
+  "max": 1,
+  "cookie": 25,
+  "food": 3000,
+  "growth": null,
+  "breakthrough": true
+ },
+ {
+  "id": "ferment_offline",
+  "branch": "ferment",
+  "name": "自動発酵",
+  "desc": "ゲームを閉じている間も発酵室がクッキーを作り続ける（食料がある限り、オフライン効率で稼働）。",
+  "prereq": [
+   "ferment_worker_unlock"
+  ],
+  "max": 1,
+  "cookie": 30,
+  "food": 4000,
+  "growth": null,
+  "breakthrough": true
+ },
+ {
+  "id": "ferment_surplus",
+  "branch": "ferment",
+  "name": "余り物の甘味",
+  "desc": "【交差: 採集×発酵】食料庫が満杯なら、あふれた食料生産を無駄にせずクッキーへ変換する。採集が発酵を支える。",
+  "prereq": [
+   "ferment_3"
+  ],
+  "max": 1,
+  "cookie": 25,
+  "food": 3000,
+  "growth": null,
+  "breakthrough": true
+ },
+ {
+  "id": "geo_depth_2",
+  "branch": "geology",
+  "name": "深度II解放",
+  "desc": "より深い地層への掘削を可能にし、新しい部屋候補と拡張範囲を解放する。",
+  "prereq": [],
+  "max": 1,
+  "cookie": 15,
+  "food": 0,
+  "growth": null,
+  "breakthrough": true
+ },
+ {
+  "id": "geo_depth_3",
+  "branch": "geology",
+  "name": "深度III解放",
+  "desc": "さらに深い地層への拡張を可能にし、大規模コロニー化の土台を作る。",
+  "prereq": [
+   "geo_depth_2"
+  ],
+  "max": 1,
+  "cookie": 40,
+  "food": 0,
+  "growth": null,
+  "breakthrough": true
+ },
+ {
+  "id": "geo_depth_4",
+  "branch": "geology",
+  "name": "深度IV解放",
+  "desc": "さらに深い最深層への掘削を可能にし、巨大コロニーの土台を広げる。",
+  "prereq": [
+   "geo_depth_3"
+  ],
+  "max": 1,
+  "cookie": 90,
+  "food": 0,
+  "growth": null,
+  "breakthrough": true
+ },
+ {
+  "id": "build_multitask",
+  "branch": "geology",
+  "name": "マルチタスク",
+  "desc": "建築アリが複数の部屋を同時に建築できるようになる。並行サイト数 1→2→3→4（Lvごと+1）。",
+  "prereq": [],
+  "max": 3,
+  "cookie": 10,
+  "food": 0,
+  "growth": 3,
+  "breakthrough": false
+ },
+ {
+  "id": "offline_build",
+  "branch": "geology",
+  "name": "鬼の居ぬ間も！",
+  "desc": "ゲームを閉じている間も建築アリが1/3の効率で部屋の拡張を進める。",
+  "prereq": [
+   "build_multitask"
+  ],
+  "max": 1,
+  "cookie": 30,
+  "food": 5000,
+  "growth": null,
+  "breakthrough": true
+ },
+ {
+  "id": "offline_build_speed",
+  "branch": "geology",
+  "name": "夜なべ建築",
+  "desc": "オフライン建築の効率 +20%/Lv（無限。最大でオンライン相当まで）",
+  "prereq": [
+   "offline_build"
+  ],
+  "max": "inf",
+  "cookie": 6,
+  "food": 0,
+  "growth": 1.6,
+  "breakthrough": false
+ },
+ {
+  "id": "room_expand",
+  "branch": "geology",
+  "name": "増築",
+  "desc": "建築済みの育児室・食料庫の容量 +5%/Lv（無限）",
+  "prereq": [],
+  "max": "inf",
+  "cookie": 8,
+  "food": 0,
+  "growth": 1.5,
+  "breakthrough": false
+ },
+ {
+  "id": "dig_speed",
+  "branch": "geology",
+  "name": "掘削促進",
+  "desc": "建築アリの掘削・建築が速くなる。建築速度 +25%/Lv（無限）。オフライン建築にも効く。",
+  "prereq": [],
+  "max": "inf",
+  "cookie": 6,
+  "food": 0,
+  "growth": 1.5,
+  "breakthrough": false
+ },
+ {
+  "id": "mineral_vein",
+  "branch": "geology",
+  "name": "鉱脈",
+  "desc": "深部の鉱脈から資源を採掘する。巣が深いほどクッキーが少しずつ自然に湧き出す（深度に比例）。",
+  "prereq": [
+   "dig_speed"
+  ],
+  "max": 1,
+  "cookie": 30,
+  "food": 4000,
+  "growth": null,
+  "breakthrough": true
+ },
+ {
+  "id": "soldier_jaw_2x",
+  "branch": "defense",
+  "name": "顎強化",
+  "desc": "兵隊アリの大顎を鍛え、レイドや害虫への攻撃力を高める。",
+  "prereq": [],
+  "max": 1,
+  "cookie": 60,
+  "food": 0,
+  "growth": null,
+  "breakthrough": false
+ },
+ {
+  "id": "poison_jaw",
+  "branch": "defense",
+  "name": "毒顎",
+  "desc": "兵隊アリの大顎に毒を仕込む。接敵した敵に毎秒「体力の2%」の毒ダメージ（継続）。",
+  "prereq": [
+   "soldier_jaw_2x"
+  ],
+  "max": 1,
+  "cookie": 20,
+  "food": 0,
+  "growth": null,
+  "breakthrough": true
+ },
+ {
+  "id": "poison_conc",
+  "branch": "defense",
+  "name": "毒の濃度",
+  "desc": "毒ダメージ +15%/Lv（無限）",
+  "prereq": [
+   "poison_jaw"
+  ],
+  "max": "inf",
+  "cookie": 6,
+  "food": 0,
+  "growth": 1.6,
+  "breakthrough": false
+ },
+ {
+  "id": "oshiai",
+  "branch": "defense",
+  "name": "おしあいへしあい",
+  "desc": "兵隊が敵をより広く押さえ込む。足止め範囲 +50%、以後 +20%/Lv（無限）。",
+  "prereq": [
+   "soldier_jaw_2x"
+  ],
+  "max": "inf",
+  "cookie": 12,
+  "food": 0,
+  "growth": 1.6,
+  "breakthrough": false
+ },
+ {
+  "id": "numbers_win",
+  "branch": "defense",
+  "name": "数は何にも勝る",
+  "desc": "兵隊アリの雇用コスト -40%、以後 -10%/Lv。ただし各兵隊の兵力 -20%、以後 -5%/Lv（無限）。",
+  "prereq": [
+   "soldier_jaw_2x"
+  ],
+  "max": "inf",
+  "cookie": 25,
+  "food": 0,
+  "growth": 1.6,
+  "breakthrough": true
+ },
+ {
+  "id": "raid_spoils",
+  "branch": "defense",
+  "name": "戦果",
+  "desc": "撃退した襲撃者から奪う戦果が増える。防衛勝利時の食料・クッキー報酬 +30%/Lv（無限）。守りが収入源になる。",
+  "prereq": [
+   "soldier_jaw_2x"
+  ],
+  "max": "inf",
+  "cookie": 8,
+  "food": 0,
+  "growth": 1.6,
+  "breakthrough": false
+ },
+ {
+  "id": "early_warning",
+  "branch": "defense",
+  "name": "早期警戒",
+  "desc": "偵察と備えで奇襲に強くなる。襲撃で失う働きアリを40%減らす。",
+  "prereq": [
+   "soldier_jaw_2x"
+  ],
+  "max": 1,
+  "cookie": 25,
+  "food": 3000,
+  "growth": null,
+  "breakthrough": true
+ },
+ {
+  "id": "formic_acid",
+  "branch": "defense",
+  "name": "ギ酸噴射",
+  "desc": "兵隊が腹部からギ酸を噴射する（実在のヤマアリの防御）。交戦中の敵全体に定期的な範囲ダメージ。",
+  "prereq": [
+   "soldier_jaw_2x"
+  ],
+  "max": 1,
+  "cookie": 28,
+  "food": 3000,
+  "growth": null,
+  "breakthrough": true
+ },
+ {
+  "id": "formic_conc",
+  "branch": "defense",
+  "name": "ギ酸の濃縮",
+  "desc": "ギ酸の濃度を高める。範囲ダメージ +20%/Lv（無限）。",
+  "prereq": [
+   "formic_acid"
+  ],
+  "max": "inf",
+  "cookie": 8,
+  "food": 0,
+  "growth": 1.6,
+  "breakthrough": false
+ },
+ {
+  "id": "caste_unlock",
+  "branch": "defense",
+  "name": "兵種分化",
+  "desc": "兵隊アリを多型化し、コロニーの兵種比率を設定できるようにする。比率は防衛と遠征の両方に影響する。",
+  "prereq": [
+   "soldier_jaw_2x"
+  ],
+  "max": 1,
+  "cookie": 30,
+  "food": 3500,
+  "growth": null,
+  "breakthrough": true
+ },
+ {
+  "id": "caste_scout",
+  "branch": "defense",
+  "name": "斥候兵の分化",
+  "desc": "小型で俊敏な斥候兵を編成可能に。遠征の成功率を大きく上げるが、前線の火力・耐久は低い。",
+  "prereq": [
+   "caste_unlock"
+  ],
+  "max": 1,
+  "cookie": 18,
+  "food": 2000,
+  "growth": null,
+  "breakthrough": false
+ },
+ {
+  "id": "caste_heavy",
+  "branch": "defense",
+  "name": "重装兵の分化",
+  "desc": "大型の大顎を持つ重装兵を編成可能に。防衛の火力・耐久が高いが、遠征には不向き。",
+  "prereq": [
+   "caste_unlock"
+  ],
+  "max": 1,
+  "cookie": 18,
+  "food": 2000,
+  "growth": null,
+  "breakthrough": false
+ },
+ {
+  "id": "venom_fang",
+  "branch": "defense",
+  "name": "毒牙",
+  "desc": "クモから採取した毒嚢を兵隊の武器に転用する。接敵した敵への毒ダメージを大幅に強化する。",
+  "prereq": [
+   "poison_jaw"
+  ],
+  "max": 1,
+  "cookie": 18,
+  "food": 0,
+  "growth": null,
+  "breakthrough": true
+ },
+ {
+  "id": "venom_fang_refine",
+  "branch": "defense",
+  "name": "毒牙の精製",
+  "desc": "毒嚢を精製し、毒ダメージ +30%/Lv（無限）。毒嚢を消費する。",
+  "prereq": [
+   "venom_fang"
+  ],
+  "max": "inf",
+  "cookie": 8,
+  "food": 0,
+  "growth": 1.5,
+  "breakthrough": false
+ },
+ {
+  "id": "lure_spider",
+  "branch": "defense",
+  "name": "捕食者誘引フェロモン",
+  "desc": "クモをおびき寄せるフェロモンを合成する。遠征パネルからクモの襲撃を任意で誘発し、毒嚢を狙って採取できる（食料コスト＋クールダウン）。",
+  "prereq": [
+   "venom_fang"
+  ],
+  "max": 1,
+  "cookie": 50,
+  "food": 5000,
+  "growth": null,
+  "breakthrough": true
+ },
+ {
+  "id": "golden_1",
+  "branch": "golden",
+  "name": "黄金の輝きI",
+  "desc": "タップ産卵で黄金卵が生まれる確率 ×1.5。",
+  "prereq": [],
+  "max": 1,
+  "cookie": 15,
+  "food": 0,
+  "growth": null,
+  "breakthrough": false
+ },
+ {
+  "id": "golden_shine_inf",
+  "branch": "golden",
+  "name": "黄金の輝き",
+  "desc": "黄金卵の確率 +15%/Lv（無限）",
+  "prereq": [
+   "golden_1"
+  ],
+  "max": "inf",
+  "cookie": 8,
+  "food": 0,
+  "growth": 1.5,
+  "breakthrough": false
+ },
+ {
+  "id": "golden_blessing",
+  "branch": "golden",
+  "name": "黄金の祝福",
+  "desc": "黄金アリのバフ効果（食料/産卵/クッキー）を ×1.5 に強める。",
+  "prereq": [
+   "golden_1"
+  ],
+  "max": 1,
+  "cookie": 20,
+  "food": 0,
+  "growth": null,
+  "breakthrough": false
+ },
+ {
+  "id": "golden_blessing_inf",
+  "branch": "golden",
+  "name": "豊穣の祝福",
+  "desc": "黄金バフ効果 +20%/Lv（無限）",
+  "prereq": [
+   "golden_blessing"
+  ],
+  "max": "inf",
+  "cookie": 12,
+  "food": 0,
+  "growth": 1.6,
+  "breakthrough": false
+ },
+ {
+  "id": "golden_auto",
+  "branch": "golden",
+  "name": "黄金の自動産卵",
+  "desc": "女王の自動産卵でも黄金卵が生まれるようになる（確率はタップ時の半分）。",
+  "prereq": [
+   "golden_1"
+  ],
+  "max": 1,
+  "cookie": 40,
+  "food": 5000,
+  "growth": null,
+  "breakthrough": true
+ },
+ {
+  "id": "golden_queen_synergy",
+  "branch": "golden",
+  "name": "黄金の女王",
+  "desc": "【交差: 女王×黄金】女王の威光が黄金を呼ぶ。女王枝の自動産卵への投資が大きいほど、黄金卵の生まれる確率が上がる。",
+  "prereq": [
+   "golden_1"
+  ],
+  "max": 1,
+  "cookie": 35,
+  "food": 4000,
+  "growth": null,
+  "breakthrough": true
+ },
+ {
+  "id": "queen_vitality",
+  "branch": "queen",
+  "name": "女王の活力",
+  "desc": "女王の自動産卵スピード ×1.25。",
+  "prereq": [],
+  "max": 1,
+  "cookie": 12,
+  "food": 0,
+  "growth": null,
+  "breakthrough": false
+ },
+ {
+  "id": "queen_fertile",
+  "branch": "queen",
+  "name": "多産の系譜",
+  "desc": "自動産卵スピード +6%/Lv（無限）",
+  "prereq": [
+   "queen_vitality"
+  ],
+  "max": "inf",
+  "cookie": 8,
+  "food": 0,
+  "growth": 1.5,
+  "breakthrough": false
+ },
+ {
+  "id": "queen_double_lay",
+  "branch": "queen",
+  "name": "重ね産み",
+  "desc": "タップ1回で産まれる卵 +1個/Lv（最大+3）。",
+  "prereq": [
+   "queen_vitality"
+  ],
+  "max": 3,
+  "cookie": 16,
+  "food": 0,
+  "growth": 2.2,
+  "breakthrough": false
+ },
+ {
+  "id": "queen_embrace",
+  "branch": "queen",
+  "name": "女王の包容力",
+  "desc": "個体数の上限 +8%/Lv（無限）",
+  "prereq": [
+   "queen_vitality"
+  ],
+  "max": "inf",
+  "cookie": 15,
+  "food": 0,
+  "growth": 1.6,
+  "breakthrough": false
+ },
+ {
+  "id": "queen_majesty",
+  "branch": "queen",
+  "name": "女王の威厳",
+  "desc": "季節による自動産卵の落ち込みを無効化する（どの季節でも産卵速度は最低でも等倍）。",
+  "prereq": [
+   "queen_fertile"
+  ],
+  "max": 1,
+  "cookie": 30,
+  "food": 3500,
+  "growth": null,
+  "breakthrough": true
+ },
+ {
+  "id": "queen_pheromone",
+  "branch": "queen",
+  "name": "女王フェロモン",
+  "desc": "女王の匂いがコロニー全体を活気づけ、働きアリの食料収集効率 +20%。",
+  "prereq": [
+   "queen_embrace"
+  ],
+  "max": 1,
+  "cookie": 35,
+  "food": 4000,
+  "growth": null,
+  "breakthrough": true
+ },
+ {
+  "id": "exped_party",
+  "branch": "expedition",
+  "name": "遠征編成",
+  "desc": "遠征に送り出す規模を自分で決められるようになる。多めに送るほど成功率が上がる。",
+  "prereq": [],
+  "max": 1,
+  "cookie": 20,
+  "food": 2000,
+  "growth": null,
+  "breakthrough": true
+ },
+ {
+  "id": "exped_lore",
+  "branch": "expedition",
+  "name": "遠征の心得",
+  "desc": "遠征隊の経験が蓄積し、成功率 +4%/Lv（無限）。",
+  "prereq": [
+   "exped_party"
+  ],
+  "max": "inf",
+  "cookie": 10,
+  "food": 0,
+  "growth": 1.5,
+  "breakthrough": false
+ },
+ {
+  "id": "exped_supply",
+  "branch": "expedition",
+  "name": "補給路",
+  "desc": "遠征先との補給路を確立し、持ち帰る報酬 +20%/Lv（無限）。",
+  "prereq": [
+   "exped_party"
+  ],
+  "max": "inf",
+  "cookie": 12,
+  "food": 0,
+  "growth": 1.6,
+  "breakthrough": false
+ }
+]

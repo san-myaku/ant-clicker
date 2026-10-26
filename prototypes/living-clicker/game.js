@@ -6,17 +6,72 @@
   'use strict';
   const {GRAIN,GRAIN_AREA,GRID,FW,FINE_SIZE,SURFACE,W,H,idx,layerBoundaries,hash}=Base;
   const FORMAT='living-clicker-1';
+  // All 61 original studies in their original order. Entries marked planned
+  // are shown and selectable but cannot be bought until their system exists.
   const RESEARCH=[
     {id:'gather_1',name:'採集効率I',branch:'採集',desc:'採集係の歩く速さ +15%',food:8,cookie:0,max:3},
+    {id:'gather_2',name:'採集効率II',branch:'採集',desc:'採集係の歩く速さ +15%',food:12,cookie:2,max:1,prereq:'gather_1'},
+    {id:'gather_inf',name:'採集強化',branch:'採集',desc:'採集係の歩く速さ +5%（くり返し研究できる）',food:6,cookie:2,max:Infinity,growth:1.5,prereq:'gather_2'},
     {id:'brood_1',name:'育児効率I',branch:'育児',desc:'卵・幼虫・蛹の育つ速さ +20%',food:6,cookie:0,max:3},
-    {id:'dig_speed',name:'掘削促進',branch:'地質',desc:'一粒を掘る速さ +25%',food:6,cookie:0,max:3},
-    {id:'queen_fertile',name:'多産の系譜',branch:'女王',desc:'次の卵を産むまでの速さ +15%',food:10,cookie:2,max:3},
-    {id:'queen_embrace',name:'女王の包容力',branch:'女王',desc:'コロニーを128匹まで育てられる',food:20,cookie:6,max:1,minAnts:24},
+    {id:'brood_2',name:'幼虫給餌改善',branch:'育児',desc:'幼虫の育つ速さ +15%',food:10,cookie:2,max:1,prereq:'brood_1'},
+    {id:'brood_egg_inf',name:'孵化強化',branch:'育児',desc:'卵の育つ速さ +4%（くり返し研究できる）',food:6,cookie:2,max:Infinity,growth:1.5,prereq:'brood_1'},
+    {id:'brood_larva_inf',name:'成長強化',branch:'育児',desc:'幼虫の育つ速さ +3%（くり返し研究できる）',food:6,cookie:2,max:Infinity,growth:1.5,prereq:'brood_2'},
+    {id:'golden_brood',name:'英才教育',branch:'育児',desc:'黄金卵・黄金幼虫を全室で最優先に育て、さらに黄金の成長を加速する。(通常時の黄金優先は控えめになる)',planned:true},
+    {id:'hygiene_1',name:'衛生基礎',branch:'衛生',desc:'ゴミ発生量 -10%',planned:true},
+    {id:'hygiene_2',name:'清掃効率I',branch:'衛生',desc:'清掃効率 +20%',planned:true},
+    {id:'hygiene_3',name:'お掃除はおまかせ',branch:'衛生',desc:'ゴミ室の運用を整え、働きアリの一部も低優先でゴミ掃除に参加する。清掃判断と運搬量も改善。',planned:true},
+    {id:'hygiene_clean_bonus',name:'清潔なコロニー',branch:'衛生',desc:'巣が清潔なら（幼虫室のゴミが少ないと）働きアリの食料収集 +20%。掃除を怠ると失われる、状況依存のボーナス。',planned:true},
+    {id:'hygiene_recycle',name:'廃棄物リサイクル',branch:'衛生',desc:'たまった廃棄物を分解して、少しずつ食料に戻す。お荷物だったゴミが収入源になり、掃除も同時に進む。',planned:true},
+    {id:'ferment_unlock',name:'発酵室解放',branch:'発酵',desc:'発酵室を建設可能にする突破研究',planned:true},
+    {id:'ferment_1',name:'発酵短縮I',branch:'発酵',desc:'発酵時間 45秒 → 38秒',planned:true},
+    {id:'ferment_2',name:'甘味濃縮',branch:'発酵',desc:'発酵完了時 10%でクッキー+1',planned:true},
+    {id:'ferment_3',name:'原料節約',branch:'発酵',desc:'発酵に必要な食料 100 → 90',planned:true},
+    {id:'ferment_worker_unlock',name:'発酵アリ解放',branch:'発酵',desc:'発酵室を2室建設し、巣内に出現させると発酵アリを雇用可能にする突破研究',planned:true},
+    {id:'cookie_find_2x',name:'甘味探索',branch:'発酵',desc:'働きアリが甘い匂いを見つけやすくなり、クッキー発見の機会が増える。',planned:true},
+    {id:'ferment_mature',name:'熟成',branch:'発酵',desc:'蓄えたクッキーがゆっくり熟成し、所持量に応じて少しずつ増える。√所持で頭打ち＝貯めるほどお得だが暴走はしない、貯蓄の楽しみ。',planned:true},
+    {id:'ferment_offline',name:'自動発酵',branch:'発酵',desc:'ゲームを閉じている間も発酵室がクッキーを作り続ける（食料がある限り、オフライン効率で稼働）。',planned:true},
+    {id:'ferment_surplus',name:'余り物の甘味',branch:'発酵',desc:'【交差: 採集×発酵】食料庫が満杯なら、あふれた食料生産を無駄にせずクッキーへ変換する。採集が発酵を支える。',planned:true},
     {id:'geo_depth_2',name:'深度II解放',branch:'地質',desc:'第2層を掘り、深い育児室と食料庫を作れる',food:12,cookie:6,max:1,minAnts:20},
     {id:'geo_depth_3',name:'深度III解放',branch:'地質',desc:'第3・4層を掘り進められる',food:24,cookie:16,max:1,prereq:'geo_depth_2',reached:2},
-    {id:'geo_depth_4',name:'深度IV解放',branch:'地質',desc:'第5・6層を掘り進められる',food:40,cookie:32,max:1,prereq:'geo_depth_3',reached:3}
+    {id:'geo_depth_4',name:'深度IV解放',branch:'地質',desc:'第5・6層を掘り進められる',food:40,cookie:32,max:1,prereq:'geo_depth_3',reached:3},
+    {id:'build_multitask',name:'マルチタスク',branch:'地質',desc:'建築アリが複数の部屋を同時に建築できるようになる。並行サイト数 1→2→3→4（Lvごと+1）。',planned:true},
+    {id:'offline_build',name:'鬼の居ぬ間も！',branch:'地質',desc:'ゲームを閉じている間も建築アリが1/3の効率で部屋の拡張を進める。',planned:true},
+    {id:'offline_build_speed',name:'夜なべ建築',branch:'地質',desc:'オフライン建築の効率 +20%/Lv（無限。最大でオンライン相当まで）',planned:true},
+    {id:'room_expand',name:'増築',branch:'地質',desc:'建築済みの育児室・食料庫の容量 +5%/Lv（無限）',planned:true},
+    {id:'dig_speed',name:'掘削促進',branch:'地質',desc:'一粒を掘る速さ +25%',food:6,cookie:0,max:3},
+    {id:'mineral_vein',name:'鉱脈',branch:'地質',desc:'深部の鉱脈から資源を採掘する。巣が深いほどクッキーが少しずつ自然に湧き出す（深度に比例）。',planned:true},
+    {id:'soldier_jaw_2x',name:'顎強化',branch:'防衛',desc:'兵隊アリの大顎を鍛え、レイドや害虫への攻撃力を高める。',planned:true},
+    {id:'poison_jaw',name:'毒顎',branch:'防衛',desc:'兵隊アリの大顎に毒を仕込む。接敵した敵に毎秒「体力の2%」の毒ダメージ（継続）。',planned:true},
+    {id:'poison_conc',name:'毒の濃度',branch:'防衛',desc:'毒ダメージ +15%/Lv（無限）',planned:true},
+    {id:'oshiai',name:'おしあいへしあい',branch:'防衛',desc:'兵隊が敵をより広く押さえ込む。足止め範囲 +50%、以後 +20%/Lv（無限）。',planned:true},
+    {id:'numbers_win',name:'数は何にも勝る',branch:'防衛',desc:'兵隊アリの雇用コスト -40%、以後 -10%/Lv。ただし各兵隊の兵力 -20%、以後 -5%/Lv（無限）。',planned:true},
+    {id:'raid_spoils',name:'戦果',branch:'防衛',desc:'撃退した襲撃者から奪う戦果が増える。防衛勝利時の食料・クッキー報酬 +30%/Lv（無限）。守りが収入源になる。',planned:true},
+    {id:'early_warning',name:'早期警戒',branch:'防衛',desc:'偵察と備えで奇襲に強くなる。襲撃で失う働きアリを40%減らす。',planned:true},
+    {id:'formic_acid',name:'ギ酸噴射',branch:'防衛',desc:'兵隊が腹部からギ酸を噴射する（実在のヤマアリの防御）。交戦中の敵全体に定期的な範囲ダメージ。',planned:true},
+    {id:'formic_conc',name:'ギ酸の濃縮',branch:'防衛',desc:'ギ酸の濃度を高める。範囲ダメージ +20%/Lv（無限）。',planned:true},
+    {id:'caste_unlock',name:'兵種分化',branch:'防衛',desc:'兵隊アリを多型化し、コロニーの兵種比率を設定できるようにする。比率は防衛と遠征の両方に影響する。',planned:true},
+    {id:'caste_scout',name:'斥候兵の分化',branch:'防衛',desc:'小型で俊敏な斥候兵を編成可能に。遠征の成功率を大きく上げるが、前線の火力・耐久は低い。',planned:true},
+    {id:'caste_heavy',name:'重装兵の分化',branch:'防衛',desc:'大型の大顎を持つ重装兵を編成可能に。防衛の火力・耐久が高いが、遠征には不向き。',planned:true},
+    {id:'venom_fang',name:'毒牙',branch:'防衛',desc:'クモから採取した毒嚢を兵隊の武器に転用する。接敵した敵への毒ダメージを大幅に強化する。',planned:true},
+    {id:'venom_fang_refine',name:'毒牙の精製',branch:'防衛',desc:'毒嚢を精製し、毒ダメージ +30%/Lv（無限）。毒嚢を消費する。',planned:true},
+    {id:'lure_spider',name:'捕食者誘引フェロモン',branch:'防衛',desc:'クモをおびき寄せるフェロモンを合成する。遠征パネルからクモの襲撃を任意で誘発し、毒嚢を狙って採取できる（食料コスト＋クールダウン）。',planned:true},
+    {id:'golden_1',name:'黄金の輝きI',branch:'黄金',desc:'タップ産卵で黄金卵が生まれる確率 ×1.5。',planned:true},
+    {id:'golden_shine_inf',name:'黄金の輝き',branch:'黄金',desc:'黄金卵の確率 +15%/Lv（無限）',planned:true},
+    {id:'golden_blessing',name:'黄金の祝福',branch:'黄金',desc:'黄金アリのバフ効果（食料/産卵/クッキー）を ×1.5 に強める。',planned:true},
+    {id:'golden_blessing_inf',name:'豊穣の祝福',branch:'黄金',desc:'黄金バフ効果 +20%/Lv（無限）',planned:true},
+    {id:'golden_auto',name:'黄金の自動産卵',branch:'黄金',desc:'女王の自動産卵でも黄金卵が生まれるようになる（確率はタップ時の半分）。',planned:true},
+    {id:'golden_queen_synergy',name:'黄金の女王',branch:'黄金',desc:'【交差: 女王×黄金】女王の威光が黄金を呼ぶ。女王枝の自動産卵への投資が大きいほど、黄金卵の生まれる確率が上がる。',planned:true},
+    {id:'queen_vitality',name:'女王の活力',branch:'女王',desc:'次の卵を産むまでの速さ +25%',food:16,cookie:4,max:1},
+    {id:'queen_fertile',name:'多産の系譜',branch:'女王',desc:'次の卵を産むまでの速さ +15%',food:10,cookie:2,max:3},
+    {id:'queen_double_lay',name:'重ね産み',branch:'女王',desc:'「産卵を助ける」1回の後押し +100%',food:12,cookie:4,max:3,growth:2.2,prereq:'queen_vitality'},
+    {id:'queen_embrace',name:'女王の包容力',branch:'女王',desc:'コロニーを128匹まで育てられる',food:20,cookie:6,max:1,minAnts:24},
+    {id:'queen_majesty',name:'女王の威厳',branch:'女王',desc:'季節による自動産卵の落ち込みを無効化する（どの季節でも産卵速度は最低でも等倍）。',planned:true},
+    {id:'queen_pheromone',name:'女王フェロモン',branch:'女王',desc:'採集係の歩く速さ +20%',food:30,cookie:12,max:1,prereq:'queen_embrace'},
+    {id:'exped_party',name:'遠征編成',branch:'遠征',desc:'遠征に送り出す規模を自分で決められるようになる。多めに送るほど成功率が上がる。',planned:true},
+    {id:'exped_lore',name:'遠征の心得',branch:'遠征',desc:'遠征隊の経験が蓄積し、成功率 +4%/Lv（無限）。',planned:true},
+    {id:'exped_supply',name:'補給路',branch:'遠征',desc:'遠征先との補給路を確立し、持ち帰る報酬 +20%/Lv（無限）。',planned:true}
   ];
-  const BY_ID=Object.fromEntries(RESEARCH.map(d=>[d.id,d]));
+  const BY_ID=Object.fromEntries(RESEARCH.map(d=>[d.id,d])),ACTIVE=RESEARCH.filter(d=>!d.planned);
   // Spoil: keep the entrance apron clear, dump below this height, and let a
   // column taller than this many grains compact into the ground.
   // Food appears at x 15-20; spoil columns start past its slope reach.
@@ -25,15 +80,17 @@
   class Simulation extends Base.Simulation{
     constructor(seed=24014){
       super(seed);
-      this.progress={research:Object.fromEntries(RESEARCH.map(d=>[d.id,0])),cookie:0,earned:0,spentCookie:0,haulAwards:0,reached:1,claims:[1],speed:1};
+      this.progress={research:Object.fromEntries(ACTIVE.map(d=>[d.id,0])),cookie:0,earned:0,spentCookie:0,haulAwards:0,reached:1,claims:[1],speed:1};
       this.events=[];this.log('女王室から、巣づくりを始めます。');
     }
     level(id){return this.progress?.research[id]||0;}
     populationLimit(){return this.level('queen_embrace')?128:64;}
     canLay(){return super.canLay()&&this.ants.length+this.colony.brood.length<this.populationLimit();}
-    walkSpeed(ant){return Base.WALK_SPEED*(1+(ant?.role==='forage'?this.level('gather_1')*.15:0));}
+    walkSpeed(ant){return Base.WALK_SPEED*(1+(ant?.role==='forage'?this.level('gather_1')*.15+this.level('gather_2')*.15+this.level('gather_inf')*.05+this.level('queen_pheromone')*.2:0));}
     broodRate(){return 1+this.level('brood_1')*.2;}
-    layRate(){return 1+this.level('queen_fertile')*.15;}
+    stageRate(stage){return stage==='egg'?1+this.level('brood_egg_inf')*.04:stage==='larva'?1+this.level('brood_2')*.15+this.level('brood_larva_inf')*.03:1;}
+    layRate(){return (1+this.level('queen_fertile')*.15)*(1+this.level('queen_vitality')*.25);}
+    tapPower(){return 1+this.level('queen_double_lay');}
     digRate(){return 1+this.level('dig_speed')*.25;}
     afterBirth(ant){
       // Every previous newborn inherited ant 1's home: (id-1)%population is
@@ -183,10 +240,13 @@
         this.log('深い'+(kind==='egg'?'育児室':'食料庫')+'へ、掘り進めます。');
       }
     }
-    researchCost(id){const d=BY_ID[id];if(!d)return null;const n=this.level(id)+1;return {food:d.food*n,cookie:d.cookie*n};}
+    // Cost of the given level: repeatable studies grow geometrically, the
+    // others by their level. Paid from real stored food and earned cookies.
+    researchCost(id,level=this.level(id)){const d=BY_ID[id];if(!d||d.planned)return null;if(d.growth)return {food:Math.ceil(d.food*d.growth**level),cookie:Math.ceil(d.cookie*d.growth**level)};const n=level+1;return {food:d.food*n,cookie:d.cookie*n};}
+    researchSpent(key){let total=0;for(const d of ACTIVE)for(let k=0;k<this.level(d.id);k++)total+=this.researchCost(d.id,k)[key];return total;}
     availableFood(){const claimed=new Set(this.ants.filter(a=>a.itemTask).map(a=>a.itemTask.body));return this.foodBodies(true).filter(b=>!claimed.has(b.id));}
     researchStatus(id){
-      const d=BY_ID[id];if(!d)return 'unknown';if(this.level(id)>=d.max)return 'done';
+      const d=BY_ID[id];if(!d)return 'unknown';if(d.planned)return 'planned';if(this.level(id)>=d.max)return 'done';
       if(d.prereq&&!this.level(d.prereq)||d.minAnts&&this.ants.length<d.minAnts||d.reached&&this.progress.reached<d.reached)return 'locked';
       const c=this.researchCost(id);return this.availableFood().length>=c.food&&this.progress.cookie>=c.cookie?'ready':'cost';
     }
@@ -239,21 +299,24 @@
     dump(){this.assertProgress();return {...super.dump(),format:FORMAT,progress:structuredClone(this.progress)};}
     assertProgress(){
       const p=this.progress,int=(v,lo=0,hi=1e9)=>Number.isInteger(v)&&v>=lo&&v<=hi,fail=()=>{throw Error('研究と巣の記録が一致しません');};
-      if(!p||!p.research||Object.keys(p.research).length!==RESEARCH.length||RESEARCH.some(d=>!int(p.research[d.id],0,d.max))||!int(p.cookie)||!int(p.earned)||!int(p.spentCookie)||p.cookie+p.spentCookie!==p.earned||!int(p.haulAwards)||p.haulAwards!==Math.floor(this.stats.grainDelivered/80)||!int(p.reached,1,6)||!Array.isArray(p.claims)||p.claims.length>6||new Set(p.claims).size!==p.claims.length||p.claims.some(v=>!int(v,1,p.reached))||!p.claims.includes(1)||!int(p.speed,1,10))fail();
-      for(const d of RESEARCH)if(p.research[d.id]&&d.prereq&&!p.research[d.prereq])fail();
+      if(!p||!p.research||Object.keys(p.research).length!==ACTIVE.length||ACTIVE.some(d=>!int(p.research[d.id],0,d.max))||!int(p.cookie)||!int(p.earned)||!int(p.spentCookie)||p.cookie+p.spentCookie!==p.earned||!int(p.haulAwards)||p.haulAwards!==Math.floor(this.stats.grainDelivered/80)||!int(p.reached,1,6)||!Array.isArray(p.claims)||p.claims.length>6||new Set(p.claims).size!==p.claims.length||p.claims.some(v=>!int(v,1,p.reached))||!p.claims.includes(1)||!int(p.speed,1,10))fail();
+      for(const d of ACTIVE)if(p.research[d.id]&&d.prereq&&!p.research[d.prereq])fail();
       for(const [key,id]of Object.entries(UPGRADE_IDS))if(this.colony.upgrades[key]!==this.level(id))fail();
-      const earned=p.haulAwards+p.claims.filter(v=>v>1).reduce((n,v)=>n+v*3,0),cookieSpent=RESEARCH.reduce((n,d)=>n+d.cookie*this.level(d.id)*(this.level(d.id)+1)/2,0),foodSpent=RESEARCH.reduce((n,d)=>n+d.food*this.level(d.id)*(this.level(d.id)+1)/2,0);
+      const earned=p.haulAwards+p.claims.filter(v=>v>1).reduce((n,v)=>n+v*3,0),cookieSpent=this.researchSpent('cookie'),foodSpent=this.researchSpent('food');
       if(p.earned!==earned||p.spentCookie!==cookieSpent||this.colony.stats.spent!==foodSpent||p.reached>this.depthAbility()||Math.max(...p.claims)!==p.reached)fail();
       if(this.ants.length+this.colony.brood.length>this.populationLimit())fail();return true;
     }
     static restore(pack){
       if(pack?.format!==FORMAT||!pack.progress)throw Error('この巣の保存データではありません');
-      const life={...pack,format:'living-clicker-life-1'},s=Base.Simulation.restore(life);Object.setPrototypeOf(s,Simulation.prototype);s.progress=structuredClone(pack.progress);s.assertProgress();
+      const life={...pack,format:'living-clicker-life-1'},s=Base.Simulation.restore(life);Object.setPrototypeOf(s,Simulation.prototype);s.progress=structuredClone(pack.progress);
+      // A save from before a study was connected has no level for it: start it at 0.
+      if(s.progress.research&&Object.keys(s.progress.research).every(id=>BY_ID[id]&&!BY_ID[id].planned))for(const d of ACTIVE)if(!(d.id in s.progress.research))s.progress.research[d.id]=0;
+      s.assertProgress();
       for(const [id,b]of s.builds.entries())if(id>=4&&b&&(!Number.isFinite(b.minLength)||b.minLength<6||b.minLength>80||!Number.isFinite(b.minDepth)||b.minDepth<SURFACE||b.minDepth>H))throw Error('深い部屋の記録が正しくありません');
       for(const b of s.builds)if(b?.avoided&&(!Array.isArray(b.avoided)||b.avoided.length>512||b.avoided.some(p=>!Number.isFinite(p.x)||!Number.isFinite(p.y)||!Number.isFinite(p.angle)||p.x<0||p.x>W||p.y<SURFACE||p.y>H)))throw Error('掘削の方向の記録が正しくありません');
       for(const job of s.jobs)for(const g of job.grains.slice(job.cursor))if(s.layerAt(GRAIN.center(g).x,GRAIN.center(g).y)>s.depthAbility())throw Error('未解放の地層を掘る仕事があります');
       return s;
     }
   }
-  return {...Base,Simulation,KEY:'livingClicker_1',SAVE_FORMAT:FORMAT,RESEARCH,BY_ID};
+  return {...Base,Simulation,KEY:'livingClicker_1',SAVE_FORMAT:FORMAT,RESEARCH,BY_ID,ACTIVE};
 });
