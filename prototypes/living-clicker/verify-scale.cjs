@@ -24,7 +24,7 @@ function census(){
 // Ants above 64 carry real bodies. That exact moment must save and reload, and
 // a carrier outside the 128-ant range must still be refused.
 let carried=null;
-function checkCarrier(){const b=s.physics.bodies.find(b=>b.carrier>64);if(!b)return;
+function checkCarrier(){const b=s.physics.bodies.find(b=>b.carrier>64&&b.carrier<=128);if(!b)return;
   const saved=s.dump();assert.deepEqual(Game.Simulation.restore(saved).dump(),saved);
   const bad=structuredClone(saved),bytes=Buffer.from(bad.world.physics.data,'base64');bytes[s.physics.bodies.indexOf(b)*50+6]=129;bad.world.physics.data=bytes.toString('base64');assert.throws(()=>Game.Simulation.restore(bad));
   carried={t:+s.time.toFixed(2),body:b.id,kind:b.kind,carrier:b.carrier,ants:s.ants.length};console.log('PASS carrier above 64 saves '+JSON.stringify(carried));}

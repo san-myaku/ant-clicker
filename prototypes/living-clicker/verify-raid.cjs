@@ -79,6 +79,15 @@ test('guards-grapple-with-the-party-in-the-shaft',()=>{
   return {warned:+warned.toFixed(1),fightSave:+fightSave.toFixed(1),grapples,killed:r.killed,lost:r.lost,stolen:r.stolenBrood+r.stolenFood};
 });
 
+test('loot-that-cannot-be-carried-out-is-put-down',()=>{
+  // Two raiders once held pupae deep in a nursery for 6700 s: no route led
+  // out with that load. They now put it down and leave; nothing is lost.
+  const s=Game.Simulation.restore(JSON.parse(fs.readFileSync(path.join(qa,'raid-stuck-loot.json')))),held=s.colony.raid.enemies.filter(e=>e.itemTask).map(e=>e.itemTask.body);
+  assert.equal(held.length,2);for(let k=0;k<60*60&&s.colony.raid.enemies.length;k++)s.step(STEP);
+  assert.equal(s.colony.raid.enemies.length,0);assert.equal(s.colony.raid.phase,'quiet');assert.equal(s.colony.raid.stolenBrood,0);
+  for(const id of held){const b=s.physics.byId.get(id);assert(!b||!b.carrier,'put down or already hatched');}s.assertLedger();roundtrip(s);
+  return {held,ended:+s.time.toFixed(1)};
+});
 test('invalid-raid-records-are-refused',()=>{
   const s=load();s.colony.raid.next=s.time+1;let d=null;
   for(let k=0;k<60*60&&!d;k++){s.step(STEP);if(s.colony.raid.enemies.length)d=s.dump();}

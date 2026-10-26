@@ -571,9 +571,9 @@
     }
     planEnemy(e){
       e.wait=1;delete e.target;
-      if(e.phase==='out'){const route=this.path(e,this.edgePose(e,false),this.carriedKind(e));if(route){e.path=route;e.next=0;}return;}
+      if(e.phase==='out'){const route=this.path(e,this.edgePose(e,false),this.carriedKind(e));if(route){e.path=route;e.next=0;}else if(e.itemTask)this.dropLoot(e);return;}
       if(e.kind==='scout'){const post=this.guardPosts()[0];if(!post){e.phase='out';return;}const route=this.path(e,{...post,angle:post.angle+Math.PI},null)||this.path(e,post,null);if(route){e.path=route;e.next=0;}return;}
-      for(const b of this.stealable(e).slice(0,3))for(const a of this.itemAccess(b)){const route=this.path(e,a.pose,null);if(route){e.path=route;e.next=0;e.target=b.id;return;}}
+      if((e.skip||[]).length<3)for(const b of this.stealable(e).filter(b=>!e.skip?.includes(b.id)).slice(0,3))for(const a of this.itemAccess(b)){const route=this.path(e,a.pose,null);if(route){e.path=route;e.next=0;e.target=b.id;return;}}
       e.phase='out';e.wait=0;
     }
     enemyArrived(e){
@@ -589,8 +589,13 @@
       if(e.kind==='scout'){e.phase='out';e.wait=0;return;}
       const b=this.physics.byId.get(e.target);
       if(!b||b.carrier||Math.hypot(e.x-b.x,e.y-b.y)>1.6||!this.stealable(e).includes(b)){e.wait=0;delete e.target;return;}
-      b.carrier=e.id;b.state='cargo';b.rest=0;e.itemTask={phase:'store',body:b.id};delete e.target;e.phase='out';e.wait=0;
+      // Take it only if it can be carried out of the nest from here.
+      b.carrier=e.id;b.state='cargo';b.rest=0;e.itemTask={phase:'store',body:b.id};delete e.target;
+      const route=this.path(e,this.edgePose(e,false),b.kind);
+      if(!route){b.carrier=0;b.state='stored';delete e.itemTask;(e.skip||(e.skip=[])).push(b.id);e.wait=0;return;}
+      this.updateCarriers();e.phase='out';e.path=route;e.next=0;
     }
+    dropLoot(e){const b=this.physics.byId.get(e.itemTask.body);this.updateCarriers();this.physics.release(b);b.state='incoming';delete e.itemTask;e.wait=0;}
     defenderFor(e){
       // Guards take on intruders; the other workers keep to their work.
       let best=null,d=CONTACT;
@@ -604,8 +609,7 @@
       const b=this.physics.spawn('waste',a.x,a.y,{state:'refuse'});this.physics.release(b);b.state='refuse';w.made++;this._wasteTick=-1;
     }
     killEnemy(e){
-      const r=this.colony.raid,b=this.physics.byId.get(e.itemTask?.body);
-      if(b){this.updateCarriers();this.physics.release(b);b.state='incoming';}
+      const r=this.colony.raid;if(e.itemTask)this.dropLoot(e);
       this.removeEnemy(e);r.killed++;r.round.killed++;
       // A fallen raider is prey: real food the foragers bring to the stores.
       const prey=this.physics.spawn('food',e.x,e.y,{state:'incoming'});this.physics.release(prey);r.prey++;
@@ -617,6 +621,7 @@
       if(!r.round||![r.round.killed,r.round.lost,r.round.brood,r.round.food].every(int)||!Array.isArray(r.enemies)||r.enemies.length>ENEMY_LAST-ENEMY_FIRST+1||r.prey!==r.killed)fail();
       const ids=new Set(),carried=new Set();
       for(const e of r.enemies){
+        if(e.skip!==undefined&&(!Array.isArray(e.skip)||e.skip.length>3||!e.skip.every(n=>Number.isInteger(n)&&n>0)))fail();
         if(!Number.isInteger(e.id)||e.id<ENEMY_FIRST||e.id>ENEMY_LAST||ids.has(e.id)||!['scout','raider'].includes(e.kind)||!['in','out'].includes(e.phase)||e.enemy!==true||e.job!==null||e.side!==r.side||!pose(e)||!Array.isArray(e.path)||!e.path.every(pose)||!Number.isInteger(e.next)||e.next<0||e.next>Math.max(0,e.path.length-1)||!num(e.wait))fail();
         ids.add(e.id);
         if(e.itemTask){const b=this.physics.byId.get(e.itemTask.body);if(e.kind!=='raider'||e.phase!=='out'||e.itemTask.phase!=='store'||!b||b.carrier!==e.id||!['egg','food'].includes(b.kind))fail();carried.add(b.id);}
