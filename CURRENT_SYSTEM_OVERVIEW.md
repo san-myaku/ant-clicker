@@ -11,6 +11,14 @@ Target file: `index.html`
 
 This document is the current implementation overview for the single-file ant clicker game. When gameplay, UI, save data, AI behavior, or public deployment assumptions change, update this file together with `DEVELOPMENT_LOG.md`.
 
+## 2026-10-27 Muse資料の評価（設計レビューのみ）
+
+ユーザー提供の調査HTMLを全編読み、現行実装/固定保存/主要な一次資料と照合した。[評価](handoff/MUSE_REPORT_REVIEW.md)。近傍格子化と経路共有の本線は維持し、止まり検出・段階別計測・狭い実区間の進入予約・世話と容量で支える産卵を追加候補にした。どれもまだ採用/実装していない。
+
+土はすでにrle8、物体はbodies50leで保存する。128匹の固定保存1,216,687バイトのうち歩行履歴の値は777,730バイト（約64%）で、土の非圧縮配列を主因とする説明は現物と異なる。履歴は退避に必要なので削除せず、必要状態と精度を保った表現を検討する。入力hashと内訳は handoff/references/MUSE_SAVE_SIZE_20261027.json。
+
+レポートの近傍半径1〜2は推測で、現行は移動予定点から2.6。格子の探索範囲/同じステップ内の更新/候補順を維持する。位置のUint16化、全員の稼働率目標、Worker/1ファイルを恒久禁止とする扱いはそのまま採用しない。前回の並列browser速度条件1件は未解決。今回はゲーム/生成器/UI/保存を変更せず、全検証も再実行していない。
+
 ## 2026-10-27 Codexで引き継ぎ、1000匹への計画を作成（未実装）
 
 `claude/confident-dirac-5va5rr` / `9ae35ce` から `codex/ant-1000-plan-20261027` を作成。元の手元の未コミット作業は別の作業場所で保持。指定の引き継ぎ資料・失敗1〜20を読んだ。ゲーム/生成器/保存形式/人口上限は変更していない。
