@@ -195,6 +195,17 @@ replace("    storageDrop(rid,point,kind) {\n      const {hx,hy}=Physics.SHAPES[k
     }
 `,'storage landing per resting world');
 replace("  const FOOTPRINT_MEMO=60000,KNOWN_ROUTES=20000;","  const FOOTPRINT_MEMO=60000,KNOWN_ROUTES=20000,DROP_KINDS={soil:0,egg:1,food:2,waste:3,cookie:4};",'storage landing keys');
+replace("ownFlow=flow(ant),block=this.ants.find(b=>{","ownFlow=flow(ant),block=ant.enemy?undefined:this.ants.find(b=>{",'raiders follow their own contact rules');
+replace("ant.walked+=step;this.stats.distance+=step;","ant.walked+=step;if(!ant.enemy)this.stats.distance+=step;",'raider walking is not colony distance');
+replace("if(step&&Math.cos(Math.atan2(q.y-ant.y,q.x-ant.x)-ant.angle)<-.5)this.stats.backwardDistance+=step;","if(!ant.enemy&&step&&Math.cos(Math.atan2(q.y-ant.y,q.x-ant.x)-ant.angle)<-.5)this.stats.backwardDistance+=step;",'raider walking is not colony backing');
+replace("this.traffic[ant.cell]+=step*.2;this._flowCells?.add(ant.cell);","if(!ant.enemy){this.traffic[ant.cell]+=step*.2;this._flowCells?.add(ant.cell);}",'raiders leave no colony traffic');
+replace("const a=this.ants.find(a=>a.id===b.carrier),owner=","const a=this.ants.find(a=>a.id===b.carrier)??this.enemyById?.(b.carrier),owner=",'raiders carry what they take');
+replace("if(b.carrier){const a=s.ants.find(a=>a.id===b.carrier);if(!a||","if(b.carrier){const a=s.ants.find(a=>a.id===b.carrier);if(!a&&b.carrier>=200)continue;if(!a||",'raider loads are checked with the raid');
+replace("carrier>128","carrier>128&&(carrier<200||carrier>249)",'raider ids in saves');
+replace("const idle=this.ants.filter(a=>a.role==='build'&&a.desiredRole==='build'&&a.job===null&&!a.itemTask&&!a.yielding&&!a.yieldHold);","const idle=this.ants.filter(a=>a.role==='build'&&a.desiredRole==='build'&&a.job===null&&!a.itemTask&&!a.yielding&&!a.yieldHold&&!a.fight);",'a fighting worker takes no dig');
+// A worker backing over the ground keeps facing the way it faces; only
+// its tilt follows the slope.
+replace("if(Math.abs(dx)>1e-8){const slope=clamp(this.surfacePoint(ant.x+.5).y-this.surfacePoint(ant.x-.5).y,-1,1),direction=Math.sign(dx);ant.angle=Math.atan2(slope*direction,direction);}","if(Math.abs(dx)>1e-8){const slope=clamp(this.surfacePoint(ant.x+.5).y-this.surfacePoint(ant.x-.5).y,-1,1),direction=Math.sign(Math.cos(oldAngle))||Math.sign(dx);ant.angle=Math.atan2(slope*direction,direction);}",'backing on the surface keeps its facing');
 fs.writeFileSync(path.join(root,'core.js'),source);
 source=read('game.js');
 replace("FORMAT='ant-colony-1',KEY='antColonyGame_1',LIMIT=64","FORMAT='living-clicker-life-1',KEY='livingClicker_1',LIMIT=128",'independent lifecycle save');
@@ -224,5 +235,10 @@ replace("this.ants.length!==stats.initialAnts+stats.born","this.ants.length!==st
 replace("if(e.age>=50){e.stage='pupa';e.age=0;}","if(e.age>=50){e.stage='pupa';e.age=0;this.afterPupate?.(e,b);}",'meconium at pupation');
 // Foragers also carry a finished sweet grain to the queen chamber.
 replace("b.kind==='food'&&(!this.colony.wild.includes(b.id)||(stocked??=this.foodBodies().length)<maximum)","(b.kind==='food'&&(!this.colony.wild.includes(b.id)||(stocked??=this.foodBodies().length)<maximum)||b.kind==='cookie')",'foragers carry sweet grains');
+replace("const ROLES=['forage','nurse','build'];","const ROLES=['forage','nurse','build','guard'];",'guard role');
+replace("const c={forage:0,nurse:0,build:0};","const c={forage:0,nurse:0,build:0,guard:0};",'guard count');
+replace("roleWeights:{forage:1,nurse:1,build:1}","roleWeights:{forage:1,nurse:1,build:1,guard:0}",'no guards at start');
+replace("c.brood.length+stats.born!==stats.initialBrood+stats.laid","c.brood.length+stats.born+(c.raid?.stolenBrood||0)!==stats.initialBrood+stats.laid",'stolen brood ledger');
+replace("food.length+stats.eaten+stats.spent+(c.ferment?.used||0)!==stats.initialFood+stats.generated+(c.waste?.recycled||0)","food.length+stats.eaten+stats.spent+(c.ferment?.used||0)+(c.raid?.stolenFood||0)!==stats.initialFood+stats.generated+(c.waste?.recycled||0)+(c.raid?.prey||0)",'stolen food and prey ledger');
 fs.writeFileSync(path.join(root,'lifecycle.js'),source);
 console.log('Organic core and lifecycle generated with checked hooks.');

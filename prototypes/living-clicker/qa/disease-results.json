@@ -46,9 +46,9 @@
     }
   ],
   "hashes": {
-    "core.js": "0a9fa74d23ae0947e9e885cb29369f815092b87b909a78351bf6001971447d4b",
-    "lifecycle.js": "61d39daee54e187ef574a650e01e995f7ec5f8dcba84d1e57c1d97416e2c23f3",
-    "game.js": "07c8f03c0132c7f3a1b973b4020480eb615690efde6bb5d594ff1a69292b0833"
+    "core.js": "0e1cf40eae3b8e013a4cd064ddffb9fc30e1b9d0484a38a77c7bc25ad1f26b0b",
+    "lifecycle.js": "836eb5f4168af38524e79847c4589a8d4c56b595373c071ebef92f9961eb4943",
+    "game.js": "2a2d8a01881073a58fad5018146e7d5cb59b8cf4b3695bd75ba5bac8eaf810aa"
   },
   "inputHash": "7f2e327e9507daad4db3f4a2f5bc183a88a2e2a7580ea316e4812b7bceaff9ec"
 }

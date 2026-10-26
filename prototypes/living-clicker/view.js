@@ -200,9 +200,9 @@
     c.save();c.imageSmoothingEnabled=false;c.drawImage(frame,x-span/2,y-span/2,span,span);c.restore();
   }
 
-  function antFrame(angle, step, queen = false, action = 'walk') {
+  function antFrame(angle, step, queen = false, action = 'walk', enemy = false) {
     const direction = (Math.round(renderAngle(angle) / (Math.PI / 8)) + 16) % 16;
-    const key = `${direction}:${step}:${+queen}:${action}`;
+    const key = `${direction}:${step}:${+queen}:${action}:${+enemy}`;
     if (pixelAntCache.has(key)) return pixelAntCache.get(key);
     const frame = document.createElement('canvas'); frame.width = frame.height = 32;
     const c = frame.getContext('2d'), pivot = 16, unit = 16, theta = direction * Math.PI / 8;
@@ -219,7 +219,7 @@
         if (twice < dx) { error += dx; y += sy; }
       }
     }
-    const legs = queen ? '#493325' : '#3a3025', gait = [0,.045,0,-.045][step%4];
+    const legs = enemy ? '#3b1812' : queen ? '#493325' : '#3a3025', gait = [0,.045,0,-.045][step%4];
     for (let k = -1; k <= 1; k++) for (const side of [-1, 1]) {
       const sway = gait * side * (k === 0 ? -1 : 1), reach=(action==='dig'||action==='gather')&&k===1?.055:0,knee = point(k * .15 + sway*.5+reach, side * .15);
       line(point(k * .14, side * .08), knee, legs); line(knee, point(k * .18 + sway+reach, side * (action==='carry'?.20:.22)), legs);
@@ -241,15 +241,15 @@
       const abdomen=gx>=-7&&gx<=-2&&gy>=-2&&gy<=1&&(gy===-1||gy===0||gx>=-6&&gx<=-3),waist=gx>=-1&&gx<=1&&gy>=-1&&gy<=0,head=gx>=2&&gx<=5&&gy>=-2&&gy<=1&&(gy===-1||gy===0||gx>=3&&gx<=4);
       if(!abdomen&&!waist&&!head)continue;
       const edge=gy===-2||gy===1||gx===-7;
-      c.fillStyle=edge?'#251e19':abdomen?(queen?'#68452f':'#51402c'):waist?'#453326':queen?'#81583a':'#71543a';
-      if(abdomen&&gy===-1&&gx>=-5&&gx<=-3)c.fillStyle=queen?'#a27a4c':'#8b714b';
+      c.fillStyle=edge?(enemy?'#2a120e':'#251e19'):abdomen?(queen?'#68452f':enemy?'#6b2a1d':'#51402c'):waist?(enemy?'#561f16':'#453326'):queen?'#81583a':enemy?'#8c3a25':'#71543a';
+      if(abdomen&&gy===-1&&gx>=-5&&gx<=-3)c.fillStyle=queen?'#a27a4c':enemy?'#a8553b':'#8b714b';
       if(head&&gx===4&&gy===-1)c.fillStyle='#181714';
       c.fillRect(px,py,1,1);
     }
     return rememberAntFrame(key,frame);
   }
-  function antShape(c, x, y, size, angle, phase, queen = false, action = 'walk') {
-    const step = Math.floor(Math.abs(phase)) % 4, frame = antFrame(angle, step, queen,action);
+  function antShape(c, x, y, size, angle, phase, queen = false, action = 'walk', enemy = false) {
+    const step = Math.floor(Math.abs(phase)) % 4, frame = antFrame(angle, step, queen,action,enemy);
     c.save(); c.imageSmoothingEnabled = false;
     c.drawImage(frame, x - size, y - size, size * 2, size * 2); c.restore();
   }
@@ -279,14 +279,14 @@
       if(length>5){foot.x=Math.round(hip.x+dx/length*5);foot.y=Math.round(hip.y+dy/length*5);}
       legs.push({hip,knee,foot,far});
     }
-    const key=`surface:${direction}:${step}:${action}:${legs.map(l=>l.foot.x+','+l.foot.y).join(';')}`;
+    const key=`surface:${direction}:${step}:${action}:${+!!ant.enemy}:${legs.map(l=>l.foot.x+','+l.foot.y).join(';')}`;
     if(pixelAntCache.has(key))return pixelAntCache.get(key);
     const frame=document.createElement('canvas');frame.width=frame.height=32;const c=frame.getContext('2d');
     function line(a,b,color){
       let x=a.x,y=a.y,dx=Math.abs(b.x-x),dy=Math.abs(b.y-y),sx=x<b.x?1:-1,sy=y<b.y?1:-1,error=dx-dy;c.fillStyle=color;
       while(true){c.fillRect(x,y,1,1);if(x===b.x&&y===b.y)break;const twice=error*2;if(twice>-dy){error-=dy;x+=sx;}if(twice<dx){error+=dx;y+=sy;}}
     }
-    for(const l of legs){const color=l.far?'#665a48':'#322c25';line(l.hip,l.knee,color);line(l.knee,l.foot,color);}
+    for(const l of legs){const color=ant.enemy?(l.far?'#6a3a2e':'#3b1812'):l.far?'#665a48':'#322c25';line(l.hip,l.knee,color);line(l.knee,l.foot,color);}
     for(const offset of [0,.045]){const knee=point(.37,-.105+offset+(action==='idle'&&step===1?-.02:0));line(point(.32,-.04+offset),knee,'#3a3025');line(knee,point(.41,-.08+offset),'#3a3025');}
     line(point(.065,.11),point(.19,.055),'#251e19');
     const drop=action==='unload'&&step%2?.035:0,body=[[-.25,.15,.24,.16],[0,.15,.14,.12],[.24,.025+drop,.16,.14]];
@@ -294,14 +294,14 @@
       const wx=(px+ox-pivot)/unit,wy=(py+oy-pivot)/unit,bx=(wx*cos+wy*sin)*facing,by=-wx*sin+wy*cos;
       return ((bx-cx)/rx)**2+((by-cy)/ry)**2<=1;
     }))){const wx=(px+.5-pivot)/unit,wy=(py+.5-pivot)/unit,bx=(wx*cos+wy*sin)*facing,by=-wx*sin+wy*cos;
-      c.fillStyle=by>.22?'#251e19':bx<-.10?'#51402c':bx>.13?'#71543a':'#453326';if(bx<-.15&&by<.12)c.fillStyle='#8b714b';c.fillRect(px,py,1,1);
+      c.fillStyle=ant.enemy?(by>.22?'#2a120e':bx<-.10?'#6b2a1d':bx>.13?'#8c3a25':'#561f16'):by>.22?'#251e19':bx<-.10?'#51402c':bx>.13?'#71543a':'#453326';if(bx<-.15&&by<.12)c.fillStyle=ant.enemy?'#a8553b':'#8b714b';c.fillRect(px,py,1,1);
     }
     const eye=point(.29,.005+drop);c.fillStyle='#181714';c.fillRect(eye.x,eye.y,1,1);
     return rememberAntFrame(key,frame);
   }
   function drawWorker(ant,reduced) {
-    const p=screen(ant.x,ant.y),size=cam.scale*ANT_SIZE,job=sim.jobs.find(j=>j.id===ant.job),action=ant.task==='dig'?(job?.pickup?'gather':'dig'):ant.task==='unload'?'unload':sim.carriedKind(ant)?'carry':ant.path.length&&!ant.waitingFor?'walk':'idle',phase=reduced?0:action==='dig'?sim.digMotion(ant):action==='idle'?((sim.time+ant.id*.71)%7<.6?1:0):action==='gather'||action==='unload'?sim.time*6:ant.walked*3;
-    if(antView(ant)==='nest'){antShape(ctx,p.x,p.y,size,ant.angle,phase,false,action);return;}
+    const p=screen(ant.x,ant.y),size=cam.scale*ANT_SIZE,job=sim.jobs.find(j=>j.id===ant.job),action=ant.fight?'dig':ant.task==='dig'?(job?.pickup?'gather':'dig'):ant.task==='unload'?'unload':sim.carriedKind(ant)?'carry':ant.path.length&&!ant.waitingFor?'walk':'idle',phase=reduced?0:ant.fight?sim.time*8:action==='dig'?sim.digMotion(ant):action==='idle'?((sim.time+ant.id*.71)%7<.6?1:0):action==='gather'||action==='unload'?sim.time*6:ant.walked*3;
+    if(antView(ant)==='nest'){antShape(ctx,p.x,p.y,size,ant.angle,phase,false,action,!!ant.enemy);return;}
     const step=Math.floor(Math.abs(phase))%4,frame=surfaceAntFrame(ant,step,action);
     ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(frame,p.x-size,p.y-size,size*2,size*2);ctx.restore();
   }
@@ -328,6 +328,7 @@
         if(g!==undefined&&job.pickup===null){const p=GRAIN.origin(g),at=screen(p.x,p.y);ctx.strokeStyle='#ead9a7';ctx.lineWidth=Math.max(.5,cam.scale*GRAIN.size*.12);ctx.strokeRect(at.x,at.y,GRAIN.size*cam.scale,GRAIN.size*cam.scale);}
       }
     }
+    for(const e of sim.colony.raid?.enemies||[])drawWorker(e,reduced);
     for(const b of sim.physics.bodies)if(b.carrier)drawBody(b);
     if (selected) {
       ctx.strokeStyle = '#fff7de'; ctx.lineWidth = 1;
@@ -349,7 +350,7 @@
     if (entrance.y > 18) ctx.fillText('入口', entrance.x, entrance.y);
     const forage=screen(17.5,4.5);if(forage.y>18)ctx.fillText('採集場所',forage.x,forage.y);
   }
-  const roleNames={forage:'採集係',nurse:'育児係',build:'掘削係'},stageNames={egg:'卵',larva:'幼虫',pupa:'蛹'};
+  const roleNames={forage:'採集係',nurse:'育児係',build:'掘削係',guard:'見張り'},stageNames={egg:'卵',larva:'幼虫',pupa:'蛹'};
   function selectionUI(){
     const el=$('selection');el.replaceChildren();
     const line=(text,strong=false)=>{const n=document.createElement(strong?'b':'div');n.textContent=text;if(!strong)n.className='line';el.append(n);};
@@ -390,6 +391,7 @@
     if(s.ants+sim.colony.brood.length>=sim.populationLimit())cause='コロニーが育ちました。女王と地質の研究で、次の成長へ。';
     if(s.births&&s.allocation.forage&&s.allocation.nurse&&s.allocation.build&&s.food>=2)cause=s.reached<sim.depthAbility()?'新しい地層へ、通路を掘り進めています。':s.ants<32?'働き手を育てて、巣を広げよう。':'研究と仕事の配分で、コロニーを育てよう。';
     if(sim.colony.disease?.active)cause='育児室にゴミがたまり、病気が広がっています。掃除の手を増やそう。';
+    {const r=sim.colony.raid;if(r?.phase==='scout')cause=s.allocation.guard?'見知らぬアリが巣を探っています。見張りが入口で待ち構えます。':'見知らぬアリが巣を探っています。見張りを置くと入口で追い払えます。';else if(r?.phase==='coming'||r?.phase==='attack')cause=s.allocation.guard?'襲撃隊が来ます。見張りが入口で迎え撃ちます。':'襲撃隊が来ます。見張りを置くと入口で防げます。';}
     $('cookies').textContent=s.cookie;$('depth').textContent='第'+s.reached+'層';updateResearch();
     if($('cause').textContent!==cause)$('cause').textContent=cause;
     $('play').textContent=paused?'再開':'一時停止';$('play').setAttribute('aria-pressed',String(paused));selectionUI();

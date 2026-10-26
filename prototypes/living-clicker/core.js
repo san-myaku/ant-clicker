@@ -232,7 +232,7 @@
       if(binary.length!==pack.count*STRIDE)fail();const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0)),v=new DataView(bytes.buffer);
       for(let i=0;i<pack.count;i++){
         const at=i*STRIDE,id=v.getUint32(at,true),kind=KINDS[v.getUint8(at+4)],material=v.getUint8(at+5),carrier=v.getUint8(at+6),state=STATES[v.getUint8(at+7)],values=['x','y','vx','vy'].map((_,k)=>v.getFloat64(at+8+k*8,true)),rest=v.getUint16(at+40,true),source=v.getInt32(at+42,true);
-        if(!id||id>=pack.nextId||this.byId.has(id)||!kind||material<1||material>2||carrier>128||!state||values.some(n=>!Number.isFinite(n))||Math.abs(values[2])>20||Math.abs(values[3])>20||rest>30||v.getUint32(at+46,true)!==0)fail();
+        if(!id||id>=pack.nextId||this.byId.has(id)||!kind||material<1||material>2||carrier>128&&(carrier<200||carrier>249)||!state||values.some(n=>!Number.isFinite(n))||Math.abs(values[2])>20||Math.abs(values[3])>20||rest>30||v.getUint32(at+46,true)!==0)fail();
         const [x,y,vx,vy]=values,s=SHAPES[kind];
         if(x<s.hx-EPS||x>this.width-s.hx+EPS||y<s.hy-EPS||y>this.height-s.hy+EPS||(kind!=='soil'&&source!==-1))fail();
         this.spawn(kind,x,y,{id,material,carrier,state,vx,vy,rest,source});
@@ -550,7 +550,7 @@
     }
     updateCarriers() {
       for(const b of this.physics.bodies)if(b.carrier){
-        const a=this.ants.find(a=>a.id===b.carrier),owner=this.jobs.find(j=>j.id===a.job),slot=b.kind==='soil'?owner.grains.indexOf(b.source):0,end=this.cargoPoint(a,b.kind,slot);
+        const a=this.ants.find(a=>a.id===b.carrier)??this.enemyById?.(b.carrier),owner=this.jobs.find(j=>j.id===a.job),slot=b.kind==='soil'?owner.grains.indexOf(b.source):0,end=this.cargoPoint(a,b.kind,slot);
         const job=b.state==='pickup'?this.jobs.find(j=>j.id===a.job):null;
         if(job){const route=[GRAIN.center(b.source),...job.pickupRoutes[slot],end],lengths=route.slice(1).map((p,k)=>Math.hypot(p.x-route[k].x,p.y-route[k].y));let remaining=lengths.reduce((a,b)=>a+b,0)*clamp(job.stroke/PICKUP_SECONDS,0,1),k=0;
           while(k<lengths.length-1&&remaining>lengths[k])remaining-=lengths[k++];const t=lengths[k]?remaining/lengths[k]:1;b.x=route[k].x+(route[k+1].x-route[k].x)*t;b.y=route[k].y+(route[k+1].y-route[k].y)*t;
@@ -1194,7 +1194,7 @@
       }
       const required=needs.filter(n=>n.wanted>0&&(n.d>0||this.builds[n.rid]&&!this.transportReady(n.rid)));
       required.sort((a,b)=>(b.d/b.wanted*(this.priority===(this.roomKind(b.rid)==='egg'?'nursery':'food')?3:1))-(a.d/a.wanted*(this.priority===(this.roomKind(a.rid)==='egg'?'nursery':'food')?3:1)));
-      const idle=this.ants.filter(a=>a.role==='build'&&a.desiredRole==='build'&&a.job===null&&!a.itemTask&&!a.yielding&&!a.yieldHold);this._blocked=[];
+      const idle=this.ants.filter(a=>a.role==='build'&&a.desiredRole==='build'&&a.job===null&&!a.itemTask&&!a.yielding&&!a.yieldHold&&!a.fight);this._blocked=[];
       for(const n of required){this.ensureBuild(n.rid);const primary=this.builds[n.rid]?.complete?this.frontier(n.rid):this.construction(n.rid),candidates=[...this.transportCandidates(n.rid),...primary];
         for(const initial of candidates){if(!idle.length)break;if(n.d<=0&&this.builds[n.rid]?.complete&&!initial.widen)continue;if(this.workSiteBusy(initial.pose)||this.narrowSiteReserved(n.rid,initial.pose))continue;
           const cand=this.batchCandidate(initial);if(!cand)continue;
@@ -1267,7 +1267,7 @@
       if(grounded){const y=this.surfacePoint(p.x).y;p.y=Math.abs(target.x-ant.x)>1.2||target.y>=y?y:Math.min(p.y,y);}
       // Ant traffic uses lateral lanes and longitudinal spacing; ants are not
       // rigid physics bodies. Terrain clearance still sweeps every body/load.
-      if(p.y>SURFACE-1){let following=false;const ownRoom=this.grainRoom[GRAIN.at(p.x,p.y)],kind=this.carriedKind(ant),flow=a=>{const z=a.path.slice(a.next).find(p=>Math.hypot(p.x-a.x,p.y-a.y)>.25);return z?Math.atan2(z.y-a.y,z.x-a.x):a.angle;},ownFlow=flow(ant),block=this.ants.find(b=>{
+      if(p.y>SURFACE-1){let following=false;const ownRoom=this.grainRoom[GRAIN.at(p.x,p.y)],kind=this.carriedKind(ant),flow=a=>{const z=a.path.slice(a.next).find(p=>Math.hypot(p.x-a.x,p.y-a.y)>.25);return z?Math.atan2(z.y-a.y,z.x-a.x):a.angle;},ownFlow=flow(ant),block=ant.enemy?undefined:this.ants.find(b=>{
         if(b===ant||p.y<SURFACE&&b.y<SURFACE||Math.hypot(p.x-b.x,p.y-b.y)>2.6)return false;
         const dx=b.x-ant.x,dy=b.y-ant.y,along=dx*Math.cos(ownFlow)+dy*Math.sin(ownFlow),side=Math.abs(dx*Math.sin(ownFlow)-dy*Math.cos(ownFlow)),room=this.grainRoom[GRAIN.at(b.x,b.y)],sameFlow=Math.cos(ownFlow-flow(b))>.96;
         if(ownRoom>0&&room===ownRoom)return false;
@@ -1301,10 +1301,10 @@
       ant.detourTime=0;
       delete ant.waitingFor;
       if(!this.sweptClear(ant,p,this.carriedKind(ant),-1,.025)){this.collision={id:ant.id,from:{x:ant.x,y:ant.y,angle:ant.angle},proposed:p,target:q,kind:this.carriedKind(ant)};throw new Error('身体または荷物が土に触れる移動を停止しました');}
-      ant.x=p.x;ant.y=p.y;ant.angle=p.angle;ant.cell=idx(Math.floor(p.x),Math.floor(p.y));ant.walked+=step;this.stats.distance+=step;
-      if(step&&Math.cos(Math.atan2(q.y-ant.y,q.x-ant.x)-ant.angle)<-.5)this.stats.backwardDistance+=step;
+      ant.x=p.x;ant.y=p.y;ant.angle=p.angle;ant.cell=idx(Math.floor(p.x),Math.floor(p.y));ant.walked+=step;if(!ant.enemy)this.stats.distance+=step;
+      if(!ant.enemy&&step&&Math.cos(Math.atan2(q.y-ant.y,q.x-ant.x)-ant.angle)<-.5)this.stats.backwardDistance+=step;
       if(!ant.yielding&&(!ant.trail?.length||Math.hypot(ant.x-ant.trail.at(-1).x,ant.y-ant.trail.at(-1).y)>.12||Math.abs(ant.angle-ant.trail.at(-1).angle)>.08)){if(!ant.trail)ant.trail=[];ant.trail.push({x:ant.x,y:ant.y,angle:ant.angle});if(ant.trail.length>100)ant.trail.shift();}
-      this.traffic[ant.cell]+=step*.2;this._flowCells?.add(ant.cell);
+      if(!ant.enemy){this.traffic[ant.cell]+=step*.2;this._flowCells?.add(ant.cell);}
       if(d<=step+1e-8&&Math.abs(da-rotation)<1e-7){ant.angle=q.angle;ant.next++;}
       if(ant.next>=ant.path.length){ant.path=[];ant.next=0;
         if(ant.yielding){ant.yielding=false;ant.yieldHold=ant.yieldFor;delete ant.yieldPriority;const target=ant.resume.path.at(-1);delete ant.resume;ant.path=target?(this.path(ant,target)||[]):[];ant.wait=.6;return false;}
@@ -1382,7 +1382,7 @@
         if(!next&&Math.abs(Math.sin(ant.angle))<.7||walking||groundY<ant.y){
           const oldY=ant.y,oldAngle=ant.angle;ant.y=walking||!next?groundY:Math.min(ant.y,groundY);
           const dx=ant.x-previousX[k];
-          if(Math.abs(dx)>1e-8){const slope=clamp(this.surfacePoint(ant.x+.5).y-this.surfacePoint(ant.x-.5).y,-1,1),direction=Math.sign(dx);ant.angle=Math.atan2(slope*direction,direction);}
+          if(Math.abs(dx)>1e-8){const slope=clamp(this.surfacePoint(ant.x+.5).y-this.surfacePoint(ant.x-.5).y,-1,1),direction=Math.sign(Math.cos(oldAngle))||Math.sign(dx);ant.angle=Math.atan2(slope*direction,direction);}
           if(oldY!==ant.y||oldAngle!==ant.angle)surfaceChanged=true;
         }
       }
@@ -1453,7 +1453,7 @@
       }
       s.initObjects(pack.physics);
       const counts={soil:0,egg:0,food:0,waste:0,cookie:0};let delivered=0;
-      for(const b of s.physics.bodies){counts[b.kind]++;if(b.carrier){const a=s.ants.find(a=>a.id===b.carrier);if(!a||(b.kind==='soil'?!s.jobs.some(j=>j.ant===a.id&&j.grains.includes(b.source)):a.itemTask?.body!==b.id))fail();}else if(s.physics.terrainOverlap(b)||s.physics.penetration(b)>1e-5)fail();if(b.state==='delivered')delivered++;}
+      for(const b of s.physics.bodies){counts[b.kind]++;if(b.carrier){const a=s.ants.find(a=>a.id===b.carrier);if(!a&&b.carrier>=200)continue;if(!a||(b.kind==='soil'?!s.jobs.some(j=>j.ant===a.id&&j.grains.includes(b.source)):a.itemTask?.body!==b.id))fail();}else if(s.physics.terrainOverlap(b)||s.physics.penetration(b)>1e-5)fail();if(b.state==='delivered')delivered++;}
       if(counts.soil+s.stats.grainSettled!==s.stats.grainDug||delivered+s.stats.grainSettled!==s.stats.grainDelivered)fail();
       const itemOwners=new Set();
       for(const a of s.ants){

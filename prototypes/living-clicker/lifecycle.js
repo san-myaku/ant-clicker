@@ -6,13 +6,13 @@
   'use strict';
   const {Simulation:TerrainSimulation,Physics,GRAIN,SURFACE,WALK_SPEED,idx,STEP}=Core;
   const FORMAT='living-clicker-life-1',KEY='livingClicker_1',LIMIT=128;
-  const ROLES=['forage','nurse','build'];
+  const ROLES=['forage','nurse','build','guard'];
   const UPGRADES={walk:{name:'足どりを軽く',cost:8,max:3},brood:{name:'育児の手ほどき',cost:6,max:3},dig:{name:'掘削の手ほどき',cost:6,max:3}};
   class Simulation extends TerrainSimulation{
     constructor(seed=24014){
       super(seed);
       this.colony={nextAnt:13,brood:this.physics.bodies.filter(b=>b.kind==='egg').map(b=>({id:b.id,stage:'egg',age:0,feeds:0,lastFed:-100})),
-        wild:[],queen:0,laying:true,lastTap:-10,nextFood:0,roleWeights:{forage:1,nurse:1,build:1},upgrades:{walk:0,brood:0,dig:0},
+        wild:[],queen:0,laying:true,lastTap:-10,nextFood:0,roleWeights:{forage:1,nurse:1,build:1,guard:0},upgrades:{walk:0,brood:0,dig:0},
         stats:{initialAnts:12,initialBrood:3,initialFood:6,laid:0,born:0,generated:0,gathered:0,eaten:0,spent:0}};
       this.ants.forEach((a,k)=>{a.role=a.desiredRole=ROLES[Math.floor(k/4)];});
       this.events=[];this.log('女王室から、12匹の働き手と3個の卵で出発します。');
@@ -20,7 +20,7 @@
     }
     walkSpeed(){return WALK_SPEED*(1+this.colony.upgrades.walk*.15);}
     digRate(){return 1+this.colony.upgrades.dig*.25;}
-    roleCounts(desired=false){const c={forage:0,nurse:0,build:0};for(const a of this.ants)c[desired?a.desiredRole:a.role]++;return c;}
+    roleCounts(desired=false){const c={forage:0,nurse:0,build:0,guard:0};for(const a of this.ants)c[desired?a.desiredRole:a.role]++;return c;}
     setRoles(counts){
       if(ROLES.some(r=>!Number.isInteger(counts[r])||counts[r]<0)||ROLES.reduce((n,r)=>n+counts[r],0)!==this.ants.length)throw new Error('人数が一致しません');
       this.colony.roleWeights={...counts};
@@ -176,7 +176,7 @@
     }
     assertLedger(){
       const fail=()=>{throw new Error('コロニーの数が一致しません');},c=this.colony,stats=c.stats,eggs=this.physics.bodies.filter(b=>b.kind==='egg'),food=this.physics.bodies.filter(b=>b.kind==='food');
-      if(this.ants.length!==stats.initialAnts+stats.born-(stats.died||0)||c.brood.length+stats.born!==stats.initialBrood+stats.laid||food.length+stats.eaten+stats.spent+(c.ferment?.used||0)!==stats.initialFood+stats.generated+(c.waste?.recycled||0)||eggs.length!==c.brood.length)fail();
+      if(this.ants.length!==stats.initialAnts+stats.born-(stats.died||0)||c.brood.length+stats.born+(c.raid?.stolenBrood||0)!==stats.initialBrood+stats.laid||food.length+stats.eaten+stats.spent+(c.ferment?.used||0)+(c.raid?.stolenFood||0)!==stats.initialFood+stats.generated+(c.waste?.recycled||0)+(c.raid?.prey||0)||eggs.length!==c.brood.length)fail();
       if(new Set(c.brood.map(e=>e.id)).size!==eggs.length||c.brood.some(e=>this.physics.byId.get(e.id)?.kind!=='egg')||new Set(c.wild).size!==c.wild.length||c.wild.some(id=>this.physics.byId.get(id)?.kind!=='food'))fail();
       return true;
     }

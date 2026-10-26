@@ -89,12 +89,17 @@
   // Fermentation: a batch of real food resting in the chamber turns into a
   // sweet grain; the chamber only takes food while the stores keep a reserve.
   const FERMENT_BATCH=6,FERMENT_TIME=45,FERMENT_ROOM=10;
+  // Raids: once the nest has RAID_FROM workers a neighbouring colony sends a
+  // scout every RAID_GAP seconds; a scout that gets home brings a party after
+  // RAID_AFTER_SCOUT seconds. Contact starts a grapple of FIGHT_TIME seconds.
+  const RAID_FROM=40,RAID_GAP=[480,840],RAID_AFTER_SCOUT=40,RAID_SPACING=1.5,FIGHT_TIME=3,CONTACT=.8,ENEMY_FIRST=200,ENEMY_LAST=249;
+  const STRENGTH={guard:1,raider:1,scout:.5},HELP=.5,HELP_REACH=1.5,HELP_MAX=2,RAID_PHASES=['quiet','scout','coming','attack'];
   const UPGRADE_IDS={walk:'gather_1',brood:'brood_1',dig:'dig_speed'};
   class Simulation extends Base.Simulation{
     constructor(seed=24014){
       super(seed);
       this.progress={research:Object.fromEntries(ACTIVE.map(d=>[d.id,0])),cookie:0,earned:0,spentCookie:0,haulAwards:0,reached:1,claims:[1],speed:1};
-      this.colony.waste={due:0,made:0,decayed:0,recycled:0};this.colony.refuse=[];this.colony.disease={active:false,next:0};this.colony.stats.died=0;this.colony.ferment={batch:[],startedAt:0,used:0,made:0,credited:0,batches:0};
+      this.colony.waste={due:0,made:0,decayed:0,recycled:0};this.colony.refuse=[];this.colony.disease={active:false,next:0};this.colony.stats.died=0;this.colony.ferment={batch:[],startedAt:0,used:0,made:0,credited:0,batches:0};this.colony.raid=Simulation.quietRaid();
       this.events=[];this.log('女王室から、巣づくりを始めます。');
     }
     level(id){return this.progress?.research[id]||0;}
@@ -477,6 +482,7 @@
       }return false;
     }
     stepItemTask(ant,dt,occupancy){
+      if(ant.fight)return true;if(ant.role==='guard')return this.guardStep(ant,dt,occupancy);
       if(ant.itemTask?.purpose==='clean')return this.cleanStep(ant,dt,occupancy);
       const busy=super.stepItemTask(ant,dt,occupancy);if(busy||ant.itemTask||ant.job!==null)return busy;
       // After お掃除はおまかせ a few idle foragers also take nest waste.
@@ -495,7 +501,7 @@
         if(this.time-r.at<REFUSE_LIFE)return true;this.physics.remove(b);w.decayed++;return false;});
     }
     assertLedger(){
-      super.assertLedger();const w=this.colony.waste;if(!w)return true;
+      super.assertLedger();if(this.colony.raid)this.checkRaid();const w=this.colony.waste;if(!w)return true;
       const fail=()=>{throw new Error('ゴミの数が一致しません');},waste=this.physics.bodies.filter(b=>b.kind==='waste'),ids=new Set(this.colony.refuse.map(r=>r.id));
       if(waste.length!==w.made-w.decayed-(w.recycled||0)||ids.size!==this.colony.refuse.length)fail();
       const f=this.colony.ferment;if(f&&this.physics.bodies.filter(b=>b.kind==='cookie').length!==f.made-f.credited)throw new Error('甘い粒の数が一致しません');
@@ -523,9 +529,145 @@
       this.ants=this.ants.filter(a=>a!==victim);for(const a of this.ants){if(a.waitingFor===victim.id)delete a.waitingFor;if(a.yieldFor===victim.id)delete a.yieldFor;}
       this.colony.stats.died++;d.next=this.time+DISEASE_INTERVAL;this.log('病気で働き手が1匹死にました。'+this.ants.length+'匹になりました。');
     }
+    static quietRaid(){return {phase:'quiet',next:0,serial:0,side:1,attackAt:0,spawnAt:0,pending:0,size:0,fights:0,enemies:[],round:{killed:0,lost:0,brood:0,food:0},raids:0,scouts:0,killed:0,lost:0,stolenBrood:0,stolenFood:0,prey:0};}
+    shiftRole(role,delta){
+      // A guard is only assigned on purpose: other roles neither give to nor
+      // take from it, so the three working roles keep their previous balance.
+      const main=['forage','nurse','build'];if(!Base.ROLES.includes(role)||![-1,1].includes(delta))return false;
+      const counts=this.roleCounts(true),others=main.filter(r=>r!==role).sort((a,b)=>counts[b]-counts[a]||main.indexOf(a)-main.indexOf(b));
+      if(delta>0){const donor=others.find(r=>counts[r]>0);if(!donor)return false;counts[donor]--;counts[role]++;}
+      else{if(!counts[role])return false;counts[role]--;counts[others.at(-1)]++;}
+      return this.setRoles(counts);
+    }
+    roll(a,b){return hash(a,b,this.seed^0x5a17)/4294967296;}
+    enemyById(id){return this.colony?.raid?.enemies.find(e=>e.id===id);}
+    guardPosts(){
+      // Standing places down the entrance shaft, from its mouth inward.
+      const shaft=this.entranceHistory||[],out=[];
+      for(let k=shaft.length-1;k>=0&&out.length<12;k--){const p=shaft[k];if(p.y<SURFACE+.6||out.some(q=>Math.hypot(q.x-p.x,q.y-p.y)<1))continue;out.push({x:p.x,y:p.y,angle:p.angle});}
+      return out;
+    }
+    guardStep(ant,dt,occupancy){
+      ant.task='idle';if(ant.path.length){this.move(ant,dt,occupancy);return true;}
+      const guards=this.ants.filter(a=>a.role==='guard').sort((a,b)=>a.id-b.id),posts=this.guardPosts(),post=posts[guards.indexOf(ant)%Math.max(1,posts.length)];
+      if(!post||Math.hypot(ant.x-post.x,ant.y-post.y)<.2)return true;
+      if((ant.wait=Math.max(0,ant.wait-dt))>0)return true;
+      const route=this.path(ant,post,null);ant.path=route||[];ant.next=0;ant.wait=route?0:2;return true;
+    }
+    edgePose(e,inward){const x=e.side<0?1.2:W-1.2,p=this.surfacePoint(x);return {x:p.x,y:p.y,angle:(e.side<0)===inward?0:Math.PI};}
+    spawnEnemy(kind){
+      const r=this.colony.raid,used=new Set(r.enemies.map(e=>e.id));let id=ENEMY_FIRST;while(used.has(id)&&id<ENEMY_LAST)id++;if(used.has(id))return null;
+      const e={id,kind,side:r.side,phase:'in',task:'idle',job:null,enemy:true,path:[],next:0,trail:[],walked:0,wait:0},p=this.edgePose(e,true);
+      Object.assign(e,p,{cell:idx(Math.min(W-1,Math.floor(p.x)),Math.floor(p.y))});r.enemies.push(e);return e;
+    }
+    removeEnemy(e){const r=this.colony.raid;r.enemies=r.enemies.filter(x=>x!==e);}
+    stealable(e){
+      // Brood and stored food inside the nest that nobody is handling.
+      const claimed=new Set(),ferment=new Set(this.colony.ferment?.batch||[]);
+      for(const a of this.ants)if(a.itemTask){claimed.add(a.itemTask.body);if(a.itemTask.target!==undefined)claimed.add(a.itemTask.target);}
+      for(const x of this.colony.raid.enemies)if(x!==e&&x.target!==undefined)claimed.add(x.target);
+      return this.physics.bodies.filter(b=>(b.kind==='egg'||b.kind==='food'&&!this.colony.wild.includes(b.id))&&!b.carrier&&b.rest>=30&&b.y>=SURFACE&&!claimed.has(b.id)&&!ferment.has(b.id)&&this.physics.drag?.id!==b.id)
+        .sort((a,b)=>Math.hypot(a.x-e.x,a.y-e.y)-Math.hypot(b.x-e.x,b.y-e.y)||a.id-b.id);
+    }
+    planEnemy(e){
+      e.wait=1;delete e.target;
+      if(e.phase==='out'){const route=this.path(e,this.edgePose(e,false),this.carriedKind(e));if(route){e.path=route;e.next=0;}return;}
+      if(e.kind==='scout'){const post=this.guardPosts()[0];if(!post){e.phase='out';return;}const route=this.path(e,{...post,angle:post.angle+Math.PI},null)||this.path(e,post,null);if(route){e.path=route;e.next=0;}return;}
+      for(const b of this.stealable(e).slice(0,3))for(const a of this.itemAccess(b)){const route=this.path(e,a.pose,null);if(route){e.path=route;e.next=0;e.target=b.id;return;}}
+      e.phase='out';e.wait=0;
+    }
+    enemyArrived(e){
+      const r=this.colony.raid;
+      if(e.phase==='out'){
+        if(Math.abs(e.x-this.edgePose(e,false).x)>.3){e.wait=0;return;}
+        const b=this.physics.byId.get(e.itemTask?.body);
+        if(b){const brood=b.kind==='egg';this.physics.remove(b);if(brood){this.colony.brood=this.colony.brood.filter(x=>x.id!==b.id);r.stolenBrood++;r.round.brood++;}else{r.stolenFood++;r.round.food++;}}
+        this.removeEnemy(e);
+        if(e.kind==='scout'){r.phase='coming';r.attackAt=this.time+RAID_AFTER_SCOUT;r.spawnAt=r.attackAt;r.size=r.pending=Math.min(6,1+Math.floor(this.ants.length/25));this.log('偵察アリが巣の場所を持ち帰りました。まもなく襲撃隊が来ます。');}
+        return;
+      }
+      if(e.kind==='scout'){e.phase='out';e.wait=0;return;}
+      const b=this.physics.byId.get(e.target);
+      if(!b||b.carrier||Math.hypot(e.x-b.x,e.y-b.y)>1.6||!this.stealable(e).includes(b)){e.wait=0;delete e.target;return;}
+      b.carrier=e.id;b.state='cargo';b.rest=0;e.itemTask={phase:'store',body:b.id};delete e.target;e.phase='out';e.wait=0;
+    }
+    defenderFor(e){
+      // Guards take on intruders; the other workers keep to their work.
+      let best=null,d=CONTACT;
+      for(const a of this.ants){if(a.fight||a.role!=='guard')continue;const v=Math.hypot(a.x-e.x,a.y-e.y);if(v<d){d=v;best=a;}}
+      return best;
+    }
+    killAnt(a){
+      const w=this.colony.waste;this.ants=this.ants.filter(x=>x!==a);for(const x of this.ants){if(x.waitingFor===a.id)delete x.waitingFor;if(x.yieldFor===a.id)delete x.yieldFor;}
+      this.colony.stats.died++;
+      // The body is refuse that the nurses carry out like any other waste.
+      const b=this.physics.spawn('waste',a.x,a.y,{state:'refuse'});this.physics.release(b);b.state='refuse';w.made++;this._wasteTick=-1;
+    }
+    killEnemy(e){
+      const r=this.colony.raid,b=this.physics.byId.get(e.itemTask?.body);
+      if(b){this.updateCarriers();this.physics.release(b);b.state='incoming';}
+      this.removeEnemy(e);r.killed++;r.round.killed++;
+      // A fallen raider is prey: real food the foragers bring to the stores.
+      const prey=this.physics.spawn('food',e.x,e.y,{state:'incoming'});this.physics.release(prey);r.prey++;
+      if(e.kind==='scout'){r.phase='quiet';r.next=this.time+this.raidGap();this.log('偵察アリを倒しました。');}
+    }
+    checkRaid(){
+      const r=this.colony.raid,fail=()=>{throw Error('襲撃の記録が正しくありません');},int=v=>Number.isInteger(v)&&v>=0,num=v=>Number.isFinite(v),pose=p=>p&&num(p.x)&&num(p.y)&&num(p.angle)&&p.x>=0&&p.x<=W&&p.y>=0&&p.y<=H;
+      if(!r||!RAID_PHASES.includes(r.phase)||![r.next,r.attackAt,r.spawnAt].every(num)||![-1,1].includes(r.side)||![r.serial,r.pending,r.size,r.fights,r.raids,r.scouts,r.killed,r.lost,r.stolenBrood,r.stolenFood,r.prey].every(int)||r.pending>r.size||r.size>6)fail();
+      if(!r.round||![r.round.killed,r.round.lost,r.round.brood,r.round.food].every(int)||!Array.isArray(r.enemies)||r.enemies.length>ENEMY_LAST-ENEMY_FIRST+1||r.prey!==r.killed)fail();
+      const ids=new Set(),carried=new Set();
+      for(const e of r.enemies){
+        if(!Number.isInteger(e.id)||e.id<ENEMY_FIRST||e.id>ENEMY_LAST||ids.has(e.id)||!['scout','raider'].includes(e.kind)||!['in','out'].includes(e.phase)||e.enemy!==true||e.job!==null||e.side!==r.side||!pose(e)||!Array.isArray(e.path)||!e.path.every(pose)||!Number.isInteger(e.next)||e.next<0||e.next>Math.max(0,e.path.length-1)||!num(e.wait))fail();
+        ids.add(e.id);
+        if(e.itemTask){const b=this.physics.byId.get(e.itemTask.body);if(e.kind!=='raider'||e.phase!=='out'||e.itemTask.phase!=='store'||!b||b.carrier!==e.id||!['egg','food'].includes(b.kind))fail();carried.add(b.id);}
+        if(e.fight){const a=this.ants.find(a=>a.id===e.fight.ant);if(!a||a.fight?.enemy!==e.id||a.fight.until!==e.fight.until||!num(e.fight.until))fail();}
+      }
+      for(const a of this.ants)if(a.fight&&this.enemyById(a.fight.enemy)?.fight?.ant!==a.id)fail();
+      for(const b of this.physics.bodies)if(b.carrier>=ENEMY_FIRST&&!carried.has(b.id))fail();
+      if(r.enemies.some(e=>e.kind==='scout')&&r.phase!=='scout'||r.phase==='scout'&&r.enemies.some(e=>e.kind==='raider'))fail();
+      return true;
+    }
+    raidGap(){const r=this.colony.raid;return RAID_GAP[0]+this.roll(r.serial,1)*(RAID_GAP[1]-RAID_GAP[0]);}
+    tickRaid(dt){
+      const r=this.colony.raid;
+      if(r.phase==='quiet'){
+        if(this.ants.length<RAID_FROM)return;
+        if(!r.next){r.next=this.time+this.raidGap();return;}
+        if(this.time<r.next)return;
+        r.serial++;r.side=this.roll(r.serial,2)<.5?-1:1;r.phase='scout';r.round={killed:0,lost:0,brood:0,food:0};r.scouts++;
+        if(this.spawnEnemy('scout'))this.log('見知らぬアリが巣の近くを歩いています。');
+      }
+      if(r.phase==='coming'&&this.time>=r.spawnAt&&r.pending>0){
+        if(this.spawnEnemy('raider')){if(r.pending===r.size){r.raids++;this.log('襲撃隊が来ました（'+r.size+'匹）。');}r.pending--;}
+        r.spawnAt=this.time+RAID_SPACING;if(!r.pending)r.phase='attack';
+      }
+      for(const e of r.enemies.slice()){
+        if(e.fight){
+          if(this.time<e.fight.until)continue;
+          const a=this.ants.find(x=>x.id===e.fight.ant);delete e.fight;
+          if(!a)continue;delete a.fight;
+          // Guards close by join the grapple.
+          const helpers=this.ants.filter(x=>x!==a&&x.role==='guard'&&!x.fight&&Math.hypot(x.x-e.x,x.y-e.y)<HELP_REACH).length,own=STRENGTH.guard+Math.min(HELP_MAX,helpers*HELP),their=STRENGTH[e.kind];
+          if(this.roll(r.serial*4096+r.fights++,3)<own/(own+their))this.killEnemy(e);
+          else{this.killAnt(a);r.lost++;r.round.lost++;}
+          continue;
+        }
+        const a=this.defenderFor(e);
+        if(a){e.fight={ant:a.id,until:this.time+FIGHT_TIME};a.fight={enemy:e.id,until:e.fight.until};continue;}
+        if(e.path.length){if(this.move(e,dt,null))this.enemyArrived(e);}
+        else if((e.wait=Math.max(0,e.wait-dt))<=0)this.planEnemy(e);
+      }
+      if(r.enemies.some(e=>e.itemTask))this.updateCarriers();
+      if(r.phase==='scout'&&!r.enemies.length){r.phase='quiet';r.next=this.time+this.raidGap();}
+      if(r.phase==='attack'&&!r.enemies.length){
+        const o=r.round;r.phase='quiet';r.next=this.time+this.raidGap();
+        this.log('襲撃が終わりました。倒した敵'+o.killed+'匹、失った働き手'+o.lost+'匹、奪われた卵・幼虫'+o.brood+'個、餌'+o.food+'個。');
+      }
+    }
     tick(dt){
       if(this.progress&&this.ticks%30===0){this.ensureDepthRooms();this.ensureWasteRoom();this.ensureFermentRoom();}
       super.tick(dt);if(!this.progress)return;
+      this.tickRaid(dt);
       if(this.ticks%60===0){this.settleSpoil();this.decayRefuse();this.tickDisease();this.clearLaneStock();this.tickFerment();}
       if(this.ticks%30===0)this.creditCookies();
       const awards=Math.floor(this.stats.grainDelivered/80);
@@ -545,7 +687,9 @@
     }
     static restore(pack){
       if(pack?.format!==FORMAT||!pack.progress)throw Error('この巣の保存データではありません');
-      const life={...pack,format:'living-clicker-life-1'},s=Base.Simulation.restore(life);Object.setPrototypeOf(s,Simulation.prototype);s.progress=structuredClone(pack.progress);
+      // A save from before guards existed has no guard weight: none assigned.
+      const colony=pack.colony?.roleWeights&&pack.colony.roleWeights.guard===undefined?{...pack.colony,roleWeights:{...pack.colony.roleWeights,guard:0}}:pack.colony;
+      const life={...pack,colony,format:'living-clicker-life-1'},s=Base.Simulation.restore(life);Object.setPrototypeOf(s,Simulation.prototype);s.progress=structuredClone(pack.progress);
       // A save from before a study was connected has no level for it: start it at 0.
       if(s.progress.research&&Object.keys(s.progress.research).every(id=>BY_ID[id]&&!BY_ID[id].planned))for(const d of ACTIVE)if(!(d.id in s.progress.research))s.progress.research[d.id]=0;
       // Waste arrived with the hygiene stage; a save without it has none yet.
@@ -560,6 +704,8 @@
       if(!c.waste||!Number.isFinite(c.waste.due)||c.waste.due<0||c.waste.due>=1||!int(c.waste.made)||!int(c.waste.decayed)||!int(c.waste.recycled)||c.waste.decayed+c.waste.recycled>c.waste.made||!Array.isArray(c.refuse)||c.refuse.some(r=>!int(r.id)||!Number.isFinite(r.at)||r.at>s.time))throw Error('ゴミの記録が正しくありません');
       for(const a of s.ants)if(a.itemTask?.purpose==='clean'){const b=s.physics.byId.get(a.itemTask.body);if(!(a.role==='nurse'||a.role==='forage'&&s.level('hygiene_3'))||b?.kind!=='waste'||a.itemTask.target!==undefined)throw Error('掃除の記録が正しくありません');}
       const kinds=s.rooms.slice(2).map(r=>r.kind);if(kinds.some(k=>k!==undefined&&!['egg','food','waste','ferment'].includes(k))||kinds.filter(k=>k==='waste').length>1||kinds.filter(k=>k==='ferment').length>1||s.rooms.slice(2).some(r=>r.layer!==undefined&&!(Number.isInteger(r.layer)&&r.layer>=1&&r.layer<=6)))throw Error('部屋の用途の記録が正しくありません');
+      if(c.raid===undefined)c.raid=Simulation.quietRaid();
+      s.checkRaid();
       s.assertLedger();s.assertProgress();
       for(const [id,b]of s.builds.entries())if(id>=4&&b&&(!Number.isFinite(b.minLength)||b.minLength<6||b.minLength>80||!Number.isFinite(b.minDepth)||b.minDepth<SURFACE||b.minDepth>H))throw Error('深い部屋の記録が正しくありません');
       for(const b of s.builds)if(b?.avoided&&(!Array.isArray(b.avoided)||b.avoided.length>512||b.avoided.some(p=>!Number.isFinite(p.x)||!Number.isFinite(p.y)||!Number.isFinite(p.angle)||p.x<0||p.x>W||p.y<SURFACE||p.y>H)))throw Error('掘削の方向の記録が正しくありません');
