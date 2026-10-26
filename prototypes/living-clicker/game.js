@@ -204,11 +204,15 @@
     // Real colonies drop spoil as a low ring on both sides of the entrance.
     // Fill the nearest low ground first, outward from a clear apron.
     dumpSite(){
-      const ex=this.entrance.x,columns=[];
-      for(let d=SPOIL_CLEAR;d<W;d++)for(const x of [Math.floor(ex-d),Math.floor(ex+d)])if(x>=SPOIL_LEFT&&x<W-6&&!columns.includes(x))columns.push(x);
-      const height=x=>SURFACE-.9-this.surfacePoint(x+.5).y;
-      const x=columns.find(x=>height(x)<SPOIL_DUMP)??columns.reduce((best,x)=>height(x)<height(best)?x:best);
-      return idx(x,SURFACE-1);
+      const ex=this.entrance.x,height=x=>SURFACE-.9-this.surfacePoint(x+.5).y,all=[];
+      // At each distance take the lower side; level sides alternate per load.
+      const left=this.stats.delivered%2===0,preferred=x=>(x<ex)===left?1:0;
+      for(let d=SPOIL_CLEAR;d<W;d++){
+        const pair=[Math.floor(ex-d),Math.floor(ex+d)].filter(x=>x>=SPOIL_LEFT&&x<W-6&&!all.includes(x));all.push(...pair);
+        const open=pair.filter(x=>height(x)<SPOIL_DUMP).sort((a,b)=>height(a)-height(b)||preferred(b)-preferred(a));
+        if(open.length)return idx(open[0],SURFACE-1);
+      }
+      return idx(all.reduce((best,x)=>height(x)<height(best)?x:best),SURFACE-1);
     }
     // A loaded mound compacts into the ground beneath it, as rain and weight
     // do to real spoil. Only a resting delivered grain pressed on the ground
