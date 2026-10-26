@@ -35,4 +35,4 @@
 
 初期64匹、女王の包容力で128匹は初期設計。大人口の完成目標を128へ下げた決定/性能保証ではない。**準備中の研究（防衛/遠征/黄金/季節など）・大型の兵隊・捕食者・警報タップ・遠征・転生・放置進行・旧本編の正式移行は未統合**。襲撃は段階1（偵察/襲撃隊/見張り/組み合い/実物の持ち去り）まで。前の確認版の機能/保存を比較入口に保持する。
 
-設計: [DESIGN.md](DESIGN.md)。検証: `verify-world.cjs` / `verify-depth.cjs`、身体/荷の旋回・収納前線・細道予約・岩の迂回・掘削姿勢の往復の6回帰、`verify-scale.cjs`（64匹超の自然育成とコスト内訳）、`verify-research.cjs` / `verify-waste.cjs` / `verify-disease.cjs` / `verify-ferment.cjs` / `verify-headon.cjs` / `verify-raid.cjs`、`verify-browser.cjs` / `verify-observation.cjs` / `verify-access.cjs` / `verify-previous.cjs`。結果/実測/限界は `qa/VERIFICATION.md`。
+設計: [DESIGN.md](DESIGN.md)。検証: `verify-world.cjs` / `verify-depth.cjs`、身体/荷の旋回・収納前線・細道予約・岩の迂回・掘削姿勢の往復の6回帰、`verify-scale.cjs`（64匹超の自然育成とコスト内訳）、`verify-research.cjs` / `verify-waste.cjs` / `verify-disease.cjs` / `verify-ferment.cjs` / `verify-headon.cjs` / `verify-raid.cjs`、`verify-browser.cjs` / `verify-observation.cjs` / `verify-access.cjs` / `verify-previous.cjs`。まとめて `node verify-all.cjs [--browser] [--chain]`。結果/実測/限界は `qa/VERIFICATION.md`。

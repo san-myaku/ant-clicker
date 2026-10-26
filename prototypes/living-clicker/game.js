@@ -489,7 +489,7 @@
       if(ant.itemTask?.purpose==='clean')return this.cleanStep(ant,dt,occupancy);
       const busy=super.stepItemTask(ant,dt,occupancy);if(busy||ant.itemTask||ant.job!==null)return busy;
       // After お掃除はおまかせ a few idle foragers also take nest waste.
-      if(ant.role==='forage'){if(!this.level('hygiene_3')||!this.wasteInNest().length)return false;const foragers=this.ants.filter(a=>a.role==='forage');if(foragers.filter(a=>a.itemTask?.purpose==='clean').length>=Math.max(1,Math.ceil(foragers.length*.08)))return false;}
+      if(ant.role==='forage'){if(!this.level('hygiene_3')||!this.wasteInNest().length||this.ticks%30!==0)return false;const foragers=this.ants.filter(a=>a.role==='forage');if(foragers.filter(a=>a.itemTask?.purpose==='clean').length>=Math.max(1,Math.ceil(foragers.length*.08)))return false;}
       else if(ant.role!=='nurse')return false;
       return this.startClean(ant)?this.cleanStep(ant,dt,occupancy):false;
     }

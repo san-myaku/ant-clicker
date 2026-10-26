@@ -131,6 +131,9 @@
         if(ant.role==='build')return false;
         if(ant.role==='nurse'&&this.startFeed(ant))return this.feedStep(ant,dt,occupancy);
       }
+      // Only a worker about to take a task reads the incoming list: the core
+      // assigns tasks on every 30th step to a worker that is not walking.
+      if(!ant.itemTask&&(ant.path.length&&!ant.returning||this.ticks%30!==0))return false;
       const all=this._incoming,feeding=new Set(this.ants.filter(a=>a.itemTask?.purpose==='feed').map(a=>a.itemTask.target));
       const maximum=Math.max(10,Math.ceil(this.ants.length*1.2));
       let stocked=null;
