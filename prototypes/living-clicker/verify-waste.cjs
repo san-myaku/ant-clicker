@@ -11,7 +11,7 @@ test('save-from-before-hygiene-starts-without-waste',()=>{const old=Game.Simulat
 test('natural-save-carries-its-own-waste',()=>{const w=s.colony.waste;assert(w.made>0);s.assertLedger();return {made:w.made,decayed:w.decayed,inNest:s.wasteInNest().length};});
 test('hygiene-studies-from-real-stock',()=>{
   assert(s.buyResearch('hygiene_1'));assert(s.buyResearch('hygiene_2'));
-  const nurse=s.ants.find(a=>a.role==='nurse');const plain=s.walkSpeed(nurse);nurse.itemTask={purpose:'clean'};const clean=s.walkSpeed(nurse);delete nurse.itemTask;
+  const nurse=s.ants.find(a=>a.role==='nurse'),task=nurse.itemTask;delete nurse.itemTask;const plain=s.walkSpeed(nurse);nurse.itemTask={purpose:'clean'};const clean=s.walkSpeed(nurse);if(task)nurse.itemTask=task;else delete nurse.itemTask;
   assert(Math.abs(clean-plain*1.2)<1e-12);s.assertLedger();s.assertProgress();return {perSource:.9,cleanWalk:clean/plain};
 });
 let carried=null,slowed=null,pupations=0;const start=s.colony.waste.made,owed=s.colony.waste.made+s.colony.waste.due,meals=s.colony.stats.eaten;

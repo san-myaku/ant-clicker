@@ -8,7 +8,7 @@ const qa=path.join(__dirname,'qa'),sha=b=>crypto.createHash('sha256').update(b).
 const hashes=Object.fromEntries(['core.js','lifecycle.js','game.js'].map(n=>[n,sha(fs.readFileSync(path.join(__dirname,n)))]));
 function test(name,fn){const detail=fn()||{};results.push({name,pass:true,...detail});console.log('PASS '+name+' '+JSON.stringify(detail));}
 const roundtrip=s=>{const d=s.dump();assert.deepEqual(Game.Simulation.restore(d).dump(),d);};
-const input=fs.readFileSync(path.join(qa,'world-final.json')),load=()=>Game.Simulation.restore(JSON.parse(input));
+const input=fs.readFileSync(path.join(qa,'before-depth.json')),load=()=>Game.Simulation.restore(JSON.parse(input));
 const restRooms=s=>s.roomIds().filter(r=>s.roomKind(r)==='rest');
 
 const s=load(),crowd0=s.crowding().length,grains0=s.stats.grainDug,rest0=new Set(restRooms(s));let started=null,done=null,moved=null;const homes0=new Map(s.ants.map(a=>[a.id,{...a.home}]));
@@ -43,7 +43,8 @@ test('a-full-layer-sends-the-next-chamber-down',()=>{
   return {firstLayer1:first.target,next:deeper.target,markers:marks.length};
 });
 test('without-deeper-studies-the-colony-says-it-lacks-space',()=>{
-  const t=load();t.colony.raid.next=1e12;for(const k of Object.keys(t.progress.research))if(/^geo_depth/.test(k))t.progress.research[k]=0;
+  // From the world above, once its chambers are finished.
+  const t=Game.Simulation.restore(s.dump());t.colony.raid.next=1e12;for(const k of Object.keys(t.progress.research))if(/^geo_depth/.test(k))t.progress.research[k]=0;
   const marks=[];for(let x=10;x<=Game.W-10;x+=3){const b=layerBoundaries(t.seed,x);for(let y=Game.SURFACE+5;y<=b[0]-2.5;y+=2.5)if([1,...t.roomIds()].every(r=>Math.hypot(t.rooms[r].x-x,t.rooms[r].y-y)>=9)){t.rooms.push({id:t.rooms.length,x,y,kind:'egg',layer:1});marks.push(1);}}
   // Existing rest chambers count as settled, so a new one is wanted now.
   for(const r of restRooms(t))if(t.builds[r]?.complete)t.rooms[r].doneAt=t.time-1e4;
