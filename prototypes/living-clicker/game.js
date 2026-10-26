@@ -590,10 +590,9 @@
       const b=this.physics.byId.get(e.target);
       if(!b||b.carrier||Math.hypot(e.x-b.x,e.y-b.y)>1.6||!this.stealable(e).includes(b)){e.wait=0;delete e.target;return;}
       // Take it only if it can be carried out of the nest from here.
-      b.carrier=e.id;b.state='cargo';b.rest=0;e.itemTask={phase:'store',body:b.id};delete e.target;
-      const route=this.path(e,this.edgePose(e,false),b.kind);
-      if(!route){b.carrier=0;b.state='stored';delete e.itemTask;(e.skip||(e.skip=[])).push(b.id);e.wait=0;return;}
-      this.updateCarriers();e.phase='out';e.path=route;e.next=0;
+      const route=this.path(e,this.edgePose(e,false),b.kind);delete e.target;
+      if(!route){(e.skip||(e.skip=[])).push(b.id);e.wait=0;return;}
+      b.carrier=e.id;b.state='cargo';b.rest=0;e.itemTask={phase:'store',body:b.id};this.updateCarriers();e.phase='out';e.path=route;e.next=0;
     }
     dropLoot(e){const b=this.physics.byId.get(e.itemTask.body);this.updateCarriers();this.physics.release(b);b.state='incoming';delete e.itemTask;e.wait=0;}
     defenderFor(e){

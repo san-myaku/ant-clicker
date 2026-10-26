@@ -8,6 +8,8 @@ const qa=path.join(__dirname,'qa'),sha=b=>crypto.createHash('sha256').update(b).
 const hashes=Object.fromEntries(['core.js','lifecycle.js','game.js'].map(n=>[n,sha(fs.readFileSync(path.join(__dirname,n)))]));
 function test(name,fn){const detail=fn()||{};results.push({name,pass:true,...detail});console.log('PASS '+name+' '+JSON.stringify(detail));}
 const roundtrip=s=>{const d=s.dump();assert.deepEqual(Game.Simulation.restore(d).dump(),d);};
+// A free body that has not come to rest must still be simulated; a save hides this, so check it live.
+const settling=s=>s.physics.bodies.every(b=>b.carrier||b.rest>=30||s.physics.moving.has(b));
 const input=fs.readFileSync(path.join(qa,'world-final.json')),load=()=>Game.Simulation.restore(JSON.parse(input));
 
 test('save-from-before-raids-starts-quiet-without-guards',()=>{
@@ -28,7 +30,7 @@ test('guards-are-assigned-only-on-purpose',()=>{
 // No guards: the natural schedule brings a scout, then a party that takes real items.
 const quiet=load();let scoutAt=null,firstNext=null,carrySave=null;const food0=quiet.foodBodies().length,brood0=quiet.colony.brood.length,died0=quiet.colony.stats.died;
 for(let k=0;k<60*1100&&!(quiet.colony.raid.raids&&quiet.colony.raid.phase==='quiet');k++){
-  quiet.step(STEP);const r=quiet.colony.raid;
+  quiet.step(STEP);const r=quiet.colony.raid;assert(settling(quiet),'a body was left unsimulated');
   if(firstNext===null&&r.next)firstNext={at:quiet.time,next:r.next};
   if(scoutAt===null&&r.phase==='scout')scoutAt=quiet.time;
   if(!carrySave&&r.enemies.some(e=>e.itemTask)){roundtrip(quiet);carrySave=quiet.time;}
@@ -67,7 +69,7 @@ test('a-fallen-scout-is-prey-carried-to-the-stores',()=>{
 // Guards posted after the warning: the party grapples with them in the shaft.
 const fight=load();let warned=null,fightSave=null,grapples=0;const waste0=fight.colony.waste.made;
 for(let k=0;k<60*1100&&!(fight.colony.raid.raids&&fight.colony.raid.phase==='quiet');k++){
-  fight.step(STEP);const r=fight.colony.raid;
+  fight.step(STEP);const r=fight.colony.raid;assert(settling(fight),'a body was left unsimulated');
   if(warned===null&&r.phase==='coming'){warned=fight.time;for(let i=0;i<4;i++)fight.shiftRole('guard',1);}
   const now=r.enemies.filter(e=>e.fight).length;if(now)grapples=Math.max(grapples,now);
   if(!fightSave&&now){const a=fight.ants.find(a=>a.fight),e=fight.enemyById(a.fight.enemy);assert.equal(e.fight.ant,a.id);assert.equal(a.role,'guard');roundtrip(fight);fightSave=fight.time;}
@@ -87,6 +89,13 @@ test('loot-that-cannot-be-carried-out-is-put-down',()=>{
   assert.equal(s.colony.raid.enemies.length,0);assert.equal(s.colony.raid.phase,'quiet');assert.equal(s.colony.raid.stolenBrood,0);
   for(const id of held){const b=s.physics.byId.get(id);assert(!b||!b.carrier,'put down or already hatched');}s.assertLedger();roundtrip(s);
   return {held,ended:+s.time.toFixed(1)};
+});
+test('an-item-a-raider-cannot-carry-out-stays-simulated',()=>{
+  // A raider that finds no way out with an item leaves it untouched; an item
+  // once lifted and put back without the physics step froze brood for good.
+  const s=load();s.colony.raid.next=s.time+5;const own=s.path.bind(s);s.path=(f,t,k,...r)=>f.enemy&&k&&f.phase==='in'&&!r.length?null:own(f,t,k,...r);
+  let checked=0;for(let k=0;k<60*240&&!(s.colony.raid.raids&&s.colony.raid.phase==='quiet');k++){s.step(STEP);assert(settling(s),'a body was left unsimulated at '+s.time.toFixed(2));checked++;}
+  assert.equal(s.colony.raid.phase,'quiet');assert.equal(s.colony.raid.stolenFood+s.colony.raid.stolenBrood,0);return {steps:checked};
 });
 test('invalid-raid-records-are-refused',()=>{
   const s=load();s.colony.raid.next=s.time+1;let d=null;
