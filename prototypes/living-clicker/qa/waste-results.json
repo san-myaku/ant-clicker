@@ -51,10 +51,10 @@
     {
       "name": "waste-chamber-is-dug-and-used",
       "pass": true,
-      "chamberAt": 2973,
-      "dropSave": 3045.8,
+      "chamberAt": 2990.5,
+      "dropSave": 3068.6,
       "delivered": {
-        "room": 55,
+        "room": 64,
         "surface": 18,
         "forager": true
       },
@@ -62,13 +62,18 @@
       "decayed": 174,
       "made": 231,
       "ants": 89
+    },
+    {
+      "name": "a-pellet-that-rolls-out-of-the-chamber-is-carried-again",
+      "pass": true,
+      "returned": 3165.88
     }
   ],
   "hashes": {
-    "core.js": "0e1cf40eae3b8e013a4cd064ddffb9fc30e1b9d0484a38a77c7bc25ad1f26b0b",
+    "core.js": "f29974fcff30102cde9e725e4c7de18ad4b8476472fdaa93a85ca5b6243602ba",
     "lifecycle.js": "836eb5f4168af38524e79847c4589a8d4c56b595373c071ebef92f9961eb4943",
-    "game.js": "26ec86dbd7f31ff2be2268a7211c67ee9c43d03ef723106c486007604369aea7"
+    "game.js": "c16aa398ae66b6931efcfa3d91d1d89d756f43fdff95f4ba1e6dd5911ad6bd67"
   },
-  "inputHash": "7f2e327e9507daad4db3f4a2f5bc183a88a2e2a7580ea316e4812b7bceaff9ec",
-  "chamberInputHash": "512b8274f2badb465442e093ef918f677a740877b30b2d5c5a2fd06c190c9d63"
+  "inputHash": "cc299a270d258b6e287316715abcd74039dc30cf719cbea3cdb103f07aa3d1ef",
+  "chamberInputHash": "ef1f96e673a2860a4b6b45468f09760a2c6dede667fa41ebf52cc271fb505c97"
 }

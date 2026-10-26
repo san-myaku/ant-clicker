@@ -40,15 +40,15 @@
     {id:'room_expand',name:'増築',branch:'地質',desc:'建築済みの育児室・食料庫の容量 +5%/Lv（無限）',planned:true},
     {id:'dig_speed',name:'掘削促進',branch:'地質',desc:'一粒を掘る速さ +25%',food:6,cookie:0,max:3},
     {id:'mineral_vein',name:'鉱脈',branch:'地質',desc:'深部の鉱脈から資源を採掘する。巣が深いほどクッキーが少しずつ自然に湧き出す（深度に比例）。',planned:true},
-    {id:'soldier_jaw_2x',name:'顎強化',branch:'防衛',desc:'兵隊アリの大顎を鍛え、レイドや害虫への攻撃力を高める。',planned:true},
-    {id:'poison_jaw',name:'毒顎',branch:'防衛',desc:'兵隊アリの大顎に毒を仕込む。接敵した敵に毎秒「体力の2%」の毒ダメージ（継続）。',planned:true},
-    {id:'poison_conc',name:'毒の濃度',branch:'防衛',desc:'毒ダメージ +15%/Lv（無限）',planned:true},
-    {id:'oshiai',name:'おしあいへしあい',branch:'防衛',desc:'兵隊が敵をより広く押さえ込む。足止め範囲 +50%、以後 +20%/Lv（無限）。',planned:true},
+    {id:'soldier_jaw_2x',name:'顎強化',branch:'防衛',desc:'見張りの組み合う力 +25%',food:10,cookie:2,max:3},
+    {id:'poison_jaw',name:'毒顎',branch:'防衛',desc:'組み合った侵入者の力 -20%',food:14,cookie:4,max:1,prereq:'soldier_jaw_2x'},
+    {id:'poison_conc',name:'毒の濃度',branch:'防衛',desc:'組み合った侵入者の力 -4%（くり返し研究できる）',food:8,cookie:3,max:Infinity,growth:1.5,prereq:'poison_jaw'},
+    {id:'oshiai',name:'おしあいへしあい',branch:'防衛',desc:'見張りが仲間の組み合いに加勢できる距離 +50%',food:12,cookie:4,max:1,prereq:'soldier_jaw_2x'},
     {id:'numbers_win',name:'数は何にも勝る',branch:'防衛',desc:'兵隊アリの雇用コスト -40%、以後 -10%/Lv。ただし各兵隊の兵力 -20%、以後 -5%/Lv（無限）。',planned:true},
-    {id:'raid_spoils',name:'戦果',branch:'防衛',desc:'撃退した襲撃者から奪う戦果が増える。防衛勝利時の食料・クッキー報酬 +30%/Lv（無限）。守りが収入源になる。',planned:true},
-    {id:'early_warning',name:'早期警戒',branch:'防衛',desc:'偵察と備えで奇襲に強くなる。襲撃で失う働きアリを40%減らす。',planned:true},
-    {id:'formic_acid',name:'ギ酸噴射',branch:'防衛',desc:'兵隊が腹部からギ酸を噴射する（実在のヤマアリの防御）。交戦中の敵全体に定期的な範囲ダメージ。',planned:true},
-    {id:'formic_conc',name:'ギ酸の濃縮',branch:'防衛',desc:'ギ酸の濃度を高める。範囲ダメージ +20%/Lv（無限）。',planned:true},
+    {id:'raid_spoils',name:'戦果',branch:'防衛',desc:'倒した侵入者から得る餌 +1個',food:10,cookie:3,max:3},
+    {id:'early_warning',name:'早期警戒',branch:'防衛',desc:'偵察アリが帰ってから襲撃隊が来るまで 40秒 → 80秒',food:12,cookie:3,max:1},
+    {id:'formic_acid',name:'ギ酸噴射',branch:'防衛',desc:'見張りが組み合うと、そばの侵入者も3秒足が止まる',food:16,cookie:6,max:1,prereq:'soldier_jaw_2x'},
+    {id:'formic_conc',name:'ギ酸の濃縮',branch:'防衛',desc:'ギ酸で足が止まる時間 +1秒',food:10,cookie:4,max:3,growth:1.5,prereq:'formic_acid'},
     {id:'caste_unlock',name:'兵種分化',branch:'防衛',desc:'兵隊アリを多型化し、コロニーの兵種比率を設定できるようにする。比率は防衛と遠征の両方に影響する。',planned:true},
     {id:'caste_scout',name:'斥候兵の分化',branch:'防衛',desc:'小型で俊敏な斥候兵を編成可能に。遠征の成功率を大きく上げるが、前線の火力・耐久は低い。',planned:true},
     {id:'caste_heavy',name:'重装兵の分化',branch:'防衛',desc:'大型の大顎を持つ重装兵を編成可能に。防衛の火力・耐久が高いが、遠征には不向き。',planned:true},
@@ -93,7 +93,10 @@
   // scout every RAID_GAP seconds; a scout that gets home brings a party after
   // RAID_AFTER_SCOUT seconds. Contact starts a grapple of FIGHT_TIME seconds.
   const RAID_FROM=40,RAID_GAP=[480,840],RAID_AFTER_SCOUT=40,RAID_SPACING=1.5,FIGHT_TIME=3,CONTACT=.8,ENEMY_FIRST=200,ENEMY_LAST=249;
-  const STRENGTH={guard:1,raider:1,scout:.5},HELP=.5,HELP_REACH=1.5,HELP_MAX=2,RAID_PHASES=['quiet','scout','coming','attack'];
+  const STRENGTH={guard:1,worker:.5,raider:1,scout:.5},HELP=.5,HELP_REACH=1.5,HELP_MAX=2;
+  // Alarm pheromone: a tap within ALARM_TOUCH of an intruder calls up to
+  // ALARM_RECRUIT free workers within ALARM_REACH to it for ALARM_TIME seconds.
+  const ALARM_TOUCH=2,ALARM_REACH=6,ALARM_RECRUIT=6,ALARM_TIME=10,ACID_TIME=3,ACID_REACH=1.5,RAID_PHASES=['quiet','scout','coming','attack'];
   const UPGRADE_IDS={walk:'gather_1',brood:'brood_1',dig:'dig_speed'};
   class Simulation extends Base.Simulation{
     constructor(seed=24014){
@@ -482,13 +485,20 @@
       }return false;
     }
     stepItemTask(ant,dt,occupancy){
-      if(ant.fight)return true;if(ant.role==='guard')return this.guardStep(ant,dt,occupancy);
+      if(ant.fight)return true;if(ant.alarm)return this.alarmStep(ant,dt,occupancy);if(ant.role==='guard')return this.guardStep(ant,dt,occupancy);
       if(ant.itemTask?.purpose==='clean')return this.cleanStep(ant,dt,occupancy);
       const busy=super.stepItemTask(ant,dt,occupancy);if(busy||ant.itemTask||ant.job!==null)return busy;
       // After お掃除はおまかせ a few idle foragers also take nest waste.
       if(ant.role==='forage'){if(!this.level('hygiene_3')||!this.wasteInNest().length)return false;const foragers=this.ants.filter(a=>a.role==='forage');if(foragers.filter(a=>a.itemTask?.purpose==='clean').length>=Math.max(1,Math.ceil(foragers.length*.08)))return false;}
       else if(ant.role!=='nurse')return false;
       return this.startClean(ant)?this.cleanStep(ant,dt,occupancy):false;
+    }
+    returnSpilled(){
+      // A pellet that rolled out of the waste chamber and came to rest in the
+      // nest is nest waste again; the cleaners carry it back.
+      const list=this.colony.refuse;if(!list.length)return;
+      const kept=list.filter(x=>{const b=this.physics.byId.get(x.id);return !(b&&!b.carrier&&b.rest>=30&&b.y>=SURFACE&&this.roomKind(this.grainRoom[GRAIN.at(b.x,b.y)])!=='waste');});
+      if(kept.length!==list.length){this.colony.refuse=kept;this._wasteTick=-1;}
     }
     decayRefuse(){
       const w=this.colony.waste;
@@ -529,7 +539,7 @@
       this.ants=this.ants.filter(a=>a!==victim);for(const a of this.ants){if(a.waitingFor===victim.id)delete a.waitingFor;if(a.yieldFor===victim.id)delete a.yieldFor;}
       this.colony.stats.died++;d.next=this.time+DISEASE_INTERVAL;this.log('病気で働き手が1匹死にました。'+this.ants.length+'匹になりました。');
     }
-    static quietRaid(){return {phase:'quiet',next:0,serial:0,side:1,attackAt:0,spawnAt:0,pending:0,size:0,fights:0,enemies:[],round:{killed:0,lost:0,brood:0,food:0},raids:0,scouts:0,killed:0,lost:0,stolenBrood:0,stolenFood:0,prey:0};}
+    static quietRaid(){return {phase:'quiet',next:0,serial:0,side:1,attackAt:0,spawnAt:0,pending:0,size:0,fights:0,enemies:[],round:{killed:0,lost:0,brood:0,food:0},raids:0,scouts:0,killed:0,lost:0,stolenBrood:0,stolenFood:0,prey:0,stuns:0};}
     shiftRole(role,delta){
       // A guard is only assigned on purpose: other roles neither give to nor
       // take from it, so the three working roles keep their previous balance.
@@ -560,7 +570,7 @@
       const e={id,kind,side:r.side,phase:'in',task:'idle',job:null,enemy:true,path:[],next:0,trail:[],walked:0,wait:0},p=this.edgePose(e,true);
       Object.assign(e,p,{cell:idx(Math.min(W-1,Math.floor(p.x)),Math.floor(p.y))});r.enemies.push(e);return e;
     }
-    removeEnemy(e){const r=this.colony.raid;r.enemies=r.enemies.filter(x=>x!==e);}
+    removeEnemy(e){const r=this.colony.raid;r.enemies=r.enemies.filter(x=>x!==e);for(const a of this.ants)if(a.alarm?.enemy===e.id)this.calmDown(a);}
     stealable(e){
       // Brood and stored food inside the nest that nobody is handling.
       const claimed=new Set(),ferment=new Set(this.colony.ferment?.batch||[]);
@@ -583,7 +593,7 @@
         const b=this.physics.byId.get(e.itemTask?.body);
         if(b){const brood=b.kind==='egg';this.physics.remove(b);if(brood){this.colony.brood=this.colony.brood.filter(x=>x.id!==b.id);r.stolenBrood++;r.round.brood++;}else{r.stolenFood++;r.round.food++;}}
         this.removeEnemy(e);
-        if(e.kind==='scout'){r.phase='coming';r.attackAt=this.time+RAID_AFTER_SCOUT;r.spawnAt=r.attackAt;r.size=r.pending=Math.min(6,1+Math.floor(this.ants.length/25));this.log('偵察アリが巣の場所を持ち帰りました。まもなく襲撃隊が来ます。');}
+        if(e.kind==='scout'){r.phase='coming';r.attackAt=this.time+RAID_AFTER_SCOUT*(1+this.level('early_warning'));r.spawnAt=r.attackAt;r.size=r.pending=Math.min(6,1+Math.floor(this.ants.length/25));this.log('偵察アリが巣の場所を持ち帰りました。まもなく襲撃隊が来ます。');}
         return;
       }
       if(e.kind==='scout'){e.phase='out';e.wait=0;return;}
@@ -595,10 +605,36 @@
       b.carrier=e.id;b.state='cargo';b.rest=0;e.itemTask={phase:'store',body:b.id};this.updateCarriers();e.phase='out';e.path=route;e.next=0;
     }
     dropLoot(e){const b=this.physics.byId.get(e.itemTask.body);this.updateCarriers();this.physics.release(b);b.state='incoming';delete e.itemTask;e.wait=0;}
+    alarmAt(x,y,touch=ALARM_TOUCH){
+      // A tap on an intruder releases alarm pheromone: free workers nearby
+      // run to it and grapple. Busy workers and guards keep to their places.
+      const r=this.colony.raid;let e=null,d=touch;for(const x0 of r?.enemies||[]){const v=Math.hypot(x0.x-x,x0.y-y);if(v<d){d=v;e=x0;}}
+      if(!e)return 0;
+      const free=this.ants.filter(a=>a.role!=='guard'&&!a.fight&&!a.alarm&&a.job===null&&!a.itemTask&&!a.cargo&&!a.yielding&&!a.yieldHold&&Math.hypot(a.x-e.x,a.y-e.y)<ALARM_REACH)
+        .sort((a,b)=>Math.hypot(a.x-e.x,a.y-e.y)-Math.hypot(b.x-e.x,b.y-e.y)||a.id-b.id).slice(0,ALARM_RECRUIT);
+      for(const a of free){a.alarm={enemy:e.id,until:this.time+ALARM_TIME};a.path=[];a.next=0;a.wait=0;delete a.returning;}
+      return free.length;
+    }
+    calmDown(a){delete a.alarm;a.path=[];a.next=0;a.wait=.3;}
+    alarmStep(ant,dt,occupancy){
+      const e=this.enemyById(ant.alarm.enemy);ant.task='idle';
+      if(!e||this.time>=ant.alarm.until){this.calmDown(ant);return false;}
+      const end=ant.path.at(-1);
+      if(ant.path.length&&end&&Math.hypot(end.x-e.x,end.y-e.y)<1){this.move(ant,dt,occupancy);return true;}
+      if((ant.wait=Math.max(0,ant.wait-dt))>0)return true;
+      const route=this.path(ant,{x:e.x,y:e.y,angle:Math.atan2(e.y-ant.y,e.x-ant.x)},null);ant.path=route||[];ant.next=0;ant.wait=route?.5:1;return true;
+    }
+    grappleOdds(a,e){
+      // Chance that the colony side wins: its ant plus guards or called
+      // workers close by, against the intruder.
+      const reach=HELP_REACH*(1+.5*this.level('oshiai')),helpers=this.ants.filter(x=>x!==a&&(x.role==='guard'||x.alarm)&&!x.fight&&Math.hypot(x.x-e.x,x.y-e.y)<reach).length;
+      const own=(a.role==='guard'?STRENGTH.guard*(1+.25*this.level('soldier_jaw_2x')):STRENGTH.worker)+Math.min(HELP_MAX,helpers*HELP),their=STRENGTH[e.kind]*(1-.2*this.level('poison_jaw'))*.96**this.level('poison_conc');
+      return own/(own+their);
+    }
     defenderFor(e){
       // Guards take on intruders; the other workers keep to their work.
       let best=null,d=CONTACT;
-      for(const a of this.ants){if(a.fight||a.role!=='guard')continue;const v=Math.hypot(a.x-e.x,a.y-e.y);if(v<d){d=v;best=a;}}
+      for(const a of this.ants){if(a.fight||a.role!=='guard'&&!a.alarm)continue;const v=Math.hypot(a.x-e.x,a.y-e.y);if(v<d){d=v;best=a;}}
       return best;
     }
     killAnt(a){
@@ -611,22 +647,23 @@
       const r=this.colony.raid;if(e.itemTask)this.dropLoot(e);
       this.removeEnemy(e);r.killed++;r.round.killed++;
       // A fallen raider is prey: real food the foragers bring to the stores.
-      const prey=this.physics.spawn('food',e.x,e.y,{state:'incoming'});this.physics.release(prey);r.prey++;
+      for(let k=0,n=1+this.level('raid_spoils');k<n;k++){const prey=this.physics.spawn('food',e.x+(k-(n-1)/2)*.35,e.y,{state:'incoming'});this.physics.release(prey);r.prey++;}
       if(e.kind==='scout'){r.phase='quiet';r.next=this.time+this.raidGap();this.log('偵察アリを倒しました。');}
     }
     checkRaid(){
       const r=this.colony.raid,fail=()=>{throw Error('襲撃の記録が正しくありません');},int=v=>Number.isInteger(v)&&v>=0,num=v=>Number.isFinite(v),pose=p=>p&&num(p.x)&&num(p.y)&&num(p.angle)&&p.x>=0&&p.x<=W&&p.y>=0&&p.y<=H;
-      if(!r||!RAID_PHASES.includes(r.phase)||![r.next,r.attackAt,r.spawnAt].every(num)||![-1,1].includes(r.side)||![r.serial,r.pending,r.size,r.fights,r.raids,r.scouts,r.killed,r.lost,r.stolenBrood,r.stolenFood,r.prey].every(int)||r.pending>r.size||r.size>6)fail();
-      if(!r.round||![r.round.killed,r.round.lost,r.round.brood,r.round.food].every(int)||!Array.isArray(r.enemies)||r.enemies.length>ENEMY_LAST-ENEMY_FIRST+1||r.prey!==r.killed)fail();
+      if(!r||!RAID_PHASES.includes(r.phase)||![r.next,r.attackAt,r.spawnAt].every(num)||![-1,1].includes(r.side)||![r.serial,r.pending,r.size,r.fights,r.raids,r.scouts,r.killed,r.lost,r.stolenBrood,r.stolenFood,r.prey,r.stuns].every(int)||r.pending>r.size||r.size>6)fail();
+      if(!r.round||![r.round.killed,r.round.lost,r.round.brood,r.round.food].every(int)||!Array.isArray(r.enemies)||r.enemies.length>ENEMY_LAST-ENEMY_FIRST+1||r.prey<r.killed)fail();
       const ids=new Set(),carried=new Set();
       for(const e of r.enemies){
+        if(e.stun!==undefined&&!Number.isFinite(e.stun))fail();
         if(e.skip!==undefined&&(!Array.isArray(e.skip)||e.skip.length>3||!e.skip.every(n=>Number.isInteger(n)&&n>0)))fail();
         if(!Number.isInteger(e.id)||e.id<ENEMY_FIRST||e.id>ENEMY_LAST||ids.has(e.id)||!['scout','raider'].includes(e.kind)||!['in','out'].includes(e.phase)||e.enemy!==true||e.job!==null||e.side!==r.side||!pose(e)||!Array.isArray(e.path)||!e.path.every(pose)||!Number.isInteger(e.next)||e.next<0||e.next>Math.max(0,e.path.length-1)||!num(e.wait))fail();
         ids.add(e.id);
         if(e.itemTask){const b=this.physics.byId.get(e.itemTask.body);if(e.kind!=='raider'||e.phase!=='out'||e.itemTask.phase!=='store'||!b||b.carrier!==e.id||!['egg','food'].includes(b.kind))fail();carried.add(b.id);}
         if(e.fight){const a=this.ants.find(a=>a.id===e.fight.ant);if(!a||a.fight?.enemy!==e.id||a.fight.until!==e.fight.until||!num(e.fight.until))fail();}
       }
-      for(const a of this.ants)if(a.fight&&this.enemyById(a.fight.enemy)?.fight?.ant!==a.id)fail();
+      for(const a of this.ants)if(a.fight&&this.enemyById(a.fight.enemy)?.fight?.ant!==a.id||a.alarm&&(!this.enemyById(a.alarm.enemy)||!num(a.alarm.until)||a.role==='guard'||a.job!==null||a.itemTask))fail();
       for(const b of this.physics.bodies)if(b.carrier>=ENEMY_FIRST&&!carried.has(b.id))fail();
       if(r.enemies.some(e=>e.kind==='scout')&&r.phase!=='scout'||r.phase==='scout'&&r.enemies.some(e=>e.kind==='raider'))fail();
       return true;
@@ -650,14 +687,16 @@
           if(this.time<e.fight.until)continue;
           const a=this.ants.find(x=>x.id===e.fight.ant);delete e.fight;
           if(!a)continue;delete a.fight;
-          // Guards close by join the grapple.
-          const helpers=this.ants.filter(x=>x!==a&&x.role==='guard'&&!x.fight&&Math.hypot(x.x-e.x,x.y-e.y)<HELP_REACH).length,own=STRENGTH.guard+Math.min(HELP_MAX,helpers*HELP),their=STRENGTH[e.kind];
-          if(this.roll(r.serial*4096+r.fights++,3)<own/(own+their))this.killEnemy(e);
+          if(this.roll(r.serial*4096+r.fights++,3)<this.grappleOdds(a,e))this.killEnemy(e);
           else{this.killAnt(a);r.lost++;r.round.lost++;}
           continue;
         }
         const a=this.defenderFor(e);
-        if(a){e.fight={ant:a.id,until:this.time+FIGHT_TIME};a.fight={enemy:e.id,until:e.fight.until};continue;}
+        if(a){e.fight={ant:a.id,until:this.time+FIGHT_TIME};a.fight={enemy:e.id,until:e.fight.until};
+          continue;}
+        // Formic acid sprayed by a grappling guard stops the intruders beside it.
+        if(e.stun===undefined&&this.level('formic_acid')&&this.ants.some(x=>x.role==='guard'&&x.fight&&Math.hypot(x.x-e.x,x.y-e.y)<ACID_REACH)){e.stun=this.time+ACID_TIME+this.level('formic_conc');r.stuns++;}
+        if(e.stun!==undefined){if(this.time<e.stun)continue;}
         if(e.path.length){if(this.move(e,dt,null))this.enemyArrived(e);}
         else if((e.wait=Math.max(0,e.wait-dt))<=0)this.planEnemy(e);
       }
@@ -671,7 +710,7 @@
     tick(dt){
       if(this.progress&&this.ticks%30===0){this.ensureDepthRooms();this.ensureWasteRoom();this.ensureFermentRoom();}
       super.tick(dt);if(!this.progress)return;
-      this.tickRaid(dt);
+      this.returnSpilled();this.tickRaid(dt);
       if(this.ticks%60===0){this.settleSpoil();this.decayRefuse();this.tickDisease();this.clearLaneStock();this.tickFerment();}
       if(this.ticks%30===0)this.creditCookies();
       const awards=Math.floor(this.stats.grainDelivered/80);
@@ -709,6 +748,8 @@
       for(const a of s.ants)if(a.itemTask?.purpose==='clean'){const b=s.physics.byId.get(a.itemTask.body);if(!(a.role==='nurse'||a.role==='forage'&&s.level('hygiene_3'))||b?.kind!=='waste'||a.itemTask.target!==undefined)throw Error('掃除の記録が正しくありません');}
       const kinds=s.rooms.slice(2).map(r=>r.kind);if(kinds.some(k=>k!==undefined&&!['egg','food','waste','ferment'].includes(k))||kinds.filter(k=>k==='waste').length>1||kinds.filter(k=>k==='ferment').length>1||s.rooms.slice(2).some(r=>r.layer!==undefined&&!(Number.isInteger(r.layer)&&r.layer>=1&&r.layer<=6)))throw Error('部屋の用途の記録が正しくありません');
       if(c.raid===undefined)c.raid=Simulation.quietRaid();
+      // Formic acid arrived with the defence studies; earlier raids had none.
+      if(c.raid.stuns===undefined)c.raid.stuns=0;
       s.checkRaid();
       s.assertLedger();s.assertProgress();
       for(const [id,b]of s.builds.entries())if(id>=4&&b&&(!Number.isFinite(b.minLength)||b.minLength<6||b.minLength>80||!Number.isFinite(b.minDepth)||b.minDepth<SURFACE||b.minDepth>H))throw Error('深い部屋の記録が正しくありません');

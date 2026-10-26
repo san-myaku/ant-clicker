@@ -10,7 +10,7 @@ const input=fs.readFileSync(path.join(qa,'world-final.json')),s=Game.Simulation.
 test('save-from-before-fermentation-starts-empty',()=>{assert.deepEqual(s.colony.ferment,{batch:[],startedAt:0,used:0,made:0,credited:0,batches:0});assert.equal(s.fermentRoom(),undefined);});
 test('fermentation-studies-from-real-stock',()=>{for(const id of ['ferment_unlock','ferment_1','ferment_2','ferment_3'])assert(s.buyResearch(id),id);assert.equal(s.fermentBatch(),5);s.assertLedger();s.assertProgress();});
 const cookie0=s.progress.cookie,earned0=s.progress.earned;let readyAt=null,committed=null,carried=null,savedMid=null;
-for(let k=0;k<60*1500;k++){
+for(let k=0;k<60*1800;k++){
   s.step(STEP);const r=s.fermentRoom();
   if(readyAt===null&&s.fermentReady()!==undefined)readyAt=s.time;
   if(!committed&&s.colony.ferment.batch.length){const ids=new Set(s.colony.ferment.batch);assert(!s.foodBodies(true).some(b=>ids.has(b.id)),'committed food is not usable');assert(!s.availableFood().some(b=>ids.has(b.id)));committed={t:s.time,batch:ids.size};}

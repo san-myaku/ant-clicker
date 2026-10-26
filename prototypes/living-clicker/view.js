@@ -15,6 +15,7 @@
   let sim, paused = false, speed = 1, last = performance.now(), accumulator = 0, lastUI = -1, lastSave = 0;
   let objectMode=false;
   let visibleGrains=null;
+  let alarmPuff=null;
   let cachedRevision = -1, selected = null, pointers = new Map(), gesture = null, storageBlocked = false;
   const cam = { x: W / 2, y: H / 2, zoom: 1, scale: 1, width: 0, height: 0, dpr: 1 };
   const tasks = { idle: '休憩・巣内の移動', travel: '掘削面へ移動', dig: '土を掘削', haul: '土を地上へ運搬', unload: '地上で土を下ろす' };
@@ -329,6 +330,7 @@
       }
     }
     for(const e of sim.colony.raid?.enemies||[])drawWorker(e,reduced);
+    if(alarmPuff){const age=(performance.now()-alarmPuff.at)/900;if(age>=1)alarmPuff=null;else{const c=screen(alarmPuff.x,alarmPuff.y);ctx.strokeStyle=`rgba(236,196,120,${(1-age)*.9})`;ctx.lineWidth=2;ctx.beginPath();ctx.arc(c.x,c.y,cam.scale*(1+age*3),0,Math.PI*2);ctx.stroke();}}
     for(const b of sim.physics.bodies)if(b.carrier)drawBody(b);
     if (selected) {
       ctx.strokeStyle = '#fff7de'; ctx.lineWidth = 1;
@@ -391,7 +393,7 @@
     if(s.ants+sim.colony.brood.length>=sim.populationLimit())cause='コロニーが育ちました。女王と地質の研究で、次の成長へ。';
     if(s.births&&s.allocation.forage&&s.allocation.nurse&&s.allocation.build&&s.food>=2)cause=s.reached<sim.depthAbility()?'新しい地層へ、通路を掘り進めています。':s.ants<32?'働き手を育てて、巣を広げよう。':'研究と仕事の配分で、コロニーを育てよう。';
     if(sim.colony.disease?.active)cause='育児室にゴミがたまり、病気が広がっています。掃除の手を増やそう。';
-    {const r=sim.colony.raid;if(r?.phase==='scout')cause=s.allocation.guard?'見知らぬアリが巣を探っています。見張りが入口で待ち構えます。':'見知らぬアリが巣を探っています。見張りを置くと入口で追い払えます。';else if(r?.phase==='coming'||r?.phase==='attack')cause=s.allocation.guard?'襲撃隊が来ます。見張りが入口で迎え撃ちます。':'襲撃隊が来ます。見張りを置くと入口で防げます。';}
+    {const r=sim.colony.raid;if(r?.phase==='scout')cause=s.allocation.guard?'見知らぬアリが巣を探っています。見張りが入口で待ち構えます。':'見知らぬアリが巣を探っています。見張りを置くと入口で追い払えます。';else if(r?.phase==='coming')cause=s.allocation.guard?'襲撃隊が来ます。見張りが入口で迎え撃ちます。':'襲撃隊が来ます。見張りを置くと入口で防げます。';else if(r?.phase==='attack')cause='襲撃中。侵入者をタップすると、近くの働きアリが駆けつけます。';}
     $('cookies').textContent=s.cookie;$('depth').textContent='第'+s.reached+'層';updateResearch();
     if($('cause').textContent!==cause)$('cause').textContent=cause;
     $('play').textContent=paused?'再開':'一時停止';$('play').setAttribute('aria-pressed',String(paused));selectionUI();
@@ -492,8 +494,10 @@
     const dragged=gesture?.body;if(dragged)sim.physics.drop();
     if (!dragged&&gesture && !gesture.moved && pointers.size === 1 && e.type !== 'pointercancel') {
       const w = world(p.x, p.y), nearest = sim.ants.slice().sort((a, b) => Math.hypot(a.x - w.x, a.y - w.y) - Math.hypot(b.x - w.x, b.y - w.y))[0];
-      const object=sim.physics.hit(w.x,w.y,Math.max(.3,4/cam.scale));
-      if(object)selected={kind:'body',id:object.id};
+      // A tap on an intruder releases alarm pheromone instead of selecting.
+      const raised=sim.alarmAt?.(w.x,w.y,Math.max(2,14/cam.scale)),object=raised?null:sim.physics.hit(w.x,w.y,Math.max(.3,4/cam.scale));
+      if(raised){alarmPuff={x:w.x,y:w.y,at:performance.now()};persist();}
+      else if(object)selected={kind:'body',id:object.id};
       else if (Math.hypot(nearest.x - w.x, nearest.y - w.y) < Math.max(1, 9 / cam.scale)) selected = { kind: 'ant', id: nearest.id };
       else if (w.x >= 0 && w.x < W && w.y >= 0 && w.y < H) selected = { kind: 'cell', cell: idx(Math.floor(w.x), Math.floor(w.y)), grain: GRAIN.at(w.x,w.y) };
       else selected = null;

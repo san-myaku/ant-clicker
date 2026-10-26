@@ -202,7 +202,7 @@ replace("this.traffic[ant.cell]+=step*.2;this._flowCells?.add(ant.cell);","if(!a
 replace("const a=this.ants.find(a=>a.id===b.carrier),owner=","const a=this.ants.find(a=>a.id===b.carrier)??this.enemyById?.(b.carrier),owner=",'raiders carry what they take');
 replace("if(b.carrier){const a=s.ants.find(a=>a.id===b.carrier);if(!a||","if(b.carrier){const a=s.ants.find(a=>a.id===b.carrier);if(!a&&b.carrier>=200)continue;if(!a||",'raider loads are checked with the raid');
 replace("carrier>128","carrier>128&&(carrier<200||carrier>249)",'raider ids in saves');
-replace("const idle=this.ants.filter(a=>a.role==='build'&&a.desiredRole==='build'&&a.job===null&&!a.itemTask&&!a.yielding&&!a.yieldHold);","const idle=this.ants.filter(a=>a.role==='build'&&a.desiredRole==='build'&&a.job===null&&!a.itemTask&&!a.yielding&&!a.yieldHold&&!a.fight);",'a fighting worker takes no dig');
+replace("const idle=this.ants.filter(a=>a.role==='build'&&a.desiredRole==='build'&&a.job===null&&!a.itemTask&&!a.yielding&&!a.yieldHold);","const idle=this.ants.filter(a=>a.role==='build'&&a.desiredRole==='build'&&a.job===null&&!a.itemTask&&!a.yielding&&!a.yieldHold&&!a.fight&&!a.alarm);",'a fighting or alarmed worker takes no dig');
 // A worker backing over the ground keeps facing the way it faces; only
 // its tilt follows the slope.
 replace("if(Math.abs(dx)>1e-8){const slope=clamp(this.surfacePoint(ant.x+.5).y-this.surfacePoint(ant.x-.5).y,-1,1),direction=Math.sign(dx);ant.angle=Math.atan2(slope*direction,direction);}","if(Math.abs(dx)>1e-8){const slope=clamp(this.surfacePoint(ant.x+.5).y-this.surfacePoint(ant.x-.5).y,-1,1),direction=Math.sign(Math.cos(oldAngle))||Math.sign(dx);ant.angle=Math.atan2(slope*direction,direction);}",'backing on the surface keeps its facing');

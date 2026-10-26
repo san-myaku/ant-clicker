@@ -28,39 +28,70 @@
     {
       "name": "a-scout-comes-on-the-natural-schedule",
       "pass": true,
-      "scheduledAt": 2649,
-      "scoutAt": 3346.4
+      "scheduled": 3111.8,
+      "scoutAt": 3111.8,
+      "nextGap": 729
     },
     {
       "name": "without-guards-the-party-carries-real-items-off",
       "pass": true,
       "raidSize": 3,
-      "stolenBrood": 0,
-      "stolenFood": 3,
-      "carrySave": 3405.3,
-      "foodBefore": 78,
-      "broodBefore": 0
+      "taken": 3,
+      "carrySave": 3183.6
     },
     {
       "name": "guards-at-the-mouth-stop-the-scout",
       "pass": true,
-      "scoutFell": 3355
+      "scoutFell": 3123.3
     },
     {
       "name": "a-fallen-scout-is-prey-carried-to-the-stores",
       "pass": true,
-      "storedAt": 3365.7,
+      "storedAt": 3134,
       "room": "女王房"
     },
     {
       "name": "guards-grapple-with-the-party-in-the-shaft",
       "pass": true,
-      "warned": 3357.6,
-      "fightSave": 3401.7,
+      "warned": 3130,
+      "fightSave": 3178.3,
       "grapples": 2,
       "killed": 3,
       "lost": 2,
       "stolen": 0
+    },
+    {
+      "name": "a-tap-away-from-intruders-calls-no-one",
+      "pass": true
+    },
+    {
+      "name": "alarm-calls-free-workers-who-grapple",
+      "pass": true,
+      "tapped": 2,
+      "called": 12,
+      "killed": 3,
+      "lost": 2,
+      "stolen": 0
+    },
+    {
+      "name": "defence-studies-change-the-grapple",
+      "pass": true,
+      "base": [
+        0.5,
+        0.3333333333333333,
+        0.6666666666666666
+      ],
+      "jaw": 0.5556,
+      "poison": 0.6098
+    },
+    {
+      "name": "studies-in-a-real-raid",
+      "pass": true,
+      "warning": 80,
+      "killed": 3,
+      "prey": 6,
+      "stuns": 2,
+      "lost": 2
     },
     {
       "name": "loot-that-cannot-be-carried-out-is-put-down",
@@ -74,7 +105,7 @@
     {
       "name": "an-item-a-raider-cannot-carry-out-stays-simulated",
       "pass": true,
-      "steps": 4561
+      "steps": 5879
     },
     {
       "name": "invalid-raid-records-are-refused",
@@ -89,9 +120,9 @@
     }
   ],
   "hashes": {
-    "core.js": "0e1cf40eae3b8e013a4cd064ddffb9fc30e1b9d0484a38a77c7bc25ad1f26b0b",
+    "core.js": "f29974fcff30102cde9e725e4c7de18ad4b8476472fdaa93a85ca5b6243602ba",
     "lifecycle.js": "836eb5f4168af38524e79847c4589a8d4c56b595373c071ebef92f9961eb4943",
-    "game.js": "26ec86dbd7f31ff2be2268a7211c67ee9c43d03ef723106c486007604369aea7"
+    "game.js": "c16aa398ae66b6931efcfa3d91d1d89d756f43fdff95f4ba1e6dd5911ad6bd67"
   },
-  "inputHash": "512b8274f2badb465442e093ef918f677a740877b30b2d5c5a2fd06c190c9d63"
+  "inputHash": "ef1f96e673a2860a4b6b45468f09760a2c6dede667fa41ebf52cc271fb505c97"
 }

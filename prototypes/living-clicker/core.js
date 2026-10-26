@@ -1194,7 +1194,7 @@
       }
       const required=needs.filter(n=>n.wanted>0&&(n.d>0||this.builds[n.rid]&&!this.transportReady(n.rid)));
       required.sort((a,b)=>(b.d/b.wanted*(this.priority===(this.roomKind(b.rid)==='egg'?'nursery':'food')?3:1))-(a.d/a.wanted*(this.priority===(this.roomKind(a.rid)==='egg'?'nursery':'food')?3:1)));
-      const idle=this.ants.filter(a=>a.role==='build'&&a.desiredRole==='build'&&a.job===null&&!a.itemTask&&!a.yielding&&!a.yieldHold&&!a.fight);this._blocked=[];
+      const idle=this.ants.filter(a=>a.role==='build'&&a.desiredRole==='build'&&a.job===null&&!a.itemTask&&!a.yielding&&!a.yieldHold&&!a.fight&&!a.alarm);this._blocked=[];
       for(const n of required){this.ensureBuild(n.rid);const primary=this.builds[n.rid]?.complete?this.frontier(n.rid):this.construction(n.rid),candidates=[...this.transportCandidates(n.rid),...primary];
         for(const initial of candidates){if(!idle.length)break;if(n.d<=0&&this.builds[n.rid]?.complete&&!initial.widen)continue;if(this.workSiteBusy(initial.pose)||this.narrowSiteReserved(n.rid,initial.pose))continue;
           const cand=this.batchCandidate(initial);if(!cand)continue;

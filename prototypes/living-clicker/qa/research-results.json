@@ -3,8 +3,8 @@
     {
       "name": "catalog-matches-original-61",
       "pass": true,
-      "active": 25,
-      "planned": 36
+      "active": 33,
+      "planned": 28
     },
     {
       "name": "planned-studies-cannot-be-bought",
@@ -71,15 +71,15 @@
     {
       "name": "studies-keep-the-colony-working",
       "pass": true,
-      "delivered": 1,
+      "delivered": 3,
       "gathered": 11,
       "ants": 128
     }
   ],
   "hashes": {
-    "core.js": "0e1cf40eae3b8e013a4cd064ddffb9fc30e1b9d0484a38a77c7bc25ad1f26b0b",
+    "core.js": "f29974fcff30102cde9e725e4c7de18ad4b8476472fdaa93a85ca5b6243602ba",
     "lifecycle.js": "836eb5f4168af38524e79847c4589a8d4c56b595373c071ebef92f9961eb4943",
-    "game.js": "26ec86dbd7f31ff2be2268a7211c67ee9c43d03ef723106c486007604369aea7"
+    "game.js": "c16aa398ae66b6931efcfa3d91d1d89d756f43fdff95f4ba1e6dd5911ad6bd67"
   },
-  "inputHash": "4094f14aa7f342e327ebe640fda52c00143cf69b5c56b8e8394ba30d7fa940b8"
+  "inputHash": "ee790e6cd07665806cf0ddf05df14fc1a62fcf709fa3cbb2301d1d6b885fd3f7"
 }

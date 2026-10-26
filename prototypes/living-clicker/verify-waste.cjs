@@ -47,5 +47,12 @@ test('waste-chamber-is-dug-and-used',()=>{
   assert(w.recycled>0,'recycled into real food');assert(dropSave!==null,'saved at a chamber drop');r.assertLedger();assert.deepEqual(Game.Simulation.restore(r.dump()).dump(),r.dump());
   return {chamberAt:+roomAt.toFixed(1),dropSave:+dropSave.toFixed(1),delivered:seen,recycled:w.recycled,decayed:w.decayed,made:w.made,ants:r.ants.length};
 });
+test('a-pellet-that-rolls-out-of-the-chamber-is-carried-again',()=>{
+  // A pellet set down in the waste chamber rolled into the passage and rested
+  // there while still counted as disposed. It is nest waste again.
+  const s=Game.Simulation.restore(JSON.parse(fs.readFileSync(path.join(qa,'waste-spill.json')))),id=3075;let returned=null,carried=false;
+  for(let k=0;k<60*240;k++){s.step(STEP);s.assertLedger();if(returned===null&&!s.colony.refuse.some(r=>r.id===id))returned=s.time;if(s.physics.byId.get(id)?.carrier)carried=true;}
+  assert(returned!==null,'no longer counted as disposed');assert(carried,'a cleaner carried it');return {returned:+returned.toFixed(2)};
+});
 for(const [n,h]of Object.entries(hashes))assert.equal(sha(fs.readFileSync(path.join(__dirname,n))),h,'source changed during waste verification');
 fs.writeFileSync(path.join(qa,'waste-results.json'),JSON.stringify({results,hashes,inputHash:sha(input),chamberInputHash:sha(input2)},null,2));console.log('PASS waste');
