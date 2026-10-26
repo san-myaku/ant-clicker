@@ -91,7 +91,7 @@
   // dug: in the shallowest layer with room for it (ROOM_SPACING from every
   // other chamber, within ROOM_REACH of a finished one), else one layer down
   // as far as the depth studies allow. Its need weighs half a store's.
-  const HOME_GAP=1,REST_TRIGGER=6,REST_ROOM_AREA=36,REST_WEIGHT=.5,ROOM_SPACING=9,ROOM_REACH=14,ROOM_LIMIT=254,REST_SETTLE=300,REST_PER_ROOM=30,REST_PARALLEL=2;
+  const HOME_GAP=1,REST_TRIGGER=6,REST_ROOM_AREA=36,REST_WEIGHT=.5,ROOM_SPACING=9,ROOM_REACH=14,ROOM_LIMIT=254,REST_SETTLE=300,REST_PER_ROOM=30,REST_PARALLEL=2,BRANCH_GAP=2.5;
   // Fermentation: a batch of real food resting in the chamber turns into a
   // sweet grain; the chamber only takes food while the stores keep a reserve.
   const FERMENT_BATCH=6,FERMENT_TIME=45,FERMENT_ROOM=10;
@@ -176,12 +176,24 @@
         const targets=[];
         for(let x=10;x<=W-10;x+=3){const b=layerBoundaries(this.seed,x),top=layer===1?SURFACE+5:b[layer-2]+2.5,bottom=layer<=5?b[layer-1]-2.5:H-6;
           for(let y=top;y<=bottom;y+=2.5)if(anchors.every(r=>Math.hypot(r.x-x,r.y-y)>=ROOM_SPACING))targets.push({x,y});}
-        const parents=[1,...this.roomIds()].filter(r=>(r===1||this.builds[r]?.complete)&&this.roomKind(r)!=='waste'&&Math.abs((r===1?1:this.layerOf(r))-layer)<=1),plans=[];
+        // Rest chambers branch from the queen chamber or from one another:
+        // nurseries and stores are where the deeper rooms start.
+        const parents=[1,...this.roomIds()].filter(r=>(r===1||this.builds[r]?.complete&&this.roomKind(r)==='rest')&&Math.abs((r===1?1:this.layerOf(r))-layer)<=1),plans=[];
         for(const t of targets)for(const p of parents){const a=this.rooms[p],d=Math.hypot(a.x-t.x,a.y-t.y);if(d<=ROOM_REACH)plans.push({t,p,d});}
         plans.sort((a,b)=>a.d-b.d||a.t.x-b.t.x||a.t.y-b.t.y||a.p-b.p);
         for(const {t,p} of plans.slice(0,8)){const origin=this.roomOrigin(p,t);if(origin)return {layer,parent:p,target:t,origin};}
       }
       return null;
+    }
+    branchSpace(origin,target,parent=-1){
+      // A new branch starts clear of every other branch's mouth and heads
+      // away from their tunnels, so two streams of traffic do not cross at
+      // one cramped junction or run side by side in parallel cuts.
+      for(const [i,b] of this.builds.entries()){if(!b?.history?.length||i===parent)continue;
+        if(b.history.some(h=>Math.hypot(h.x-origin.x,h.y-origin.y)<BRANCH_GAP))return false;
+        const d=Math.hypot(target.x-origin.x,target.y-origin.y);
+        for(let t=1;t<=d;t+=.5){const x=origin.x+(target.x-origin.x)*t/d,y=origin.y+(target.y-origin.y)*t/d;if(b.history.some(h=>Math.hypot(h.x-x,h.y-y)<BRANCH_GAP))return false;}
+      }return true;
     }
     roomOrigin(parent,target){
       // A wall pose in the parent chamber facing the new one, with a short
@@ -191,7 +203,7 @@
         const angle=Math.round(Math.atan2(target.y-p.y,target.x-p.x)/(Math.PI/8))*(Math.PI/8);if(!this.poseClear({...p,angle}))continue;
         const density=stock.reduce((n,b)=>n+Math.exp(-((b.x-p.x)**2+(b.y-p.y)**2)/2),0);poses.push({...p,angle,score:-Math.hypot(target.x-p.x,target.y-p.y)-density*2});}
       poses.sort((a,b)=>b.score-a.score);
-      for(const origin of poses.slice(0,12)){let probe=origin;const recent=[];let open=true;
+      for(const origin of poses.filter(o=>this.branchSpace(o,target,parent)).slice(0,12)){let probe=origin;const recent=[];let open=true;
         for(let n=0;n<6;n++){const next=this.nextTip(probe,target,.5,recent);if(!next){open=false;break;}recent.push(probe);probe=next;}
         if(open)return origin;}
       return null;

@@ -1258,7 +1258,10 @@
     }
     move(ant,dt,occupancy,goal=null){
       if(!ant.path.length)return true;
-      if(ant.yieldHold){const other=this.ants.find(a=>a.id===ant.yieldHold);if(other&&Math.hypot(other.x-ant.x,other.y-ant.y)<2.4&&this.grainRoom[GRAIN.at(ant.x,ant.y)]!==1&&other.path.length)return false;delete ant.yieldHold;}
+      if(ant.yieldHold){const other=this.ants.find(a=>a.id===ant.yieldHold);// Two workers can each have stepped aside for the other. Then the one
+        // with the load or the work goes first, as in a head-on meeting.
+        const rank=a=>(this.carriedKind(a)?100:0)+(a.job!==null?10:0)-a.id*.01,mutual=other?.yieldHold===ant.id&&rank(ant)>rank(other);
+        if(other&&!mutual&&Math.hypot(other.x-ant.x,other.y-ant.y)<2.4&&this.grainRoom[GRAIN.at(ant.x,ant.y)]!==1&&other.path.length)return false;delete ant.yieldHold;}
       const target=ant.path[ant.next],grounded=ant.y<SURFACE&&target.y<SURFACE&&Math.abs(Math.sin(ant.angle))<.7&&Math.abs(Math.sin(target.angle))<.7&&Math.abs(ant.x-this.entrance.x)>2&&Math.abs(target.x-this.entrance.x)>2&&this.soilAt(ant.x,SURFACE+.01)&&this.soilAt(target.x,SURFACE+.01);
       // Walking follows the heap, including its last stationary waypoint.
       // A raised pickup/turning pose must never be pushed down into the floor.
@@ -1270,7 +1273,10 @@
       // rigid physics bodies. Terrain clearance still sweeps every body/load.
       if(p.y>SURFACE-1){let following=false;const ownRoom=this.grainRoom[GRAIN.at(p.x,p.y)],kind=this.carriedKind(ant),flow=a=>{const z=a.path.slice(a.next).find(p=>Math.hypot(p.x-a.x,p.y-a.y)>.25);return z?Math.atan2(z.y-a.y,z.x-a.x):a.angle;},ownFlow=flow(ant),block=ant.enemy?undefined:this.ants.find(b=>{
         if(b===ant||p.y<SURFACE&&b.y<SURFACE||Math.hypot(p.x-b.x,p.y-b.y)>2.6)return false;
-        const dx=b.x-ant.x,dy=b.y-ant.y,along=dx*Math.cos(ownFlow)+dy*Math.sin(ownFlow),side=Math.abs(dx*Math.sin(ownFlow)-dy*Math.cos(ownFlow)),room=this.grainRoom[GRAIN.at(b.x,b.y)],sameFlow=Math.cos(ownFlow-flow(b))>.96;
+        // Two workers in one stream measure ahead/behind on the same axis, their
+        // mean heading, so exactly one of them is ahead of the other.
+        const otherFlow=flow(b),sameFlow=Math.cos(ownFlow-otherFlow)>.96,axis=sameFlow?Math.atan2(Math.sin(ownFlow)+Math.sin(otherFlow),Math.cos(ownFlow)+Math.cos(otherFlow)):ownFlow;
+        const dx=b.x-ant.x,dy=b.y-ant.y,along=dx*Math.cos(axis)+dy*Math.sin(axis),side=Math.abs(dx*Math.sin(axis)-dy*Math.cos(axis)),room=this.grainRoom[GRAIN.at(b.x,b.y)];
         if(ownRoom>0&&room===ownRoom)return false;
         // Following limits translation toward the worker ahead. A stationary
         // turn, or a step opening the gap at a merge, must finish even when
@@ -1279,6 +1285,9 @@
         if(!ant.yielding&&!b.yielding&&sameFlow&&side<.55&&b.path.length&&closing){
           if(along<-.15)return false;
           if((along>.15||Math.abs(along)<=.15&&b.id<ant.id)&&Math.hypot(p.x-b.x,p.y-b.y)<(kind?2.3:1.8)){following=true;return true;}
+          // Side by side in one stream the lower id leads; the leader is not
+          // held back by its follower under any other rule.
+          if(Math.abs(along)<=.15)return false;
         }
         // The founding shaft has two swept lanes. Crossing its open apron or
         // a curved lane merge must not send a returning queue backwards into
