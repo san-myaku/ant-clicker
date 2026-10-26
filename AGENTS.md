@@ -1,6 +1,6 @@
 # ありクリッカー — 共通作業ルール
 
-- 応答・記録は日本語。まず HANDOFF_CLAUDE.md と handoff/PROJECT_CONTEXT.md を読む。
+- 応答・記録は日本語。まず HANDOFF_CODEX.md（最新の引き継ぎ）と handoff/PROJECT_CONTEXT.md を読む。
 - 最新は prototypes/living-clicker/。ルート index.html は旧公開本編であり、今回の移行で書き換えない。
 - プロジェクト知識のローカル正本はObsidian Vault。クラウドにはそのWindowsパスが存在しないため、必要な事実・決定・失敗を handoff/PROJECT_CONTEXT.md に移した。存在しないローカルパスを探し続けない。追加の決定/失敗/検証/次工程は handoff/PROJECT_LOG.md に追記し、ローカルへ戻す際にVaultへ同期する。同期済みと推測しない。
 - ユーザーの指示を優先。既存の作業を保護し、編集前に git status/diff を確認する。
