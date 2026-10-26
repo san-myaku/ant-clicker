@@ -693,9 +693,9 @@
       let cache=null,key=null;
       if(ignore===-1&&margin===.045){
         cache=this._poseChecks||(this._poseChecks=new Map());key=[p.x,p.y,h,kind||'body'].join(':');const old=cache.get(key);
-        if(old===-1)return true;if(old===-2||old>=0&&this.grains[old])return false;
+        if(old===-1)return true;if(old===-2||old>=0&&this.grains[old]){this._block=old;return false;}
       }
-      const answer=(ok,block=-2)=>{if(cache){if(cache.size>100000)cache.clear();cache.set(key,ok?-1:block);}return ok;};
+      const answer=(ok,block=-2)=>{if(!ok)this._block=block;if(cache){if(cache.size>100000)cache.clear();cache.set(key,ok?-1:block);}return ok;};
       if(kind){const shape=carryShape(kind),a=h*Math.PI/8,x=p.x+Math.cos(a)*ANT_SIZE*.55,y=p.y+Math.sin(a)*ANT_SIZE*.55;
         for(let gy=Math.floor((y-shape.hy+1e-7)*GRID);gy<=Math.floor((y+shape.hy-1e-7)*GRID);gy++)for(let gx=Math.floor((x-shape.hx+1e-7)*GRID);gx<=Math.floor((x+shape.hx-1e-7)*GRID);gx++){const g=gy*FW+gx;if(g!==ignore&&(gx<0||gx>=FW||gy<0||gy>=FH||this.grains[g]))return answer(false,gx<0||gx>=FW||gy<0||gy>=FH?-2:g);}
       }
@@ -733,8 +733,9 @@
     }
     surfaceFlip(a,b){return Math.hypot(a.x-b.x,a.y-b.y)<1e-7&&a.y<SURFACE&&b.y<SURFACE&&Math.abs(a.x-this.entrance.x)>2&&this.soilAt(a.x,SURFACE+.01)&&Math.abs(Math.sin(a.angle))<.7&&Math.abs(Math.sin(b.angle))<.7&&Math.cos(a.angle)*Math.cos(b.angle)<0;}
     sweptClear(a,b,kind=null,ignore=-1,margin=.045){
-      let cache=null,key=null;if(ignore===-1&&margin===.045){cache=this._sweepChecks||(this._sweepChecks=new Map());key=[a.x,a.y,a.angle,b.x,b.y,b.angle,kind||'body'].join(':');const old=cache.get(key);if(old===1)return true;if(old===-this.revision)return false;}
-      const answer=ok=>{if(cache){if(cache.size>40000)cache.clear();cache.set(key,ok?1:-this.revision);}return ok;};
+      let cache=null,key=null;if(ignore===-1&&margin===.045){cache=this._sweepChecks||(this._sweepChecks=new Map());key=[a.x,a.y,a.angle,b.x,b.y,b.angle,kind||'body'].join(':');const old=cache.get(key);if(old===1)return true;if(old===0){this._block=-2;return false;}if(old>=2&&this.grains[old-2]){this._block=old-2;return false;}if(old===-this.revision){this._block=undefined;return false;}}
+      this._block=undefined;
+      const answer=ok=>{const block=this._block;if(cache){if(cache.size>40000)cache.clear();cache.set(key,ok?1:block===-2?0:block>=0?block+2:-this.revision);}return ok;};
       // A side-view worker turns left/right around the ground normal, rather
       // than rotating its head through the floor of this 2D cross-section.
       if(this.surfaceFlip(a,b))return answer(this.poseClear(a,kind,ignore,margin)&&this.poseClear(b,kind,ignore,margin)&&(!kind||this.cargoSweep(this.mouthPoint(a),this.mouthPoint(b),kind,ignore)));
@@ -761,7 +762,7 @@
       }return answer(true);
     }
     cargoSweep(a,b,kind,ignore=-1,single=false){
-      return !this.sweptCargoCells(a,b,kind,single).some(g=>g!==ignore&&this.grains[g]);
+      const block=this.sweptCargoCells(a,b,kind,single).find(g=>g!==ignore&&this.grains[g]);if(block===undefined)return true;this._block=block;return false;
     }
     sweptCargoCells(a,b,kind,single=false){
       const {hx,hy}=single?Physics.SHAPES[kind]:carryShape(kind),dx=b.x-a.x,dy=b.y-a.y;
@@ -790,33 +791,37 @@
     laneWidth(history,k){const a=history[k].angle;let turn=0;for(let n=Math.max(0,k-4);n<=Math.min(history.length-1,k+4);n++)turn=Math.max(turn,Math.abs(Math.atan2(Math.sin(history[n].angle-a),Math.cos(history[n].angle-a))));return LANE_OFFSET+CURVE_LANE_EXTRA*Math.min(1,turn/(Math.PI/4));}
     transportProfile(history){
       if(history===this._entryHistory||history===this.entranceHistory)return null;
+      // Histories only grow by push, rock never opens and a lane width looks
+      // four poses along. Rows before the last four of a shorter solution are
+      // unchanged, so resume the same DP there rather than from the shaft.
       if(!this._transportProfiles)this._transportProfiles=new WeakMap();const old=this._transportProfiles.get(history);if(old?.length===history.length)return old.shifts;
-      const rows=[],blocked=grains=>grains.some(g=>this.grains[g]===ROCK);
-      for(let k=0;k<history.length;k++){const p=history[k],w=this.laneWidth(history,k),row=[];
+      const resume=old&&old.length<history.length&&history[old.length-1]===old.last?Math.min(old.rows.length,Math.max(0,old.length-4)):0;
+      const rows=resume?old.rows.slice(0,resume):[],blocked=grains=>grains.some(g=>this.grains[g]===ROCK),keep=shifts=>{this._transportProfiles.set(history,{length:history.length,shifts,rows,last:history.at(-1)});return shifts;};
+      for(let k=resume;k<history.length;k++){const p=history[k],w=this.laneWidth(history,k),row=[];
         for(const shift of [0,.25,-.25,.5,-.5,.75,-.75,1,-1]){if(blocked(this.transportFootprint(p,p,w,w,shift,shift)))continue;let cost=Math.abs(shift)*.2,parent=-1;
           if(k){let best=Infinity;for(let n=0;n<rows[k-1].length;n++){const prev=rows[k-1][n];if(Math.abs(prev.shift-shift)>.251||blocked(this.transportFootprint(history[k-1],p,this.laneWidth(history,k-1),w,prev.shift,shift)))continue;const score=prev.cost+cost+Math.abs(prev.shift-shift);if(score<best){best=score;parent=n;}}if(parent<0)continue;cost=best;}
           row.push({shift,cost,parent});
-        }if(!row.length){this._transportProfiles.set(history,{length:history.length,shifts:null});return null;}rows.push(row);
+        }if(!row.length)return keep(null);rows.push(row);
       }
-      let n=rows.at(-1).reduce((best,v,k,a)=>v.cost<a[best].cost?k:best,0);const shifts=[];for(let k=rows.length-1;k>=0;k--){const q=rows[k][n];shifts.push(q.shift);n=q.parent;}shifts.reverse();this._transportProfiles.set(history,{length:history.length,shifts});return shifts;
+      let n=rows.at(-1).reduce((best,v,k,a)=>v.cost<a[best].cost?k:best,0);const shifts=[];for(let k=rows.length-1;k>=0;k--){const q=rows[k][n];shifts.push(q.shift);n=q.parent;}shifts.reverse();return keep(shifts);
     }
     laneSpine(history,reverse,kind,lo=0,hi=history.length-1,backward=false){
       if(!this._lanes)this._lanes=new WeakMap();let cache=this._lanes.get(history);if(!cache)this._lanes.set(history,cache=new Map());
-      const key=[history.length,lo,hi,reverse,kind,backward,history===this._entryHistory?'shaft':this.revision].join(':');if(cache.has(key))return cache.get(key);
+      const key=[history.length,lo,hi,reverse,kind,backward,history===this._entryHistory?'shaft':'lane'].join(':'),old=cache.get(key);if(old&&(history===this._entryHistory||old.deps.every(g=>g===-2||g>=0&&this.grains[g])))return old.out;const deps=[];
       const indices=Array.from({length:hi-lo+1},(_,k)=>lo+k);if(reverse)indices.reverse();const points=indices.map(k=>history[k]),rows=[],profile=this.transportProfile(history);
       for(let k=0;k<points.length;k++){
         const p=points[k],width=this.laneWidth(history,indices[k]),travel=renderAngle(Math.atan2(Math.sin(p.angle+(reverse?Math.PI:0)),Math.cos(p.angle+(reverse?Math.PI:0)))),angle=backward?p.angle:travel,row=[];
         for(const offset of [...new Set([width,Math.max(LANE_OFFSET,width-.1),LANE_OFFSET,.3,.2,.1,0])]){
-          const shift=profile?.[indices[k]]||0,q={x:p.x-Math.sin(p.angle)*shift-Math.sin(travel)*offset,y:p.y+Math.cos(p.angle)*shift+Math.cos(travel)*offset,angle};if(!this.poseClear(q,kind))continue;
+          const shift=profile?.[indices[k]]||0,q={x:p.x-Math.sin(p.angle)*shift-Math.sin(travel)*offset,y:p.y+Math.cos(p.angle)*shift+Math.cos(travel)*offset,angle};if(!this.poseClear(q,kind)){deps.push(this._block);continue;}
           let cost=(width-offset)*.2,parent=-1;
-          if(k){let best=Infinity;for(let n=0;n<rows[k-1].length;n++){const prev=rows[k-1][n];if(!this.sweptClear(prev.q,q,kind))continue;const score=prev.cost+cost+Math.hypot(prev.q.x-q.x,prev.q.y-q.y)*.01;if(score<best){best=score;parent=n;}}if(parent<0)continue;cost=best;}
+          if(k){let best=Infinity;for(let n=0;n<rows[k-1].length;n++){const prev=rows[k-1][n];if(!this.sweptClear(prev.q,q,kind)){deps.push(this._block);continue;}const score=prev.cost+cost+Math.hypot(prev.q.x-q.x,prev.q.y-q.y)*.01;if(score<best){best=score;parent=n;}}if(parent<0)continue;cost=best;}
           row.push({q,cost,parent});
         }
-        if(!row.length){cache.set(key,null);return null;}rows.push(row);
+        if(!row.length){cache.set(key,{out:null,deps});return null;}rows.push(row);
       }
       let n=rows.at(-1).reduce((best,v,k,a)=>v.cost<a[best].cost?k:best,0);const out=[];
       for(let k=rows.length-1;k>=0;k--){const v=rows[k][n];out.push(v.q);n=v.parent;}out.reverse();
-      if(cache.size>12)cache.clear();cache.set(key,out);return out;
+      if(cache.size>12)cache.clear();cache.set(key,{out,deps});return out;
     }
     alongHistory(a,p,history,fromIndex,toIndex,kind){
       const reverse=fromIndex>toIndex;
@@ -905,10 +910,11 @@
       for(let k=0;k<=6;k++){const q={x:p.x-Math.cos(p.angle||0)*k*.25,y:p.y-Math.sin(p.angle||0)*k*.25,angle:p.angle??0};if(this.sweptClear(q,{...p,angle:p.angle??0},kind))entries.push(q);}
       if(!entries.length)return null;
       const cacheKey=kind||'body';if(!this._navSafe)this._navSafe={};const safeCache=this._navSafe[cacheKey]||(this._navSafe[cacheKey]=new Int32Array(nw*H*2*16));
-      const safe=id=>{const z=decode(id);if(roomWander&&(this.clearance(z.x,z.y)<.82||this.grainRoom[GRAIN.at(z.x,z.y)]!==1))return false;if(safeCache[id]===1)return true;if(safeCache[id]===-this.revision)return false;const ok=this.poseClear(z,kind);safeCache[id]=ok?1:-this.revision;return ok;};
+      const safe=id=>{const z=decode(id);if(roomWander&&(this.clearance(z.x,z.y)<.82||this.grainRoom[GRAIN.at(z.x,z.y)]!==1))return false;const c=safeCache[id];if(c===1)return true;if(c===2||c>=3&&this.grains[c-3]||c===-this.revision)return false;const ok=this.poseClear(z,kind),block=this._block;safeCache[id]=ok?1:block===-2?2:block>=0?block+3:-this.revision;return ok;};
       if(!this._navEdges)this._navEdges={};const edges=this._navEdges[cacheKey]||(this._navEdges[cacheKey]=new Map());
-      const edge=(id,z,q,action)=>{const key=id*8+action,old=edges.get(key);if(old===1)return true;if(old===-this.revision)return false;const ok=this.sweptClear(z,q,kind);edges.set(key,ok?1:-this.revision);return ok;};
-      const heap=[],cost=new Map(),prev=new Map();
+      const edge=(id,z,q,action)=>{const key=id*8+action,old=edges.get(key);if(old===1)return true;if(old===0||old>=2&&this.grains[old-2]||old===-this.revision)return false;const ok=this.sweptClear(z,q,kind),block=this._block;edges.set(key,ok?1:block===-2?0:block>=0?block+2:-this.revision);return ok;};
+      const cells=nw*H*2*16;if(this._navCost?.length!==cells){this._navCost=new Float64Array(cells);this._navPrev=new Int32Array(cells);this._navStamp=new Uint32Array(cells);this._navGen=0;}
+      const heap=[],costs=this._navCost,prevs=this._navPrev,stamp=this._navStamp,gen=this._navGen=(this._navGen+1)>>>0||1;
       const push=(id,g)=>{const z=decode(id),f=g+Math.hypot(z.x-p.x,z.y-p.y),v={id,g,f};let k=heap.length;heap.push(v);while(k){const n=(k-1)>>1;if(heap[n].f<=f)break;heap[k]=heap[n];k=n;}heap[k]=v;};
       const pop=()=>{const t=heap[0],v=heap.pop();if(heap.length){let k=0;while(k*2+1<heap.length){let n=k*2+1;if(n+1<heap.length&&heap[n+1].f<heap[n].f)n++;if(heap[n].f>=v.f)break;heap[k]=heap[n];k=n;}heap[k]=v;}return t;};
       const ah=((Math.round(a.angle/(Math.PI/8))%16)+16)%16,prefixes=new Map(),starts=[{...a,prefix:[],travel:0}];
@@ -919,19 +925,19 @@
       for(const start of starts){const cx=Math.round((start.x-.25)*2),cy=Math.round((start.y-.25)*2);
       for(let oy=-1;oy<=1;oy++)for(let ox=-1;ox<=1;ox++){
         const x=cx+ox,y=cy+oy;if(x<1||x>=nw-1||y<1||y>=H*2-1)continue;
-        const id=encode(x,y,ah),z=decode(id);if(safe(id)&&this.sweptClear(start,z,kind)){const g=start.travel+Math.hypot(start.x-z.x,start.y-z.y);if(g<(cost.get(id)??Infinity)){cost.set(id,g);prev.set(id,-1);prefixes.set(id,start.prefix);push(id,g);}}
+        const id=encode(x,y,ah),z=decode(id);if(safe(id)&&this.sweptClear(start,z,kind)){const g=start.travel+Math.hypot(start.x-z.x,start.y-z.y);if(g<((stamp[id]===gen?costs[id]:Infinity))){stamp[id]=gen;costs[id]=g;prevs[id]=-1;prefixes.set(id,start.prefix);push(id,g);}}
       }}
       let end=-1,entry=null,visits=0;const limit=raw&&Math.hypot(a.x-p.x,a.y-p.y)<5?4000:24000;
-      while(heap.length&&visits++<limit){const v=pop();if(v.g!==cost.get(v.id))continue;const z=decode(v.id);
+      while(heap.length&&visits++<limit){const v=pop();if(v.g!==costs[v.id])continue;const z=decode(v.id);
         if(Math.hypot(z.x-p.x,z.y-p.y)<2.25&&(goalH===null||z.h===goalH))for(const q of entries)if(Math.hypot(z.x-q.x,z.y-q.y)<.8&&this.sweptClear(z,q,kind)){end=v.id;entry=q;break;}
         if(end>=0)break;
         for(const turn of [-1,1]){const h=(z.h+turn+16)%16,id=encode(z.ix,z.iy,h),q=decode(id),g=v.g+.18;
-          if(g<(cost.get(id)??Infinity)&&safe(id)&&edge(v.id,z,q,turn<0?0:1)){cost.set(id,g);prev.set(id,v.id);push(id,g);}}
+          if(g<((stamp[id]===gen?costs[id]:Infinity))&&safe(id)&&edge(v.id,z,q,turn<0?0:1)){stamp[id]=gen;costs[id]=g;prevs[id]=v.id;push(id,g);}}
         for(const sign of [1,-1])for(let k=0;k<(z.h%2?2:1);k++){const d=dirs[(Math.floor(z.h/2)+k)%8],x=z.ix+d[0]*sign,y=z.iy+d[1]*sign;if(x<1||x>=nw-1||y<1||y>=H*2-1)continue;
           const id=encode(x,y,z.h),g=v.g+Math.hypot(...d)*.5*(sign===1?1:1.08);
-          if(g<(cost.get(id)??Infinity)&&safe(id)&&edge(v.id,z,decode(id),2+(sign===1?0:2)+k)){cost.set(id,g);prev.set(id,v.id);push(id,g);}}
+          if(g<((stamp[id]===gen?costs[id]:Infinity))&&safe(id)&&edge(v.id,z,decode(id),2+(sign===1?0:2)+k)){stamp[id]=gen;costs[id]=g;prevs[id]=v.id;push(id,g);}}
       }
-      if(end<0)return null;const out=[];let first=end;for(let n=end;n!==-1;n=prev.get(n)){first=n;const q=decode(n);out.push({x:q.x,y:q.y,angle:q.angle});}out.reverse();out.unshift(...(prefixes.get(first)||[]));
+      if(end<0)return null;const out=[];let first=end;for(let n=end;n!==-1;n=prevs[n]){first=n;const q=decode(n);out.push({x:q.x,y:q.y,angle:q.angle});}out.reverse();out.unshift(...(prefixes.get(first)||[]));
       if(entry)out.push(entry);out.push({x:p.x,y:p.y,angle:goalH===null?out.at(-1).angle:p.angle});return out;
     }
     nextTip(p,target,radius=.5,history=[],twoWay=false,allChoices=false,turns=[-1,0,1]){
