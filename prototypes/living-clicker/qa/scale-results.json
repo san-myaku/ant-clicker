@@ -18,17 +18,17 @@
   "snapshots": [
     {
       "t": 2949,
-      "msPerStep": 1.89,
-      "gameSecondsPerCpuSecond": 8.82,
+      "msPerStep": 1.654,
+      "gameSecondsPerCpuSecond": 10.07,
       "phaseMs": {
-        "plan": 0.542,
-        "path": 0.539,
-        "item": 0.418,
-        "move": 0.204,
-        "physics": 0.069,
-        "biology": 0.021
+        "plan": 0.173,
+        "path": 0.55,
+        "item": 0.278,
+        "move": 0.173,
+        "physics": 0.056,
+        "biology": 0.014
       },
-      "timedMsPerStep": 1.949,
+      "timedMsPerStep": 1.374,
       "ants": 67,
       "brood": 4,
       "roles": {
@@ -68,17 +68,17 @@
     },
     {
       "t": 3249,
-      "msPerStep": 1.399,
-      "gameSecondsPerCpuSecond": 11.91,
+      "msPerStep": 1.058,
+      "gameSecondsPerCpuSecond": 15.76,
       "phaseMs": {
-        "plan": 0.551,
-        "path": 0.646,
-        "item": 0.299,
-        "move": 0.092,
-        "physics": 0.053,
-        "biology": 0.016
+        "plan": 0.237,
+        "path": 0.638,
+        "item": 0.28,
+        "move": 0.088,
+        "physics": 0.05,
+        "biology": 0.015
       },
-      "timedMsPerStep": 1.752,
+      "timedMsPerStep": 1.409,
       "ants": 74,
       "brood": 4,
       "roles": {
@@ -118,17 +118,17 @@
     },
     {
       "t": 3549,
-      "msPerStep": 2.283,
-      "gameSecondsPerCpuSecond": 7.3,
+      "msPerStep": 1.927,
+      "gameSecondsPerCpuSecond": 8.65,
       "phaseMs": {
-        "plan": 0.557,
-        "path": 0.44,
-        "item": 0.32,
-        "move": 0.114,
-        "physics": 0.066,
-        "biology": 0.016
+        "plan": 0.249,
+        "path": 0.514,
+        "item": 0.398,
+        "move": 0.153,
+        "physics": 0.083,
+        "biology": 0.021
       },
-      "timedMsPerStep": 1.627,
+      "timedMsPerStep": 1.554,
       "ants": 82,
       "brood": 4,
       "roles": {
@@ -167,17 +167,17 @@
     },
     {
       "t": 3849,
-      "msPerStep": 2.946,
-      "gameSecondsPerCpuSecond": 5.66,
+      "msPerStep": 2.276,
+      "gameSecondsPerCpuSecond": 7.32,
       "phaseMs": {
-        "plan": 0.789,
-        "path": 0.421,
-        "item": 0.47,
-        "move": 0.16,
-        "physics": 0.1,
-        "biology": 0.022
+        "plan": 0.217,
+        "path": 0.414,
+        "item": 0.383,
+        "move": 0.145,
+        "physics": 0.083,
+        "biology": 0.018
       },
-      "timedMsPerStep": 2.11,
+      "timedMsPerStep": 1.378,
       "ants": 89,
       "brood": 4,
       "roles": {
@@ -216,17 +216,17 @@
     },
     {
       "t": 4149,
-      "msPerStep": 2.308,
-      "gameSecondsPerCpuSecond": 7.22,
+      "msPerStep": 1.491,
+      "gameSecondsPerCpuSecond": 11.18,
       "phaseMs": {
-        "plan": 0.557,
-        "path": 0.772,
-        "item": 0.406,
-        "move": 0.138,
-        "physics": 0.063,
-        "biology": 0.039
+        "plan": 0.239,
+        "path": 0.905,
+        "item": 0.409,
+        "move": 0.149,
+        "physics": 0.064,
+        "biology": 0.03
       },
-      "timedMsPerStep": 2.089,
+      "timedMsPerStep": 1.904,
       "ants": 97,
       "brood": 4,
       "roles": {
@@ -265,17 +265,17 @@
     },
     {
       "t": 4449,
-      "msPerStep": 2.99,
-      "gameSecondsPerCpuSecond": 5.57,
+      "msPerStep": 2.106,
+      "gameSecondsPerCpuSecond": 7.91,
       "phaseMs": {
-        "plan": 1.343,
-        "path": 0.365,
-        "item": 0.619,
-        "move": 0.139,
-        "physics": 0.083,
-        "biology": 0.024
+        "plan": 0.265,
+        "path": 0.41,
+        "item": 0.623,
+        "move": 0.143,
+        "physics": 0.072,
+        "biology": 0.022
       },
-      "timedMsPerStep": 2.74,
+      "timedMsPerStep": 1.699,
       "ants": 104,
       "brood": 4,
       "roles": {
@@ -314,17 +314,17 @@
     },
     {
       "t": 4749,
-      "msPerStep": 3.247,
-      "gameSecondsPerCpuSecond": 5.13,
+      "msPerStep": 2.615,
+      "gameSecondsPerCpuSecond": 6.37,
       "phaseMs": {
-        "plan": 0.976,
-        "path": 0.354,
-        "item": 0.681,
-        "move": 0.146,
-        "physics": 0.092,
-        "biology": 0.024
+        "plan": 0.197,
+        "path": 0.339,
+        "item": 0.57,
+        "move": 0.118,
+        "physics": 0.064,
+        "biology": 0.018
       },
-      "timedMsPerStep": 2.446,
+      "timedMsPerStep": 1.443,
       "ants": 112,
       "brood": 4,
       "roles": {
@@ -363,17 +363,17 @@
     },
     {
       "t": 5049,
-      "msPerStep": 3.254,
-      "gameSecondsPerCpuSecond": 5.12,
+      "msPerStep": 2.805,
+      "gameSecondsPerCpuSecond": 5.94,
       "phaseMs": {
-        "plan": 0.733,
-        "path": 0.205,
-        "item": 0.798,
-        "move": 0.208,
-        "physics": 0.096,
-        "biology": 0.025
+        "plan": 0.185,
+        "path": 0.172,
+        "item": 0.742,
+        "move": 0.204,
+        "physics": 0.078,
+        "biology": 0.023
       },
-      "timedMsPerStep": 2.249,
+      "timedMsPerStep": 1.56,
       "ants": 119,
       "brood": 4,
       "roles": {
@@ -412,17 +412,17 @@
     },
     {
       "t": 5349,
-      "msPerStep": 2.541,
-      "gameSecondsPerCpuSecond": 6.56,
+      "msPerStep": 1.048,
+      "gameSecondsPerCpuSecond": 15.9,
       "phaseMs": {
-        "plan": 1.609,
-        "path": 0.008,
-        "item": 0.846,
-        "move": 0.024,
+        "plan": 0.126,
+        "path": 0.006,
+        "item": 0.871,
+        "move": 0.014,
         "physics": 0.065,
-        "biology": 0.021
+        "biology": 0.011
       },
-      "timedMsPerStep": 2.75,
+      "timedMsPerStep": 1.27,
       "ants": 127,
       "brood": 1,
       "roles": {
@@ -461,17 +461,17 @@
     },
     {
       "t": 5649,
-      "msPerStep": 1.915,
-      "gameSecondsPerCpuSecond": 8.7,
+      "msPerStep": 0.87,
+      "gameSecondsPerCpuSecond": 19.16,
       "phaseMs": {
-        "plan": 1.004,
+        "plan": 0.072,
         "path": 0,
-        "item": 0.729,
+        "item": 0.702,
         "move": 0,
-        "physics": 0.046,
+        "physics": 0.039,
         "biology": 0.001
       },
-      "timedMsPerStep": 1.901,
+      "timedMsPerStep": 0.927,
       "ants": 128,
       "brood": 0,
       "roles": {
@@ -507,9 +507,9 @@
     }
   ],
   "hashes": {
-    "core.js": "c88228174bbf02e721aa8876f76c4fdf241cff7fe243eaf7c36ae4b6de8a9c86",
+    "core.js": "0a9fa74d23ae0947e9e885cb29369f815092b87b909a78351bf6001971447d4b",
     "lifecycle.js": "61d39daee54e187ef574a650e01e995f7ec5f8dcba84d1e57c1d97416e2c23f3",
-    "game.js": "39d31a35677fccf19e0f498f50bc7b5ea9b82f1e5dadbc168dd603aa068e98a0"
+    "game.js": "07c8f03c0132c7f3a1b973b4020480eb615690efde6bb5d594ff1a69292b0833"
   },
   "node": "v22.22.0"
 }
