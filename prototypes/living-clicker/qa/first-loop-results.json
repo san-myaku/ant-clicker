@@ -10,18 +10,18 @@
       "at": 1200,
       "capacity": {
         "larvae": 18,
-        "food": 51
+        "food": 49
       },
       "activity": {
-        "idle": 36,
-        "travel": 1,
-        "dig": 0,
-        "haul": 3,
+        "idle": 28,
+        "travel": 2,
+        "dig": 1,
+        "haul": 9,
         "unload": 0
       },
       "shortages": {
         "larvae": 0,
-        "food": 0
+        "food": 2
       },
       "blocked": [],
       "building": [
@@ -32,26 +32,26 @@
         }
       ],
       "ants": 40,
-      "jobs": 3,
-      "dug": 520,
-      "delivered": 518,
+      "jobs": 10,
+      "dug": 551,
+      "delivered": 544,
       "nursery": 92,
       "food": 51,
-      "passage": 264,
-      "distance": 64956.738611606044,
+      "passage": 292,
+      "distance": 67875.60836887313,
       "yields": 1,
-      "waitSeconds": 159.60000000001915,
-      "backwardDistance": 5240.175531859205,
-      "grainDug": 1008,
-      "grainDelivered": 1002,
-      "grainSettled": 848,
+      "waitSeconds": 147.33333333334272,
+      "backwardDistance": 5838.5261206275045,
+      "grainDug": 1057,
+      "grainDelivered": 1040,
+      "grainSettled": 895,
       "brood": {
         "egg": 0,
         "larva": 3,
         "pupa": 1
       },
-      "stock": 50,
-      "available": 50,
+      "stock": 49,
+      "available": 49,
       "roles": {
         "forage": 14,
         "nurse": 13,
@@ -70,11 +70,11 @@
       "births": 28,
       "meals": 62,
       "harvest": 107,
-      "cookie": 12,
+      "cookie": 13,
       "reached": 1,
       "depthAbility": 1,
       "populationLimit": 64,
-      "elapsedMs": 17635
+      "elapsedMs": 21838
     },
     {
       "name": "locked-grains-never-cleared",
@@ -174,7 +174,7 @@
       "reached": 1,
       "depthAbility": 1,
       "populationLimit": 64,
-      "elapsedMs": 5837
+      "elapsedMs": 5187
     },
     {
       "at": 180,
@@ -249,7 +249,7 @@
       "reached": 1,
       "depthAbility": 1,
       "populationLimit": 64,
-      "elapsedMs": 4808
+      "elapsedMs": 5604
     },
     {
       "at": 360,
@@ -324,7 +324,7 @@
       "reached": 1,
       "depthAbility": 1,
       "populationLimit": 64,
-      "elapsedMs": 7028
+      "elapsedMs": 7580
     },
     {
       "at": 600,
@@ -388,41 +388,41 @@
       "reached": 1,
       "depthAbility": 1,
       "populationLimit": 64,
-      "elapsedMs": 10624
+      "elapsedMs": 10998
     },
     {
       "at": 900,
       "capacity": {
-        "larvae": 15,
-        "food": 33
+        "larvae": 16,
+        "food": 32
       },
       "activity": {
-        "idle": 30,
+        "idle": 29,
         "travel": 1,
-        "dig": 0,
+        "dig": 1,
         "haul": 2,
         "unload": 0
       },
       "shortages": {
         "larvae": 0,
-        "food": 8
+        "food": 9
       },
       "blocked": [],
       "building": [],
       "ants": 33,
       "jobs": 3,
-      "dug": 385,
-      "delivered": 383,
-      "nursery": 77,
+      "dug": 373,
+      "delivered": 371,
+      "nursery": 70,
       "food": 41,
       "passage": 223,
-      "distance": 46985.60805734386,
+      "distance": 46204.64865647837,
       "yields": 1,
-      "waitSeconds": 108.74999999999511,
-      "backwardDistance": 3725.753357353579,
-      "grainDug": 747,
-      "grainDelivered": 745,
-      "grainSettled": 607,
+      "waitSeconds": 94.98333333332923,
+      "backwardDistance": 3749.7453993370027,
+      "grainDug": 741,
+      "grainDelivered": 735,
+      "grainSettled": 602,
       "brood": {
         "egg": 1,
         "larva": 2,
@@ -452,24 +452,24 @@
       "reached": 1,
       "depthAbility": 1,
       "populationLimit": 64,
-      "elapsedMs": 18534
+      "elapsedMs": 17819
     },
     {
       "at": 1200,
       "capacity": {
         "larvae": 18,
-        "food": 51
+        "food": 49
       },
       "activity": {
-        "idle": 36,
-        "travel": 1,
-        "dig": 0,
-        "haul": 3,
+        "idle": 28,
+        "travel": 2,
+        "dig": 1,
+        "haul": 9,
         "unload": 0
       },
       "shortages": {
         "larvae": 0,
-        "food": 0
+        "food": 2
       },
       "blocked": [],
       "building": [
@@ -480,26 +480,26 @@
         }
       ],
       "ants": 40,
-      "jobs": 3,
-      "dug": 520,
-      "delivered": 518,
+      "jobs": 10,
+      "dug": 551,
+      "delivered": 544,
       "nursery": 92,
       "food": 51,
-      "passage": 264,
-      "distance": 64956.738611606044,
+      "passage": 292,
+      "distance": 67875.60836887313,
       "yields": 1,
-      "waitSeconds": 159.60000000001915,
-      "backwardDistance": 5240.175531859205,
-      "grainDug": 1008,
-      "grainDelivered": 1002,
-      "grainSettled": 848,
+      "waitSeconds": 147.33333333334272,
+      "backwardDistance": 5838.5261206275045,
+      "grainDug": 1057,
+      "grainDelivered": 1040,
+      "grainSettled": 895,
       "brood": {
         "egg": 0,
         "larva": 3,
         "pupa": 1
       },
-      "stock": 50,
-      "available": 50,
+      "stock": 49,
+      "available": 49,
       "roles": {
         "forage": 14,
         "nurse": 13,
@@ -518,16 +518,16 @@
       "births": 28,
       "meals": 62,
       "harvest": 107,
-      "cookie": 12,
+      "cookie": 13,
       "reached": 1,
       "depthAbility": 1,
       "populationLimit": 64,
-      "elapsedMs": 17635
+      "elapsedMs": 21838
     }
   ],
   "hashes": {
-    "core.js": "f8fa872411b55e93403c3bbcee890af0b63bc3adb5c41c38e3837ec31553c72a",
+    "core.js": "1b049db88ce57bc378771b28a2047e0f8a61a3e5880d26dd31e7814adb1086ea",
     "lifecycle.js": "e3811fe72b1fece21ec7cc25a678901d80199b0d5584775a9ab509bb85371090",
-    "game.js": "69e653486ea15862f6e3021660f7242420f2bda36ae5c58ad9cad5c86b2cb5b9"
+    "game.js": "79eecaeac3132d52ef1560ed389becd2203b3736cbc391b963204657079d6e60"
   }
 }
