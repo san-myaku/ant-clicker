@@ -7,57 +7,57 @@
     {
       "name": "a-small-nest-is-not-found",
       "pass": true,
-      "ants": 36
+      "ants": 35
     },
     {
       "name": "guards-are-assigned-only-on-purpose",
       "pass": true,
       "before": {
-        "forage": 21,
+        "forage": 22,
         "nurse": 21,
-        "build": 20,
+        "build": 21,
         "guard": 0
       },
       "two": {
         "forage": 20,
-        "nurse": 20,
-        "build": 20,
+        "nurse": 21,
+        "build": 21,
         "guard": 2
       }
     },
     {
       "name": "a-scout-comes-on-the-natural-schedule",
       "pass": true,
-      "scheduled": 2549.1,
-      "scoutAt": 2549.1,
-      "nextGap": 482.6
+      "scheduled": 3938.2,
+      "scoutAt": 3938.2,
+      "nextGap": 528.6
     },
     {
       "name": "without-guards-the-party-carries-real-items-off",
       "pass": true,
       "raidSize": 3,
       "taken": 3,
-      "carrySave": 2621.6
+      "carrySave": 4009.8
     },
     {
       "name": "guards-at-the-mouth-stop-the-scout",
       "pass": true,
-      "scoutFell": 2560.7
+      "scoutFell": 3949.7
     },
     {
       "name": "a-fallen-scout-is-prey-carried-to-the-stores",
       "pass": true,
-      "storedAt": 2571.1,
+      "storedAt": 3960.8,
       "room": "女王房"
     },
     {
       "name": "guards-grapple-with-the-party-in-the-shaft",
       "pass": true,
-      "warned": 2567.3,
-      "fightSave": 2615.6,
-      "grapples": 2,
+      "warned": 3956.4,
+      "fightSave": 4004.7,
+      "grapples": 3,
       "killed": 3,
-      "lost": 2,
+      "lost": 3,
       "stolen": 0
     },
     {
@@ -91,7 +91,7 @@
       "killed": 3,
       "prey": 6,
       "stuns": 2,
-      "lost": 2
+      "lost": 1
     },
     {
       "name": "loot-that-cannot-be-carried-out-is-put-down",
@@ -105,7 +105,7 @@
     {
       "name": "an-item-a-raider-cannot-carry-out-stays-simulated",
       "pass": true,
-      "steps": 6088
+      "steps": 6069
     },
     {
       "name": "invalid-raid-records-are-refused",
@@ -114,15 +114,15 @@
     {
       "name": "a-worker-backing-over-the-ground-keeps-facing",
       "pass": true,
-      "from": 27.35,
-      "to": 26.4,
+      "from": 27.33,
+      "to": 26.83,
       "angle": 0.785
     }
   ],
   "hashes": {
-    "core.js": "f8fa872411b55e93403c3bbcee890af0b63bc3adb5c41c38e3837ec31553c72a",
+    "core.js": "1b049db88ce57bc378771b28a2047e0f8a61a3e5880d26dd31e7814adb1086ea",
     "lifecycle.js": "e3811fe72b1fece21ec7cc25a678901d80199b0d5584775a9ab509bb85371090",
-    "game.js": "69e653486ea15862f6e3021660f7242420f2bda36ae5c58ad9cad5c86b2cb5b9"
+    "game.js": "250e0dc5a151e705c3253ec74a1e3953e4d63a58cb2ff48abd3c5f612c984ca0"
   },
-  "inputHash": "45f2286cc3b541931cae6402736b1016d48aadf76c826a54bf812b8e5b04037f"
+  "inputHash": "9f77c6d0706d261d43e7d864f605818e0bb3a3eb7711bb95e6bee5f0b689b26f"
 }

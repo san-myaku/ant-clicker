@@ -8,26 +8,26 @@
       "name": "neglected-nursery-gets-sick-and-idle-workers-die",
       "pass": true,
       "onset": {
-        "t": 1059.9999999993647,
-        "ratio": 0.9411764705882353
+        "t": 959.9999999994556,
+        "ratio": 1
       },
       "deaths": [
         {
-          "t": 1120.9999999993092,
+          "t": 1062.999999999362,
           "id": 1
         },
         {
-          "t": 1181.9999999992538,
+          "t": 1123.9999999993065,
           "id": 1
         }
       ],
-      "savedSick": 1120.9999999993092
+      "savedSick": 1062.999999999362
     },
     {
       "name": "restoring-nurses-ends-the-disease",
       "pass": true,
-      "cured": 1185.9999999992501,
-      "ratio": 0.42105263157894735,
+      "cured": 1129.999999999301,
+      "ratio": 0.6981818181818182,
       "died": 2
     },
     {
@@ -46,9 +46,9 @@
     }
   ],
   "hashes": {
-    "core.js": "f8fa872411b55e93403c3bbcee890af0b63bc3adb5c41c38e3837ec31553c72a",
+    "core.js": "1b049db88ce57bc378771b28a2047e0f8a61a3e5880d26dd31e7814adb1086ea",
     "lifecycle.js": "e3811fe72b1fece21ec7cc25a678901d80199b0d5584775a9ab509bb85371090",
-    "game.js": "69e653486ea15862f6e3021660f7242420f2bda36ae5c58ad9cad5c86b2cb5b9"
+    "game.js": "250e0dc5a151e705c3253ec74a1e3953e4d63a58cb2ff48abd3c5f612c984ca0"
   },
-  "inputHash": "993622a51de1ba643b30e8476e0140e2e38111b5a0b726fa65700a9db4242f05"
+  "inputHash": "9b9ee65118da227f7f4f918831e75275d483859b92375195e1692127fd35a4ab"
 }
