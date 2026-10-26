@@ -232,7 +232,7 @@
       if(binary.length!==pack.count*STRIDE)fail();const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0)),v=new DataView(bytes.buffer);
       for(let i=0;i<pack.count;i++){
         const at=i*STRIDE,id=v.getUint32(at,true),kind=KINDS[v.getUint8(at+4)],material=v.getUint8(at+5),carrier=v.getUint8(at+6),state=STATES[v.getUint8(at+7)],values=['x','y','vx','vy'].map((_,k)=>v.getFloat64(at+8+k*8,true)),rest=v.getUint16(at+40,true),source=v.getInt32(at+42,true);
-        if(!id||id>=pack.nextId||this.byId.has(id)||!kind||material<1||material>2||carrier>128&&(carrier<200||carrier>249)||!state||values.some(n=>!Number.isFinite(n))||Math.abs(values[2])>20||Math.abs(values[3])>20||rest>30||v.getUint32(at+46,true)!==0)fail();
+        if(!id||id>=pack.nextId||this.byId.has(id)||!kind||material<1||material>4||carrier>128&&(carrier<200||carrier>249)||!state||values.some(n=>!Number.isFinite(n))||Math.abs(values[2])>20||Math.abs(values[3])>20||rest>30||v.getUint32(at+46,true)!==0)fail();
         const [x,y,vx,vy]=values,s=SHAPES[kind];
         if(x<s.hx-EPS||x>this.width-s.hx+EPS||y<s.hy-EPS||y>this.height-s.hy+EPS||(kind!=='soil'&&source!==-1))fail();
         this.spawn(kind,x,y,{id,material,carrier,state,vx,vy,rest,source});
@@ -259,7 +259,7 @@
     }
     if(offset!==count)fail();return values;
   }
-  const SOIL = 1, HARD = 2, ROCK = 3;
+  const SOIL = 1, HARD = 2, ROCK = 3, PEBBLE = 4;
   const KEY = 'livingClicker_1';
   const ANT_SIZE = 1.8;
   const ANT_BODY = [[-.25, .24, .17], [0, .14, .12], [.24, .16, .14]];
@@ -289,7 +289,7 @@
     n = Math.imul(n ^ (n >>> 13), 1274126177);
     return (n ^ (n >>> 16)) >>> 0;
   }
-  const grainCost=type=>type===HARD?.56:.28;
+  const grainCost=type=>type===HARD?.56:type===PEBBLE?.4:.28;
   function soilResistance(x,y,seed) {
     const sample=(scale,salt)=>{
       const u=x/scale,v=y/scale,ix=Math.floor(u),iy=Math.floor(v),tx=u-ix,ty=v-iy,sx=tx*tx*(3-2*tx),sy=ty*ty*(3-2*ty);
@@ -312,7 +312,8 @@
       const boundaries=layerBoundaries(seed,(x+.5)/GRID);
       for(let y=SURFACE*GRID;y<FH;y++){
         const depth=(y+.5)/GRID;let band=0;while(band<boundaries.length&&depth>=boundaries[band])band++;
-        values[y*FW+x]=band%2?HARD:SOIL;
+        // A few loose pebbles lie in the soil, more in the deeper layers.
+        values[y*FW+x]=hash(x,y,seed^0x51ab)%1000<(band?25:15)?PEBBLE:band%2?HARD:SOIL;
       }
     }
     const rocks=[],wanted=16+hash(6,9,seed)%3;
@@ -383,7 +384,7 @@
     roomIds(){return this.rooms.slice(2).map(r=>r.id);}
     roomKind(rid){return this.rooms?.[rid]?.kind??(rid%2===0?'egg':'food');}
     buildNeeds(){return [{rid:2,d:this.demands.larvae-this.rawCapacities().larvae,wanted:this.demands.larvae},{rid:3,d:(this.demands.food-this.rawCapacities().food)/2,wanted:this.demands.food}];}
-    canExcavate(g){return this.grains[g]===SOIL||this.grains[g]===HARD&&this.hardDig;}
+    canExcavate(g){return this.grains[g]===SOIL||this.grains[g]===PEBBLE||this.grains[g]===HARD&&this.hardDig;}
     grainCells(cell) { return GRAIN.cells(cell); }
     grainNeighbors(i) { return GRAIN.neighbors(i); }
     soilAt(x, y) {
@@ -397,7 +398,7 @@
       this.revision++;
     }
     syncCell(cell) {
-      const grains=this.grainCells(cell),material=grains.reduce((type,g)=>Math.max(type,this.grains[g]),0);
+      const grains=this.grainCells(cell),material=grains.reduce((type,g)=>Math.max(type,this.grains[g]===PEBBLE?SOIL:this.grains[g]),0);
       this.terrain[cell]=material;
       this.room[cell]=material?0:this.grainRoom[grains[Math.floor(grains.length/2)]];
     }
@@ -1053,7 +1054,7 @@
       if(!this.poseClear(candidate.pose,soilNavKind(count)))continue;
       const chosen=[],routes=[];
       for(const g of candidates){
-        if(!this.canExcavate(g)||this.supportsStock(g)||this.jobs.some(j=>j.grains.includes(g))||!this.grainNeighbors(g).some(n=>!this.grains[n]))continue;
+        if(!this.canExcavate(g)||count>1&&this.grains[g]===PEBBLE||this.supportsStock(g)||this.jobs.some(j=>j.grains.includes(g))||!this.grainNeighbors(g).some(n=>!this.grains[n]))continue;
         if(chosen.length&&!this.grainNeighbors(g).some(n=>chosen.includes(n)))continue;
         const p=GRAIN.center(g),dx=p.x-candidate.pose.x,dy=p.y-candidate.pose.y;if(Math.hypot(dx,dy)>1.55||dx*Math.cos(candidate.pose.angle)+dy*Math.sin(candidate.pose.angle)<.6)continue;
         const route=this.pickupPath(g,candidate.pose,chosen.length,count);if(route===null)continue;chosen.push(g);routes.push(route);if(chosen.length===count)break;
@@ -1427,14 +1428,14 @@
       const s=Object.create(Simulation.prototype);
       for(const key of ['seed','rng','time','ticks','remainder','planAt','revision','demands','priority','hardDig','rooms','builds','drop','nextJob','ants','jobs','stats','events','entrance','entranceHistory'])s[key]=structuredClone(pack[key]);
       s.terrain=Uint8Array.from(pack.terrain);s.room=Uint8Array.from(pack.room);s.loose=Uint8Array.from(pack.loose);s.traffic=Float64Array.from(pack.traffic);s.jam=Float64Array.from(pack.jam);
-      for(const [key,max] of [['grains',3],['grainRoom',254],['grainPending',1]])s[key]=decodeGrains(pack[key],FINE_SIZE,max);
+      for(const [key,max] of [['grains',4],['grainRoom',254],['grainPending',1]])s[key]=decodeGrains(pack[key],FINE_SIZE,max);
       const ids=new Set(),jobs=new Set(),pending=new Set(),reserved=new Set(),targets=new Set();
       for(const a of s.ants){
         if(!integer(a.id,1,128)||ids.has(a.id)||!pose(a)||!pose(a.home)||!integer(a.cell,0,SIZE-1)||!['idle','travel','dig','haul','unload'].includes(a.task)||!finite(a.walked)||!finite(a.wait,-2,100)||!poses(a.path)||!integer(a.next,0,Math.max(0,a.path.length-1))||a.trail&&!poses(a.trail,100)||a.resume&&!poses(a.resume.path))fail();ids.add(a.id);
       }
       for(const j of s.jobs){
         const a=s.ants.find(a=>a.id===j.ant);
-        if(!a||a.job!==j.id||!integer(j.id,1,s.nextJob-1)||jobs.has(j.id)||!integer(j.target,0,SIZE-1)||!pose(j.pose)||![0,...s.roomIds()].includes(j.rid)||!['travel','dig','haul','unload'].includes(j.phase)||!Array.isArray(j.grains)||!integer(j.grains.length,1,MAX_LOAD)||!j.grains.every(g=>integer(g,0,FINE_SIZE-1))||!integer(j.cursor,0,j.grains.length)||!Array.isArray(j.materials)||j.materials.length!==j.grains.length||j.materials.some(t=>![SOIL,HARD].includes(t))||!Array.isArray(j.costs)||j.costs.length!==j.grains.length||j.costs.some((v,k)=>Math.abs(v-workCost(j.materials[k],j.grains[k],s.seed))>1e-9)||!finite(j.stroke,0,2))fail();
+        if(!a||a.job!==j.id||!integer(j.id,1,s.nextJob-1)||jobs.has(j.id)||!integer(j.target,0,SIZE-1)||!pose(j.pose)||![0,...s.roomIds()].includes(j.rid)||!['travel','dig','haul','unload'].includes(j.phase)||!Array.isArray(j.grains)||!integer(j.grains.length,1,MAX_LOAD)||!j.grains.every(g=>integer(g,0,FINE_SIZE-1))||!integer(j.cursor,0,j.grains.length)||!Array.isArray(j.materials)||j.materials.length!==j.grains.length||j.materials.some(t=>![SOIL,HARD,PEBBLE].includes(t))||!Array.isArray(j.costs)||j.costs.length!==j.grains.length||j.costs.some((v,k)=>Math.abs(v-workCost(j.materials[k],j.grains[k],s.seed))>1e-9)||!finite(j.stroke,0,2))fail();
         if(!poses(j.escape)||!j.escape.length||!poses(j.pose.escapeHome)||!integer(j.drop,0,W*SURFACE-1)||!Array.isArray(j.pickupRoutes)||j.pickupRoutes.length!==j.grains.length||j.pickupRoutes.some(route=>!Array.isArray(route)||route.length>1||route.some(p=>!finite(p.x,0,W)||!finite(p.y,0,H))))fail();
         if(j.phase==='travel'&&(j.cursor!==0||j.pickup!==null)||['haul','unload'].includes(j.phase)&&(j.cursor!==j.grains.length||j.pickup!==null||!a.cargo||a.cargo.source!==j.target))fail();
         jobs.add(j.id);targets.add(j.target);
@@ -1448,7 +1449,7 @@
       if(!s.stats||['dug','delivered','nursery','food','passage','grainDug','grainDelivered','grainSettled','yields'].some(k=>!integer(s.stats[k],0,FINE_SIZE))||!finite(s.stats.distance)||s.stats.grainDug-s.stats.grainDelivered!==pending.size||s.stats.dug-s.stats.delivered!==s.jobs.filter(j=>j.phase==='haul'||j.phase==='unload').length)fail();
       if(!Array.isArray(s.events)||s.events.length>30||s.events.some(e=>!finite(e.time)||typeof e.text!=='string'||e.text.length>200))fail();
       for(let i=0;i<SIZE;i++){
-        const cells=GRAIN.cells(i);if(s.terrain[i]!==cells.reduce((n,g)=>Math.max(n,s.grains[g]),0))fail();
+        const cells=GRAIN.cells(i);if(s.terrain[i]!==cells.reduce((n,g)=>Math.max(n,s.grains[g]===PEBBLE?SOIL:s.grains[g]),0))fail();
         for(const g of cells)if(s.grains[g]&&(s.grainRoom[g]||s.grainPending[g])||!!s.grainPending[g]!==pending.has(g))fail();
       }
       s.initObjects(pack.physics);
@@ -1463,7 +1464,7 @@
       return s;
     }
   }
-  return { Simulation, Physics, W, H, SIZE, SURFACE, KEY, STEP, PICKUP_SECONDS, SAVE_FORMAT, WALK_SPEED, MAX_LOAD, LANE_OFFSET, LOAD_OFFSETS, carryShape, GRAIN, GRID, FW, FH, FINE_SIZE, GRAIN_AREA, ANT_SIZE, ANT_BODY, DUMP_CELL, renderAngle, names, xy, idx, neighbors, hash, encodeGrains, decodeGrains, layerBoundaries, grainCost, workCost, soilResistance };
+  return { Simulation, Physics, W, H, SIZE, SURFACE, PEBBLE, KEY, STEP, PICKUP_SECONDS, SAVE_FORMAT, WALK_SPEED, MAX_LOAD, LANE_OFFSET, LOAD_OFFSETS, carryShape, GRAIN, GRID, FW, FH, FINE_SIZE, GRAIN_AREA, ANT_SIZE, ANT_BODY, DUMP_CELL, renderAngle, names, xy, idx, neighbors, hash, encodeGrains, decodeGrains, layerBoundaries, grainCost, workCost, soilResistance };
 });
 
 

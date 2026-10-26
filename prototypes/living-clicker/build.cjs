@@ -210,6 +210,18 @@ replace("['grainRoom',13]","['grainRoom',254]",'saved grain room tags');
 replace("required.sort((a,b)=>(b.d/b.wanted*(","required.sort((a,b)=>(b.d/b.wanted*(b.weight??1)*(",'room need weight b');
 replace("-(a.d/a.wanted*(this.priority","-(a.d/a.wanted*(a.weight??1)*(this.priority",'room need weight a');
 replace("+'\u306b\u8377\u7269\u3092\u904b\u3073\u5165\u308c\u3089\u308c\u308b\u3088\u3046\u306b\u306a\u308a\u307e\u3057\u305f\u3002');}}","+(this.roomKind(rid)==='rest'?'\u3067\u4f11\u3081\u308b\u3088\u3046\u306b\u306a\u308a\u307e\u3057\u305f\u3002':'\u306b\u8377\u7269\u3092\u904b\u3073\u5165\u308c\u3089\u308c\u308b\u3088\u3046\u306b\u306a\u308a\u307e\u3057\u305f\u3002'));}}",'a finished rest chamber is for resting');
+// A pebble is heavy: one per trip, carried at a slower pace (game.js).
+replace("const SOIL = 1, HARD = 2, ROCK = 3;","const SOIL = 1, HARD = 2, ROCK = 3, PEBBLE = 4;",'pebble grain');
+replace("values[y*FW+x]=band%2?HARD:SOIL;","// A few loose pebbles lie in the soil, more in the deeper layers.\n        values[y*FW+x]=hash(x,y,seed^0x51ab)%1000<(band?25:15)?PEBBLE:band%2?HARD:SOIL;",'pebbles in the soil');
+replace("canExcavate(g){return this.grains[g]===SOIL||this.grains[g]===HARD&&this.hardDig;}","canExcavate(g){return this.grains[g]===SOIL||this.grains[g]===PEBBLE||this.grains[g]===HARD&&this.hardDig;}",'pebbles are dug out');
+replace("const grainCost=type=>type===HARD?.56:.28;","const grainCost=type=>type===HARD?.56:type===PEBBLE?.4:.28;",'prying a pebble loose');
+replace("material=grains.reduce((type,g)=>Math.max(type,this.grains[g]),0);","material=grains.reduce((type,g)=>Math.max(type,this.grains[g]===PEBBLE?SOIL:this.grains[g]),0);",'a pebble cell is soil for the coarse terrain');
+replace("['grains',3]","['grains',4]",'saved pebbles');
+replace("materials.some(t=>![SOIL,HARD].includes(t))","materials.some(t=>![SOIL,HARD,PEBBLE].includes(t))",'saved pebble jobs');
+replace("if(s.terrain[i]!==cells.reduce((n,g)=>Math.max(n,s.grains[g]),0))fail();","if(s.terrain[i]!==cells.reduce((n,g)=>Math.max(n,s.grains[g]===PEBBLE?SOIL:s.grains[g]),0))fail();",'saved coarse terrain with pebbles');
+replace("material<1||material>2","material<1||material>4",'saved pebble loads');
+replace("if(!this.canExcavate(g)||this.supportsStock(g)||this.jobs.some(j=>j.grains.includes(g))||!this.grainNeighbors(g).some(n=>!this.grains[n]))continue;","if(!this.canExcavate(g)||count>1&&this.grains[g]===PEBBLE||this.supportsStock(g)||this.jobs.some(j=>j.grains.includes(g))||!this.grainNeighbors(g).some(n=>!this.grains[n]))continue;",'a pebble is carried alone');
+replace("return { Simulation, Physics, W, H, SIZE, SURFACE,","return { Simulation, Physics, W, H, SIZE, SURFACE, PEBBLE,",'export pebble');
 fs.writeFileSync(path.join(root,'core.js'),source);
 source=read('game.js');
 replace("FORMAT='ant-colony-1',KEY='antColonyGame_1',LIMIT=64","FORMAT='living-clicker-life-1',KEY='livingClicker_1',LIMIT=128",'independent lifecycle save');

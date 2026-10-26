@@ -69,7 +69,7 @@
   }
   function soilColor(type,g){
     const gx=g%FW,gy=Math.floor(g/FW),variation=hash(gx,gy,sim.seed)%9,depth=Math.min(12,Math.floor(gy/GRID/8));
-    const base=type===2?[115,94,72]:[141,122,99];
+    const base=type===4?[164,158,144]:type===2?[115,94,72]:[141,122,99];
     return `rgb(${base[0]+variation-depth},${base[1]+variation-depth},${base[2]+variation-depth})`;
   }
   function rebuildEarth() {
@@ -367,11 +367,11 @@
       if(a.desiredRole!==a.role)line(roleNames[a.desiredRole]+'へ交代予定');
     }else if(selected.kind==='body'){
       const b=sim.physics.byId.get(selected.id);if(!b){selected=null;return;}
-      const e=sim.colony.brood.find(e=>e.id===b.id);line(e?stageNames[e.stage]:b.kind==='soil'?'砂粒':b.kind==='waste'?'ゴミ':b.kind==='cookie'?'甘い粒':'餌',true);
+      const e=sim.colony.brood.find(e=>e.id===b.id);line(e?stageNames[e.stage]:b.kind==='soil'?(b.material===4?'小石':'砂粒'):b.kind==='waste'?'ゴミ':b.kind==='cookie'?'甘い粒':'餌',true);
       line(b.carrier?'アリ '+b.carrier+' が運搬中':b.kind==='waste'?(b.y<SURFACE?'地表で土に還っていく':'巣の中に残っている'):sim.colony.wild.includes(b.id)?'地表の採集場所':b.rest>=30?'部屋で保管中':'落下・移動中');
       if(e?.stage==='larva')line('給餌 '+e.feeds+' / 2回');
       if(e?.stage==='pupa')line('羽化まで あと約'+Math.max(0,Math.ceil((50-e.age)/(1+sim.colony.upgrades.brood*.2)))+'秒');
-    }else{const g=selected.grain,t=sim.grains[g],p=GRAIN.center(g),known=visibleGrains?.[g]>0;line(t?(known?['','土','硬い土','岩'][t]:'第'+sim.layerAt(p.x,p.y)+'層の土'):sim.roomName(sim.grainRoom[g]),true);line(t?(known&&t===3?'掘れない岩です':sim.layerAt(p.x,p.y)>sim.depthAbility()?'深度研究で掘れるようになります。':'まだ掘っていない場所です。'):'アリが通れる空間です');}
+    }else{const g=selected.grain,t=sim.grains[g],p=GRAIN.center(g),known=visibleGrains?.[g]>0;line(t?(known?['','土','硬い土','岩','小石'][t]:'第'+sim.layerAt(p.x,p.y)+'層の土'):sim.roomName(sim.grainRoom[g]),true);line(t?(known&&t===3?'掘れない岩です':sim.layerAt(p.x,p.y)>sim.depthAbility()?'深度研究で掘れるようになります。':'まだ掘っていない場所です。'):'アリが通れる空間です');}
   }
   function updateUI(){
     const s=sim.status();

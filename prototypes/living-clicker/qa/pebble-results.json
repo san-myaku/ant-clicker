@@ -1,0 +1,30 @@
+{
+  "results": [
+    {
+      "name": "pebbles-lie-in-the-soil",
+      "pass": true,
+      "pebbles": 2595,
+      "share": 0.0209,
+      "deep": 2018
+    },
+    {
+      "name": "a-pebble-is-carried-alone-and-slowly",
+      "pass": true,
+      "pebbleTrips": 9,
+      "pace": 0.7,
+      "carrySave": 169.7
+    },
+    {
+      "name": "pebbles-gather-on-the-heap",
+      "pass": true,
+      "onHeap": 9,
+      "pebbleBodies": 9,
+      "settledSoil": 848
+    }
+  ],
+  "hashes": {
+    "core.js": "f8fa872411b55e93403c3bbcee890af0b63bc3adb5c41c38e3837ec31553c72a",
+    "lifecycle.js": "e3811fe72b1fece21ec7cc25a678901d80199b0d5584775a9ab509bb85371090",
+    "game.js": "69e653486ea15862f6e3021660f7242420f2bda36ae5c58ad9cad5c86b2cb5b9"
+  }
+}

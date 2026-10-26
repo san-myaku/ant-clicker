@@ -103,6 +103,8 @@
   // Alarm pheromone: a tap within ALARM_TOUCH of an intruder calls up to
   // ALARM_RECRUIT free workers within ALARM_REACH to it for ALARM_TIME seconds.
   const ALARM_TOUCH=2,ALARM_REACH=6,ALARM_RECRUIT=6,ALARM_TIME=10,ACID_TIME=3,ACID_REACH=1.5,RAID_PHASES=['quiet','scout','coming','attack'];
+  // A worker carrying a pebble walks at this fraction of its pace.
+  const PEBBLE_PACE=.7;
   const UPGRADE_IDS={walk:'gather_1',brood:'brood_1',dig:'dig_speed'};
   class Simulation extends Base.Simulation{
     constructor(seed=24014){
@@ -114,7 +116,8 @@
     level(id){return this.progress?.research[id]||0;}
     populationLimit(){return this.level('queen_embrace')?128:64;}
     canLay(){return super.canLay()&&this.ants.length+this.colony.brood.length<this.populationLimit();}
-    walkSpeed(ant){return Base.WALK_SPEED*(1+(ant?.role==='forage'?this.level('gather_1')*.15+this.level('gather_2')*.15+this.level('gather_inf')*.05+this.level('queen_pheromone')*.2+(this.level('hygiene_clean_bonus')&&!this.nurseryWaste()?.2:0):0))*(ant?.itemTask?.purpose==='clean'?1+this.level('hygiene_2')*.2:1);}
+    carriesPebble(ant){const job=ant?.job!=null&&this.jobs.find(j=>j.id===ant.job);return !!job&&job.cursor>0&&job.materials[0]===Base.PEBBLE;}
+    walkSpeed(ant){return Base.WALK_SPEED*(this.carriesPebble(ant)?PEBBLE_PACE:1)*(1+(ant?.role==='forage'?this.level('gather_1')*.15+this.level('gather_2')*.15+this.level('gather_inf')*.05+this.level('queen_pheromone')*.2+(this.level('hygiene_clean_bonus')&&!this.nurseryWaste()?.2:0):0))*(ant?.itemTask?.purpose==='clean'?1+this.level('hygiene_2')*.2:1);}
     broodRate(){return 1+this.level('brood_1')*.2;}
     stageRate(stage){return stage==='egg'?1+this.level('brood_egg_inf')*.04:stage==='larva'?1+this.level('brood_2')*.15+this.level('brood_larva_inf')*.03:1;}
     layRate(){return (1+this.level('queen_fertile')*.15)*(1+this.level('queen_vitality')*.25);}
@@ -487,7 +490,9 @@
         const c=Math.floor(b.x/u),column=columns.get(c);if(column)column.push(b);else columns.set(c,[b]);
       }
       for(const column of columns.values()){
-        if(column.length<=SPOIL_SETTLE)continue;const bottom=column.reduce((a,b)=>b.y>a.y?b:a);
+        // Only soil sinks into the ground; pebbles stay and gather on the heap.
+        const soil=column.filter(b=>b.material!==Base.PEBBLE);
+        if(column.length<=SPOIL_SETTLE||!soil.length)continue;const bottom=soil.reduce((a,b)=>b.y>a.y?b:a);
         if(bottom.y<SURFACE-u)continue;this.physics.remove(bottom);this.stats.grainSettled++;
       }
     }
