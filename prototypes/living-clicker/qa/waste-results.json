@@ -1,0 +1,46 @@
+{
+  "results": [
+    {
+      "name": "save-from-before-hygiene-starts-without-waste",
+      "pass": true
+    },
+    {
+      "name": "hygiene-studies-from-real-stock",
+      "pass": true,
+      "perMeal": 0.45,
+      "cleanWalk": 1.2
+    },
+    {
+      "name": "nurses-carry-waste-out-mid-carry-save",
+      "pass": true,
+      "t": 954.0666666661276,
+      "ant": 5,
+      "body": 936
+    },
+    {
+      "name": "meals-make-waste-that-leaves-and-decays",
+      "pass": true,
+      "meals": 21,
+      "made": 9,
+      "decayed": 5,
+      "inNest": 0,
+      "onSurface": 4
+    },
+    {
+      "name": "waste-near-a-fed-larva-slows-it",
+      "pass": true,
+      "t": 951.41666666613,
+      "factor": 0.7407407407407407
+    },
+    {
+      "name": "invalid-waste-records-are-refused",
+      "pass": true
+    }
+  ],
+  "hashes": {
+    "core.js": "af64d11dd50d9300d58bfd2bdf39b39a563fcf82a6ec7a267d5679d40eb415f1",
+    "lifecycle.js": "d54fdad71000e8e1a5daef3ba937e3fbc39d0516ac218238d270338855408f66",
+    "game.js": "7b409c0fdedddcbed7b2887e982248e50c28a4947b4d42b56c81716f65cb28ea"
+  },
+  "inputHash": "bd68a283fffce391d471e91fe99409aaf13b2a5d8b63506660cf8b0748dcfa0b"
+}

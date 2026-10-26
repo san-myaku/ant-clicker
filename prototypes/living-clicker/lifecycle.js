@@ -121,7 +121,7 @@
           const to=this.feedRoute(ant,target);if(to){ant.path=to.route;ant.next=0;}else this.cancelFeed(ant);return true;
         }
         task.chew=(task.chew||0)+dt;
-        if(task.chew>=1.2){this.physics.remove(b);e.feeds++;e.lastFed=this.time;this.colony.stats.eaten++;delete ant.itemTask;ant.wait=.3;}
+        if(task.chew>=1.2){this.physics.remove(b);e.feeds++;e.lastFed=this.time;this.colony.stats.eaten++;this.afterMeal?.(e,target);delete ant.itemTask;ant.wait=.3;}
       }return true;
     }
     stepItemTask(ant,dt,occupancy){
@@ -155,7 +155,7 @@
       for(const e of this.colony.brood.slice()){
         const b=this.physics.byId.get(e.id);if(!b)throw new Error('育児の実体がありません');
         if(e.stage==='egg'){e.age+=dt*rate*(this.stageRate?.('egg')??1);if(e.age>=35){e.stage='larva';e.age=0;}}
-        else if(e.stage==='larva'){if(e.feeds>=2){e.age+=dt*rate*(this.stageRate?.('larva')??1);if(e.age>=50){e.stage='pupa';e.age=0;}}}
+        else if(e.stage==='larva'){if(e.feeds>=2){e.age+=dt*rate*(this.stageRate?.('larva')??1)*(this.wasteFactor?.(b)??1);if(e.age>=50){e.stage='pupa';e.age=0;}}}
         else{e.age+=dt*rate;if(e.age>=50)this.hatch(e,b);}
       }
       if(this.canLay())this.colony.queen=Math.min(40,this.colony.queen+dt*(this.layRate?.()||1));
@@ -194,7 +194,7 @@
       const s=TerrainSimulation.restore(pack.world);Object.setPrototypeOf(s,Simulation.prototype);s.colony=c;
       if(c.nextAnt!==s.ants.length+1||s.ants.length+c.brood.length>LIMIT||s.ants.some(a=>!ROLES.includes(a.role)||!ROLES.includes(a.desiredRole)||a.id>=c.nextAnt))fail();
       const targets=new Set();
-      for(const a of s.ants)if(a.itemTask?.purpose){const t=a.itemTask,e=c.brood.find(e=>e.id===t.target);if(t.purpose!=='feed'||a.role!=='nurse'||s.physics.byId.get(t.body)?.kind!=='food'||!e||e.stage!=='larva'||targets.has(t.target)||t.chew!==undefined&&!finite(t.chew,0,1.3))fail();targets.add(t.target);}
+      for(const a of s.ants)if(a.itemTask?.purpose&&a.itemTask.purpose!=='clean'){const t=a.itemTask,e=c.brood.find(e=>e.id===t.target);if(t.purpose!=='feed'||a.role!=='nurse'||s.physics.byId.get(t.body)?.kind!=='food'||!e||e.stage!=='larva'||targets.has(t.target)||t.chew!==undefined&&!finite(t.chew,0,1.3))fail();targets.add(t.target);}
       s.assertLedger();return s;
     }
   }

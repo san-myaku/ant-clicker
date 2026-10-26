@@ -52,4 +52,10 @@ replace("catch (e) { message('有効な保存データではありません。�
 replace("reset(seed); invalidStored = false; persist(); message('この地形で最初から始めました。');", "try{reset(seed); invalidStored = false; if(persist())message('この地形で最初から始めました。');}catch{message('新しい巣を保存できませんでした。いまの巣を書き出して保管できます。');}",'atomic reset checkpoint failure');
 replace("$('new-seed').onclick = () => { reset(crypto.getRandomValues(new Uint32Array(1))[0] || 1); invalidStored = false; persist(); message('別の地形で始めました。'); };", "$('new-seed').onclick = () => {try{reset(crypto.getRandomValues(new Uint32Array(1))[0] || 1);invalidStored=false;if(persist())message('別の地形で始めました。');}catch{message('新しい巣を始められませんでした。いまの巣を書き出して保管できます。');}};",'new terrain checkpoint errors');
 replace('  window.colonyGame = {','  window.colonyGame = {','inspection api');
+// Waste pellets: small, dark and irregular, readable apart from food and soil.
+replace("const pattern=b.kind==='egg'?","const pattern=b.kind==='waste'?['0110','1111','1110','0110']:b.kind==='egg'?",'waste pellet pixels');
+replace("ctx.fillStyle=b.kind==='egg'?(","ctx.fillStyle=b.kind==='waste'?(y<1?'#5d5649':x>2?'#2c2924':'#433e35'):b.kind==='egg'?(",'waste pellet colors');
+replace("line(e?stageNames[e.stage]:b.kind==='soil'?'砂粒':'餌',true);","line(e?stageNames[e.stage]:b.kind==='soil'?'砂粒':b.kind==='waste'?'ゴミ':'餌',true);",'waste selection name');
+replace("line(b.carrier?'アリ '+b.carrier+' が運搬中':sim.colony.wild.includes(b.id)?","line(b.carrier?'アリ '+b.carrier+' が運搬中':b.kind==='waste'?(b.y<SURFACE?'地表で土に還っていく':'巣の中に残っている'):sim.colony.wild.includes(b.id)?",'waste selection place');
+replace("bodies[0].kind==='food'?'餌 1個':","bodies[0].kind==='food'?'餌 1個':bodies[0].kind==='waste'?'ゴミ 1個':",'carried waste');
 fs.writeFileSync(path.join(root,'view.js'),source);console.log('Observation view generated with checked hooks.');

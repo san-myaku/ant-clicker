@@ -17,8 +17,8 @@
     {id:'brood_egg_inf',name:'孵化強化',branch:'育児',desc:'卵の育つ速さ +4%（くり返し研究できる）',food:6,cookie:2,max:Infinity,growth:1.5,prereq:'brood_1'},
     {id:'brood_larva_inf',name:'成長強化',branch:'育児',desc:'幼虫の育つ速さ +3%（くり返し研究できる）',food:6,cookie:2,max:Infinity,growth:1.5,prereq:'brood_2'},
     {id:'golden_brood',name:'英才教育',branch:'育児',desc:'黄金卵・黄金幼虫を全室で最優先に育て、さらに黄金の成長を加速する。(通常時の黄金優先は控えめになる)',planned:true},
-    {id:'hygiene_1',name:'衛生基礎',branch:'衛生',desc:'ゴミ発生量 -10%',planned:true},
-    {id:'hygiene_2',name:'清掃効率I',branch:'衛生',desc:'清掃効率 +20%',planned:true},
+    {id:'hygiene_1',name:'衛生基礎',branch:'衛生',desc:'幼虫が出すゴミ -10%',food:6,cookie:1,max:1},
+    {id:'hygiene_2',name:'清掃効率I',branch:'衛生',desc:'ゴミを運ぶ育児係の歩く速さ +20%',food:8,cookie:2,max:1,prereq:'hygiene_1'},
     {id:'hygiene_3',name:'お掃除はおまかせ',branch:'衛生',desc:'ゴミ室の運用を整え、働きアリの一部も低優先でゴミ掃除に参加する。清掃判断と運搬量も改善。',planned:true},
     {id:'hygiene_clean_bonus',name:'清潔なコロニー',branch:'衛生',desc:'巣が清潔なら（幼虫室のゴミが少ないと）働きアリの食料収集 +20%。掃除を怠ると失われる、状況依存のボーナス。',planned:true},
     {id:'hygiene_recycle',name:'廃棄物リサイクル',branch:'衛生',desc:'たまった廃棄物を分解して、少しずつ食料に戻す。お荷物だったゴミが収入源になり、掃除も同時に進む。',planned:true},
@@ -76,17 +76,21 @@
   // column taller than this many grains compact into the ground.
   // Food appears at x 15-20; spoil columns start past its slope reach.
   const SPOIL_CLEAR=7,SPOIL_DUMP=2,SPOIL_SETTLE=5,SPOIL_LEFT=23;
+  // Waste: half a pellet per real meal; each pellet within reach of a larva
+  // slows it; refuse on the surface decays after REFUSE_LIFE seconds.
+  const WASTE_PER_MEAL=.5,WASTE_REACH=1.5,WASTE_SLOW=.35,REFUSE_LIFE=180;
   const UPGRADE_IDS={walk:'gather_1',brood:'brood_1',dig:'dig_speed'};
   class Simulation extends Base.Simulation{
     constructor(seed=24014){
       super(seed);
       this.progress={research:Object.fromEntries(ACTIVE.map(d=>[d.id,0])),cookie:0,earned:0,spentCookie:0,haulAwards:0,reached:1,claims:[1],speed:1};
+      this.colony.waste={due:0,made:0,decayed:0};this.colony.refuse=[];
       this.events=[];this.log('女王室から、巣づくりを始めます。');
     }
     level(id){return this.progress?.research[id]||0;}
     populationLimit(){return this.level('queen_embrace')?128:64;}
     canLay(){return super.canLay()&&this.ants.length+this.colony.brood.length<this.populationLimit();}
-    walkSpeed(ant){return Base.WALK_SPEED*(1+(ant?.role==='forage'?this.level('gather_1')*.15+this.level('gather_2')*.15+this.level('gather_inf')*.05+this.level('queen_pheromone')*.2:0));}
+    walkSpeed(ant){return Base.WALK_SPEED*(1+(ant?.role==='forage'?this.level('gather_1')*.15+this.level('gather_2')*.15+this.level('gather_inf')*.05+this.level('queen_pheromone')*.2:0))*(ant?.itemTask?.purpose==='clean'?1+this.level('hygiene_2')*.2:1);}
     broodRate(){return 1+this.level('brood_1')*.2;}
     stageRate(stage){return stage==='egg'?1+this.level('brood_egg_inf')*.04:stage==='larva'?1+this.level('brood_2')*.15+this.level('brood_larva_inf')*.03:1;}
     layRate(){return (1+this.level('queen_fertile')*.15)*(1+this.level('queen_vitality')*.25);}
@@ -287,10 +291,64 @@
         if(bottom.y<SURFACE-u)continue;this.physics.remove(bottom);this.stats.grainSettled++;
       }
     }
+    afterMeal(e,larva){
+      const w=this.colony.waste;w.due+=WASTE_PER_MEAL*(1-this.level('hygiene_1')*.1);
+      while(w.due>=1){w.due-=1;const b=this.physics.spawn('waste',larva.x+(w.made%2?.3:-.3),larva.y,{state:'refuse'});this.physics.release(b);b.state='refuse';w.made++;}
+    }
+    wasteInNest(){
+      if(this._wasteTick!==this.ticks){this._wasteTick=this.ticks;this._wasteList=this.physics.bodies.filter(b=>b.kind==='waste'&&!b.carrier&&b.y>=SURFACE);}
+      return this._wasteList;
+    }
+    wasteFactor(larva){let n=0;for(const b of this.wasteInNest())if(Math.hypot(b.x-larva.x,b.y-larva.y)<WASTE_REACH)n++;return 1/(1+WASTE_SLOW*n);}
+    startClean(ant){
+      if(this.ticks%30!==0||ant.yielding||ant.yieldHold)return false;
+      const claimed=new Set(this.ants.filter(a=>a.itemTask).map(a=>a.itemTask.body));
+      const waste=this.wasteInNest().filter(b=>b.state==='refuse'&&b.rest>=30&&!claimed.has(b.id)&&this.physics.drag?.id!==b.id).sort((a,b)=>Math.hypot(a.x-ant.x,a.y-ant.y)-Math.hypot(b.x-ant.x,b.y-ant.y)||a.id-b.id);
+      for(const b of waste)for(const p of this.itemAccess(b)){
+        const route=this.path(ant,p.pose);if(route===null)continue;
+        ant.itemTask={purpose:'clean',body:b.id,phase:'fetch',destination:p.cell,rid:1};ant.path=route;ant.next=0;delete ant.returning;return true;
+      }return false;
+    }
+    cancelClean(ant){
+      const b=this.physics.byId.get(ant.itemTask?.body);if(b?.carrier===ant.id){this.updateCarriers();this.physics.release(b);b.state='refuse';}
+      delete ant.itemTask;ant.path=[];ant.next=0;ant.wait=.3;
+    }
+    cleanStep(ant,dt,occupancy){
+      const task=ant.itemTask,b=this.physics.byId.get(task.body);if(!b){delete ant.itemTask;return true;}
+      ant.task=task.phase==='fetch'?'travel':'haul';
+      if(task.phase==='fetch'){
+        if(this.move(ant,dt,occupancy)){
+          if(b.carrier||Math.hypot(ant.x-b.x,ant.y-b.y)>1.6){this.cancelClean(ant);return true;}
+          b.carrier=ant.id;b.state='cargo';b.rest=0;
+          const drop=this.dumpSite(),route=this.path(ant,drop,'waste');if(!route){this.cancelClean(ant);return true;}
+          task.phase='store';task.destination=drop;ant.path=route;ant.next=0;
+        }
+      }else if(this.move(ant,dt,occupancy)){
+        // Thrown outward at the real surface spot; it decays there over time.
+        this.updateCarriers();this.physics.release(b,b.x<this.entrance.x?-1:1,-1);b.state='refuse';
+        this.colony.refuse.push({id:b.id,at:this.time});delete ant.itemTask;ant.wait=.3;
+      }return true;
+    }
+    stepItemTask(ant,dt,occupancy){
+      if(ant.itemTask?.purpose==='clean')return this.cleanStep(ant,dt,occupancy);
+      const busy=super.stepItemTask(ant,dt,occupancy);if(busy||ant.itemTask||ant.role!=='nurse'||ant.job!==null)return busy;
+      return this.startClean(ant)?this.cleanStep(ant,dt,occupancy):false;
+    }
+    decayRefuse(){
+      const w=this.colony.waste;
+      this.colony.refuse=this.colony.refuse.filter(r=>{const b=this.physics.byId.get(r.id);if(this.time-r.at<REFUSE_LIFE||!b||b.carrier||b.state!=='refuse')return true;this.physics.remove(b);w.decayed++;return false;});
+    }
+    assertLedger(){
+      super.assertLedger();const w=this.colony.waste;if(!w)return true;
+      const fail=()=>{throw new Error('ゴミの数が一致しません');},waste=this.physics.bodies.filter(b=>b.kind==='waste'),ids=new Set(this.colony.refuse.map(r=>r.id));
+      if(waste.length!==w.made-w.decayed||ids.size!==this.colony.refuse.length)fail();
+      for(const id of ids){const b=this.physics.byId.get(id);if(b?.kind!=='waste'||b.y>=SURFACE&&!b.carrier)fail();}
+      return true;
+    }
     tick(dt){
       if(this.progress&&this.ticks%30===0)this.ensureDepthRooms();
       super.tick(dt);if(!this.progress)return;
-      if(this.ticks%60===0)this.settleSpoil();
+      if(this.ticks%60===0){this.settleSpoil();this.decayRefuse();}
       const awards=Math.floor(this.stats.grainDelivered/80);
       if(awards>this.progress.haulAwards){const delta=awards-this.progress.haulAwards;this.progress.haulAwards=awards;this.progress.cookie+=delta;this.progress.earned+=delta;}
       if(this.ticks%30===0)for(const a of this.ants){if(a.y<SURFACE)continue;const layer=this.layerAt(a.x,a.y);if(layer>this.progress.reached){this.progress.reached=layer;if(!this.progress.claims.includes(layer)){this.progress.claims.push(layer);const amount=layer*3;this.progress.cookie+=amount;this.progress.earned+=amount;this.log('第'+layer+'層に到達。クッキーを'+amount+'個見つけました。');}}}
@@ -311,7 +369,13 @@
       const life={...pack,format:'living-clicker-life-1'},s=Base.Simulation.restore(life);Object.setPrototypeOf(s,Simulation.prototype);s.progress=structuredClone(pack.progress);
       // A save from before a study was connected has no level for it: start it at 0.
       if(s.progress.research&&Object.keys(s.progress.research).every(id=>BY_ID[id]&&!BY_ID[id].planned))for(const d of ACTIVE)if(!(d.id in s.progress.research))s.progress.research[d.id]=0;
-      s.assertProgress();
+      // Waste arrived with the hygiene stage; a save without it has none yet.
+      const c=s.colony,waste=s.physics.bodies.filter(b=>b.kind==='waste');
+      if(c.waste===undefined&&c.refuse===undefined&&!waste.length){c.waste={due:0,made:0,decayed:0};c.refuse=[];}
+      const int=v=>Number.isInteger(v)&&v>=0;
+      if(!c.waste||!Number.isFinite(c.waste.due)||c.waste.due<0||c.waste.due>=1||!int(c.waste.made)||!int(c.waste.decayed)||c.waste.decayed>c.waste.made||!Array.isArray(c.refuse)||c.refuse.some(r=>!int(r.id)||!Number.isFinite(r.at)||r.at>s.time))throw Error('ゴミの記録が正しくありません');
+      for(const a of s.ants)if(a.itemTask?.purpose==='clean'){const b=s.physics.byId.get(a.itemTask.body);if(a.role!=='nurse'||b?.kind!=='waste'||a.itemTask.target!==undefined)throw Error('掃除の記録が正しくありません');}
+      s.assertLedger();s.assertProgress();
       for(const [id,b]of s.builds.entries())if(id>=4&&b&&(!Number.isFinite(b.minLength)||b.minLength<6||b.minLength>80||!Number.isFinite(b.minDepth)||b.minDepth<SURFACE||b.minDepth>H))throw Error('深い部屋の記録が正しくありません');
       for(const b of s.builds)if(b?.avoided&&(!Array.isArray(b.avoided)||b.avoided.length>512||b.avoided.some(p=>!Number.isFinite(p.x)||!Number.isFinite(p.y)||!Number.isFinite(p.angle)||p.x<0||p.x>W||p.y<SURFACE||p.y>H)))throw Error('掘削の方向の記録が正しくありません');
       for(const job of s.jobs)for(const g of job.grains.slice(job.cursor))if(s.layerAt(GRAIN.center(g).x,GRAIN.center(g).y)>s.depthAbility())throw Error('未解放の地層を掘る仕事があります');

@@ -129,6 +129,11 @@ replace("    digPoseFor(g,preferred=null){",`    knownRoute(from,to,kind){
     }
     digPoseFor(g,preferred=null){`,'proven route memory');
 replace("  const FOOTPRINT_MEMO=60000;","  const FOOTPRINT_MEMO=60000,KNOWN_ROUTES=20000;",'proven route bound');
+// Waste is a real pellet. It rests as refuse until a nurse carries it out.
+// Appended kind/state indices keep earlier saves' encoded bodies valid.
+replace("food:{hx:3/16,hy:3/16,density:.8}};","food:{hx:3/16,hy:3/16,density:.8},waste:{hx:5/32,hy:1/8,density:.7}};",'waste pellet shape');
+replace("const KINDS=['soil','egg','food'],STATES=['cargo','delivered','incoming','stored','pickup'];","const KINDS=['soil','egg','food','waste'],STATES=['cargo','delivered','incoming','stored','pickup','refuse'];",'waste kind and refuse state');
+replace("const counts={soil:0,egg:0,food:0};","const counts={soil:0,egg:0,food:0,waste:0};",'waste body count');
 fs.writeFileSync(path.join(root,'core.js'),source);
 source=read('game.js');
 replace("FORMAT='ant-colony-1',KEY='antColonyGame_1',LIMIT=64","FORMAT='living-clicker-life-1',KEY='livingClicker_1',LIMIT=128",'independent lifecycle save');
@@ -143,5 +148,9 @@ replace("this._incoming=(all||[]).filter(b=>!feeding.has(b.id)&&(ant.role==='nur
 replace("if(e.stage==='egg'){e.age+=dt*rate;","if(e.stage==='egg'){e.age+=dt*rate*(this.stageRate?.('egg')??1);",'egg stage research');
 replace("if(e.feeds>=2){e.age+=dt*rate;","if(e.feeds>=2){e.age+=dt*rate*(this.stageRate?.('larva')??1);",'larva stage research');
 replace("this.colony.queen=Math.min(40,this.colony.queen+4);return true;","this.colony.queen=Math.min(40,this.colony.queen+4*(this.tapPower?.()??1));return true;",'tap research');
+// A fed larva leaves waste; waste lying near a larva slows its growth.
+replace("if(e.feeds>=2){e.age+=dt*rate*(this.stageRate?.('larva')??1);","if(e.feeds>=2){e.age+=dt*rate*(this.stageRate?.('larva')??1)*(this.wasteFactor?.(b)??1);",'waste slows a larva');
+replace("this.physics.remove(b);e.feeds++;e.lastFed=this.time;this.colony.stats.eaten++;","this.physics.remove(b);e.feeds++;e.lastFed=this.time;this.colony.stats.eaten++;this.afterMeal?.(e,target);",'meal leaves waste');
+replace("for(const a of s.ants)if(a.itemTask?.purpose){","for(const a of s.ants)if(a.itemTask?.purpose&&a.itemTask.purpose!=='clean'){",'cleaning is checked by its own rules');
 fs.writeFileSync(path.join(root,'lifecycle.js'),source);
 console.log('Organic core and lifecycle generated with checked hooks.');
