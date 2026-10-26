@@ -381,7 +381,7 @@
       if (this.events.length > 30) this.events.shift();
     }
     roomIds(){return this.rooms.slice(2).map(r=>r.id);}
-    roomKind(rid){return rid%2===0?'egg':'food';}
+    roomKind(rid){return this.rooms?.[rid]?.kind??(rid%2===0?'egg':'food');}
     buildNeeds(){return [{rid:2,d:this.demands.larvae-this.rawCapacities().larvae,wanted:this.demands.larvae},{rid:3,d:(this.demands.food-this.rawCapacities().food)/2,wanted:this.demands.food}];}
     canExcavate(g){return this.grains[g]===SOIL||this.grains[g]===HARD&&this.hardDig;}
     grainCells(cell) { return GRAIN.cells(cell); }
@@ -1097,7 +1097,7 @@
         }
         b.length+=Math.hypot(b.tip.x-b.next.x,b.tip.y-b.next.y);b.tip={x:b.next.x,y:b.next.y,angle:b.next.angle};b.history.push({...b.tip});b.next=null;
         if(Math.hypot(b.tip.x-b.history[0].x,b.tip.y-b.history[0].y)>5&&b.length>=(b.minLength||6)&&b.tip.y>=(b.minDepth||0)){
-          b.mode='chamber';this.rooms[rid]={id:rid,x:b.tip.x,y:b.tip.y};
+          b.mode='chamber';this.rooms[rid]={...this.rooms[rid],id:rid,x:b.tip.x,y:b.tip.y};
           for(let g=0;g<FINE_SIZE;g++){const p=GRAIN.center(g);if(!this.grains[g]&&!this.grainRoom[g]&&Math.hypot(p.x-b.tip.x,p.y-b.tip.y)<1.1)this.grainRoom[g]=rid;}
           for(let i=0;i<SIZE;i++)this.syncCell(i);this.revision++;
         }
@@ -1105,7 +1105,7 @@
       return b.mode==='chamber'?this.frontier(rid):[];
     }
     finishConstruction(){
-      for(const rid of this.roomIds()){const b=this.builds[rid];if(b&&!b.complete&&b.mode==='chamber'&&this.cells(rid).filter(i=>this.walkable(i)).length>=3){b.complete=true;this.log(names[rid]+'に荷物を運び入れられるようになりました。');}}
+      for(const rid of this.roomIds()){const b=this.builds[rid];if(b&&!b.complete&&b.mode==='chamber'&&this.cells(rid).filter(i=>this.walkable(i)).length>=3){b.complete=true;this.log((this.roomName?.(rid)??names[rid])+'に荷物を運び入れられるようになりました。');}}
     }
     branchBusy(rid,owner=0){
       const b=this.builds[rid];return this.jobs.some(j=>{
@@ -1375,7 +1375,7 @@
       for (const a of this.ants) activity[a.itemTask?(a.itemTask.phase==='fetch'?'travel':'haul'):a.task]++;
       const shortages = { larvae: Math.max(0, this.demands.larvae - capacity.larvae), food: Math.max(0, this.demands.food - capacity.food) };
       const blocked = [];
-      const building=this.roomIds().filter(rid=>this.demands[this.roomKind(rid)==='egg'?'larvae':'food']>0&&this.builds[rid]&&!this.builds[rid].complete).map(rid=>({rid,name:names[rid],stage:this.cells(rid).length?'room':'passage'}));
+      const building=this.roomIds().filter(rid=>this.demands[this.roomKind(rid)==='egg'?'larvae':'food']>0&&this.builds[rid]&&!this.builds[rid].complete).map(rid=>({rid,name:this.roomName?.(rid)??names[rid],stage:this.cells(rid).length?'room':'passage'}));
       return { capacity, activity, shortages, blocked, building, ants: this.ants.length, jobs: this.jobs.length, ...this.stats };
     }
     dump() {
@@ -1391,10 +1391,10 @@
       const finite=(n,min=0,max=1e9)=>typeof n==='number'&&Number.isFinite(n)&&n>=min&&n<=max;
       const integer=(n,min,max)=>Number.isInteger(n)&&finite(n,min,max);
       if(!pack||pack.format!==SAVE_FORMAT||pack.w!==W||pack.h!==H||pack.grid!==GRID||!pack.physics)fail();
-      for(const [key,max,ints] of [['terrain',3,true],['room',13,true],['loose',64,true],['traffic',1e6,false],['jam',1e6,false]])if(!Array.isArray(pack[key])||pack[key].length!==SIZE||pack[key].some(n=>!(ints?integer(n,0,max):finite(n,0,max))))fail();
+      for(const [key,max,ints] of [['terrain',3,true],['room',31,true],['loose',64,true],['traffic',1e6,false],['jam',1e6,false]])if(!Array.isArray(pack[key])||pack[key].length!==SIZE||pack[key].some(n=>!(ints?integer(n,0,max):finite(n,0,max))))fail();
       if(!integer(pack.seed,0,4294967295)||!integer(pack.rng,0,4294967295)||!integer(pack.ticks,0,1e9)||!finite(pack.time)||!finite(pack.planAt)||!finite(pack.remainder,0,STEP)||!integer(pack.revision,1,1e9)||!integer(pack.nextJob,1,1e9)||pack.drop!==DUMP_CELL||!['balanced','nursery','food'].includes(pack.priority)||typeof pack.hardDig!=='boolean')fail();
       if(!pack.demands||!integer(pack.demands.larvae,0,800)||!integer(pack.demands.food,0,1600)||!Array.isArray(pack.ants)||(pack.ants.length<1||pack.ants.length>128)||!Array.isArray(pack.jobs)||pack.jobs.length>128)fail();
-      if(!Array.isArray(pack.rooms)||pack.rooms.length<4||pack.rooms.length>14||pack.rooms.slice(1).some((r,k)=>r?.id!==k+1||!finite(r.x,1,W-1)||!finite(r.y,SURFACE,H-1)))fail();
+      if(!Array.isArray(pack.rooms)||pack.rooms.length<4||pack.rooms.length>32||pack.rooms.slice(1).some((r,k)=>r?.id!==k+1||!finite(r.x,1,W-1)||!finite(r.y,SURFACE,H-1)))fail();
       if(!Array.isArray(pack.builds)||pack.builds.length!==pack.rooms.length)fail();
       const pose=p=>p&&finite(p.x,.1,W-.1)&&finite(p.y,.1,H-.1)&&finite(p.angle,-Math.PI*4,Math.PI*4);
       const poses=(p,max=2000)=>Array.isArray(p)&&p.length<=max&&p.every(pose);

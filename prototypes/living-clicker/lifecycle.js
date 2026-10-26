@@ -176,7 +176,7 @@
     }
     assertLedger(){
       const fail=()=>{throw new Error('コロニーの数が一致しません');},c=this.colony,stats=c.stats,eggs=this.physics.bodies.filter(b=>b.kind==='egg'),food=this.physics.bodies.filter(b=>b.kind==='food');
-      if(this.ants.length!==stats.initialAnts+stats.born||c.brood.length+stats.born!==stats.initialBrood+stats.laid||food.length+stats.eaten+stats.spent!==stats.initialFood+stats.generated||eggs.length!==c.brood.length)fail();
+      if(this.ants.length!==stats.initialAnts+stats.born||c.brood.length+stats.born!==stats.initialBrood+stats.laid||food.length+stats.eaten+stats.spent!==stats.initialFood+stats.generated+(c.waste?.recycled||0)||eggs.length!==c.brood.length)fail();
       if(new Set(c.brood.map(e=>e.id)).size!==eggs.length||c.brood.some(e=>this.physics.byId.get(e.id)?.kind!=='egg')||new Set(c.wild).size!==c.wild.length||c.wild.some(id=>this.physics.byId.get(id)?.kind!=='food'))fail();
       return true;
     }

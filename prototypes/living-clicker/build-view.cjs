@@ -58,4 +58,8 @@ replace("ctx.fillStyle=b.kind==='egg'?(","ctx.fillStyle=b.kind==='waste'?(y<1?'#
 replace("line(e?stageNames[e.stage]:b.kind==='soil'?'砂粒':'餌',true);","line(e?stageNames[e.stage]:b.kind==='soil'?'砂粒':b.kind==='waste'?'ゴミ':'餌',true);",'waste selection name');
 replace("line(b.carrier?'アリ '+b.carrier+' が運搬中':sim.colony.wild.includes(b.id)?","line(b.carrier?'アリ '+b.carrier+' が運搬中':b.kind==='waste'?(b.y<SURFACE?'地表で土に還っていく':'巣の中に残っている'):sim.colony.wild.includes(b.id)?",'waste selection place');
 replace("bodies[0].kind==='food'?'餌 1個':","bodies[0].kind==='food'?'餌 1個':bodies[0].kind==='waste'?'ゴミ 1個':",'carried waste');
+// Room labels come from each room's purpose and its order among the same kind.
+replace("ctx.measureText(names[r.id])","ctx.measureText(sim.roomName(r.id))",'room label width');
+replace("ctx.fillText(names[r.id], p.x, p.y)","ctx.fillText(sim.roomName(r.id), p.x, p.y)",'room label');
+replace("):names[sim.grainRoom[g]],true)","):sim.roomName(sim.grainRoom[g]),true)",'selected air room name');
 fs.writeFileSync(path.join(root,'view.js'),source);console.log('Observation view generated with checked hooks.');

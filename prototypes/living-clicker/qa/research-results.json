@@ -3,8 +3,8 @@
     {
       "name": "catalog-matches-original-61",
       "pass": true,
-      "active": 18,
-      "planned": 43
+      "active": 20,
+      "planned": 41
     },
     {
       "name": "planned-studies-cannot-be-bought",
@@ -77,9 +77,9 @@
     }
   ],
   "hashes": {
-    "core.js": "af64d11dd50d9300d58bfd2bdf39b39a563fcf82a6ec7a267d5679d40eb415f1",
-    "lifecycle.js": "d54fdad71000e8e1a5daef3ba937e3fbc39d0516ac218238d270338855408f66",
-    "game.js": "7b409c0fdedddcbed7b2887e982248e50c28a4947b4d42b56c81716f65cb28ea"
+    "core.js": "0b5aa5d148b0b8c787f0d5941a60221af0c5eea1d603c408a974dd482e72c406",
+    "lifecycle.js": "d8d5df4c5b5293b33f8ddce09a63f5736874ef1c1d1b35aa77df2ca30d3f88cc",
+    "game.js": "f086ef59201191bc7c11758cdf306bfb576b590126a6c7dbcec82e06e3c51cd4"
   },
   "inputHash": "702ec535fcfdf21597672276a09e29253337e38ae20336840653e7f2d3c7d3ca"
 }

@@ -12,7 +12,7 @@ replace('for(const turn of [-1,0,1]){','for(const turn of turns){','local steeri
 replace("const escape=this.path(p,{x:48.25,y:24.25,angle:0},'soil1');if(!escape)continue;", "const home={x:48.25,y:24.25,angle:0},escape=this.path(p,home,'soil1');if(!escape||!this.path(home,p,null))continue;", 'digging pose must have an actual inbound route too');
 replace('const bases=[21.5,28.5,51.5,61,73.5];','const bases=[36,46,56,66,76];','first layer includes the initial rooms');
 replace('    grainCells(cell) { return GRAIN.cells(cell); }',`    roomIds(){return this.rooms.slice(2).map(r=>r.id);}
-    roomKind(rid){return rid%2===0?'egg':'food';}
+    roomKind(rid){return this.rooms?.[rid]?.kind??(rid%2===0?'egg':'food');}
     buildNeeds(){return [{rid:2,d:this.demands.larvae-this.rawCapacities().larvae,wanted:this.demands.larvae},{rid:3,d:(this.demands.food-this.rawCapacities().food)/2,wanted:this.demands.food}];}
     canExcavate(g){return this.grains[g]===SOIL||this.grains[g]===HARD&&this.hardDig;}
     grainCells(cell) { return GRAIN.cells(cell); }`,'extensible living world');
@@ -61,10 +61,10 @@ replace("const building=[2,3].filter(rid=>this.demands[rid===2?'larvae':'food']>
 replace("if(a.y<SURFACE||this.grainRoom[GRAIN.at(a.x,a.y)]===1)return false;const k=nearest(a),q=b.history[k];return k>=first-1&&Math.hypot(q.x-a.x,q.y-a.y)<2;", "if(a.y<SURFACE||this.grainRoom[GRAIN.at(a.x,a.y)]>0||!this.singleFileSection(a))return false;const k=nearest(a),q=b.history[k];return k>=first-1&&Math.hypot(q.x-a.x,q.y-a.y)<2;",'room residents do not reserve a narrow passage');
 replace("const a=this.ants.find(a=>a.id===j.ant);if(this.grainRoom[GRAIN.at(a.x,a.y)]===1)return false;", "const a=this.ants.find(a=>a.id===j.ant),room=this.grainRoom[GRAIN.at(a.x,a.y)];if(room>0&&room!==rid)return false;",'release child branch when carrier reaches its parent room');
 replace("this.stats[job.rid === 2 ? 'nursery' : job.rid === 3 ? 'food' : 'passage']++;", "this.stats[job.rid>=2?(this.roomKind(job.rid)==='egg'?'nursery':'food'):'passage']++;",'all room work accounting');
-replace("['room',3,true]","['room',13,true]",'saved room tags');
+replace("['room',3,true]","['room',31,true]",'saved room tags');
 replace('pack.ants.length>64','pack.ants.length>128','saved ants');
 replace('pack.jobs.length>64','pack.jobs.length>128','saved jobs');
-replace('pack.rooms.length!==4','pack.rooms.length<4||pack.rooms.length>14','saved room count');
+replace('pack.rooms.length!==4','pack.rooms.length<4||pack.rooms.length>32','saved room count');
 replace('pack.builds.length!==4','pack.builds.length!==pack.rooms.length','saved builds');
 replace('for(const rid of [2,3]){const b=pack.builds[rid];','for(const rid of pack.rooms.slice(2).map(r=>r.id)){const b=pack.builds[rid];','saved real branches');
 replace("['grainRoom',3]","['grainRoom',13]",'grain room tags');
@@ -134,6 +134,10 @@ replace("  const FOOTPRINT_MEMO=60000;","  const FOOTPRINT_MEMO=60000,KNOWN_ROUT
 replace("food:{hx:3/16,hy:3/16,density:.8}};","food:{hx:3/16,hy:3/16,density:.8},waste:{hx:5/32,hy:1/8,density:.7}};",'waste pellet shape');
 replace("const KINDS=['soil','egg','food'],STATES=['cargo','delivered','incoming','stored','pickup'];","const KINDS=['soil','egg','food','waste'],STATES=['cargo','delivered','incoming','stored','pickup','refuse'];",'waste kind and refuse state');
 replace("const counts={soil:0,egg:0,food:0};","const counts={soil:0,egg:0,food:0,waste:0};",'waste body count');
+// Rooms carry their purpose; a passage turning into its chamber keeps it.
+replace("b.mode='chamber';this.rooms[rid]={id:rid,x:b.tip.x,y:b.tip.y};","b.mode='chamber';this.rooms[rid]={...this.rooms[rid],id:rid,x:b.tip.x,y:b.tip.y};",'chamber keeps its purpose');
+replace("this.log(names[rid]+'に荷物を","this.log((this.roomName?.(rid)??names[rid])+'に荷物を",'room name in log');
+replace("name:names[rid],","name:this.roomName?.(rid)??names[rid],",'room name in status');
 fs.writeFileSync(path.join(root,'core.js'),source);
 source=read('game.js');
 replace("FORMAT='ant-colony-1',KEY='antColonyGame_1',LIMIT=64","FORMAT='living-clicker-life-1',KEY='livingClicker_1',LIMIT=128",'independent lifecycle save');
@@ -152,5 +156,7 @@ replace("this.colony.queen=Math.min(40,this.colony.queen+4);return true;","this.
 replace("if(e.feeds>=2){e.age+=dt*rate*(this.stageRate?.('larva')??1);","if(e.feeds>=2){e.age+=dt*rate*(this.stageRate?.('larva')??1)*(this.wasteFactor?.(b)??1);",'waste slows a larva');
 replace("this.physics.remove(b);e.feeds++;e.lastFed=this.time;this.colony.stats.eaten++;","this.physics.remove(b);e.feeds++;e.lastFed=this.time;this.colony.stats.eaten++;this.afterMeal?.(e,target);",'meal leaves waste');
 replace("for(const a of s.ants)if(a.itemTask?.purpose){","for(const a of s.ants)if(a.itemTask?.purpose&&a.itemTask.purpose!=='clean'){",'cleaning is checked by its own rules');
+// Recycled waste is a real source of food, counted next to forage.
+replace("food.length+stats.eaten+stats.spent!==stats.initialFood+stats.generated","food.length+stats.eaten+stats.spent!==stats.initialFood+stats.generated+(c.waste?.recycled||0)",'recycled food ledger');
 fs.writeFileSync(path.join(root,'lifecycle.js'),source);
 console.log('Organic core and lifecycle generated with checked hooks.');

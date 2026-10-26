@@ -35,12 +35,31 @@
     {
       "name": "invalid-waste-records-are-refused",
       "pass": true
+    },
+    {
+      "name": "waste-chamber-studies-from-real-stock",
+      "pass": true
+    },
+    {
+      "name": "waste-chamber-is-dug-and-used",
+      "pass": true,
+      "chamberAt": 3084.1,
+      "delivered": {
+        "room": 22,
+        "surface": 3,
+        "forager": true
+      },
+      "recycled": 20,
+      "decayed": 3,
+      "made": 25,
+      "ants": 89
     }
   ],
   "hashes": {
-    "core.js": "af64d11dd50d9300d58bfd2bdf39b39a563fcf82a6ec7a267d5679d40eb415f1",
-    "lifecycle.js": "d54fdad71000e8e1a5daef3ba937e3fbc39d0516ac218238d270338855408f66",
-    "game.js": "7b409c0fdedddcbed7b2887e982248e50c28a4947b4d42b56c81716f65cb28ea"
+    "core.js": "0b5aa5d148b0b8c787f0d5941a60221af0c5eea1d603c408a974dd482e72c406",
+    "lifecycle.js": "d8d5df4c5b5293b33f8ddce09a63f5736874ef1c1d1b35aa77df2ca30d3f88cc",
+    "game.js": "f086ef59201191bc7c11758cdf306bfb576b590126a6c7dbcec82e06e3c51cd4"
   },
-  "inputHash": "bd68a283fffce391d471e91fe99409aaf13b2a5d8b63506660cf8b0748dcfa0b"
+  "inputHash": "bd68a283fffce391d471e91fe99409aaf13b2a5d8b63506660cf8b0748dcfa0b",
+  "chamberInputHash": "265a90130ca138a9ca96fca447331e1eede6282212350ec28d68098b2d3aa3ae"
 }

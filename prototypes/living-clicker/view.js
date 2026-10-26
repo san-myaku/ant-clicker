@@ -340,9 +340,9 @@
       const p = screen(r.x, top - 1.3);
       if (p.y < 10 || p.y > cam.height - 38 || p.x < 28 || p.x > cam.width - 28) continue;
       ctx.font = '12px "Yu Gothic UI",Meiryo,sans-serif'; ctx.textAlign = 'center';
-      const width = ctx.measureText(names[r.id]).width;
+      const width = ctx.measureText(sim.roomName(r.id)).width;
       ctx.fillStyle = '#3a3024c9'; ctx.fillRect(p.x - width / 2 - 5, p.y - 13, width + 10, 19);
-      ctx.fillStyle = '#f2eee3'; ctx.fillText(names[r.id], p.x, p.y);
+      ctx.fillStyle = '#f2eee3'; ctx.fillText(sim.roomName(r.id), p.x, p.y);
     }
     const entrance = screen(sim.entrance.x, 4.5), dump = xy(sim.drop), above = screen(dump.x + 2, 3);
     ctx.font = '11px "Yu Gothic UI",Meiryo,sans-serif'; ctx.fillStyle = '#5c554a'; ctx.textAlign = 'center';
@@ -368,7 +368,7 @@
       line(b.carrier?'アリ '+b.carrier+' が運搬中':b.kind==='waste'?(b.y<SURFACE?'地表で土に還っていく':'巣の中に残っている'):sim.colony.wild.includes(b.id)?'地表の採集場所':b.rest>=30?'部屋で保管中':'落下・移動中');
       if(e?.stage==='larva')line('給餌 '+e.feeds+' / 2回');
       if(e?.stage==='pupa')line('羽化まで あと約'+Math.max(0,Math.ceil((50-e.age)/(1+sim.colony.upgrades.brood*.2)))+'秒');
-    }else{const g=selected.grain,t=sim.grains[g],p=GRAIN.center(g),known=visibleGrains?.[g]>0;line(t?(known?['','土','硬い土','岩'][t]:'第'+sim.layerAt(p.x,p.y)+'層の土'):names[sim.grainRoom[g]],true);line(t?(known&&t===3?'掘れない岩です':sim.layerAt(p.x,p.y)>sim.depthAbility()?'深度研究で掘れるようになります。':'まだ掘っていない場所です。'):'アリが通れる空間です');}
+    }else{const g=selected.grain,t=sim.grains[g],p=GRAIN.center(g),known=visibleGrains?.[g]>0;line(t?(known?['','土','硬い土','岩'][t]:'第'+sim.layerAt(p.x,p.y)+'層の土'):sim.roomName(sim.grainRoom[g]),true);line(t?(known&&t===3?'掘れない岩です':sim.layerAt(p.x,p.y)>sim.depthAbility()?'深度研究で掘れるようになります。':'まだ掘っていない場所です。'):'アリが通れる空間です');}
   }
   function updateUI(){
     const s=sim.status();
