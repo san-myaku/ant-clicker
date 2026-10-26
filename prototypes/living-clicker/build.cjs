@@ -118,6 +118,17 @@ replace("cost.set(id,g);prev.set(id,-1);","stamp[id]=gen;costs[id]=g;prevs[id]=-
 replaceEach("cost.set(id,g);prev.set(id,v.id);","stamp[id]=gen;costs[id]=g;prevs[id]=v.id;",2,'search relax');
 replace("if(v.g!==cost.get(v.id))continue;","if(v.g!==costs[v.id])continue;",'search stale entry');
 replace("for(let n=end;n!==-1;n=prev.get(n))","for(let n=end;n!==-1;n=prevs[n])",'search route');
+// Terrain only opens during play, so a route once proven stays passable. The
+// dig-stand check only needs to know both trips exist (hauling plans its own
+// route), so it reuses proven routes; a failed check is searched again later.
+replace("const home={x:48.25,y:24.25,angle:0},escape=this.path(p,home,'soil1');if(!escape||!this.path(home,p,null))continue;","const home={x:48.25,y:24.25,angle:0},escape=this.knownRoute(p,home,'soil1');if(!escape||!this.knownRoute(home,p,null))continue;",'dig stand reuses proven trips');
+replace("    digPoseFor(g,preferred=null){",`    knownRoute(from,to,kind){
+      if(!this._knownRoutes)this._knownRoutes=new Map();const key=from.x+':'+from.y+':'+from.angle+':'+to.x+':'+to.y+':'+to.angle+':'+kind;
+      let route=this._knownRoutes.get(key);if(route)return route;route=this.path(from,to,kind);
+      if(route){if(this._knownRoutes.size>=KNOWN_ROUTES)this._knownRoutes.clear();this._knownRoutes.set(key,route);}return route;
+    }
+    digPoseFor(g,preferred=null){`,'proven route memory');
+replace("  const FOOTPRINT_MEMO=60000;","  const FOOTPRINT_MEMO=60000,KNOWN_ROUTES=20000;",'proven route bound');
 fs.writeFileSync(path.join(root,'core.js'),source);
 source=read('game.js');
 replace("FORMAT='ant-colony-1',KEY='antColonyGame_1',LIMIT=64","FORMAT='living-clicker-life-1',KEY='livingClicker_1',LIMIT=128",'independent lifecycle save');

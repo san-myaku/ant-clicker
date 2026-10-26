@@ -26,7 +26,7 @@
   }
   const GRAIN = grainUnit(4);
   const GRID = GRAIN.perUnit, FW = GRAIN.width, FH = GRAIN.height, FINE_SIZE = GRAIN.count, GRAIN_AREA = GRAIN.area;
-  const FOOTPRINT_MEMO=60000;
+  const FOOTPRINT_MEMO=60000,KNOWN_ROUTES=20000;
   const STEP=1/60, PICKUP_SECONDS=.2, SAVE_FORMAT='ant-colony-core-1', WALK_SPEED=9, MAX_LOAD=4, LANE_OFFSET=.35, CURVE_LANE_EXTRA=.18;
   const Physics = (function(){
 
@@ -1040,6 +1040,11 @@
       if(chosen.length===count){const escape=this.path(candidate.pose,drop,soilNavKind(count));if(escape)return {...candidate,grains:chosen,pickupRoutes:routes,drop,escape};}
       }return null;
     }
+    knownRoute(from,to,kind){
+      if(!this._knownRoutes)this._knownRoutes=new Map();const key=from.x+':'+from.y+':'+from.angle+':'+to.x+':'+to.y+':'+to.angle+':'+kind;
+      let route=this._knownRoutes.get(key);if(route)return route;route=this.path(from,to,kind);
+      if(route){if(this._knownRoutes.size>=KNOWN_ROUTES)this._knownRoutes.clear();this._knownRoutes.set(key,route);}return route;
+    }
     digPoseFor(g,preferred=null){
       if(!this._digPoses)this._digPoses=new Map();const preferredKey=preferred?[preferred.x,preferred.y,preferred.angle].join(':'):'',cached=this._digPoses.get(g);if(cached&&cached.revision===this.revision&&cached.preferred===preferredKey)return cached.pose;
       const z=GRAIN.center(g),candidates=[];if(!this._stands)this._stands=new Map();
@@ -1057,7 +1062,7 @@
       }}
       candidates.sort((a,b)=>a.score-b.score);
       for(const {p} of candidates.slice(0,24)){
-        const pickup=this.pickupPath(g,p,0);if(pickup===null)continue;const home={x:48.25,y:24.25,angle:0},escape=this.path(p,home,'soil1');if(!escape||!this.path(home,p,null))continue;
+        const pickup=this.pickupPath(g,p,0);if(pickup===null)continue;const home={x:48.25,y:24.25,angle:0},escape=this.knownRoute(p,home,'soil1');if(!escape||!this.knownRoute(home,p,null))continue;
         p.pickupRoute=pickup;p.escapeHome=escape;this._digPoses.set(g,{pose:p,revision:this.revision,preferred:preferredKey});return p;
       }
       this._digPoses.set(g,{pose:null,revision:this.revision,preferred:preferredKey});return null;
