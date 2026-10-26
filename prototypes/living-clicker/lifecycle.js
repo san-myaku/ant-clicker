@@ -145,7 +145,7 @@
       if(this.ants.length>=LIMIT||b.carrier||b.rest<30||this.ants.some(a=>a.itemTask?.body===b.id))return false;
       const pose=this.itemAccess(b).map(p=>p.pose).find(p=>this.poseClear(p));if(!pose)return false;
       const counts=this.roleCounts(true),weights=this.colony.roleWeights,total=ROLES.reduce((n,r)=>n+weights[r],0),score=r=>(this.ants.length+1)*weights[r]/total-counts[r];
-      const role=ROLES.filter(r=>weights[r]>0).sort((a,b)=>score(b)-score(a)||ROLES.indexOf(a)-ROLES.indexOf(b))[0],id=this.colony.nextAnt++;
+      const role=ROLES.filter(r=>weights[r]>0).sort((a,b)=>score(b)-score(a)||ROLES.indexOf(a)-ROLES.indexOf(b))[0],id=this.freeAntId?.()??this.colony.nextAnt++;
       const home=this.ants[(id-1)%this.ants.length].home;
       this.ants.push({id,cell:idx(Math.floor(pose.x),Math.floor(pose.y)),...pose,home:{...home},role,desiredRole:role,task:'idle',job:null,cargo:null,path:[],next:0,wait:0,walked:0,broodId:e.id});
       this.physics.remove(b);this.afterBirth?.(this.ants.at(-1));this.colony.brood=this.colony.brood.filter(a=>a!==e);this.colony.stats.born++;this.log('働き手が羽化しました。'+this.ants.length+'匹になりました。');return true;
@@ -155,7 +155,7 @@
       for(const e of this.colony.brood.slice()){
         const b=this.physics.byId.get(e.id);if(!b)throw new Error('育児の実体がありません');
         if(e.stage==='egg'){e.age+=dt*rate*(this.stageRate?.('egg')??1);if(e.age>=35){e.stage='larva';e.age=0;}}
-        else if(e.stage==='larva'){if(e.feeds>=2){e.age+=dt*rate*(this.stageRate?.('larva')??1)*(this.wasteFactor?.(b)??1);if(e.age>=50){e.stage='pupa';e.age=0;}}}
+        else if(e.stage==='larva'){if(e.feeds>=2){e.age+=dt*rate*(this.stageRate?.('larva')??1)*(this.wasteFactor?.(b)??1);if(e.age>=50){e.stage='pupa';e.age=0;this.afterPupate?.(e,b);}}}
         else{e.age+=dt*rate;if(e.age>=50)this.hatch(e,b);}
       }
       if(this.canLay())this.colony.queen=Math.min(40,this.colony.queen+dt*(this.layRate?.()||1));
@@ -176,7 +176,7 @@
     }
     assertLedger(){
       const fail=()=>{throw new Error('コロニーの数が一致しません');},c=this.colony,stats=c.stats,eggs=this.physics.bodies.filter(b=>b.kind==='egg'),food=this.physics.bodies.filter(b=>b.kind==='food');
-      if(this.ants.length!==stats.initialAnts+stats.born||c.brood.length+stats.born!==stats.initialBrood+stats.laid||food.length+stats.eaten+stats.spent!==stats.initialFood+stats.generated+(c.waste?.recycled||0)||eggs.length!==c.brood.length)fail();
+      if(this.ants.length!==stats.initialAnts+stats.born-(stats.died||0)||c.brood.length+stats.born!==stats.initialBrood+stats.laid||food.length+stats.eaten+stats.spent!==stats.initialFood+stats.generated+(c.waste?.recycled||0)||eggs.length!==c.brood.length)fail();
       if(new Set(c.brood.map(e=>e.id)).size!==eggs.length||c.brood.some(e=>this.physics.byId.get(e.id)?.kind!=='egg')||new Set(c.wild).size!==c.wild.length||c.wild.some(id=>this.physics.byId.get(id)?.kind!=='food'))fail();
       return true;
     }
@@ -192,7 +192,7 @@
       for(const k of ['initialAnts','initialBrood','initialFood','laid','born','generated','gathered','eaten','spent'])if(!int(c.stats[k]))fail();
       if(c.stats.initialAnts!==12||c.stats.initialBrood!==3||c.stats.initialFood!==6)fail();
       const s=TerrainSimulation.restore(pack.world);Object.setPrototypeOf(s,Simulation.prototype);s.colony=c;
-      if(c.nextAnt!==s.ants.length+1||s.ants.length+c.brood.length>LIMIT||s.ants.some(a=>!ROLES.includes(a.role)||!ROLES.includes(a.desiredRole)||a.id>=c.nextAnt))fail();
+      if(c.nextAnt<s.ants.length+1||c.nextAnt-1-s.ants.length>(c.stats.died||0)||s.ants.length+c.brood.length>LIMIT||s.ants.some(a=>!ROLES.includes(a.role)||!ROLES.includes(a.desiredRole)||a.id>=c.nextAnt))fail();
       const targets=new Set();
       for(const a of s.ants)if(a.itemTask?.purpose&&a.itemTask.purpose!=='clean'){const t=a.itemTask,e=c.brood.find(e=>e.id===t.target);if(t.purpose!=='feed'||a.role!=='nurse'||s.physics.byId.get(t.body)?.kind!=='food'||!e||e.stage!=='larva'||targets.has(t.target)||t.chew!==undefined&&!finite(t.chew,0,1.3))fail();targets.add(t.target);}
       s.assertLedger();return s;

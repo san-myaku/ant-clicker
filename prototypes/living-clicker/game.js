@@ -20,7 +20,7 @@
     {id:'hygiene_1',name:'衛生基礎',branch:'衛生',desc:'幼虫が出すゴミ -10%',food:6,cookie:1,max:1},
     {id:'hygiene_2',name:'清掃効率I',branch:'衛生',desc:'ゴミを運ぶ育児係の歩く速さ +20%',food:8,cookie:2,max:1,prereq:'hygiene_1'},
     {id:'hygiene_3',name:'お掃除はおまかせ',branch:'衛生',desc:'ゴミ室を掘る。手の空いた採集係も掃除を手伝う',food:10,cookie:4,max:1,prereq:'hygiene_2'},
-    {id:'hygiene_clean_bonus',name:'清潔なコロニー',branch:'衛生',desc:'巣が清潔なら（幼虫室のゴミが少ないと）働きアリの食料収集 +20%。掃除を怠ると失われる、状況依存のボーナス。',planned:true},
+    {id:'hygiene_clean_bonus',name:'清潔なコロニー',branch:'衛生',desc:'育児室にゴミがない間、採集係の歩く速さ +20%',food:14,cookie:6,max:1,prereq:'hygiene_2'},
     {id:'hygiene_recycle',name:'廃棄物リサイクル',branch:'衛生',desc:'ゴミ室のゴミが少しずつ餌に戻る',food:16,cookie:8,max:1,prereq:'hygiene_3'},
     {id:'ferment_unlock',name:'発酵室解放',branch:'発酵',desc:'発酵室を建設可能にする突破研究',planned:true},
     {id:'ferment_1',name:'発酵短縮I',branch:'発酵',desc:'発酵時間 45秒 → 38秒',planned:true},
@@ -76,24 +76,28 @@
   // column taller than this many grains compact into the ground.
   // Food appears at x 15-20; spoil columns start past its slope reach.
   const SPOIL_CLEAR=7,SPOIL_DUMP=2,SPOIL_SETTLE=5,SPOIL_LEFT=23;
-  // Waste: half a pellet per real meal; each pellet within reach of a larva
-  // slows it; refuse on the surface decays after REFUSE_LIFE seconds.
-  const WASTE_PER_MEAL=.5,WASTE_REACH=1.5,WASTE_SLOW=.35,REFUSE_LIFE=180;
+  // Waste: leftovers of each real meal, and the meconium a larva expels once
+  // as it pupates. Each pellet within reach of a larva slows it; refuse on
+  // the surface decays after REFUSE_LIFE seconds.
+  const WASTE_PER_MEAL=1,WASTE_PER_PUPA=1,WASTE_REACH=1.5,WASTE_SLOW=.35,REFUSE_LIFE=180;
   // A waste chamber holds a little more than its waste; recycling turns a
   // pellet that has lain there this long back into one real food item.
+  // Disease: nursery waste at or above tolerance starts it, below 70% ends it;
+  // while it lasts an idle worker dies every DISEASE_INTERVAL seconds.
+  const DISEASE_ON=1,DISEASE_OFF=.7,DISEASE_INTERVAL=60;
   const WASTE_ROOM_BASE=6,RECYCLE_AFTER=60,LABELS={egg:'育児室',food:'食料庫',waste:'ゴミ室'};
   const UPGRADE_IDS={walk:'gather_1',brood:'brood_1',dig:'dig_speed'};
   class Simulation extends Base.Simulation{
     constructor(seed=24014){
       super(seed);
       this.progress={research:Object.fromEntries(ACTIVE.map(d=>[d.id,0])),cookie:0,earned:0,spentCookie:0,haulAwards:0,reached:1,claims:[1],speed:1};
-      this.colony.waste={due:0,made:0,decayed:0,recycled:0};this.colony.refuse=[];
+      this.colony.waste={due:0,made:0,decayed:0,recycled:0};this.colony.refuse=[];this.colony.disease={active:false,next:0};this.colony.stats.died=0;
       this.events=[];this.log('女王室から、巣づくりを始めます。');
     }
     level(id){return this.progress?.research[id]||0;}
     populationLimit(){return this.level('queen_embrace')?128:64;}
     canLay(){return super.canLay()&&this.ants.length+this.colony.brood.length<this.populationLimit();}
-    walkSpeed(ant){return Base.WALK_SPEED*(1+(ant?.role==='forage'?this.level('gather_1')*.15+this.level('gather_2')*.15+this.level('gather_inf')*.05+this.level('queen_pheromone')*.2:0))*(ant?.itemTask?.purpose==='clean'?1+this.level('hygiene_2')*.2:1);}
+    walkSpeed(ant){return Base.WALK_SPEED*(1+(ant?.role==='forage'?this.level('gather_1')*.15+this.level('gather_2')*.15+this.level('gather_inf')*.05+this.level('queen_pheromone')*.2+(this.level('hygiene_clean_bonus')&&!this.nurseryWaste()?.2:0):0))*(ant?.itemTask?.purpose==='clean'?1+this.level('hygiene_2')*.2:1);}
     broodRate(){return 1+this.level('brood_1')*.2;}
     stageRate(stage){return stage==='egg'?1+this.level('brood_egg_inf')*.04:stage==='larva'?1+this.level('brood_2')*.15+this.level('brood_larva_inf')*.03:1;}
     layRate(){return (1+this.level('queen_fertile')*.15)*(1+this.level('queen_vitality')*.25);}
@@ -323,8 +327,10 @@
         if(bottom.y<SURFACE-u)continue;this.physics.remove(bottom);this.stats.grainSettled++;
       }
     }
-    afterMeal(e,larva){
-      const w=this.colony.waste;w.due+=WASTE_PER_MEAL*(1-this.level('hygiene_1')*.1);
+    afterMeal(e,larva){this.addWaste(WASTE_PER_MEAL,larva);}
+    afterPupate(e,pupa){this.addWaste(WASTE_PER_PUPA,pupa);}
+    addWaste(amount,larva){
+      const w=this.colony.waste;w.due+=amount*(1-this.level('hygiene_1')*.1);
       while(w.due>=1){w.due-=1;const b=this.physics.spawn('waste',larva.x+(w.made%2?.3:-.3),larva.y,{state:'refuse'});this.physics.release(b);b.state='refuse';w.made++;this._wasteTick=-1;}
     }
     wasteInNest(){
@@ -414,10 +420,29 @@
       for(const id of ids){const b=this.physics.byId.get(id);if(b?.kind!=='waste'||b.y>=SURFACE&&!b.carrier&&this.roomKind(this.grainRoom[GRAIN.at(b.x,b.y)])!=='waste')fail();}
       return true;
     }
+    nurseryWaste(){
+      if(this._nurseryTick!==this.ticks||this._wasteTick!==this.ticks){this.wasteInNest();this._nurseryTick=this.ticks;this._nurseryWaste=this._wasteList.filter(b=>this.roomKind(this.grainRoom[GRAIN.at(b.x,b.y)])==='egg').length;}
+      return this._nurseryWaste;
+    }
+    wasteTolerance(){return Math.max(3,this.roomIds().filter(r=>this.roomKind(r)==='egg').reduce((n,r)=>n+this.roomCapacity(r),0)/4);}
+    wasteRatio(){return this.nurseryWaste()/this.wasteTolerance();}
+    freeAntId(){const used=new Set(this.ants.map(a=>a.id));for(let id=1;id<this.colony.nextAnt;id++)if(!used.has(id))return id;}
+    tickDisease(){
+      const d=this.colony.disease,ratio=this.wasteRatio();
+      if(!d.active&&ratio>=DISEASE_ON){d.active=true;d.next=this.time+DISEASE_INTERVAL;this.log('育児室にゴミがたまり、病気が広がり始めました。');}
+      else if(d.active&&ratio<DISEASE_OFF){d.active=false;this.log('巣がきれいになり、病気がおさまりました。');}
+      if(!d.active||this.time<d.next)return;
+      // Only a worker with nothing in hand and no work in progress falls sick,
+      // so no dig, load or route is left half done. Foragers first.
+      const idle=this.ants.filter(a=>a.job===null&&!a.itemTask&&!a.cargo&&!a.yielding&&!a.yieldHold&&!this.physics.bodies.some(b=>b.carrier===a.id));
+      const victim=['forage','build','nurse'].map(r=>idle.filter(a=>a.role===r).sort((a,b)=>a.id-b.id)[0]).find(Boolean);if(!victim)return;
+      this.ants=this.ants.filter(a=>a!==victim);for(const a of this.ants){if(a.waitingFor===victim.id)delete a.waitingFor;if(a.yieldFor===victim.id)delete a.yieldFor;}
+      this.colony.stats.died++;d.next=this.time+DISEASE_INTERVAL;this.log('病気で働き手が1匹死にました。'+this.ants.length+'匹になりました。');
+    }
     tick(dt){
       if(this.progress&&this.ticks%30===0){this.ensureDepthRooms();this.ensureWasteRoom();}
       super.tick(dt);if(!this.progress)return;
-      if(this.ticks%60===0){this.settleSpoil();this.decayRefuse();}
+      if(this.ticks%60===0){this.settleSpoil();this.decayRefuse();this.tickDisease();}
       const awards=Math.floor(this.stats.grainDelivered/80);
       if(awards>this.progress.haulAwards){const delta=awards-this.progress.haulAwards;this.progress.haulAwards=awards;this.progress.cookie+=delta;this.progress.earned+=delta;}
       if(this.ticks%30===0)for(const a of this.ants){if(a.y<SURFACE)continue;const layer=this.layerAt(a.x,a.y);if(layer>this.progress.reached){this.progress.reached=layer;if(!this.progress.claims.includes(layer)){this.progress.claims.push(layer);const amount=layer*3;this.progress.cookie+=amount;this.progress.earned+=amount;this.log('第'+layer+'層に到達。クッキーを'+amount+'個見つけました。');}}}
@@ -442,6 +467,8 @@
       const c=s.colony,waste=s.physics.bodies.filter(b=>b.kind==='waste');
       if(c.waste===undefined&&c.refuse===undefined&&!waste.length){c.waste={due:0,made:0,decayed:0,recycled:0};c.refuse=[];}
       if(c.waste&&c.waste.recycled===undefined)c.waste.recycled=0;
+      if(c.disease===undefined&&c.stats.died===undefined){c.disease={active:false,next:0};c.stats.died=0;}
+      if(!c.disease||typeof c.disease.active!=='boolean'||!Number.isFinite(c.disease.next)||!Number.isInteger(c.stats.died)||c.stats.died<0)throw Error('病気の記録が正しくありません');
       const int=v=>Number.isInteger(v)&&v>=0;
       if(!c.waste||!Number.isFinite(c.waste.due)||c.waste.due<0||c.waste.due>=1||!int(c.waste.made)||!int(c.waste.decayed)||!int(c.waste.recycled)||c.waste.decayed+c.waste.recycled>c.waste.made||!Array.isArray(c.refuse)||c.refuse.some(r=>!int(r.id)||!Number.isFinite(r.at)||r.at>s.time))throw Error('ゴミの記録が正しくありません');
       for(const a of s.ants)if(a.itemTask?.purpose==='clean'){const b=s.physics.byId.get(a.itemTask.body);if(!(a.role==='nurse'||a.role==='forage'&&s.level('hygiene_3'))||b?.kind!=='waste'||a.itemTask.target!==undefined)throw Error('掃除の記録が正しくありません');}

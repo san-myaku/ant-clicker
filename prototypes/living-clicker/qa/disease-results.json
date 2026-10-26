@@ -1,0 +1,54 @@
+{
+  "results": [
+    {
+      "name": "save-from-before-disease-starts-healthy",
+      "pass": true
+    },
+    {
+      "name": "neglected-nursery-gets-sick-and-idle-workers-die",
+      "pass": true,
+      "onset": {
+        "t": 963.9999999994519,
+        "ratio": 1
+      },
+      "deaths": [
+        {
+          "t": 1024.9999999993966,
+          "id": 1
+        },
+        {
+          "t": 1085.999999999341,
+          "id": 1
+        }
+      ],
+      "savedSick": 1024.9999999993966
+    },
+    {
+      "name": "restoring-nurses-ends-the-disease",
+      "pass": true,
+      "cured": 1089.9999999993374,
+      "ratio": 0.23529411764705882,
+      "died": 2
+    },
+    {
+      "name": "a-later-birth-reuses-a-freed-id",
+      "pass": true,
+      "reused": 1
+    },
+    {
+      "name": "clean-colony-study-speeds-foragers-while-nurseries-are-clean",
+      "pass": true,
+      "walk": 10.799999999999999
+    },
+    {
+      "name": "invalid-disease-records-are-refused",
+      "pass": true
+    }
+  ],
+  "hashes": {
+    "core.js": "0b5aa5d148b0b8c787f0d5941a60221af0c5eea1d603c408a974dd482e72c406",
+    "lifecycle.js": "b09fa3072fde968f21d05725cfb406e2613a9c63515932ccf65976a868ed786d",
+    "game.js": "5ff2745863ad05d110ce17c407f14581a5adec1a712f2e3046990cb5decbf7e9"
+  },
+  "inputHash": "bd68a283fffce391d471e91fe99409aaf13b2a5d8b63506660cf8b0748dcfa0b"
+}

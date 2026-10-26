@@ -36,7 +36,7 @@ replace("    if (above.y > 18) ctx.fillText('土捨て場', above.x, above.y);\n
 replace("s.ants+sim.colony.brood.length>=ColonyGame.LIMIT?", "s.ants+sim.colony.brood.length>=sim.populationLimit()?",'live population cap');
 replace("Math.ceil((1-s.queen)*40)", "Math.ceil((1-s.queen)*40/sim.layRate())", 'remaining laying time follows the queen research');
 replace("if(s.ants===64)cause='64匹のコロニーに育ちました。この区画の目標達成です。';","if(s.ants+sim.colony.brood.length>=sim.populationLimit())cause='コロニーが育ちました。女王と地質の研究で、次の成長へ。';",'growth continues through research');
-replace("    if($('cause').textContent!==cause)","    if(s.births&&s.allocation.forage&&s.allocation.nurse&&s.allocation.build&&s.food>=2)cause=s.reached<sim.depthAbility()?'新しい地層へ、通路を掘り進めています。':s.ants<32?'働き手を育てて、巣を広げよう。':'研究と仕事の配分で、コロニーを育てよう。';\n    $('cookies').textContent=s.cookie;$('depth').textContent='第'+s.reached+'層';updateResearch();\n    if($('cause').textContent!==cause)",'show physical progression');
+replace("    if($('cause').textContent!==cause)","    if(s.births&&s.allocation.forage&&s.allocation.nurse&&s.allocation.build&&s.food>=2)cause=s.reached<sim.depthAbility()?'新しい地層へ、通路を掘り進めています。':s.ants<32?'働き手を育てて、巣を広げよう。':'研究と仕事の配分で、コロニーを育てよう。';\n    if(sim.colony.disease?.active)cause='育児室にゴミがたまり、病気が広がっています。掃除の手を増やそう。';\n    $('cookies').textContent=s.cookie;$('depth').textContent='第'+s.reached+'層';updateResearch();\n    if($('cause').textContent!==cause)",'show physical progression');
 replace("  $('lay').onclick=()=>{sim.tap();updateUI();};",`${fs.readFileSync(path.join(root,'view-research.js'),'utf8')}
   let tapSave=null;
   $('lay').onclick=()=>{if(sim.tap()){clearTimeout(tapSave);tapSave=setTimeout(()=>persist(),250);}updateUI();};`,'readable research and action save');

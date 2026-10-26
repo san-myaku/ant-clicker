@@ -389,6 +389,7 @@
     if(!s.allocation.forage)cause+=' 採集係を増やすと餌を集めます。';else if(!s.allocation.nurse)cause+=' 育児係を増やすと給餌を始めます。';else if(s.food<2)cause+=' 地表から餌が届くのを待っています。';else if(!s.allocation.build&&(s.shortages.larvae||s.shortages.food))cause+=' 掘削係を増やすと巣を広げます。';else if(s.brood.pupa)cause+=' 蛹が羽化を待っています。';else if(s.brood.larva)cause+=' 育児係が幼虫に餌を届けています。';else cause+=' 採集と掘削を始めています。';
     if(s.ants+sim.colony.brood.length>=sim.populationLimit())cause='コロニーが育ちました。女王と地質の研究で、次の成長へ。';
     if(s.births&&s.allocation.forage&&s.allocation.nurse&&s.allocation.build&&s.food>=2)cause=s.reached<sim.depthAbility()?'新しい地層へ、通路を掘り進めています。':s.ants<32?'働き手を育てて、巣を広げよう。':'研究と仕事の配分で、コロニーを育てよう。';
+    if(sim.colony.disease?.active)cause='育児室にゴミがたまり、病気が広がっています。掃除の手を増やそう。';
     $('cookies').textContent=s.cookie;$('depth').textContent='第'+s.reached+'層';updateResearch();
     if($('cause').textContent!==cause)$('cause').textContent=cause;
     $('play').textContent=paused?'再開':'一時停止';$('play').setAttribute('aria-pressed',String(paused));selectionUI();

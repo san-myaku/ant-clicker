@@ -158,5 +158,12 @@ replace("this.physics.remove(b);e.feeds++;e.lastFed=this.time;this.colony.stats.
 replace("for(const a of s.ants)if(a.itemTask?.purpose){","for(const a of s.ants)if(a.itemTask?.purpose&&a.itemTask.purpose!=='clean'){",'cleaning is checked by its own rules');
 // Recycled waste is a real source of food, counted next to forage.
 replace("food.length+stats.eaten+stats.spent!==stats.initialFood+stats.generated","food.length+stats.eaten+stats.spent!==stats.initialFood+stats.generated+(c.waste?.recycled||0)",'recycled food ledger');
+// Deaths from disease: a birth takes the smallest free id, and the ant ledger
+// and save check count the dead. Without deaths nothing changes.
+replace("id=this.colony.nextAnt++;","id=this.freeAntId?.()??this.colony.nextAnt++;",'reuse a free ant id');
+replace("c.nextAnt!==s.ants.length+1","c.nextAnt<s.ants.length+1||c.nextAnt-1-s.ants.length>(c.stats.died||0)",'ids freed by deaths');
+replace("this.ants.length!==stats.initialAnts+stats.born","this.ants.length!==stats.initialAnts+stats.born-(stats.died||0)",'ant ledger with deaths');
+// A real larva expels its gut contents (meconium) once, as it pupates.
+replace("if(e.age>=50){e.stage='pupa';e.age=0;}","if(e.age>=50){e.stage='pupa';e.age=0;this.afterPupate?.(e,b);}",'meconium at pupation');
 fs.writeFileSync(path.join(root,'lifecycle.js'),source);
 console.log('Organic core and lifecycle generated with checked hooks.');

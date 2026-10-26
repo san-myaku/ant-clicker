@@ -57,9 +57,9 @@
     {
       "name": "live-10x",
       "pass": true,
-      "time": 27.083333333333076,
-      "distance": 816.0955821215812,
-      "dug": 19,
+      "time": 29.083333333332963,
+      "distance": 878.6406261064894,
+      "dug": 21,
       "errors": []
     },
     {
@@ -70,8 +70,8 @@
   "hashes": {
     "index.html": "a846b7c42360939c9bbbdfeea257d7b9cf1cf39088d86a39464e681ef4525e3c",
     "core.js": "0b5aa5d148b0b8c787f0d5941a60221af0c5eea1d603c408a974dd482e72c406",
-    "lifecycle.js": "d8d5df4c5b5293b33f8ddce09a63f5736874ef1c1d1b35aa77df2ca30d3f88cc",
-    "game.js": "f086ef59201191bc7c11758cdf306bfb576b590126a6c7dbcec82e06e3c51cd4",
-    "view.js": "5a26e1fd145679dc7ea40df2c234ba8ae21fd544560ddbbb5574294a5b2c732a"
+    "lifecycle.js": "b09fa3072fde968f21d05725cfb406e2613a9c63515932ccf65976a868ed786d",
+    "game.js": "5ff2745863ad05d110ce17c407f14581a5adec1a712f2e3046990cb5decbf7e9",
+    "view.js": "c651228760aa5fe6b08fd620bea37b641bd10cc91823bfe8f9c19e48438dc4c5"
   }
 }
