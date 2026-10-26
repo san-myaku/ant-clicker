@@ -11,6 +11,12 @@ Target file: `index.html`
 
 This document is the current implementation overview for the single-file ant clicker game. When gameplay, UI, save data, AI behavior, or public deployment assumptions change, update this file together with `DEVELOPMENT_LOG.md`.
 
+## 2026-10-27 蟻ゲームの前例調査を参考資料へ追加（未実装）
+
+ユーザー提供の2本目のHTML全291非空行を読み、[前例調査の評価](handoff/ANT_GAME_PRECEDENT_REVIEW.md) を追加。Indy9000の粒運搬、EotUの専用移動/衝突処理、AntQueen 3Dの入口の土山・経路分断・給餌先死亡時の停止、Antopolisの地層/育児の説明を一次資料で照合した。経路共有/近傍格子化の本線を維持し、運搬先消失・入口の変化等を停止監視/参照検査の候補へ追加する（未採用）。
+
+オフライン進行や表現の省略は、バグの停止を隠す行為と同一ではない。「調査範囲にない」から唯一性を断定せず、他環境の人口/fpsを本作の性能保証にしない。ゲーム/保存/生成器は不変で、全検証や実機確認は今回は未実行。前回の並列browser速度条件1件は未解決のまま。
+
 ## 2026-10-27 Muse資料の評価（設計レビューのみ）
 
 ユーザー提供の調査HTMLを全編読み、現行実装/固定保存/主要な一次資料と照合した。[評価](handoff/MUSE_REPORT_REVIEW.md)。近傍格子化と経路共有の本線は維持し、止まり検出・段階別計測・狭い実区間の進入予約・世話と容量で支える産卵を追加候補にした。どれもまだ採用/実装していない。
