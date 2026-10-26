@@ -141,6 +141,60 @@ replace("name:names[rid],","name:this.roomName?.(rid)??names[rid],",'room name i
 // An item deliberately picked to move (to fermentation, or off a lane that
 // must open) stays incoming in its own kind of room until a worker takes it.
 replace("this.roomKind(this.grainRoom[GRAIN.at(b.x,b.y)])===b.kind)b.state='stored';","this.roomKind(this.grainRoom[GRAIN.at(b.x,b.y)])===b.kind&&!this.keepIncoming?.(b))b.state='stored';",'picked items stay incoming');
+replace("      const cells=this.cells(rid).filter(i=>this.walkable(i)&&!this.ants.some(a=>a.id!==ant.id&&a.itemTask?.phase==='store'&&Math.hypot(this.walkPoint(i).x-this.walkPoint(a.itemTask.destination).x,this.walkPoint(i).y-this.walkPoint(a.itemTask.destination).y)<.9)).map(i=>({i,drop:this.storageDrop(rid,this.walkPoint(i),kind)})).filter(c=>c.drop);\n      const score=c=>c.drop.score+this.ants.filter(a=>a.itemTask?.phase==='store'&&a.itemTask.destination===c.i).length*2+distance(ant.cell,c.i)*.015+this.traffic[c.i]*.015;",`      // Other carriers' destinations are read once per search, not per cell.
+      const memo=this.dropMemo(),others=[],storing=new Map();for(const a of this.ants)if(a.itemTask?.phase==='store'){const d=a.itemTask.destination;storing.set(d,(storing.get(d)||0)+1);if(a.id!==ant.id)others.push(this.walkPoint(d));}
+      const cells=[];for(const i of this.cells(rid)){if(!this.walkable(i))continue;const p=this.walkPoint(i);if(others.some(q=>Math.hypot(p.x-q.x,p.y-q.y)<.9))continue;const key=(i*64+rid)*8+DROP_KINDS[kind];let drop=memo.get(key);if(drop===undefined)memo.set(key,drop=this.storageDrop(rid,p,kind,this.reachOutAt(i,p,kind)));if(drop)cells.push({i,drop,score:drop.score+(storing.get(i)||0)*2+distance(ant.cell,i)*.015+this.traffic[i]*.015});}
+      const score=c=>c.score;`,'storage search reads carriers once');
+replace("    cells(rid){\n      const out=[];for(let i=0;i<SIZE;i++)if(!this.loose[i]&&this.grainCells(i).filter(g=>!this.grains[g]&&this.grainRoom[g]===rid).length>=4)out.push(i);return out;",`    cells(rid){
+      // Room cells change only with dug grains, settled loads or reassigned
+      // grains, and each of those bumps the terrain revision.
+      if(!this._roomCells)this._roomCells=new Map();const hit=this._roomCells.get(rid);if(hit?.revision===this.revision)return hit.out;
+      const out=[];for(let i=0;i<SIZE;i++)if(!this.loose[i]&&this.grainCells(i).filter(g=>!this.grains[g]&&this.grainRoom[g]===rid).length>=4)out.push(i);this._roomCells.set(rid,{revision:this.revision,out});return out;`,'room cells per terrain revision');
+replace("    storageDrop(rid,point,kind) {\n      const {hx,hy}=Physics.SHAPES[kind],stock=this.physics.bodies.filter(b=>b.kind===kind&&!b.carrier),choices=[];\n      for(let d=0;d<16;d++){\n        const angle=d*Math.PI/8,x=point.x+Math.cos(angle)*ANT_SIZE*.55,y=point.y+Math.sin(angle)*ANT_SIZE*.55;\n        if(!this.sweptClear({...point,angle:point.angle??angle},{...point,angle},kind)||this.physics.terrainOverlap({kind,x,y})||this.physics.penetration({kind,x,y})>1e-7)continue;\n        for(let gy=Math.ceil((y+hy-1e-7)*GRID);gy<FH;gy++){\n          let support=false;\n          for(let gx=Math.floor((x-hx+1e-7)*GRID);gx<=Math.floor((x+hx-1e-7)*GRID);gx++)if(this.grains[gy*FW+gx]){support=true;break;}\n          if(!support)continue;\n          let landing=gy*GRAIN.size-hy;\n          // The first support can be an existing egg or food pile, above the\n          // bare floor. Judge the actual resting place, including other kinds.\n          for(const b of this.physics.bodies)if(!b.carrier){const shape=Physics.SHAPES[b.kind],top=b.y-shape.hy;\n            if(Math.abs(x-b.x)<hx+shape.hx-1e-7&&top>=y+hy-1e-7)landing=Math.min(landing,top-hy);\n          }\n          if(this.grainRoom[GRAIN.at(x,landing)]===rid&&!this.physics.terrainOverlap({kind,x,y:landing})&&this.physics.penetration({kind,x,y:landing})<=1e-7){\n            const density=stock.reduce((sum,b)=>sum+Math.exp(-((x-b.x)**2+(landing-b.y)**2)/1.5),0);\n            choices.push({angle,x,y,landing,score:density+(landing-y)*.03});\n          }\n          break;\n        }\n      }\n      return choices.sort((a,b)=>a.score-b.score||a.angle-b.angle)[0]||null;\n    }\n",`    dropMemo(){
+      // A landing depends on terrain and on the resting objects only. Reuse
+      // answers until a grain, a room tag or any free object changes.
+      let m=this._dropMemo,same=m?.revision===this.revision;
+      if(same){const s=m.snap;let k=0;for(const b of this.physics.bodies)if(!b.carrier){if(s[k]!==b.id||s[k+1]!==b.x||s[k+2]!==b.y||s[k+3]!==b.bin||s[k+4]!==b.kind){same=false;break;}k+=5;}if(same&&k!==s.length)same=false;}
+      if(!same){const snap=[];for(const b of this.physics.bodies)if(!b.carrier)snap.push(b.id,b.x,b.y,b.bin,b.kind);m=this._dropMemo={revision:this.revision,snap,drops:new Map()};}
+      return m.drops;
+    }
+    reachOutAt(i,point,kind){
+      let m=this._reachOut;if(m?.revision!==this.revision)m=this._reachOut={revision:this.revision,at:new Map()};
+      const key=i*8+DROP_KINDS[kind];let out=m.at.get(key);if(!out)m.at.set(key,out=this.storageReachOut(point,kind));return out;
+    }
+    storageReachOut(point,kind){
+      // The swing of the mouth and the floor beneath it are terrain alone.
+      const {hy,hx}=Physics.SHAPES[kind],out=[];
+      for(let d=0;d<16;d++){
+        const angle=d*Math.PI/8,x=point.x+Math.cos(angle)*ANT_SIZE*.55,y=point.y+Math.sin(angle)*ANT_SIZE*.55;
+        if(!this.sweptClear({...point,angle:point.angle??angle},{...point,angle},kind)||this.physics.terrainOverlap({kind,x,y}))continue;
+        let floor=-1;
+        for(let gy=Math.ceil((y+hy-1e-7)*GRID);gy<FH&&floor<0;gy++)for(let gx=Math.floor((x-hx+1e-7)*GRID);gx<=Math.floor((x+hx-1e-7)*GRID);gx++)if(this.grains[gy*FW+gx]){floor=gy;break;}
+        out.push({angle,x,y,floor});
+      }
+      return out;
+    }
+    storageDrop(rid,point,kind,reach=this.storageReachOut(point,kind)) {
+      const {hx,hy}=Physics.SHAPES[kind],stock=this.physics.bodies.filter(b=>b.kind===kind&&!b.carrier),choices=[];
+      // Only objects in the columns under the mouth can raise the landing.
+      const under=this.physics.bodies.filter(b=>!b.carrier&&Math.abs(point.x-b.x)<hx+Physics.SHAPES[b.kind].hx+ANT_SIZE*.55+.01);
+      for(const {angle,x,y,floor} of reach){
+        if(this.physics.penetration({kind,x,y})>1e-7||floor<0)continue;
+        let landing=floor*GRAIN.size-hy;
+        // The first support can be an existing egg or food pile, above the
+        // bare floor. Judge the actual resting place, including other kinds.
+        for(const b of under){const shape=Physics.SHAPES[b.kind],top=b.y-shape.hy;
+          if(Math.abs(x-b.x)<hx+shape.hx-1e-7&&top>=y+hy-1e-7)landing=Math.min(landing,top-hy);
+        }
+        if(this.grainRoom[GRAIN.at(x,landing)]===rid&&!this.physics.terrainOverlap({kind,x,y:landing})&&this.physics.penetration({kind,x,y:landing})<=1e-7){
+          const density=stock.reduce((sum,b)=>sum+Math.exp(-((x-b.x)**2+(landing-b.y)**2)/1.5),0);
+          choices.push({angle,x,y,landing,score:density+(landing-y)*.03});
+        }
+      }
+      return choices.sort((a,b)=>a.score-b.score||a.angle-b.angle)[0]||null;
+    }
+`,'storage landing per resting world');
+replace("  const FOOTPRINT_MEMO=60000,KNOWN_ROUTES=20000;","  const FOOTPRINT_MEMO=60000,KNOWN_ROUTES=20000,DROP_KINDS={soil:0,egg:1,food:2,waste:3,cookie:4};",'storage landing keys');
 fs.writeFileSync(path.join(root,'core.js'),source);
 source=read('game.js');
 replace("FORMAT='ant-colony-1',KEY='antColonyGame_1',LIMIT=64","FORMAT='living-clicker-life-1',KEY='livingClicker_1',LIMIT=128",'independent lifecycle save');

@@ -6,7 +6,9 @@ const qa=path.join(__dirname,'qa'),sha=b=>crypto.createHash('sha256').update(b).
 const hashes=Object.fromEntries(['core.js','lifecycle.js','game.js'].map(n=>[n,sha(fs.readFileSync(path.join(__dirname,n)))]));
 function test(name,fn){const detail=fn()||{};results.push({name,pass:true,...detail});console.log('PASS '+name+' '+JSON.stringify(detail));}
 const input=fs.readFileSync(path.join(qa,'world-900.json')),s=Game.Simulation.restore(JSON.parse(input));
-test('save-from-before-hygiene-starts-without-waste',()=>{assert.deepEqual(s.colony.waste,{due:0,made:0,decayed:0,recycled:0});assert.deepEqual(s.colony.refuse,[]);});
+test('save-from-before-hygiene-starts-without-waste',()=>{const old=Game.Simulation.restore(JSON.parse(fs.readFileSync(path.join(qa,'storage-ring.json'))));assert.deepEqual(old.colony.waste,{due:0,made:0,decayed:0,recycled:0});assert.deepEqual(old.colony.refuse,[]);});
+// The natural 900 s save already carries the pellets of its own meals.
+test('natural-save-carries-its-own-waste',()=>{const w=s.colony.waste;assert(w.made>0);s.assertLedger();return {made:w.made,decayed:w.decayed,inNest:s.wasteInNest().length};});
 test('hygiene-studies-from-real-stock',()=>{
   assert(s.buyResearch('hygiene_1'));assert(s.buyResearch('hygiene_2'));
   const nurse=s.ants.find(a=>a.role==='nurse');const plain=s.walkSpeed(nurse);nurse.itemTask={purpose:'clean'};const clean=s.walkSpeed(nurse);delete nurse.itemTask;
@@ -30,18 +32,20 @@ test('invalid-waste-records-are-refused',()=>{
 // Waste chamber: from the natural 64-ant save, buy the studies with its own stock.
 const input2=fs.readFileSync(path.join(qa,'world-final.json')),r=Game.Simulation.restore(JSON.parse(input2));
 test('waste-chamber-studies-from-real-stock',()=>{for(const id of ['queen_embrace','hygiene_1','hygiene_2','hygiene_3','hygiene_recycle'])assert(r.buyResearch(id),id);r.assertLedger();r.assertProgress();});
-const seen={room:0,surface:0,forager:false},grainsBefore=r.stats.grainDug;let roomAt=null;
+const seen={room:0,surface:0,forager:false},grainsBefore=r.stats.grainDug;let roomAt=null,dropSave=null;
 for(let k=0;k<60*1200;k++){
   const n=r.colony.refuse.length;r.step(STEP);
-  if(r.colony.refuse.length>n){const b=r.physics.byId.get(r.colony.refuse.at(-1).id);seen[b.y<SURFACE?'surface':'room']++;}
+  if(r.colony.refuse.length>n){const b=r.physics.byId.get(r.colony.refuse.at(-1).id);seen[b.y<SURFACE?'surface':'room']++;
+    // Saving at the very tick a pellet is set down in the chamber, still at the mouth.
+    if(b.y>=SURFACE&&dropSave===null){const d=r.dump();assert.deepEqual(Game.Simulation.restore(d).dump(),d);dropSave=r.time;}}
   if(!seen.forager&&r.ants.some(a=>a.role==='forage'&&a.itemTask?.purpose==='clean'))seen.forager=true;
   const wr=r.wasteRoom();if(roomAt===null&&wr!==undefined&&r.builds[wr].complete)roomAt=r.time;
 }
 test('waste-chamber-is-dug-and-used',()=>{
   const wr=r.wasteRoom(),w=r.colony.waste;assert(wr!==undefined&&r.builds[wr].complete,'chamber completed');assert.equal(r.roomName(wr),'ゴミ室');assert(r.roomCapacity(wr)>0);
   assert(r.stats.grainDug>grainsBefore,'the chamber was dug by real work');assert(seen.room>0,'waste delivered to the chamber');assert(seen.forager,'a forager helped clean');
-  assert(w.recycled>0,'recycled into real food');r.assertLedger();assert.deepEqual(Game.Simulation.restore(r.dump()).dump(),r.dump());
-  return {chamberAt:+roomAt.toFixed(1),delivered:seen,recycled:w.recycled,decayed:w.decayed,made:w.made,ants:r.ants.length};
+  assert(w.recycled>0,'recycled into real food');assert(dropSave!==null,'saved at a chamber drop');r.assertLedger();assert.deepEqual(Game.Simulation.restore(r.dump()).dump(),r.dump());
+  return {chamberAt:+roomAt.toFixed(1),dropSave:+dropSave.toFixed(1),delivered:seen,recycled:w.recycled,decayed:w.decayed,made:w.made,ants:r.ants.length};
 });
 for(const [n,h]of Object.entries(hashes))assert.equal(sha(fs.readFileSync(path.join(__dirname,n))),h,'source changed during waste verification');
 fs.writeFileSync(path.join(qa,'waste-results.json'),JSON.stringify({results,hashes,inputHash:sha(input),chamberInputHash:sha(input2)},null,2));console.log('PASS waste');

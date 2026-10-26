@@ -5,6 +5,13 @@
       "pass": true
     },
     {
+      "name": "natural-save-carries-its-own-waste",
+      "pass": true,
+      "made": 69,
+      "decayed": 55,
+      "inNest": 0
+    },
+    {
       "name": "hygiene-studies-from-real-stock",
       "pass": true,
       "perSource": 0.9,
@@ -13,24 +20,24 @@
     {
       "name": "nurses-carry-waste-out-mid-carry-save",
       "pass": true,
-      "t": 925.9833333328198,
-      "ant": 5,
-      "body": 922
+      "t": 918.6333333328265,
+      "ant": 6,
+      "body": 975
     },
     {
       "name": "meals-make-waste-that-leaves-and-decays",
       "pass": true,
       "meals": 21,
       "pupations": 11,
-      "made": 28,
-      "decayed": 15,
-      "inNest": 2,
+      "made": 97,
+      "decayed": 85,
+      "inNest": 1,
       "onSurface": 10
     },
     {
       "name": "waste-near-a-fed-larva-slows-it",
       "pass": true,
-      "t": 913.6999999994977,
+      "t": 951.2833333327968,
       "factor": 0.7407407407407407
     },
     {
@@ -44,23 +51,24 @@
     {
       "name": "waste-chamber-is-dug-and-used",
       "pass": true,
-      "chamberAt": 3214.9,
+      "chamberAt": 2973,
+      "dropSave": 3045.8,
       "delivered": {
-        "room": 56,
-        "surface": 17,
+        "room": 55,
+        "surface": 18,
         "forager": true
       },
-      "recycled": 53,
-      "decayed": 17,
-      "made": 75,
+      "recycled": 52,
+      "decayed": 174,
+      "made": 231,
       "ants": 89
     }
   ],
   "hashes": {
-    "core.js": "c88228174bbf02e721aa8876f76c4fdf241cff7fe243eaf7c36ae4b6de8a9c86",
+    "core.js": "0a9fa74d23ae0947e9e885cb29369f815092b87b909a78351bf6001971447d4b",
     "lifecycle.js": "61d39daee54e187ef574a650e01e995f7ec5f8dcba84d1e57c1d97416e2c23f3",
-    "game.js": "39d31a35677fccf19e0f498f50bc7b5ea9b82f1e5dadbc168dd603aa068e98a0"
+    "game.js": "07c8f03c0132c7f3a1b973b4020480eb615690efde6bb5d594ff1a69292b0833"
   },
-  "inputHash": "bd68a283fffce391d471e91fe99409aaf13b2a5d8b63506660cf8b0748dcfa0b",
-  "chamberInputHash": "265a90130ca138a9ca96fca447331e1eede6282212350ec28d68098b2d3aa3ae"
+  "inputHash": "7f2e327e9507daad4db3f4a2f5bc183a88a2e2a7580ea316e4812b7bceaff9ec",
+  "chamberInputHash": "512b8274f2badb465442e093ef918f677a740877b30b2d5c5a2fd06c190c9d63"
 }

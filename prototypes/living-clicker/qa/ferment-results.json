@@ -11,26 +11,26 @@
     {
       "name": "chamber-is-dug-and-fed-with-real-food",
       "pass": true,
-      "readyAt": 3388.8,
+      "readyAt": 3030.9,
       "committed": {
-        "t": 3402.0000000157065,
+        "t": 3049.000000011212,
         "batch": 5
       }
     },
     {
       "name": "batches-become-sweet-grains-credited-in-the-queen-chamber",
       "pass": true,
-      "batches": 20,
-      "used": 100,
-      "made": 22,
-      "credited": 21,
-      "cookieGain": 26,
+      "batches": 19,
+      "used": 95,
+      "made": 20,
+      "credited": 20,
+      "cookieGain": 25,
       "carried": {
-        "t": 3444.600000016249,
-        "ant": 1,
+        "t": 3093.2166666784415,
+        "ant": 16,
         "role": "forage"
       },
-      "savedMid": 3444.600000016249
+      "savedMid": 3093.2166666784415
     },
     {
       "name": "invalid-fermentation-records-are-refused",
@@ -38,9 +38,9 @@
     }
   ],
   "hashes": {
-    "core.js": "c88228174bbf02e721aa8876f76c4fdf241cff7fe243eaf7c36ae4b6de8a9c86",
+    "core.js": "0a9fa74d23ae0947e9e885cb29369f815092b87b909a78351bf6001971447d4b",
     "lifecycle.js": "61d39daee54e187ef574a650e01e995f7ec5f8dcba84d1e57c1d97416e2c23f3",
-    "game.js": "39d31a35677fccf19e0f498f50bc7b5ea9b82f1e5dadbc168dd603aa068e98a0"
+    "game.js": "07c8f03c0132c7f3a1b973b4020480eb615690efde6bb5d594ff1a69292b0833"
   },
-  "inputHash": "265a90130ca138a9ca96fca447331e1eede6282212350ec28d68098b2d3aa3ae"
+  "inputHash": "512b8274f2badb465442e093ef918f677a740877b30b2d5c5a2fd06c190c9d63"
 }

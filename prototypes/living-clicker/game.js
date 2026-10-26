@@ -499,7 +499,9 @@
       const fail=()=>{throw new Error('ゴミの数が一致しません');},waste=this.physics.bodies.filter(b=>b.kind==='waste'),ids=new Set(this.colony.refuse.map(r=>r.id));
       if(waste.length!==w.made-w.decayed-(w.recycled||0)||ids.size!==this.colony.refuse.length)fail();
       const f=this.colony.ferment;if(f&&this.physics.bodies.filter(b=>b.kind==='cookie').length!==f.made-f.credited)throw new Error('甘い粒の数が一致しません');
-      for(const id of ids){const b=this.physics.byId.get(id);if(b?.kind!=='waste'||b.y>=SURFACE&&!b.carrier&&this.roomKind(this.grainRoom[GRAIN.at(b.x,b.y)])!=='waste')fail();}
+      // A pellet set down in the chamber is released at the mouth and is
+      // judged once it has come to rest on the floor.
+      for(const id of ids){const b=this.physics.byId.get(id);if(b?.kind!=='waste'||b.y>=SURFACE&&!b.carrier&&b.rest>=30&&this.roomKind(this.grainRoom[GRAIN.at(b.x,b.y)])!=='waste')fail();}
       return true;
     }
     nurseryWaste(){

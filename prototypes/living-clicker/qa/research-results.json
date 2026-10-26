@@ -71,15 +71,15 @@
     {
       "name": "studies-keep-the-colony-working",
       "pass": true,
-      "delivered": 7,
+      "delivered": 1,
       "gathered": 11,
       "ants": 128
     }
   ],
   "hashes": {
-    "core.js": "c88228174bbf02e721aa8876f76c4fdf241cff7fe243eaf7c36ae4b6de8a9c86",
+    "core.js": "0a9fa74d23ae0947e9e885cb29369f815092b87b909a78351bf6001971447d4b",
     "lifecycle.js": "61d39daee54e187ef574a650e01e995f7ec5f8dcba84d1e57c1d97416e2c23f3",
-    "game.js": "39d31a35677fccf19e0f498f50bc7b5ea9b82f1e5dadbc168dd603aa068e98a0"
+    "game.js": "07c8f03c0132c7f3a1b973b4020480eb615690efde6bb5d594ff1a69292b0833"
   },
-  "inputHash": "702ec535fcfdf21597672276a09e29253337e38ae20336840653e7f2d3c7d3ca"
+  "inputHash": "4094f14aa7f342e327ebe640fda52c00143cf69b5c56b8e8394ba30d7fa940b8"
 }
