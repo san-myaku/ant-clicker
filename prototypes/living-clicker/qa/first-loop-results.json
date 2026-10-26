@@ -66,7 +66,7 @@
       "reached": 1,
       "depthAbility": 1,
       "populationLimit": 64,
-      "elapsedMs": 10713
+      "elapsedMs": 10734
     },
     {
       "name": "locked-grains-never-cleared",
@@ -164,7 +164,7 @@
       "reached": 1,
       "depthAbility": 1,
       "populationLimit": 64,
-      "elapsedMs": 3218
+      "elapsedMs": 2746
     },
     {
       "at": 180,
@@ -237,7 +237,7 @@
       "reached": 1,
       "depthAbility": 1,
       "populationLimit": 64,
-      "elapsedMs": 4228
+      "elapsedMs": 3890
     },
     {
       "at": 360,
@@ -310,7 +310,7 @@
       "reached": 1,
       "depthAbility": 1,
       "populationLimit": 64,
-      "elapsedMs": 5502
+      "elapsedMs": 5485
     },
     {
       "at": 600,
@@ -372,7 +372,7 @@
       "reached": 1,
       "depthAbility": 1,
       "populationLimit": 64,
-      "elapsedMs": 13450
+      "elapsedMs": 12818
     },
     {
       "at": 900,
@@ -434,7 +434,7 @@
       "reached": 1,
       "depthAbility": 1,
       "populationLimit": 64,
-      "elapsedMs": 20461
+      "elapsedMs": 19116
     },
     {
       "at": 1200,
@@ -496,11 +496,11 @@
       "reached": 1,
       "depthAbility": 1,
       "populationLimit": 64,
-      "elapsedMs": 10713
+      "elapsedMs": 10734
     }
   ],
   "hashes": {
-    "core.js": "929a78aa53e59ddd2434d34d40ef6f442d269e8805c977e3b8760a6e58e54eaf",
+    "core.js": "2d30800f66ead7b523cf0cd1d3720ca3d3cfa3a79ee8d2deae046e494af24ee0",
     "lifecycle.js": "9299a6f937d04a1de6f660099866052a36dc1f9884d1987ac8d946f18d1af7ed",
     "game.js": "3e5bac9f4a77138f9454588a9438ac6f410553ba297286174716148cfab3d450"
   }
