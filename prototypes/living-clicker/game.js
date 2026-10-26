@@ -85,7 +85,13 @@
   // Disease: nursery waste at or above tolerance starts it, below 70% ends it;
   // while it lasts an idle worker dies every DISEASE_INTERVAL seconds.
   const DISEASE_ON=1,DISEASE_OFF=.7,DISEASE_INTERVAL=60;
-  const WASTE_ROOM_BASE=6,RECYCLE_AFTER=60,LABELS={egg:'育児室',food:'食料庫',waste:'ゴミ室',ferment:'発酵室'};
+  const WASTE_ROOM_BASE=6,RECYCLE_AFTER=60,LABELS={egg:'育児室',food:'食料庫',waste:'ゴミ室',ferment:'発酵室',rest:'居室'};
+  // Living space: workers rest at places of their own, HOME_GAP apart. When
+  // REST_TRIGGER of them share a place, one more chamber of REST_ROOM_AREA is
+  // dug: in the shallowest layer with room for it (ROOM_SPACING from every
+  // other chamber, within ROOM_REACH of a finished one), else one layer down
+  // as far as the depth studies allow. Its need weighs half a store's.
+  const HOME_GAP=1,REST_TRIGGER=6,REST_ROOM_AREA=36,REST_WEIGHT=.5,ROOM_SPACING=9,ROOM_REACH=14,ROOM_LIMIT=254,REST_SETTLE=300,REST_PER_ROOM=30,REST_PARALLEL=2;
   // Fermentation: a batch of real food resting in the chamber turns into a
   // sweet grain; the chamber only takes food while the stores keep a reserve.
   const FERMENT_BATCH=6,FERMENT_TIME=45,FERMENT_ROOM=10;
@@ -114,25 +120,93 @@
     layRate(){return (1+this.level('queen_fertile')*.15)*(1+this.level('queen_vitality')*.25);}
     tapPower(){return 1+this.level('queen_double_lay');}
     digRate(){return 1+this.level('dig_speed')*.25;}
-    afterBirth(ant){
-      // Every previous newborn inherited ant 1's home: (id-1)%population is
-      // always zero at birth. Pick a real reachable free place instead.
-      const candidates=[],others=this.ants.filter(a=>a!==ant),homes=others.map(a=>a.home),stock=this.physics.bodies.filter(b=>b.kind!=='soil'&&!b.carrier);
-      for(const rid of [1,...this.roomIds().filter(r=>this.builds[r]?.complete)])for(const cell of this.cells(rid)){
+    homeSpots(ant){
+      // Free places to rest in finished chambers: clear of other workers'
+      // places, of stored items and of the queen. Chambers for resting first.
+      const others=this.ants.filter(a=>a!==ant),key=(x,y)=>Math.floor(x)*1000+Math.floor(y),homes=new Map(),idle=new Map(),candidates=[];
+      for(const a of others){const k=key(a.home.x,a.home.y);(homes.get(k)||homes.set(k,[]).get(k)).push(a.home);if(a.job===null&&!a.itemTask){const j=key(a.x,a.y);(idle.get(j)||idle.set(j,[]).get(j)).push(a);}}
+      const near=(map,p,r)=>{const out=[];for(let dx=-r;dx<=r;dx++)for(let dy=-r;dy<=r;dy++)for(const q of map.get(key(p.x+dx,p.y+dy))||[])out.push(q);return out;};
+      const stock=this.physics.bodies.filter(b=>b.kind!=='soil'&&!b.carrier);
+      for(const rid of [1,...this.roomIds().filter(r=>this.builds[r]?.complete&&this.roomKind(r)!=='waste')])for(const cell of this.cells(rid)){
         const p=this.walkPoint(cell);if(!p.valid||p.clearance<.8||this.grainRoom[GRAIN.at(p.x,p.y)]!==rid||Math.hypot(p.x-this.entranceHistory[0].x,p.y-this.entranceHistory[0].y)<2)continue;
-        if(homes.some(q=>Math.hypot(q.x-p.x,q.y-p.y)<1)||stock.some(b=>Math.hypot(b.x-p.x,b.y-p.y)<.7))continue;
+        if(near(homes,p,1).some(q=>Math.hypot(q.x-p.x,q.y-p.y)<HOME_GAP)||stock.some(b=>Math.hypot(b.x-p.x,b.y-p.y)<.7))continue;
         if(Base.ANT_BODY.some(([cx,rx,ry])=>((p.x-48-cx*6.4)/(rx*6.4+.7))**2+((p.y-24)/(ry*6.4+.6))**2<1))continue;
-        for(const angle of [0,Math.PI/2])if(this.poseClear({...p,angle})&&!others.some(a=>a.job===null&&!a.itemTask&&this.workersOverlap({...p,angle},a,null,this.carriedKind(a))))candidates.push({...p,angle,score:Math.hypot(p.x-ant.x,p.y-ant.y)+this.traffic[cell]*2});
+        const blockers=near(idle,p,3);
+        for(const angle of [0,Math.PI/2])if(this.poseClear({...p,angle})&&!blockers.some(a=>this.workersOverlap({...p,angle},a,null,this.carriedKind(a))))candidates.push({...p,angle,score:Math.hypot(p.x-ant.x,p.y-ant.y)+this.traffic[cell]*2+(this.roomKind(rid)==='rest'?0:12)});
       }
-      // The founding chamber is a shared rest area when private places fill.
-      // Its original homes are clear of the single-file passages.
-      for(const a of others.filter(a=>a.id<=12)){const p=a.home;if(this.grainRoom[GRAIN.at(p.x,p.y)]===1)candidates.push({...p,score:100+homes.filter(q=>Math.hypot(q.x-p.x,q.y-p.y)<.8).length*3});}
-      for(const p of candidates.sort((a,b)=>a.score-b.score).slice(0,24)){
+      return candidates.sort((a,b)=>a.score-b.score);
+    }
+    afterBirth(ant){
+      // A private place if one is reachable; else the founding chamber is a
+      // shared rest area, clear of the single-file passages.
+      const candidates=this.homeSpots(ant).slice(0,24);
+      for(const a of this.ants.filter(a=>a!==ant&&a.id<=12)){const p=a.home;if(this.grainRoom[GRAIN.at(p.x,p.y)]===1)candidates.push({...p,score:100});}
+      for(const p of candidates){
         const route=this.path(ant,p,null);if(route===null)continue;ant.home={x:p.x,y:p.y,angle:p.angle};ant.path=route;ant.next=0;ant.returning=true;return;
       }
       // If no free place is reachable, wait at the real emergence position.
       // Future work allocation is still allowed; no actor is repositioned.
       ant.home={x:ant.x,y:ant.y,angle:ant.angle};
+    }
+    crowding(){
+      // Workers whose resting place another worker already uses.
+      if(this._crowdTick===this.ticks)return this._crowd;
+      const key=(x,y)=>Math.floor(x)*1000+Math.floor(y),grid=new Map(),out=[];
+      const resting=this.ants.filter(a=>a.role!=='guard');
+      for(const a of resting){const k=key(a.home.x,a.home.y);(grid.get(k)||grid.set(k,[]).get(k)).push(a);}
+      for(const a of resting){let shared=false;
+        for(let dx=-1;dx<=1&&!shared;dx++)for(let dy=-1;dy<=1&&!shared;dy++)shared=(grid.get(key(a.home.x+dx,a.home.y+dy))||[]).some(b=>b!==a&&Math.hypot(b.home.x-a.home.x,b.home.y-a.home.y)<HOME_GAP);
+        if(shared)out.push(a);}
+      this._crowdTick=this.ticks;return this._crowd=out;
+    }
+    rehome(){
+      // One crowded worker at rest walks to a free place of its own.
+      const a=this.crowding().filter(a=>a.job===null&&!a.itemTask&&!a.fight&&!a.alarm&&!a.cargo&&!a.path.length&&!a.yielding&&!a.yieldHold&&Math.hypot(a.x-a.home.x,a.y-a.home.y)<.35).sort((a,b)=>a.id-b.id)[0];
+      if(!a)return;
+      for(const p of this.homeSpots(a).slice(0,8)){const route=this.path(a,p,null);if(!route)continue;a.home={x:p.x,y:p.y,angle:p.angle};a.path=route;a.next=0;a.returning=true;return;}
+    }
+    restRoomSite(){
+      // The shallowest layer with room for a chamber, reached from a finished
+      // one close by; deeper layers only as far as the depth studies allow.
+      const anchors=[1,...this.roomIds()].map(r=>this.rooms[r]);
+      for(let layer=1;layer<=this.depthAbility();layer++){
+        const targets=[];
+        for(let x=10;x<=W-10;x+=3){const b=layerBoundaries(this.seed,x),top=layer===1?SURFACE+5:b[layer-2]+2.5,bottom=layer<=5?b[layer-1]-2.5:H-6;
+          for(let y=top;y<=bottom;y+=2.5)if(anchors.every(r=>Math.hypot(r.x-x,r.y-y)>=ROOM_SPACING))targets.push({x,y});}
+        const parents=[1,...this.roomIds()].filter(r=>(r===1||this.builds[r]?.complete)&&this.roomKind(r)!=='waste'&&Math.abs((r===1?1:this.layerOf(r))-layer)<=1),plans=[];
+        for(const t of targets)for(const p of parents){const a=this.rooms[p],d=Math.hypot(a.x-t.x,a.y-t.y);if(d<=ROOM_REACH)plans.push({t,p,d});}
+        plans.sort((a,b)=>a.d-b.d||a.t.x-b.t.x||a.t.y-b.t.y||a.p-b.p);
+        for(const {t,p} of plans.slice(0,8)){const origin=this.roomOrigin(p,t);if(origin)return {layer,parent:p,target:t,origin};}
+      }
+      return null;
+    }
+    roomOrigin(parent,target){
+      // A wall pose in the parent chamber facing the new one, with a short
+      // open start; no future route is stored or dug.
+      const stock=this.physics.bodies.filter(b=>!b.carrier&&b.kind!=='soil'),poses=[];
+      for(const cell of this.cells(parent)){const p=this.walkPoint(cell);if(!p.valid||this.grainRoom[GRAIN.at(p.x,p.y)]!==parent)continue;
+        const angle=Math.round(Math.atan2(target.y-p.y,target.x-p.x)/(Math.PI/8))*(Math.PI/8);if(!this.poseClear({...p,angle}))continue;
+        const density=stock.reduce((n,b)=>n+Math.exp(-((b.x-p.x)**2+(b.y-p.y)**2)/2),0);poses.push({...p,angle,score:-Math.hypot(target.x-p.x,target.y-p.y)-density*2});}
+      poses.sort((a,b)=>b.score-a.score);
+      for(const origin of poses.slice(0,12)){let probe=origin;const recent=[];let open=true;
+        for(let n=0;n<6;n++){const next=this.nextTip(probe,target,.5,recent);if(!next){open=false;break;}recent.push(probe);probe=next;}
+        if(open)return origin;}
+      return null;
+    }
+    ensureRestRoom(){
+      const rest=this.roomIds().filter(r=>this.roomKind(r)==='rest');
+      for(const r of rest)if(this.builds[r]?.complete&&this.rooms[r].doneAt===undefined)this.rooms[r].doneAt=this.time;
+      // A chamber still grows until it is full or has stopped growing for a
+      // while (rock or neighbours around it). One more at a time for every
+      // REST_PER_ROOM workers without a place, up to REST_PARALLEL at once.
+      const crowded=this.crowding().length,growing=rest.filter(r=>!this.builds[r]?.complete||this.roomCapacity(r)<REST_ROOM_AREA*.9&&this.time-this.rooms[r].doneAt<REST_SETTLE).length;
+      if(crowded<REST_TRIGGER||growing>=Math.min(REST_PARALLEL,1+Math.floor(crowded/REST_PER_ROOM))||this.rooms.length>=ROOM_LIMIT)return;
+      const site=this.restRoomSite();
+      if(!site){if(this._restBlocked!==this.depthAbility()){this._restBlocked=this.depthAbility();this.log('住む場所が足りません。深い層を解放すると居室を広げられます。');}return;}
+      const {layer,target,origin}=site,rid=this.rooms.length,b=layerBoundaries(this.seed,target.x);
+      this.rooms.push({id:rid,...target,kind:'rest',layer});
+      this.builds.push({tip:{x:origin.x,y:origin.y,angle:origin.angle},target,history:[{x:origin.x,y:origin.y,angle:origin.angle}],length:0,mode:'passage',complete:false,next:null,minDepth:layer===1?SURFACE+1:b[layer-2]+1,minLength:6});
+      this.log(layer>1?'第'+layer+'層に居室を掘ります。':'居室を掘ります。');
     }
     depthAbility(){return this.level('geo_depth_4')?6:this.level('geo_depth_3')?4:this.level('geo_depth_2')?2:1;}
     layerAt(x,y){return 1+layerBoundaries(this.seed,x).filter(v=>y>=v).length;}
@@ -240,6 +314,7 @@
         }
       }
       for(const rid of this.roomIds().filter(id=>this.roomKind(id)==='ferment'))result.push({rid,wanted:FERMENT_ROOM,d:FERMENT_ROOM-this.roomCapacity(rid)});
+      for(const rid of this.roomIds().filter(id=>this.roomKind(id)==='rest'))result.push({rid,wanted:REST_ROOM_AREA,d:REST_ROOM_AREA-this.roomCapacity(rid),weight:REST_WEIGHT});
       for(const rid of this.roomIds().filter(id=>this.roomKind(id)==='waste')){
         const held=this.physics.bodies.filter(b=>b.kind==='waste'&&!b.carrier&&this.grainRoom[GRAIN.at(b.x,b.y)]===rid).length,wanted=WASTE_ROOM_BASE+held;
         result.push({rid,wanted,d:wanted-this.roomCapacity(rid)});
@@ -708,7 +783,8 @@
       }
     }
     tick(dt){
-      if(this.progress&&this.ticks%30===0){this.ensureDepthRooms();this.ensureWasteRoom();this.ensureFermentRoom();}
+      if(this.progress&&this.ticks%30===0){this.ensureDepthRooms();this.ensureWasteRoom();this.ensureFermentRoom();this.ensureRestRoom();}
+      if(this.progress&&this.ticks%60===30)this.rehome();
       super.tick(dt);if(!this.progress)return;
       this.returnSpilled();this.tickRaid(dt);
       if(this.ticks%60===0){this.settleSpoil();this.decayRefuse();this.tickDisease();this.clearLaneStock();this.tickFerment();}
@@ -746,7 +822,7 @@
       const int=v=>Number.isInteger(v)&&v>=0;
       if(!c.waste||!Number.isFinite(c.waste.due)||c.waste.due<0||c.waste.due>=1||!int(c.waste.made)||!int(c.waste.decayed)||!int(c.waste.recycled)||c.waste.decayed+c.waste.recycled>c.waste.made||!Array.isArray(c.refuse)||c.refuse.some(r=>!int(r.id)||!Number.isFinite(r.at)||r.at>s.time))throw Error('ゴミの記録が正しくありません');
       for(const a of s.ants)if(a.itemTask?.purpose==='clean'){const b=s.physics.byId.get(a.itemTask.body);if(!(a.role==='nurse'||a.role==='forage'&&s.level('hygiene_3'))||b?.kind!=='waste'||a.itemTask.target!==undefined)throw Error('掃除の記録が正しくありません');}
-      const kinds=s.rooms.slice(2).map(r=>r.kind);if(kinds.some(k=>k!==undefined&&!['egg','food','waste','ferment'].includes(k))||kinds.filter(k=>k==='waste').length>1||kinds.filter(k=>k==='ferment').length>1||s.rooms.slice(2).some(r=>r.layer!==undefined&&!(Number.isInteger(r.layer)&&r.layer>=1&&r.layer<=6)))throw Error('部屋の用途の記録が正しくありません');
+      const kinds=s.rooms.slice(2).map(r=>r.kind);if(kinds.some(k=>k!==undefined&&!['egg','food','waste','ferment','rest'].includes(k))||kinds.filter(k=>k==='waste').length>1||kinds.filter(k=>k==='ferment').length>1||s.rooms.slice(2).some(r=>r.layer!==undefined&&!(Number.isInteger(r.layer)&&r.layer>=1&&r.layer<=6)))throw Error('部屋の用途の記録が正しくありません');
       if(c.raid===undefined)c.raid=Simulation.quietRaid();
       // Formic acid arrived with the defence studies; earlier raids had none.
       if(c.raid.stuns===undefined)c.raid.stuns=0;

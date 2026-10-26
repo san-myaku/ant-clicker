@@ -41,7 +41,7 @@ replace(`      let previous=null;
       }
       for(let k=0;k<=n;k++){const t=k/n,p={x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t,angle:a.angle+da*t};if(!this.poseClear(p,kind,ignore,margin))return answer(false);
       }return answer(true);`, 'exact cargo heading sweep');
-replace('if (this.grainRoom[g] === 2) larvae++; else if (this.grainRoom[g] === 3) food++;','if (this.grainRoom[g]>=2) {if(this.roomKind(this.grainRoom[g])===\'egg\')larvae++;else food++;}','physical capacity');
+replace('if (this.grainRoom[g] === 2) larvae++; else if (this.grainRoom[g] === 3) food++;','if (this.grainRoom[g]>=2) {const kind=this.roomKind(this.grainRoom[g]);if(kind===\'egg\')larvae++;else if(kind===\'food\')food++;}','physical capacity');
 replace("const kind=rid===2?'egg':'food',stock=","const kind=this.roomKind(rid),stock=",'room pressure');
 replace("if(footprint.some(g=>this.grains[g]&&(this.grains[g]===ROCK||this.grains[g]===HARD&&!this.hardDig||this.supportsStock(g))))continue;","if(footprint.some(g=>this.grains[g]&&(!this.canExcavate(g)||this.supportsStock(g))))continue;",'tip depth guard');
 replace("if(![SOIL,HARD].includes(this.grains[g])||this.grains[g]===HARD&&!this.hardDig||this.supportsStock(g)||this.jobs.some(j=>j.grains.includes(g))||!this.grainNeighbors(g).some(n=>!this.grains[n]))continue;","if(!this.canExcavate(g)||this.supportsStock(g)||this.jobs.some(j=>j.grains.includes(g))||!this.grainNeighbors(g).some(n=>!this.grains[n]))continue;",'load depth guard');
@@ -61,10 +61,10 @@ replace("const building=[2,3].filter(rid=>this.demands[rid===2?'larvae':'food']>
 replace("if(a.y<SURFACE||this.grainRoom[GRAIN.at(a.x,a.y)]===1)return false;const k=nearest(a),q=b.history[k];return k>=first-1&&Math.hypot(q.x-a.x,q.y-a.y)<2;", "if(a.y<SURFACE||this.grainRoom[GRAIN.at(a.x,a.y)]>0||!this.singleFileSection(a))return false;const k=nearest(a),q=b.history[k];return k>=first-1&&Math.hypot(q.x-a.x,q.y-a.y)<2;",'room residents do not reserve a narrow passage');
 replace("const a=this.ants.find(a=>a.id===j.ant);if(this.grainRoom[GRAIN.at(a.x,a.y)]===1)return false;", "const a=this.ants.find(a=>a.id===j.ant),room=this.grainRoom[GRAIN.at(a.x,a.y)];if(room>0&&room!==rid)return false;",'release child branch when carrier reaches its parent room');
 replace("this.stats[job.rid === 2 ? 'nursery' : job.rid === 3 ? 'food' : 'passage']++;", "this.stats[job.rid>=2?(this.roomKind(job.rid)==='egg'?'nursery':'food'):'passage']++;",'all room work accounting');
-replace("['room',3,true]","['room',31,true]",'saved room tags');
+replace("['room',3,true]","['room',254,true]",'saved room tags');
 replace('pack.ants.length>64','pack.ants.length>128','saved ants');
 replace('pack.jobs.length>64','pack.jobs.length>128','saved jobs');
-replace('pack.rooms.length!==4','pack.rooms.length<4||pack.rooms.length>32','saved room count');
+replace('pack.rooms.length!==4','pack.rooms.length<4||pack.rooms.length>254','saved room count');
 replace('pack.builds.length!==4','pack.builds.length!==pack.rooms.length','saved builds');
 replace('for(const rid of [2,3]){const b=pack.builds[rid];','for(const rid of pack.rooms.slice(2).map(r=>r.id)){const b=pack.builds[rid];','saved real branches');
 replace("['grainRoom',3]","['grainRoom',13]",'grain room tags');
@@ -143,7 +143,7 @@ replace("name:names[rid],","name:this.roomName?.(rid)??names[rid],",'room name i
 replace("this.roomKind(this.grainRoom[GRAIN.at(b.x,b.y)])===b.kind)b.state='stored';","this.roomKind(this.grainRoom[GRAIN.at(b.x,b.y)])===b.kind&&!this.keepIncoming?.(b))b.state='stored';",'picked items stay incoming');
 replace("      const cells=this.cells(rid).filter(i=>this.walkable(i)&&!this.ants.some(a=>a.id!==ant.id&&a.itemTask?.phase==='store'&&Math.hypot(this.walkPoint(i).x-this.walkPoint(a.itemTask.destination).x,this.walkPoint(i).y-this.walkPoint(a.itemTask.destination).y)<.9)).map(i=>({i,drop:this.storageDrop(rid,this.walkPoint(i),kind)})).filter(c=>c.drop);\n      const score=c=>c.drop.score+this.ants.filter(a=>a.itemTask?.phase==='store'&&a.itemTask.destination===c.i).length*2+distance(ant.cell,c.i)*.015+this.traffic[c.i]*.015;",`      // Other carriers' destinations are read once per search, not per cell.
       const memo=this.dropMemo(),others=[],storing=new Map();for(const a of this.ants)if(a.itemTask?.phase==='store'){const d=a.itemTask.destination;storing.set(d,(storing.get(d)||0)+1);if(a.id!==ant.id)others.push(this.walkPoint(d));}
-      const cells=[];for(const i of this.cells(rid)){if(!this.walkable(i))continue;const p=this.walkPoint(i);if(others.some(q=>Math.hypot(p.x-q.x,p.y-q.y)<.9))continue;const key=(i*64+rid)*8+DROP_KINDS[kind];let drop=memo.get(key);if(drop===undefined)memo.set(key,drop=this.storageDrop(rid,p,kind,this.reachOutAt(i,p,kind)));if(drop)cells.push({i,drop,score:drop.score+(storing.get(i)||0)*2+distance(ant.cell,i)*.015+this.traffic[i]*.015});}
+      const cells=[];for(const i of this.cells(rid)){if(!this.walkable(i))continue;const p=this.walkPoint(i);if(others.some(q=>Math.hypot(p.x-q.x,p.y-q.y)<.9))continue;const key=(i*256+rid)*8+DROP_KINDS[kind];let drop=memo.get(key);if(drop===undefined)memo.set(key,drop=this.storageDrop(rid,p,kind,this.reachOutAt(i,p,kind)));if(drop)cells.push({i,drop,score:drop.score+(storing.get(i)||0)*2+distance(ant.cell,i)*.015+this.traffic[i]*.015});}
       const score=c=>c.score;`,'storage search reads carriers once');
 replace("    cells(rid){\n      const out=[];for(let i=0;i<SIZE;i++)if(!this.loose[i]&&this.grainCells(i).filter(g=>!this.grains[g]&&this.grainRoom[g]===rid).length>=4)out.push(i);return out;",`    cells(rid){
       // Room cells change only with dug grains, settled loads or reassigned
@@ -206,6 +206,10 @@ replace("const idle=this.ants.filter(a=>a.role==='build'&&a.desiredRole==='build
 // A worker backing over the ground keeps facing the way it faces; only
 // its tilt follows the slope.
 replace("if(Math.abs(dx)>1e-8){const slope=clamp(this.surfacePoint(ant.x+.5).y-this.surfacePoint(ant.x-.5).y,-1,1),direction=Math.sign(dx);ant.angle=Math.atan2(slope*direction,direction);}","if(Math.abs(dx)>1e-8){const slope=clamp(this.surfacePoint(ant.x+.5).y-this.surfacePoint(ant.x-.5).y,-1,1),direction=Math.sign(Math.cos(oldAngle))||Math.sign(dx);ant.angle=Math.atan2(slope*direction,direction);}",'backing on the surface keeps its facing');
+replace("['grainRoom',13]","['grainRoom',254]",'saved grain room tags');
+replace("required.sort((a,b)=>(b.d/b.wanted*(","required.sort((a,b)=>(b.d/b.wanted*(b.weight??1)*(",'room need weight b');
+replace("-(a.d/a.wanted*(this.priority","-(a.d/a.wanted*(a.weight??1)*(this.priority",'room need weight a');
+replace("+'\u306b\u8377\u7269\u3092\u904b\u3073\u5165\u308c\u3089\u308c\u308b\u3088\u3046\u306b\u306a\u308a\u307e\u3057\u305f\u3002');}}","+(this.roomKind(rid)==='rest'?'\u3067\u4f11\u3081\u308b\u3088\u3046\u306b\u306a\u308a\u307e\u3057\u305f\u3002':'\u306b\u8377\u7269\u3092\u904b\u3073\u5165\u308c\u3089\u308c\u308b\u3088\u3046\u306b\u306a\u308a\u307e\u3057\u305f\u3002'));}}",'a finished rest chamber is for resting');
 fs.writeFileSync(path.join(root,'core.js'),source);
 source=read('game.js');
 replace("FORMAT='ant-colony-1',KEY='antColonyGame_1',LIMIT=64","FORMAT='living-clicker-life-1',KEY='livingClicker_1',LIMIT=128",'independent lifecycle save');

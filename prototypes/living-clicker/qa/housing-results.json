@@ -1,0 +1,50 @@
+{
+  "results": [
+    {
+      "name": "crowded-workers-start-a-rest-chamber-in-the-first-layer",
+      "pass": true,
+      "crowded": 17,
+      "before": 2,
+      "startedAt": 2360.5,
+      "room": "居室 3",
+      "layer": 1,
+      "gap": 9.04
+    },
+    {
+      "name": "the-chamber-is-dug-and-workers-walk-to-rest-chambers",
+      "pass": true,
+      "finishedAt": 2950.1,
+      "living": 23,
+      "crowded": 0,
+      "capacity": 10
+    },
+    {
+      "name": "only-stores-count-as-store-capacity",
+      "pass": true
+    },
+    {
+      "name": "a-full-layer-sends-the-next-chamber-down",
+      "pass": true,
+      "firstLayer1": {
+        "x": 70,
+        "y": 18
+      },
+      "next": {
+        "x": 43,
+        "y": 39.22408118537069
+      },
+      "markers": 18
+    },
+    {
+      "name": "without-deeper-studies-the-colony-says-it-lacks-space",
+      "pass": true,
+      "depth": 1
+    }
+  ],
+  "hashes": {
+    "core.js": "2fe9cd5597796521ba30bf30a172582ae205d792761dc395919613dc245c578f",
+    "lifecycle.js": "e3811fe72b1fece21ec7cc25a678901d80199b0d5584775a9ab509bb85371090",
+    "game.js": "834e7ff087ced3282d04576252e0da36a85738eb340d59fcffb0d0cbfaaa7d7b"
+  },
+  "inputHash": "45f2286cc3b541931cae6402736b1016d48aadf76c826a54bf812b8e5b04037f"
+}

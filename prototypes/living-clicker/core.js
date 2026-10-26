@@ -478,7 +478,7 @@
       if (this._capacityRevision !== this.revision) {
         let larvae = 0, food = 0;
         for (let g = 0; g < FINE_SIZE; g++) if (!this.grains[g] && !this.grainPending[g]) {
-          if (this.grainRoom[g]>=2) {if(this.roomKind(this.grainRoom[g])==='egg')larvae++;else food++;}
+          if (this.grainRoom[g]>=2) {const kind=this.roomKind(this.grainRoom[g]);if(kind==='egg')larvae++;else if(kind==='food')food++;}
         }
         this._capacity = { larvae: larvae * GRAIN_AREA, food: food * 2 * GRAIN_AREA }; this._capacityRevision = this.revision;
       }
@@ -623,7 +623,7 @@
     storageDestination(rid,ant,kind) {
       // Other carriers' destinations are read once per search, not per cell.
       const memo=this.dropMemo(),others=[],storing=new Map();for(const a of this.ants)if(a.itemTask?.phase==='store'){const d=a.itemTask.destination;storing.set(d,(storing.get(d)||0)+1);if(a.id!==ant.id)others.push(this.walkPoint(d));}
-      const cells=[];for(const i of this.cells(rid)){if(!this.walkable(i))continue;const p=this.walkPoint(i);if(others.some(q=>Math.hypot(p.x-q.x,p.y-q.y)<.9))continue;const key=(i*64+rid)*8+DROP_KINDS[kind];let drop=memo.get(key);if(drop===undefined)memo.set(key,drop=this.storageDrop(rid,p,kind,this.reachOutAt(i,p,kind)));if(drop)cells.push({i,drop,score:drop.score+(storing.get(i)||0)*2+distance(ant.cell,i)*.015+this.traffic[i]*.015});}
+      const cells=[];for(const i of this.cells(rid)){if(!this.walkable(i))continue;const p=this.walkPoint(i);if(others.some(q=>Math.hypot(p.x-q.x,p.y-q.y)<.9))continue;const key=(i*256+rid)*8+DROP_KINDS[kind];let drop=memo.get(key);if(drop===undefined)memo.set(key,drop=this.storageDrop(rid,p,kind,this.reachOutAt(i,p,kind)));if(drop)cells.push({i,drop,score:drop.score+(storing.get(i)||0)*2+distance(ant.cell,i)*.015+this.traffic[i]*.015});}
       const score=c=>c.score;
       if(!this._storageReach)this._storageReach=new Map();
       for(const c of cells.sort((a,b)=>score(a)-score(b)||a.i-b.i)){
@@ -1126,7 +1126,7 @@
       return b.mode==='chamber'?this.frontier(rid):[];
     }
     finishConstruction(){
-      for(const rid of this.roomIds()){const b=this.builds[rid];if(b&&!b.complete&&b.mode==='chamber'&&this.cells(rid).filter(i=>this.walkable(i)).length>=3){b.complete=true;this.log((this.roomName?.(rid)??names[rid])+'に荷物を運び入れられるようになりました。');}}
+      for(const rid of this.roomIds()){const b=this.builds[rid];if(b&&!b.complete&&b.mode==='chamber'&&this.cells(rid).filter(i=>this.walkable(i)).length>=3){b.complete=true;this.log((this.roomName?.(rid)??names[rid])+(this.roomKind(rid)==='rest'?'で休めるようになりました。':'に荷物を運び入れられるようになりました。'));}}
     }
     branchBusy(rid,owner=0){
       const b=this.builds[rid];return this.jobs.some(j=>{
@@ -1193,7 +1193,7 @@
         if(n.d<=0&&this.builds[n.rid]?.complete&&!this.jobs.some(j=>j.rid===n.rid)){const kind=this.roomKind(n.rid);if(this.physics.bodies.some(b=>b.kind===kind&&!b.carrier&&this.grainRoom[GRAIN.at(b.x,b.y)]!==n.rid)&&this.storageDestination(n.rid,{cell:idx(48,24)},kind)===undefined)n.d=1;}
       }
       const required=needs.filter(n=>n.wanted>0&&(n.d>0||this.builds[n.rid]&&!this.transportReady(n.rid)));
-      required.sort((a,b)=>(b.d/b.wanted*(this.priority===(this.roomKind(b.rid)==='egg'?'nursery':'food')?3:1))-(a.d/a.wanted*(this.priority===(this.roomKind(a.rid)==='egg'?'nursery':'food')?3:1)));
+      required.sort((a,b)=>(b.d/b.wanted*(b.weight??1)*(this.priority===(this.roomKind(b.rid)==='egg'?'nursery':'food')?3:1))-(a.d/a.wanted*(a.weight??1)*(this.priority===(this.roomKind(a.rid)==='egg'?'nursery':'food')?3:1)));
       const idle=this.ants.filter(a=>a.role==='build'&&a.desiredRole==='build'&&a.job===null&&!a.itemTask&&!a.yielding&&!a.yieldHold&&!a.fight&&!a.alarm);this._blocked=[];
       for(const n of required){this.ensureBuild(n.rid);const primary=this.builds[n.rid]?.complete?this.frontier(n.rid):this.construction(n.rid),candidates=[...this.transportCandidates(n.rid),...primary];
         for(const initial of candidates){if(!idle.length)break;if(n.d<=0&&this.builds[n.rid]?.complete&&!initial.widen)continue;if(this.workSiteBusy(initial.pose)||this.narrowSiteReserved(n.rid,initial.pose))continue;
@@ -1415,10 +1415,10 @@
       const finite=(n,min=0,max=1e9)=>typeof n==='number'&&Number.isFinite(n)&&n>=min&&n<=max;
       const integer=(n,min,max)=>Number.isInteger(n)&&finite(n,min,max);
       if(!pack||pack.format!==SAVE_FORMAT||pack.w!==W||pack.h!==H||pack.grid!==GRID||!pack.physics)fail();
-      for(const [key,max,ints] of [['terrain',3,true],['room',31,true],['loose',64,true],['traffic',1e6,false],['jam',1e6,false]])if(!Array.isArray(pack[key])||pack[key].length!==SIZE||pack[key].some(n=>!(ints?integer(n,0,max):finite(n,0,max))))fail();
+      for(const [key,max,ints] of [['terrain',3,true],['room',254,true],['loose',64,true],['traffic',1e6,false],['jam',1e6,false]])if(!Array.isArray(pack[key])||pack[key].length!==SIZE||pack[key].some(n=>!(ints?integer(n,0,max):finite(n,0,max))))fail();
       if(!integer(pack.seed,0,4294967295)||!integer(pack.rng,0,4294967295)||!integer(pack.ticks,0,1e9)||!finite(pack.time)||!finite(pack.planAt)||!finite(pack.remainder,0,STEP)||!integer(pack.revision,1,1e9)||!integer(pack.nextJob,1,1e9)||pack.drop!==DUMP_CELL||!['balanced','nursery','food'].includes(pack.priority)||typeof pack.hardDig!=='boolean')fail();
       if(!pack.demands||!integer(pack.demands.larvae,0,800)||!integer(pack.demands.food,0,1600)||!Array.isArray(pack.ants)||(pack.ants.length<1||pack.ants.length>128)||!Array.isArray(pack.jobs)||pack.jobs.length>128)fail();
-      if(!Array.isArray(pack.rooms)||pack.rooms.length<4||pack.rooms.length>32||pack.rooms.slice(1).some((r,k)=>r?.id!==k+1||!finite(r.x,1,W-1)||!finite(r.y,SURFACE,H-1)))fail();
+      if(!Array.isArray(pack.rooms)||pack.rooms.length<4||pack.rooms.length>254||pack.rooms.slice(1).some((r,k)=>r?.id!==k+1||!finite(r.x,1,W-1)||!finite(r.y,SURFACE,H-1)))fail();
       if(!Array.isArray(pack.builds)||pack.builds.length!==pack.rooms.length)fail();
       const pose=p=>p&&finite(p.x,.1,W-.1)&&finite(p.y,.1,H-.1)&&finite(p.angle,-Math.PI*4,Math.PI*4);
       const poses=(p,max=2000)=>Array.isArray(p)&&p.length<=max&&p.every(pose);
@@ -1427,7 +1427,7 @@
       const s=Object.create(Simulation.prototype);
       for(const key of ['seed','rng','time','ticks','remainder','planAt','revision','demands','priority','hardDig','rooms','builds','drop','nextJob','ants','jobs','stats','events','entrance','entranceHistory'])s[key]=structuredClone(pack[key]);
       s.terrain=Uint8Array.from(pack.terrain);s.room=Uint8Array.from(pack.room);s.loose=Uint8Array.from(pack.loose);s.traffic=Float64Array.from(pack.traffic);s.jam=Float64Array.from(pack.jam);
-      for(const [key,max] of [['grains',3],['grainRoom',13],['grainPending',1]])s[key]=decodeGrains(pack[key],FINE_SIZE,max);
+      for(const [key,max] of [['grains',3],['grainRoom',254],['grainPending',1]])s[key]=decodeGrains(pack[key],FINE_SIZE,max);
       const ids=new Set(),jobs=new Set(),pending=new Set(),reserved=new Set(),targets=new Set();
       for(const a of s.ants){
         if(!integer(a.id,1,128)||ids.has(a.id)||!pose(a)||!pose(a.home)||!integer(a.cell,0,SIZE-1)||!['idle','travel','dig','haul','unload'].includes(a.task)||!finite(a.walked)||!finite(a.wait,-2,100)||!poses(a.path)||!integer(a.next,0,Math.max(0,a.path.length-1))||a.trail&&!poses(a.trail,100)||a.resume&&!poses(a.resume.path))fail();ids.add(a.id);

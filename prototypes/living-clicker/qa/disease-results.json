@@ -9,7 +9,7 @@
       "pass": true,
       "onset": {
         "t": 1059.9999999993647,
-        "ratio": 1.1764705882352942
+        "ratio": 0.9411764705882353
       },
       "deaths": [
         {
@@ -27,7 +27,7 @@
       "name": "restoring-nurses-ends-the-disease",
       "pass": true,
       "cured": 1185.9999999992501,
-      "ratio": 0.6254071661237784,
+      "ratio": 0.42105263157894735,
       "died": 2
     },
     {
@@ -46,9 +46,9 @@
     }
   ],
   "hashes": {
-    "core.js": "f29974fcff30102cde9e725e4c7de18ad4b8476472fdaa93a85ca5b6243602ba",
+    "core.js": "2fe9cd5597796521ba30bf30a172582ae205d792761dc395919613dc245c578f",
     "lifecycle.js": "e3811fe72b1fece21ec7cc25a678901d80199b0d5584775a9ab509bb85371090",
-    "game.js": "97f1c0e757c69644db3719789914a742b334d5604b3acf2b23ec07ced0413a69"
+    "game.js": "834e7ff087ced3282d04576252e0da36a85738eb340d59fcffb0d0cbfaaa7d7b"
   },
-  "inputHash": "cc299a270d258b6e287316715abcd74039dc30cf719cbea3cdb103f07aa3d1ef"
+  "inputHash": "993622a51de1ba643b30e8476e0140e2e38111b5a0b726fa65700a9db4242f05"
 }

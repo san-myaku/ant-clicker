@@ -10,11 +10,11 @@
       "at": 1200,
       "capacity": {
         "larvae": 18,
-        "food": 51
+        "food": 50
       },
       "activity": {
-        "idle": 38,
-        "travel": 1,
+        "idle": 37,
+        "travel": 2,
         "dig": 0,
         "haul": 1,
         "unload": 0
@@ -24,21 +24,27 @@
         "food": 0
       },
       "blocked": [],
-      "building": [],
+      "building": [
+        {
+          "rid": 4,
+          "name": "居室",
+          "stage": "passage"
+        }
+      ],
       "ants": 40,
-      "jobs": 0,
-      "dug": 479,
-      "delivered": 479,
+      "jobs": 1,
+      "dug": 481,
+      "delivered": 481,
       "nursery": 79,
       "food": 50,
-      "passage": 239,
-      "distance": 60852.990700952185,
-      "yields": 2,
-      "waitSeconds": 131.1499999999965,
-      "backwardDistance": 4802.563952480844,
-      "grainDug": 925,
-      "grainDelivered": 925,
-      "grainSettled": 792,
+      "passage": 249,
+      "distance": 60808.43491913885,
+      "yields": 1,
+      "waitSeconds": 130.36666666666255,
+      "backwardDistance": 4929.446488495407,
+      "grainDug": 937,
+      "grainDelivered": 937,
+      "grainSettled": 807,
       "brood": {
         "egg": 0,
         "larva": 2,
@@ -68,7 +74,7 @@
       "reached": 1,
       "depthAbility": 1,
       "populationLimit": 64,
-      "elapsedMs": 11996
+      "elapsedMs": 16805
     },
     {
       "name": "locked-grains-never-cleared",
@@ -168,7 +174,7 @@
       "reached": 1,
       "depthAbility": 1,
       "populationLimit": 64,
-      "elapsedMs": 5102
+      "elapsedMs": 7415
     },
     {
       "at": 180,
@@ -243,7 +249,7 @@
       "reached": 1,
       "depthAbility": 1,
       "populationLimit": 64,
-      "elapsedMs": 5160
+      "elapsedMs": 7330
     },
     {
       "at": 360,
@@ -318,7 +324,7 @@
       "reached": 1,
       "depthAbility": 1,
       "populationLimit": 64,
-      "elapsedMs": 6329
+      "elapsedMs": 8507
     },
     {
       "at": 600,
@@ -327,10 +333,10 @@
         "food": 18
       },
       "activity": {
-        "idle": 14,
-        "travel": 5,
-        "dig": 2,
-        "haul": 4,
+        "idle": 13,
+        "travel": 6,
+        "dig": 0,
+        "haul": 6,
         "unload": 0
       },
       "shortages": {
@@ -340,19 +346,19 @@
       "blocked": [],
       "building": [],
       "ants": 25,
-      "jobs": 4,
-      "dug": 224,
+      "jobs": 5,
+      "dug": 226,
       "delivered": 222,
-      "nursery": 0,
+      "nursery": 1,
       "food": 29,
-      "passage": 221,
-      "distance": 27126.656578730137,
+      "passage": 220,
+      "distance": 27222.504118224086,
       "yields": 1,
-      "waitSeconds": 38.64999999999909,
-      "backwardDistance": 2091.931234402339,
-      "grainDug": 519,
-      "grainDelivered": 507,
-      "grainSettled": 382,
+      "waitSeconds": 37.8166666666658,
+      "backwardDistance": 2121.1329087708796,
+      "grainDug": 515,
+      "grainDelivered": 504,
+      "grainSettled": 380,
       "brood": {
         "egg": 0,
         "larva": 2,
@@ -382,41 +388,41 @@
       "reached": 1,
       "depthAbility": 1,
       "populationLimit": 64,
-      "elapsedMs": 12322
+      "elapsedMs": 15840
     },
     {
       "at": 900,
       "capacity": {
-        "larvae": 16,
-        "food": 35
+        "larvae": 15,
+        "food": 37
       },
       "activity": {
-        "idle": 29,
-        "travel": 2,
+        "idle": 26,
+        "travel": 3,
         "dig": 0,
-        "haul": 2,
-        "unload": 0
+        "haul": 3,
+        "unload": 1
       },
       "shortages": {
         "larvae": 0,
-        "food": 5
+        "food": 3
       },
       "blocked": [],
       "building": [],
       "ants": 33,
-      "jobs": 4,
-      "dug": 386,
-      "delivered": 384,
-      "nursery": 58,
+      "jobs": 7,
+      "dug": 391,
+      "delivered": 387,
+      "nursery": 59,
       "food": 40,
       "passage": 239,
-      "distance": 46881.96080231794,
-      "yields": 2,
-      "waitSeconds": 91.64999999999608,
-      "backwardDistance": 3736.7179857567994,
-      "grainDug": 773,
-      "grainDelivered": 769,
-      "grainSettled": 640,
+      "distance": 47193.0697673415,
+      "yields": 1,
+      "waitSeconds": 94.9499999999959,
+      "backwardDistance": 3823.309986810454,
+      "grainDug": 784,
+      "grainDelivered": 777,
+      "grainSettled": 647,
       "brood": {
         "egg": 1,
         "larva": 2,
@@ -446,17 +452,17 @@
       "reached": 1,
       "depthAbility": 1,
       "populationLimit": 64,
-      "elapsedMs": 20670
+      "elapsedMs": 28283
     },
     {
       "at": 1200,
       "capacity": {
         "larvae": 18,
-        "food": 51
+        "food": 50
       },
       "activity": {
-        "idle": 38,
-        "travel": 1,
+        "idle": 37,
+        "travel": 2,
         "dig": 0,
         "haul": 1,
         "unload": 0
@@ -466,21 +472,27 @@
         "food": 0
       },
       "blocked": [],
-      "building": [],
+      "building": [
+        {
+          "rid": 4,
+          "name": "居室",
+          "stage": "passage"
+        }
+      ],
       "ants": 40,
-      "jobs": 0,
-      "dug": 479,
-      "delivered": 479,
+      "jobs": 1,
+      "dug": 481,
+      "delivered": 481,
       "nursery": 79,
       "food": 50,
-      "passage": 239,
-      "distance": 60852.990700952185,
-      "yields": 2,
-      "waitSeconds": 131.1499999999965,
-      "backwardDistance": 4802.563952480844,
-      "grainDug": 925,
-      "grainDelivered": 925,
-      "grainSettled": 792,
+      "passage": 249,
+      "distance": 60808.43491913885,
+      "yields": 1,
+      "waitSeconds": 130.36666666666255,
+      "backwardDistance": 4929.446488495407,
+      "grainDug": 937,
+      "grainDelivered": 937,
+      "grainSettled": 807,
       "brood": {
         "egg": 0,
         "larva": 2,
@@ -510,12 +522,12 @@
       "reached": 1,
       "depthAbility": 1,
       "populationLimit": 64,
-      "elapsedMs": 11996
+      "elapsedMs": 16805
     }
   ],
   "hashes": {
-    "core.js": "f29974fcff30102cde9e725e4c7de18ad4b8476472fdaa93a85ca5b6243602ba",
+    "core.js": "2fe9cd5597796521ba30bf30a172582ae205d792761dc395919613dc245c578f",
     "lifecycle.js": "e3811fe72b1fece21ec7cc25a678901d80199b0d5584775a9ab509bb85371090",
-    "game.js": "97f1c0e757c69644db3719789914a742b334d5604b3acf2b23ec07ced0413a69"
+    "game.js": "834e7ff087ced3282d04576252e0da36a85738eb340d59fcffb0d0cbfaaa7d7b"
   }
 }

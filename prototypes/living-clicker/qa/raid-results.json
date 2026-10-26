@@ -13,48 +13,48 @@
       "name": "guards-are-assigned-only-on-purpose",
       "pass": true,
       "before": {
-        "forage": 22,
+        "forage": 21,
         "nurse": 21,
-        "build": 21,
+        "build": 20,
         "guard": 0
       },
       "two": {
         "forage": 20,
-        "nurse": 21,
-        "build": 21,
+        "nurse": 20,
+        "build": 20,
         "guard": 2
       }
     },
     {
       "name": "a-scout-comes-on-the-natural-schedule",
       "pass": true,
-      "scheduled": 3111.8,
-      "scoutAt": 3111.8,
-      "nextGap": 729
+      "scheduled": 2549.1,
+      "scoutAt": 2549.1,
+      "nextGap": 482.6
     },
     {
       "name": "without-guards-the-party-carries-real-items-off",
       "pass": true,
       "raidSize": 3,
       "taken": 3,
-      "carrySave": 3183.6
+      "carrySave": 2621.6
     },
     {
       "name": "guards-at-the-mouth-stop-the-scout",
       "pass": true,
-      "scoutFell": 3123.3
+      "scoutFell": 2560.7
     },
     {
       "name": "a-fallen-scout-is-prey-carried-to-the-stores",
       "pass": true,
-      "storedAt": 3134,
+      "storedAt": 2571.1,
       "room": "女王房"
     },
     {
       "name": "guards-grapple-with-the-party-in-the-shaft",
       "pass": true,
-      "warned": 3130,
-      "fightSave": 3178.3,
+      "warned": 2567.3,
+      "fightSave": 2615.6,
       "grapples": 2,
       "killed": 3,
       "lost": 2,
@@ -70,7 +70,7 @@
       "tapped": 2,
       "called": 12,
       "killed": 3,
-      "lost": 2,
+      "lost": 1,
       "stolen": 0
     },
     {
@@ -105,7 +105,7 @@
     {
       "name": "an-item-a-raider-cannot-carry-out-stays-simulated",
       "pass": true,
-      "steps": 5879
+      "steps": 6088
     },
     {
       "name": "invalid-raid-records-are-refused",
@@ -115,14 +115,14 @@
       "name": "a-worker-backing-over-the-ground-keeps-facing",
       "pass": true,
       "from": 27.35,
-      "to": 26.36,
+      "to": 26.4,
       "angle": 0.785
     }
   ],
   "hashes": {
-    "core.js": "f29974fcff30102cde9e725e4c7de18ad4b8476472fdaa93a85ca5b6243602ba",
+    "core.js": "2fe9cd5597796521ba30bf30a172582ae205d792761dc395919613dc245c578f",
     "lifecycle.js": "e3811fe72b1fece21ec7cc25a678901d80199b0d5584775a9ab509bb85371090",
-    "game.js": "97f1c0e757c69644db3719789914a742b334d5604b3acf2b23ec07ced0413a69"
+    "game.js": "834e7ff087ced3282d04576252e0da36a85738eb340d59fcffb0d0cbfaaa7d7b"
   },
-  "inputHash": "ef1f96e673a2860a4b6b45468f09760a2c6dede667fa41ebf52cc271fb505c97"
+  "inputHash": "45f2286cc3b541931cae6402736b1016d48aadf76c826a54bf812b8e5b04037f"
 }

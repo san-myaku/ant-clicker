@@ -20,9 +20,9 @@
     {
       "name": "nurses-carry-waste-out-mid-carry-save",
       "pass": true,
-      "t": 918.6333333328265,
+      "t": 924.5666666661544,
       "ant": 6,
-      "body": 975
+      "body": 991
     },
     {
       "name": "meals-make-waste-that-leaves-and-decays",
@@ -37,7 +37,7 @@
     {
       "name": "waste-near-a-fed-larva-slows-it",
       "pass": true,
-      "t": 951.2833333327968,
+      "t": 922.9499999994893,
       "factor": 0.7407407407407407
     },
     {
@@ -51,16 +51,16 @@
     {
       "name": "waste-chamber-is-dug-and-used",
       "pass": true,
-      "chamberAt": 2990.5,
-      "dropSave": 3068.6,
+      "chamberAt": 2392,
+      "dropSave": 2479.2,
       "delivered": {
-        "room": 64,
-        "surface": 18,
+        "room": 54,
+        "surface": 19,
         "forager": true
       },
       "recycled": 52,
       "decayed": 174,
-      "made": 231,
+      "made": 229,
       "ants": 89
     },
     {
@@ -70,10 +70,10 @@
     }
   ],
   "hashes": {
-    "core.js": "f29974fcff30102cde9e725e4c7de18ad4b8476472fdaa93a85ca5b6243602ba",
+    "core.js": "2fe9cd5597796521ba30bf30a172582ae205d792761dc395919613dc245c578f",
     "lifecycle.js": "e3811fe72b1fece21ec7cc25a678901d80199b0d5584775a9ab509bb85371090",
-    "game.js": "97f1c0e757c69644db3719789914a742b334d5604b3acf2b23ec07ced0413a69"
+    "game.js": "834e7ff087ced3282d04576252e0da36a85738eb340d59fcffb0d0cbfaaa7d7b"
   },
-  "inputHash": "cc299a270d258b6e287316715abcd74039dc30cf719cbea3cdb103f07aa3d1ef",
-  "chamberInputHash": "ef1f96e673a2860a4b6b45468f09760a2c6dede667fa41ebf52cc271fb505c97"
+  "inputHash": "993622a51de1ba643b30e8476e0140e2e38111b5a0b726fa65700a9db4242f05",
+  "chamberInputHash": "45f2286cc3b541931cae6402736b1016d48aadf76c826a54bf812b8e5b04037f"
 }

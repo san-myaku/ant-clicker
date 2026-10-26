@@ -110,7 +110,7 @@
       const i=gy*FW+gx;
       if(!sim.grains[i]){
         const rid=sim.grainRoom[i];
-        floor.fillStyle=rid===1?'#e2d1a9':rid>=2?(sim.roomKind(rid)==='egg'?'#e5d7bc':'#dcccab'):'#d7c7ab';
+        floor.fillStyle=rid===1?'#e2d1a9':rid>=2?(sim.roomKind(rid)==='egg'?'#e5d7bc':sim.roomKind(rid)==='rest'?'#e0d3b6':'#dcccab'):'#d7c7ab';
         floor.fillRect(gx,gy,1,1);
       }else if((gx&&!sim.grains[i-1])||(gx<FW-1&&!sim.grains[i+1])||!sim.grains[i-FW]||(gy<FH-1&&!sim.grains[i+FW])){
         c.fillStyle='#46372133';c.fillRect(gx,gy,1,1);
@@ -385,7 +385,7 @@
     for(const r of ColonyGame.ROLES)$('role-'+r).textContent=s.allocation[r];
     document.querySelectorAll('[data-role]').forEach(b=>b.disabled=b.dataset.delta==='-1'?s.allocation[b.dataset.role]===0:s.allocation[b.dataset.role]===s.ants);
     $('role-note').textContent=s.pendingRoles?s.pendingRoles+'匹が、荷物を届けてから交代します。':'＋−で担当を振り替え。荷物は届けてから交代。';
-    $('space-note').textContent='育児室 '+s.capacity.larvae+' / 必要 '+sim.demands.larvae+'匹分 · 食料庫 '+s.capacity.food+' / 必要 '+sim.demands.food+'個分';
+    {const crowded=sim.crowding?.().length||0;$('space-note').textContent='育児室 '+s.capacity.larvae+' / 必要 '+sim.demands.larvae+'匹分 · 食料庫 '+s.capacity.food+' / 必要 '+sim.demands.food+'個分'+(crowded?' · 休む場所のない働き手 '+crowded+'匹':'');}
     const effects={walk:'歩く速さ +15%',brood:'育つ速さ +20%',dig:'掘る速さ +25%'};
     document.querySelectorAll('[data-upgrade]').forEach(b=>{const k=b.dataset.upgrade,level=sim.colony.upgrades[k],def=ColonyGame.UPGRADES[k],cost=sim.upgradeCost(k);b.replaceChildren(document.createTextNode(def.name+' '+level+'/'+def.max));const note=document.createElement('span');note.textContent=level>=def.max?'習得済み':effects[k]+' / 餌 '+cost+'個';b.append(note);b.disabled=level>=def.max||s.available<cost;});
     let cause=s.births===0?'目標：最初の働き手を育てよう。':s.ants<20?'目標：働き手20匹のコロニーへ。':s.ants<32?'目標：働き手32匹のコロニーへ。':'目標：この区画で64匹まで育てよう。';
