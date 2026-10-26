@@ -2,15 +2,15 @@
   "pass": true,
   "gate": "both",
   "began": 1199.9999999992374,
-  "finished": 2649.0000000061186,
-  "firstReach": 2406.0000000030245,
-  "firstRoom": 2649.0000000061186,
+  "finished": 2671.0000000063987,
+  "firstReach": 2412.000000003101,
+  "firstRoom": 2671.0000000063987,
   "foodRoomComplete": true,
-  "delivered": 2085,
+  "delivered": 2091,
   "ants": 64,
   "capacity": {
     "larvae": 23,
-    "food": 60
+    "food": 61
   },
   "invalidInputs": 6,
   "snapshots": [
@@ -260,7 +260,7 @@
     {
       "t": 2100.999999999141,
       "reached": 1,
-      "delivered": 1703,
+      "delivered": 1700,
       "rooms": [
         {
           "mode": "passage",
@@ -287,7 +287,7 @@
     {
       "t": 2201.0000000004143,
       "reached": 1,
-      "delivered": 1775,
+      "delivered": 1766,
       "rooms": [
         {
           "mode": "passage",
@@ -314,7 +314,7 @@
     {
       "t": 2301.0000000016876,
       "reached": 1,
-      "delivered": 1862,
+      "delivered": 1854,
       "rooms": [
         {
           "mode": "passage",
@@ -341,7 +341,7 @@
     {
       "t": 2401.000000002961,
       "reached": 1,
-      "delivered": 1924,
+      "delivered": 1916,
       "rooms": [
         {
           "mode": "passage",
@@ -368,7 +368,7 @@
     {
       "t": 2501.000000004234,
       "reached": 2,
-      "delivered": 1984,
+      "delivered": 1978,
       "rooms": [
         {
           "mode": "passage",
@@ -383,10 +383,10 @@
         {
           "mode": "passage",
           "complete": false,
-          "length": 21.000000000000036,
+          "length": 20.500000000000036,
           "tip": {
             "x": 63.439551166536596,
-            "y": 37.31379603818168,
+            "y": 36.81379603818168,
             "angle": 1.5707963267948966
           }
         }
@@ -395,7 +395,7 @@
     {
       "t": 2601.0000000055074,
       "reached": 2,
-      "delivered": 2051,
+      "delivered": 2039,
       "rooms": [
         {
           "mode": "passage",
@@ -421,9 +421,9 @@
     }
   ],
   "hashes": {
-    "core.js": "0a9fa74d23ae0947e9e885cb29369f815092b87b909a78351bf6001971447d4b",
-    "lifecycle.js": "61d39daee54e187ef574a650e01e995f7ec5f8dcba84d1e57c1d97416e2c23f3",
-    "game.js": "07c8f03c0132c7f3a1b973b4020480eb615690efde6bb5d594ff1a69292b0833"
+    "core.js": "0e1cf40eae3b8e013a4cd064ddffb9fc30e1b9d0484a38a77c7bc25ad1f26b0b",
+    "lifecycle.js": "836eb5f4168af38524e79847c4589a8d4c56b595373c071ebef92f9961eb4943",
+    "game.js": "26ec86dbd7f31ff2be2268a7211c67ee9c43d03ef723106c486007604369aea7"
   },
-  "inputHash": "0656c8e4dc390d1b49c7ef7b940d1920721ed8d95649cb9cd3719b61e352c5e1"
+  "inputHash": "9582754e25b981f1ffd9052b53bfbee6dfbabb29d45e09be9ff9085368c8c547"
 }

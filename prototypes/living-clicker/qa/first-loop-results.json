@@ -49,12 +49,14 @@
       "roles": {
         "forage": 14,
         "nurse": 13,
-        "build": 13
+        "build": 13,
+        "guard": 0
       },
       "allocation": {
         "forage": 14,
         "nurse": 13,
-        "build": 13
+        "build": 13,
+        "guard": 0
       },
       "pendingRoles": 0,
       "queen": 0.9879166666666427,
@@ -66,7 +68,7 @@
       "reached": 1,
       "depthAbility": 1,
       "populationLimit": 64,
-      "elapsedMs": 13045
+      "elapsedMs": 13642
     },
     {
       "name": "locked-grains-never-cleared",
@@ -147,12 +149,14 @@
       "roles": {
         "forage": 4,
         "nurse": 4,
-        "build": 4
+        "build": 4,
+        "guard": 0
       },
       "allocation": {
         "forage": 4,
         "nurse": 4,
-        "build": 4
+        "build": 4,
+        "guard": 0
       },
       "pendingRoles": 0,
       "queen": 0.499583333333337,
@@ -164,7 +168,7 @@
       "reached": 1,
       "depthAbility": 1,
       "populationLimit": 64,
-      "elapsedMs": 3417
+      "elapsedMs": 3304
     },
     {
       "at": 180,
@@ -220,12 +224,14 @@
       "roles": {
         "forage": 5,
         "nurse": 5,
-        "build": 5
+        "build": 5,
+        "guard": 0
       },
       "allocation": {
         "forage": 5,
         "nurse": 5,
-        "build": 5
+        "build": 5,
+        "guard": 0
       },
       "pendingRoles": 0,
       "queen": 0.49833333333333707,
@@ -237,7 +243,7 @@
       "reached": 1,
       "depthAbility": 1,
       "populationLimit": 64,
-      "elapsedMs": 4090
+      "elapsedMs": 3928
     },
     {
       "at": 360,
@@ -293,12 +299,14 @@
       "roles": {
         "forage": 7,
         "nurse": 6,
-        "build": 6
+        "build": 6,
+        "guard": 0
       },
       "allocation": {
         "forage": 7,
         "nurse": 6,
-        "build": 6
+        "build": 6,
+        "guard": 0
       },
       "pendingRoles": 0,
       "queen": 0.9966666666666422,
@@ -310,7 +318,7 @@
       "reached": 1,
       "depthAbility": 1,
       "populationLimit": 64,
-      "elapsedMs": 5877
+      "elapsedMs": 5479
     },
     {
       "at": 600,
@@ -355,12 +363,14 @@
       "roles": {
         "forage": 9,
         "nurse": 8,
-        "build": 8
+        "build": 8,
+        "guard": 0
       },
       "allocation": {
         "forage": 9,
         "nurse": 8,
-        "build": 8
+        "build": 8,
+        "guard": 0
       },
       "pendingRoles": 0,
       "queen": 0.9941666666666423,
@@ -372,7 +382,7 @@
       "reached": 1,
       "depthAbility": 1,
       "populationLimit": 64,
-      "elapsedMs": 11163
+      "elapsedMs": 11328
     },
     {
       "at": 900,
@@ -417,12 +427,14 @@
       "roles": {
         "forage": 11,
         "nurse": 11,
-        "build": 11
+        "build": 11,
+        "guard": 0
       },
       "allocation": {
         "forage": 11,
         "nurse": 11,
-        "build": 11
+        "build": 11,
+        "guard": 0
       },
       "pendingRoles": 0,
       "queen": 0.4908333333333375,
@@ -434,7 +446,7 @@
       "reached": 1,
       "depthAbility": 1,
       "populationLimit": 64,
-      "elapsedMs": 20715
+      "elapsedMs": 20133
     },
     {
       "at": 1200,
@@ -479,12 +491,14 @@
       "roles": {
         "forage": 14,
         "nurse": 13,
-        "build": 13
+        "build": 13,
+        "guard": 0
       },
       "allocation": {
         "forage": 14,
         "nurse": 13,
-        "build": 13
+        "build": 13,
+        "guard": 0
       },
       "pendingRoles": 0,
       "queen": 0.9879166666666427,
@@ -496,12 +510,12 @@
       "reached": 1,
       "depthAbility": 1,
       "populationLimit": 64,
-      "elapsedMs": 13045
+      "elapsedMs": 13642
     }
   ],
   "hashes": {
-    "core.js": "0a9fa74d23ae0947e9e885cb29369f815092b87b909a78351bf6001971447d4b",
-    "lifecycle.js": "61d39daee54e187ef574a650e01e995f7ec5f8dcba84d1e57c1d97416e2c23f3",
-    "game.js": "07c8f03c0132c7f3a1b973b4020480eb615690efde6bb5d594ff1a69292b0833"
+    "core.js": "0e1cf40eae3b8e013a4cd064ddffb9fc30e1b9d0484a38a77c7bc25ad1f26b0b",
+    "lifecycle.js": "836eb5f4168af38524e79847c4589a8d4c56b595373c071ebef92f9961eb4943",
+    "game.js": "26ec86dbd7f31ff2be2268a7211c67ee9c43d03ef723106c486007604369aea7"
   }
 }
