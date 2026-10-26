@@ -65,6 +65,10 @@
       // the requested depth rather than following soft soil along it forever.
       const blocked=avoid||this.builds?.find(b=>b?.history===history)?.avoided||[],eligible=c=>!blocked.some(p=>Math.hypot(c.x-p.x,c.y-p.y)<.35);
       let choices=super.nextTip(p,target,radius,history,twoWay,true).filter(eligible);
+      // Softer soil along the stratum boundary must not outweigh reaching the
+      // room: when a step can approach the target, steps away are not taken.
+      // Soil effort still ranks the approaching steps, so the shape follows geology.
+      if(deep){const gap=Math.hypot(target.x-p.x,target.y-p.y),closer=choices.filter(c=>Math.hypot(target.x-c.x,target.y-c.y)<gap);if(closer.length)choices=closer;}
       // At a rock face, inspect other walls from this actual working pose.
       // The full turn/body/load footprint must be excavatable before adoption.
       if(!choices.length&&deep)choices=super.nextTip(p,target,radius,history,twoWay,true,[-4,-3,-2,-1,0,1,2,3,4]).filter(eligible);
