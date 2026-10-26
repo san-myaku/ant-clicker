@@ -176,9 +176,10 @@
         const targets=[];
         for(let x=10;x<=W-10;x+=3){const b=layerBoundaries(this.seed,x),top=layer===1?SURFACE+5:b[layer-2]+2.5,bottom=layer<=5?b[layer-1]-2.5:H-6;
           for(let y=top;y<=bottom;y+=2.5)if(anchors.every(r=>Math.hypot(r.x-x,r.y-y)>=ROOM_SPACING))targets.push({x,y});}
-        // Rest chambers branch from the queen chamber or from one another:
+        // Rest chambers branch from the queen chamber, from one another or
+        // from finished rooms below the first layer: the first layer's
         // nurseries and stores are where the deeper rooms start.
-        const parents=[1,...this.roomIds()].filter(r=>(r===1||this.builds[r]?.complete&&this.roomKind(r)==='rest')&&Math.abs((r===1?1:this.layerOf(r))-layer)<=1),plans=[];
+        const parents=[1,...this.roomIds()].filter(r=>(r===1||this.builds[r]?.complete&&this.roomKind(r)!=='waste'&&(this.roomKind(r)==='rest'||this.layerOf(r)>1))&&Math.abs((r===1?1:this.layerOf(r))-layer)<=1),plans=[];
         for(const t of targets)for(const p of parents){const a=this.rooms[p],d=Math.hypot(a.x-t.x,a.y-t.y);if(d<=ROOM_REACH)plans.push({t,p,d});}
         plans.sort((a,b)=>a.d-b.d||a.t.x-b.t.x||a.t.y-b.t.y||a.p-b.p);
         for(const {t,p} of plans.slice(0,8)){const origin=this.roomOrigin(p,t);if(origin)return {layer,parent:p,target:t,origin};}
