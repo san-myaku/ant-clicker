@@ -1,0 +1,79 @@
+{
+  "results": [
+    {
+      "name": "save-from-before-hygiene-starts-without-waste",
+      "pass": true
+    },
+    {
+      "name": "natural-save-carries-its-own-waste",
+      "pass": true,
+      "made": 69,
+      "decayed": 54,
+      "inNest": 1
+    },
+    {
+      "name": "hygiene-studies-from-real-stock",
+      "pass": true,
+      "perSource": 0.9,
+      "cleanWalk": 1.2
+    },
+    {
+      "name": "nurses-carry-waste-out-mid-carry-save",
+      "pass": true,
+      "t": 925.4833333328203,
+      "ant": 6,
+      "body": 948
+    },
+    {
+      "name": "meals-make-waste-that-leaves-and-decays",
+      "pass": true,
+      "meals": 21,
+      "pupations": 10,
+      "made": 96,
+      "decayed": 82,
+      "inNest": 2,
+      "onSurface": 11
+    },
+    {
+      "name": "waste-near-a-fed-larva-slows-it",
+      "pass": true,
+      "t": 900.0166666661768,
+      "factor": 0.7407407407407407
+    },
+    {
+      "name": "invalid-waste-records-are-refused",
+      "pass": true
+    },
+    {
+      "name": "waste-chamber-studies-from-real-stock",
+      "pass": true
+    },
+    {
+      "name": "waste-chamber-is-dug-and-used",
+      "pass": true,
+      "chamberAt": 4298.9,
+      "dropSave": 4372.9,
+      "delivered": {
+        "room": 50,
+        "surface": 29,
+        "forager": true
+      },
+      "recycled": 41,
+      "decayed": 185,
+      "made": 229,
+      "ants": 89
+    },
+    {
+      "name": "a-pellet-that-rolls-out-of-the-chamber-is-carried-again",
+      "pass": true,
+      "returned": 3165.88
+    }
+  ],
+  "hashes": {
+    "core.js": "10a24bb9014046e7e3ac48abd82b41b88adffe2e0e04057a8644e24b31912bfb",
+    "lifecycle.js": "e3811fe72b1fece21ec7cc25a678901d80199b0d5584775a9ab509bb85371090",
+    "game.js": "250e0dc5a151e705c3253ec74a1e3953e4d63a58cb2ff48abd3c5f612c984ca0"
+  },
+  "inputHash": "9b9ee65118da227f7f4f918831e75275d483859b92375195e1692127fd35a4ab",
+  "chamberInputHash": "9f77c6d0706d261d43e7d864f605818e0bb3a3eb7711bb95e6bee5f0b689b26f"
+}

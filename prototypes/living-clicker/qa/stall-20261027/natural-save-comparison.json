@@ -1,0 +1,52 @@
+{
+  "recordedAt": "2026-10-27T07:59:25.643722+09:00",
+  "beforeDirectory": "C:\\Users\\yuhim\\AppData\\Local\\Temp\\living-chain-v8y6fL\\qa",
+  "afterDirectory": "C:\\Users\\yuhim\\AppData\\Local\\Temp\\living-chain-mzvMAF\\qa",
+  "saves": {
+    "world-60.json": {
+      "before": "3948fd9861ec07e2078e976725f600edac713904a0a414f879c24b048cf4fc15",
+      "after": "3948fd9861ec07e2078e976725f600edac713904a0a414f879c24b048cf4fc15",
+      "equal": true
+    },
+    "world-180.json": {
+      "before": "67267d93cf75e8cf7e5a6a6fb3e6ad11442b037cdbd63deb609601c0976dc546",
+      "after": "67267d93cf75e8cf7e5a6a6fb3e6ad11442b037cdbd63deb609601c0976dc546",
+      "equal": true
+    },
+    "world-360.json": {
+      "before": "29eb8e82f5429cb01740a6d0416c4c7d119081712680b4c65b87b808aaec37d9",
+      "after": "29eb8e82f5429cb01740a6d0416c4c7d119081712680b4c65b87b808aaec37d9",
+      "equal": true
+    },
+    "world-600.json": {
+      "before": "fa205ff394fa86768cc9fe596646c74533299d9ddf5933c95b1fc7682f3f7dc4",
+      "after": "fa205ff394fa86768cc9fe596646c74533299d9ddf5933c95b1fc7682f3f7dc4",
+      "equal": true
+    },
+    "world-900.json": {
+      "before": "9b9ee65118da227f7f4f918831e75275d483859b92375195e1692127fd35a4ab",
+      "after": "9b9ee65118da227f7f4f918831e75275d483859b92375195e1692127fd35a4ab",
+      "equal": true
+    },
+    "world-1200.json": {
+      "before": "d9bd20c81dea5d29d5e5af066202bd73fcb4e2f2af3be2e16541c95a961a8db1",
+      "after": "d9bd20c81dea5d29d5e5af066202bd73fcb4e2f2af3be2e16541c95a961a8db1",
+      "equal": true
+    },
+    "before-depth.json": {
+      "before": "847281d5c80ece745c09ad407a4462869b1426a79285b09d5d800d9b0862ce7f",
+      "after": "847281d5c80ece745c09ad407a4462869b1426a79285b09d5d800d9b0862ce7f",
+      "equal": true
+    },
+    "world-final.json": {
+      "before": "7e809722d6cb4eabbda28001ed4aa818a2cfc80b1fd2b89adc65db38e5cc948c",
+      "after": "7e809722d6cb4eabbda28001ed4aa818a2cfc80b1fd2b89adc65db38e5cc948c",
+      "equal": true
+    },
+    "world-scale.json": {
+      "before": "7d90374b84fa022e2f024ba0e8cc0f0beaccfed5243a5bbf7f8860e0529c3e5d",
+      "after": "7d90374b84fa022e2f024ba0e8cc0f0beaccfed5243a5bbf7f8860e0529c3e5d",
+      "equal": true
+    }
+  }
+}

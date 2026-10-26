@@ -1,0 +1,530 @@
+{
+  "pass": true,
+  "input": "world-final.json",
+  "inputHash": "7e809722d6cb4eabbda28001ed4aa818a2cfc80b1fd2b89adc65db38e5cc948c",
+  "bought": "queen_embrace",
+  "began": 3754.0000000201885,
+  "finished": 6753.999999985864,
+  "startAnts": 64,
+  "ants": 128,
+  "limit": 128,
+  "carried": {
+    "t": 4401.52,
+    "body": 5077,
+    "kind": "soil",
+    "carrier": 72,
+    "ants": 75
+  },
+  "snapshots": [
+    {
+      "t": 4054,
+      "msPerStep": 0.854,
+      "gameSecondsPerCpuSecond": 19.51,
+      "phaseMs": {
+        "plan": 0.211,
+        "path": 0.196,
+        "item": 0.081,
+        "move": 0.114,
+        "physics": 0.091,
+        "biology": 0.019
+      },
+      "timedMsPerStep": 0.838,
+      "ants": 67,
+      "brood": 4,
+      "roles": {
+        "forage": 23,
+        "nurse": 22,
+        "build": 22,
+        "guard": 0
+      },
+      "bodies": {
+        "soil": 540,
+        "food": 84,
+        "waste": 14,
+        "egg": 4
+      },
+      "stockStates": {
+        "stored": 56,
+        "incoming": 32,
+        "refuse": 14
+      },
+      "jobs": 2,
+      "itemTasks": 1,
+      "idle": 64,
+      "rooms": 9,
+      "complete": 7,
+      "capacity": {
+        "larvae": 27,
+        "food": 68
+      },
+      "flowCells": 258,
+      "jamCells": 0,
+      "delivered": 4443,
+      "reached": 2,
+      "births": 55,
+      "meals": 115,
+      "harvest": 239,
+      "footprintMemo": 17844
+    },
+    {
+      "t": 4354,
+      "msPerStep": 0.891,
+      "gameSecondsPerCpuSecond": 18.71,
+      "phaseMs": {
+        "plan": 0.163,
+        "path": 0.22,
+        "item": 0.074,
+        "move": 0.08,
+        "physics": 0.089,
+        "biology": 0.021
+      },
+      "timedMsPerStep": 0.744,
+      "ants": 74,
+      "brood": 4,
+      "roles": {
+        "forage": 25,
+        "nurse": 25,
+        "build": 24,
+        "guard": 0
+      },
+      "bodies": {
+        "soil": 556,
+        "food": 94,
+        "waste": 15,
+        "egg": 4
+      },
+      "stockStates": {
+        "stored": 56,
+        "incoming": 42,
+        "refuse": 15
+      },
+      "jobs": 2,
+      "itemTasks": 1,
+      "idle": 71,
+      "rooms": 9,
+      "complete": 7,
+      "capacity": {
+        "larvae": 29,
+        "food": 75
+      },
+      "flowCells": 272,
+      "jamCells": 0,
+      "delivered": 4520,
+      "reached": 2,
+      "births": 62,
+      "meals": 131,
+      "harvest": 264,
+      "footprintMemo": 17844
+    },
+    {
+      "t": 4654,
+      "msPerStep": 0.727,
+      "gameSecondsPerCpuSecond": 22.92,
+      "phaseMs": {
+        "plan": 0.131,
+        "path": 0.082,
+        "item": 0.127,
+        "move": 0.124,
+        "physics": 0.102,
+        "biology": 0.041
+      },
+      "timedMsPerStep": 0.73,
+      "ants": 82,
+      "brood": 4,
+      "roles": {
+        "forage": 28,
+        "nurse": 27,
+        "build": 27,
+        "guard": 0
+      },
+      "bodies": {
+        "soil": 564,
+        "food": 101,
+        "waste": 15,
+        "egg": 4
+      },
+      "stockStates": {
+        "stored": 56,
+        "incoming": 47,
+        "refuse": 15,
+        "cargo": 2
+      },
+      "jobs": 3,
+      "itemTasks": 3,
+      "idle": 76,
+      "rooms": 9,
+      "complete": 7,
+      "capacity": {
+        "larvae": 32,
+        "food": 81
+      },
+      "flowCells": 260,
+      "jamCells": 0,
+      "delivered": 4611,
+      "reached": 2,
+      "births": 70,
+      "meals": 145,
+      "harvest": 291,
+      "footprintMemo": 17844
+    },
+    {
+      "t": 4954,
+      "msPerStep": 0.795,
+      "gameSecondsPerCpuSecond": 20.97,
+      "phaseMs": {
+        "plan": 0.234,
+        "path": 0.268,
+        "item": 0.242,
+        "move": 0.189,
+        "physics": 0.115,
+        "biology": 0.023
+      },
+      "timedMsPerStep": 1.211,
+      "ants": 89,
+      "brood": 4,
+      "roles": {
+        "forage": 30,
+        "nurse": 30,
+        "build": 29,
+        "guard": 0
+      },
+      "bodies": {
+        "soil": 580,
+        "food": 111,
+        "waste": 14,
+        "egg": 4
+      },
+      "stockStates": {
+        "stored": 56,
+        "incoming": 54,
+        "refuse": 13,
+        "cargo": 6
+      },
+      "jobs": 3,
+      "itemTasks": 8,
+      "idle": 78,
+      "rooms": 9,
+      "complete": 7,
+      "capacity": {
+        "larvae": 34,
+        "food": 88
+      },
+      "flowCells": 288,
+      "jamCells": 0,
+      "delivered": 4714,
+      "reached": 2,
+      "births": 77,
+      "meals": 161,
+      "harvest": 317,
+      "footprintMemo": 17844
+    },
+    {
+      "t": 5254,
+      "msPerStep": 1.035,
+      "gameSecondsPerCpuSecond": 16.11,
+      "phaseMs": {
+        "plan": 0.183,
+        "path": 0.121,
+        "item": 0.149,
+        "move": 0.178,
+        "physics": 0.132,
+        "biology": 0.041
+      },
+      "timedMsPerStep": 0.951,
+      "ants": 97,
+      "brood": 4,
+      "roles": {
+        "forage": 33,
+        "nurse": 32,
+        "build": 32,
+        "guard": 0
+      },
+      "bodies": {
+        "soil": 626,
+        "food": 118,
+        "waste": 15,
+        "egg": 4
+      },
+      "stockStates": {
+        "stored": 56,
+        "incoming": 65,
+        "refuse": 15,
+        "cargo": 1
+      },
+      "jobs": 3,
+      "itemTasks": 2,
+      "idle": 92,
+      "rooms": 9,
+      "complete": 7,
+      "capacity": {
+        "larvae": 37,
+        "food": 96
+      },
+      "flowCells": 263,
+      "jamCells": 0,
+      "delivered": 4813,
+      "reached": 2,
+      "births": 85,
+      "meals": 175,
+      "harvest": 342,
+      "footprintMemo": 17844
+    },
+    {
+      "t": 5554,
+      "msPerStep": 1.285,
+      "gameSecondsPerCpuSecond": 12.97,
+      "phaseMs": {
+        "plan": 0.431,
+        "path": 0.406,
+        "item": 0.142,
+        "move": 0.189,
+        "physics": 0.157,
+        "biology": 0.03
+      },
+      "timedMsPerStep": 1.679,
+      "ants": 104,
+      "brood": 4,
+      "roles": {
+        "forage": 35,
+        "nurse": 35,
+        "build": 34,
+        "guard": 0
+      },
+      "bodies": {
+        "soil": 663,
+        "food": 129,
+        "waste": 14,
+        "egg": 4
+      },
+      "stockStates": {
+        "stored": 56,
+        "incoming": 77,
+        "refuse": 13,
+        "cargo": 1
+      },
+      "jobs": 7,
+      "itemTasks": 7,
+      "idle": 90,
+      "rooms": 10,
+      "complete": 7,
+      "capacity": {
+        "larvae": 40,
+        "food": 106
+      },
+      "flowCells": 289,
+      "jamCells": 0,
+      "delivered": 4963,
+      "reached": 2,
+      "births": 92,
+      "meals": 191,
+      "harvest": 365,
+      "footprintMemo": 18170
+    },
+    {
+      "t": 5854,
+      "msPerStep": 1.646,
+      "gameSecondsPerCpuSecond": 10.13,
+      "phaseMs": {
+        "plan": 0.302,
+        "path": 0.146,
+        "item": 0.155,
+        "move": 0.197,
+        "physics": 0.149,
+        "biology": 0.048
+      },
+      "timedMsPerStep": 1.292,
+      "ants": 112,
+      "brood": 4,
+      "roles": {
+        "forage": 38,
+        "nurse": 37,
+        "build": 37,
+        "guard": 0
+      },
+      "bodies": {
+        "soil": 700,
+        "food": 139,
+        "waste": 15,
+        "egg": 4
+      },
+      "stockStates": {
+        "stored": 56,
+        "incoming": 87,
+        "refuse": 15
+      },
+      "jobs": 7,
+      "itemTasks": 0,
+      "idle": 105,
+      "rooms": 10,
+      "complete": 7,
+      "capacity": {
+        "larvae": 42,
+        "food": 115
+      },
+      "flowCells": 293,
+      "jamCells": 0,
+      "delivered": 5175,
+      "reached": 2,
+      "births": 100,
+      "meals": 205,
+      "harvest": 390,
+      "footprintMemo": 19781
+    },
+    {
+      "t": 6154,
+      "msPerStep": 1.999,
+      "gameSecondsPerCpuSecond": 8.34,
+      "phaseMs": {
+        "plan": 0.315,
+        "path": 0.141,
+        "item": 0.177,
+        "move": 0.238,
+        "physics": 0.182,
+        "biology": 0.038
+      },
+      "timedMsPerStep": 1.41,
+      "ants": 119,
+      "brood": 4,
+      "roles": {
+        "forage": 40,
+        "nurse": 40,
+        "build": 39,
+        "guard": 0
+      },
+      "bodies": {
+        "soil": 738,
+        "food": 149,
+        "waste": 14,
+        "egg": 4
+      },
+      "stockStates": {
+        "stored": 56,
+        "incoming": 96,
+        "refuse": 13,
+        "cargo": 2
+      },
+      "jobs": 5,
+      "itemTasks": 3,
+      "idle": 111,
+      "rooms": 10,
+      "complete": 7,
+      "capacity": {
+        "larvae": 45,
+        "food": 125
+      },
+      "flowCells": 328,
+      "jamCells": 0,
+      "delivered": 5390,
+      "reached": 2,
+      "births": 107,
+      "meals": 220,
+      "harvest": 419,
+      "footprintMemo": 20612
+    },
+    {
+      "t": 6454,
+      "msPerStep": 1.639,
+      "gameSecondsPerCpuSecond": 10.17,
+      "phaseMs": {
+        "plan": 0.428,
+        "path": 0.063,
+        "item": 0.254,
+        "move": 0.276,
+        "physics": 0.169,
+        "biology": 0.004
+      },
+      "timedMsPerStep": 1.549,
+      "ants": 127,
+      "brood": 1,
+      "roles": {
+        "forage": 43,
+        "nurse": 42,
+        "build": 42,
+        "guard": 0
+      },
+      "bodies": {
+        "soil": 744,
+        "food": 157,
+        "waste": 12,
+        "egg": 1
+      },
+      "stockStates": {
+        "stored": 53,
+        "incoming": 105,
+        "refuse": 11,
+        "cargo": 1
+      },
+      "jobs": 8,
+      "itemTasks": 6,
+      "idle": 113,
+      "rooms": 10,
+      "complete": 8,
+      "capacity": {
+        "larvae": 46,
+        "food": 135
+      },
+      "flowCells": 280,
+      "jamCells": 0,
+      "delivered": 5594,
+      "reached": 2,
+      "births": 115,
+      "meals": 232,
+      "harvest": 439,
+      "footprintMemo": 20748
+    },
+    {
+      "t": 6754,
+      "msPerStep": 1.952,
+      "gameSecondsPerCpuSecond": 8.54,
+      "phaseMs": {
+        "plan": 0.317,
+        "path": 0.234,
+        "item": 0.424,
+        "move": 0.316,
+        "physics": 0.162,
+        "biology": 0.001
+      },
+      "timedMsPerStep": 1.796,
+      "ants": 128,
+      "brood": 0,
+      "roles": {
+        "forage": 43,
+        "nurse": 43,
+        "build": 42,
+        "guard": 0
+      },
+      "bodies": {
+        "soil": 760,
+        "food": 157
+      },
+      "stockStates": {
+        "stored": 53,
+        "incoming": 100,
+        "cargo": 4
+      },
+      "jobs": 9,
+      "itemTasks": 4,
+      "idle": 115,
+      "rooms": 11,
+      "complete": 8,
+      "capacity": {
+        "larvae": 46,
+        "food": 145
+      },
+      "flowCells": 300,
+      "jamCells": 0,
+      "delivered": 5859,
+      "reached": 2,
+      "births": 116,
+      "meals": 232,
+      "harvest": 449,
+      "footprintMemo": 21074
+    }
+  ],
+  "hashes": {
+    "core.js": "10a24bb9014046e7e3ac48abd82b41b88adffe2e0e04057a8644e24b31912bfb",
+    "lifecycle.js": "e3811fe72b1fece21ec7cc25a678901d80199b0d5584775a9ab509bb85371090",
+    "game.js": "250e0dc5a151e705c3253ec74a1e3953e4d63a58cb2ff48abd3c5f612c984ca0"
+  },
+  "node": "v24.22.1"
+}

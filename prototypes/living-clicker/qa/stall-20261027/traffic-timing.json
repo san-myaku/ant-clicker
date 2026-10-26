@@ -1,0 +1,41 @@
+{
+  "node": "v24.22.1",
+  "inputSha256": "9a7040181eb0e78eea03d30b560c6df205c11d41961447ea379bf8a456d8a2f8",
+  "ants": 128,
+  "warmupSteps": 180,
+  "measuredSteps": 1200,
+  "pairs": [
+    {
+      "pair": 0,
+      "startStateSha256": "eb893e3601435b4f6ffce73ffd150b1755d21a25855f302602de440c1d39e641",
+      "oldMsPerStep": 2.2514523333333334,
+      "gridMsPerStep": 2.3520064166666663
+    },
+    {
+      "pair": 1,
+      "startStateSha256": "eb893e3601435b4f6ffce73ffd150b1755d21a25855f302602de440c1d39e641",
+      "gridMsPerStep": 2.164999333333332,
+      "oldMsPerStep": 2.202911416666666
+    },
+    {
+      "pair": 2,
+      "startStateSha256": "eb893e3601435b4f6ffce73ffd150b1755d21a25855f302602de440c1d39e641",
+      "oldMsPerStep": 2.1599865833333327,
+      "gridMsPerStep": 2.111913749999997
+    },
+    {
+      "pair": 3,
+      "startStateSha256": "eb893e3601435b4f6ffce73ffd150b1755d21a25855f302602de440c1d39e641",
+      "gridMsPerStep": 2.138836249999998,
+      "oldMsPerStep": 2.1497155833333332
+    }
+  ],
+  "medianOldMs": 2.1814489999999993,
+  "medianGridMs": 2.1519177916666647,
+  "hashes": {
+    "core.js": "10a24bb9014046e7e3ac48abd82b41b88adffe2e0e04057a8644e24b31912bfb",
+    "lifecycle.js": "e3811fe72b1fece21ec7cc25a678901d80199b0d5584775a9ab509bb85371090",
+    "game.js": "250e0dc5a151e705c3253ec74a1e3953e4d63a58cb2ff48abd3c5f612c984ca0"
+  },
+  "scope": "同じ128匹保存・同じwarm-up後から新旧を交互に単独計測。診断は無効。1000匹の実ゲームやiPhoneでの測定ではない。"
+}

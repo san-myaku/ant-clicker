@@ -87,4 +87,11 @@ replace("    $('space-note').textContent='\u80b2\u5150\u5ba4 '+s.capacity.larvae
 replace("    const base=type===2?[115,94,72]:[141,122,99];","    const base=type===4?[164,158,144]:type===2?[115,94,72]:[141,122,99];",'pebble colour');
 replace("['','\u571f','\u786c\u3044\u571f','\u5ca9'][t]","['','\u571f','\u786c\u3044\u571f','\u5ca9','\u5c0f\u77f3'][t]",'pebble name');
 replace("b.kind==='soil'?'\u7802\u7c92':","b.kind==='soil'?(b.material===4?'\u5c0f\u77f3':'\u7802\u7c92'):",'carried pebble name');
+replace('  window.colonyGame = {',fs.readFileSync(path.join(root,'view-diagnostics.js'),'utf8')+'\n  window.colonyGame = {','opt-in diagnostics inspection API');
+replace('    reset, render, screen, dump:', '    startDiagnostics, stopDiagnostics, diagnostics:()=>diagnostics?.export()||lastDiagnostics, reset, render, screen, dump:', 'diagnostics exports');
+replace('const candidate=new Simulation(seed);checkpoint();sim = candidate;', 'const candidate=new Simulation(seed);checkpoint();stopDiagnostics();sim = candidate;', 'stop diagnostics across new nests');
+replace('checkpoint();sim = candidate; selected = null;', 'checkpoint();stopDiagnostics();sim = candidate; selected = null;', 'stop diagnostics across restored nests');
+replace('sim.colony.laying=!sim.colony.laying;', "diagnostics?.recordSetting('colony.laying',!sim.colony.laying);sim.colony.laying=!sim.colony.laying;", 'record laying input');
+replace("speed = +$('speed').value;persist();", "speed = +$('speed').value;diagnostics?.recordSetting('progress.speed',speed);persist();", 'record speed input');
+source=fs.readFileSync(path.join(root,'diagnostics.js'),'utf8')+'\n'+source;
 fs.writeFileSync(path.join(root,'view.js'),source);console.log('Observation view generated with checked hooks.');

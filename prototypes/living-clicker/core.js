@@ -337,6 +337,38 @@
     }
     return values;
   }
+// Embedded inside the generated core factory; W/H are the world's bounds.
+// Buckets only reduce candidates. move() keeps every original traffic rule.
+  class AntTrafficIndex{
+    constructor(ants,width=3){
+      this.ants=ants;this.count=ants.length;this.width=width;
+      this.columns=Math.ceil(W/width);this.rows=Math.ceil(H/width);
+      this.buckets=new Map();this.nodes=new Map();this.byId=new Map();
+      ants.forEach((ant,order)=>{
+        const node={ant,order,cell:this.cell(ant)};this.nodes.set(ant,node);this.byId.set(ant.id,ant);
+        if(!this.buckets.has(node.cell))this.buckets.set(node.cell,new Set());this.buckets.get(node.cell).add(node);
+      });
+    }
+    cell(p){return Math.floor(p.y/this.width)*this.columns+Math.floor(p.x/this.width);}
+    update(ant){
+      const node=this.nodes.get(ant);if(!node)return; // Intruders are not friendly traffic candidates.
+      const cell=this.cell(ant);if(cell===node.cell)return;
+      const old=this.buckets.get(node.cell);old.delete(node);if(!old.size)this.buckets.delete(node.cell);
+      if(!this.buckets.has(cell))this.buckets.set(cell,new Set());this.buckets.get(cell).add(node);node.cell=cell;
+    }
+    query(p,radius=2.6){
+      const nodes=[];
+      const minX=Math.max(0,Math.floor((p.x-radius)/this.width)),maxX=Math.min(this.columns-1,Math.floor((p.x+radius)/this.width));
+      const minY=Math.max(0,Math.floor((p.y-radius)/this.width)),maxY=Math.min(this.rows-1,Math.floor((p.y+radius)/this.width));
+      for(let y=minY;y<=maxY;y++)for(let x=minX;x<=maxX;x++){
+        const bucket=this.buckets.get(y*this.columns+x);if(bucket)for(const node of bucket)nodes.push(node);
+      }
+      // The first eligible worker in the original array wins, even after an
+      // ID was reused or a worker changed bucket during this same step.
+      nodes.sort((a,b)=>a.order-b.order);return nodes.map(node=>node.ant);
+    }
+  }
+
   class Simulation {
     constructor(seed = 24014) {
       this.seed = seed >>> 0;
@@ -1256,9 +1288,14 @@
         if(Math.hypot(b.history[k].x-p.x,b.history[k].y-p.y)<1.2&&!this.passingIndex(b,k))return true;
       }return false;
     }
+    trafficIndex(){
+      if(!this._trafficIndex||this._trafficIndex.ants!==this.ants||this._trafficIndex.count!==this.ants.length)this._trafficIndex=new AntTrafficIndex(this.ants);
+      return this._trafficIndex;
+    }
+    trafficCandidates(p){return this.trafficIndex().query(p);}
     move(ant,dt,occupancy,goal=null){
       if(!ant.path.length)return true;
-      if(ant.yieldHold){const other=this.ants.find(a=>a.id===ant.yieldHold);// Two workers can each have stepped aside for the other. Then the one
+      if(ant.yieldHold){const other=this.trafficIndex().byId.get(ant.yieldHold);// Two workers can each have stepped aside for the other. Then the one
         // with the load or the work goes first, as in a head-on meeting.
         const rank=a=>(this.carriedKind(a)?100:0)+(a.job!==null?10:0)-a.id*.01,mutual=other?.yieldHold===ant.id&&rank(ant)>rank(other);
         if(other&&!mutual&&Math.hypot(other.x-ant.x,other.y-ant.y)<2.4&&this.grainRoom[GRAIN.at(ant.x,ant.y)]!==1&&other.path.length)return false;delete ant.yieldHold;}
@@ -1271,7 +1308,7 @@
       if(grounded){const y=this.surfacePoint(p.x).y;p.y=Math.abs(target.x-ant.x)>1.2||target.y>=y?y:Math.min(p.y,y);}
       // Ant traffic uses lateral lanes and longitudinal spacing; ants are not
       // rigid physics bodies. Terrain clearance still sweeps every body/load.
-      if(p.y>SURFACE-1){let following=false;const ownRoom=this.grainRoom[GRAIN.at(p.x,p.y)],kind=this.carriedKind(ant),flow=a=>{const z=a.path.slice(a.next).find(p=>Math.hypot(p.x-a.x,p.y-a.y)>.25);return z?Math.atan2(z.y-a.y,z.x-a.x):a.angle;},ownFlow=flow(ant),block=ant.enemy?undefined:this.ants.find(b=>{
+      if(p.y>SURFACE-1){let following=false;const ownRoom=this.grainRoom[GRAIN.at(p.x,p.y)],kind=this.carriedKind(ant),flow=a=>{const z=a.path.slice(a.next).find(p=>Math.hypot(p.x-a.x,p.y-a.y)>.25);return z?Math.atan2(z.y-a.y,z.x-a.x):a.angle;},ownFlow=flow(ant),block=ant.enemy?undefined:this.trafficCandidates(p).find(b=>{
         if(b===ant||p.y<SURFACE&&b.y<SURFACE||Math.hypot(p.x-b.x,p.y-b.y)>2.6)return false;
         // Two workers in one stream measure ahead/behind on the same axis, their
         // mean heading, so exactly one of them is ahead of the other.
@@ -1311,7 +1348,7 @@
       ant.detourTime=0;
       delete ant.waitingFor;
       if(!this.sweptClear(ant,p,this.carriedKind(ant),-1,.025)){this.collision={id:ant.id,from:{x:ant.x,y:ant.y,angle:ant.angle},proposed:p,target:q,kind:this.carriedKind(ant)};throw new Error('身体または荷物が土に触れる移動を停止しました');}
-      ant.x=p.x;ant.y=p.y;ant.angle=p.angle;ant.cell=idx(Math.floor(p.x),Math.floor(p.y));ant.walked+=step;if(!ant.enemy)this.stats.distance+=step;
+      ant.x=p.x;ant.y=p.y;ant.angle=p.angle;this._trafficIndex?.update(ant);ant.cell=idx(Math.floor(p.x),Math.floor(p.y));ant.walked+=step;if(!ant.enemy)this.stats.distance+=step;
       if(!ant.enemy&&step&&Math.cos(Math.atan2(q.y-ant.y,q.x-ant.x)-ant.angle)<-.5)this.stats.backwardDistance+=step;
       if(!ant.yielding&&(!ant.trail?.length||Math.hypot(ant.x-ant.trail.at(-1).x,ant.y-ant.trail.at(-1).y)>.12||Math.abs(ant.angle-ant.trail.at(-1).angle)>.08)){if(!ant.trail)ant.trail=[];ant.trail.push({x:ant.x,y:ant.y,angle:ant.angle});if(ant.trail.length>100)ant.trail.shift();}
       if(!ant.enemy){this.traffic[ant.cell]+=step*.2;this._flowCells?.add(ant.cell);}
@@ -1330,7 +1367,7 @@
     }
     tick(dt) {
       if (!Number.isFinite(dt) || dt <= 0 || dt > .2) throw new Error('時間刻みは0〜0.2秒です');
-      this.time += dt; this.ticks++;
+      this.time += dt; this.ticks++;this._trafficIndex=null;
       const occupancy=null,previousX=this.ants.map(a=>a.x),trafficDecay=Math.exp(-dt/14),jamDecay=Math.exp(-dt/10);
       if(!this._flowCells)this._flowCells=new Set(Array.from({length:SIZE},(_,i)=>i).filter(i=>this.traffic[i]||this.jam[i]));
       for(const i of this._flowCells){this.traffic[i]*=trafficDecay;this.jam[i]*=jamDecay;if(this.traffic[i]<1e-8&&this.jam[i]<1e-8){this.traffic[i]=this.jam[i]=0;this._flowCells.delete(i);}}
@@ -1393,7 +1430,7 @@
           const oldY=ant.y,oldAngle=ant.angle;ant.y=walking||!next?groundY:Math.min(ant.y,groundY);
           const dx=ant.x-previousX[k];
           if(Math.abs(dx)>1e-8){const slope=clamp(this.surfacePoint(ant.x+.5).y-this.surfacePoint(ant.x-.5).y,-1,1),direction=Math.sign(Math.cos(oldAngle))||Math.sign(dx);ant.angle=Math.atan2(slope*direction,direction);}
-          if(oldY!==ant.y||oldAngle!==ant.angle)surfaceChanged=true;
+          if(oldY!==ant.y||oldAngle!==ant.angle){surfaceChanged=true;this._trafficIndex?.update(ant);}
         }
       }
       if(surfaceChanged)this.updateCarriers();
@@ -1473,7 +1510,7 @@
       return s;
     }
   }
-  return { Simulation, Physics, W, H, SIZE, SURFACE, PEBBLE, KEY, STEP, PICKUP_SECONDS, SAVE_FORMAT, WALK_SPEED, MAX_LOAD, LANE_OFFSET, LOAD_OFFSETS, carryShape, GRAIN, GRID, FW, FH, FINE_SIZE, GRAIN_AREA, ANT_SIZE, ANT_BODY, DUMP_CELL, renderAngle, names, xy, idx, neighbors, hash, encodeGrains, decodeGrains, layerBoundaries, grainCost, workCost, soilResistance };
+  return { Simulation, AntTrafficIndex, Physics, W, H, SIZE, SURFACE, PEBBLE, KEY, STEP, PICKUP_SECONDS, SAVE_FORMAT, WALK_SPEED, MAX_LOAD, LANE_OFFSET, LOAD_OFFSETS, carryShape, GRAIN, GRID, FW, FH, FINE_SIZE, GRAIN_AREA, ANT_SIZE, ANT_BODY, DUMP_CELL, renderAngle, names, xy, idx, neighbors, hash, encodeGrains, decodeGrains, layerBoundaries, grainCost, workCost, soilResistance };
 });
 
 

@@ -6,10 +6,20 @@
 
 # Ant Colony V23 Current System Overview
 
-Last updated: 2026-10-27（Codex引き継ぎ検証・1000匹計画。ゲーム未変更）
+Last updated: 2026-10-27（停止診断・交通の格子化。旧公開本編は不変）
 Target file: `index.html`
 
 This document is the current implementation overview for the single-file ant clicker game. When gameplay, UI, save data, AI behavior, or public deployment assumptions change, update this file together with `DEVELOPMENT_LOG.md`.
+
+## 2026-10-27 停止診断・交通の格子化（Codex）
+
+Muse調査を反映した第一段階を実装。通常は無効の読み取り専用診断を追加し、持続する待ち閉路、割り当て済み仕事の無進行、消えた給餌先/荷/運び手、物理更新から外れた物体を記録する。先行保存・操作/時間刻み・ソースhashで再現を支え、元の例外/ゲーム状態は変えない。画面の説明や操作は追加せず、編集元は diagnostics.js / view-diagnostics.js、生成先は view.js。任意の直接代入・全種類の未割当停止を記録/判定できるわけではない。
+
+交通は traffic-index.js を build.cjs からcore.jsへ組み込み、幅3の格子/番号Mapで近傍を引く。候補は元の配列順に戻し、半径2.6・同室除外・従来の譲り/身体/荷の判定を維持。同じ更新内の移動・地表追従を直後に反映する。game.js/lifecycle.js・人口上限128・保存形式は不変。停止の瞬間移動/土の削除/無条件待機解除はしていない。
+
+速度条件は変更前ソースで無負荷/並走/無負荷を測り、並走負荷による不合格を再現。検証器はモデル/通し確認を並列に保ち、ブラウザ系をその後の専有実行へ分けた。期間/閾値は維持。最終20本合格・自然128匹・従来との9保存バイト一致、計測値と63ソースhashは [検証記録](prototypes/living-clicker/qa/VERIFICATION.md)。実効10倍や1000匹/実機での性能を保証するものではない。
+
+次は実空洞の経路共有。その後に番号/運び手/保存と人口研究・育児/供給/実容量を設計する。狭い実区間の進入予約は未実装。[計画](handoff/PLAN_1000_ANTS.md)。main/Pages/PR/pushは行わない。
 
 ## 2026-10-27 蟻ゲームの前例調査を参考資料へ追加（未実装）
 

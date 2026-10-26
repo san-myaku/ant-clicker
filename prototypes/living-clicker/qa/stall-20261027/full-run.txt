@@ -1,0 +1,42 @@
+chain copy: C:\Users\yuhim\AppData\Local\Temp\living-chain-mzvMAF
+START chain
+START waste
+START raid
+START ferment
+START housing
+START pebble
+START disease
+START approach
+START rock
+START research
+START cargo-turn
+START storage
+START reservation
+START headon
+START turn
+START diagnostics
+PASS turn            3 s
+START traffic
+PASS reservation    30 s
+PASS storage        37 s
+PASS headon         42 s
+PASS cargo-turn     45 s
+PASS rock           63 s
+PASS research       63 s
+PASS approach       67 s
+PASS disease        76 s
+PASS diagnostics    94 s
+PASS pebble        122 s
+PASS ferment       205 s
+PASS traffic       211 s
+PASS raid          219 s
+PASS housing       231 s
+PASS waste         345 s
+PASS chain         608 s
+START smoke (exclusive)
+PASS smoke           2 s
+START touch (exclusive)
+PASS touch          13 s
+START browser (exclusive)
+PASS browser        23 s
+ALL PASS in 646 s on 16 cores

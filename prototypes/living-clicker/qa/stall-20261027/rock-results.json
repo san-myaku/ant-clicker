@@ -1,0 +1,18 @@
+{
+  "pass": true,
+  "at": 2100.999999999141,
+  "oldTip": {
+    "x": 60.880986313697846,
+    "y": 22.839790213551638,
+    "angle": 0.7853981633974483
+  },
+  "tipAfter": {
+    "x": 62.22560951231858,
+    "y": 24.45501146224547,
+    "angle": 1.1780972450961724
+  },
+  "soilOpenedByReplanning": 0,
+  "antsRepositioned": 0,
+  "realNewFoodBranchDeliveries": 41,
+  "avoided": 1
+}

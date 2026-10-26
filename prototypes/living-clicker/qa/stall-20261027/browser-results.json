@@ -1,0 +1,103 @@
+{
+  "results": [
+    {
+      "width": 1440,
+      "pass": true,
+      "overflow": false,
+      "protected": true,
+      "camera": {
+        "x": 46,
+        "y": 21.5,
+        "zoom": 2.574493444576877,
+        "scale": 24,
+        "width": 1138,
+        "height": 839,
+        "dpr": 1
+      },
+      "selection": "none",
+      "viewport": "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
+      "errors": []
+    },
+    {
+      "width": 393,
+      "pass": true,
+      "overflow": false,
+      "protected": true,
+      "camera": {
+        "x": 46,
+        "y": 21.5,
+        "zoom": 3.682864450127877,
+        "scale": 15,
+        "width": 391,
+        "height": 451.546875,
+        "dpr": 2
+      },
+      "selection": "none",
+      "viewport": "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
+      "errors": []
+    },
+    {
+      "width": 320,
+      "pass": true,
+      "overflow": false,
+      "protected": true,
+      "camera": {
+        "x": 46,
+        "y": 21.5,
+        "zoom": 3.8400000000000003,
+        "scale": 12.72,
+        "width": 318,
+        "height": 451.546875,
+        "dpr": 2
+      },
+      "selection": "none",
+      "viewport": "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
+      "errors": []
+    },
+    {
+      "name": "live-10x",
+      "pass": true,
+      "startTime": 0.3833333333333333,
+      "time": 31.23333333333284,
+      "at": 7119.70000000298,
+      "distance": 967.0632685478942,
+      "dug": 27,
+      "advanced": 30.849999999999508,
+      "wallSeconds": 6.20890000000596,
+      "errors": []
+    },
+    {
+      "name": "diagnostics-browser-replay",
+      "pass": true,
+      "same": true,
+      "restoredStep": true,
+      "incidents": 0,
+      "operations": [
+        "call",
+        "call",
+        "setting",
+        "setting",
+        "step"
+      ],
+      "calls": [
+        "tap",
+        "shiftRole"
+      ],
+      "settings": [
+        "colony.laying",
+        "progress.speed"
+      ]
+    },
+    {
+      "name": "corrupt-save-protection",
+      "pass": true
+    }
+  ],
+  "hashes": {
+    "index.html": "1a377628c194d695ae92af706daf539686b262f3e0183633f225241b96181d46",
+    "core.js": "10a24bb9014046e7e3ac48abd82b41b88adffe2e0e04057a8644e24b31912bfb",
+    "lifecycle.js": "e3811fe72b1fece21ec7cc25a678901d80199b0d5584775a9ab509bb85371090",
+    "game.js": "250e0dc5a151e705c3253ec74a1e3953e4d63a58cb2ff48abd3c5f612c984ca0",
+    "view.js": "daaf84c7d99ac0e3a8ac952d85d1a9dbaca825e7be2484fff65e341c3439c78f"
+  }
+}

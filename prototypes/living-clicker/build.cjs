@@ -225,6 +225,19 @@ replace("return { Simulation, Physics, W, H, SIZE, SURFACE,","return { Simulatio
 replace("if((along>.15||Math.abs(along)<=.15&&b.id<ant.id)&&Math.hypot(p.x-b.x,p.y-b.y)<(kind?2.3:1.8)){following=true;return true;}","if((along>.15||Math.abs(along)<=.15&&b.id<ant.id)&&Math.hypot(p.x-b.x,p.y-b.y)<(kind?2.3:1.8)){following=true;return true;}\n          // Side by side in one stream the lower id leads; the leader is not\n          // held back by its follower under any other rule.\n          if(Math.abs(along)<=.15)return false;",'one leader for two workers side by side');
 replace("const dx=b.x-ant.x,dy=b.y-ant.y,along=dx*Math.cos(ownFlow)+dy*Math.sin(ownFlow),side=Math.abs(dx*Math.sin(ownFlow)-dy*Math.cos(ownFlow)),room=this.grainRoom[GRAIN.at(b.x,b.y)],sameFlow=Math.cos(ownFlow-flow(b))>.96;","// Two workers in one stream measure ahead/behind on the same axis, their\n        // mean heading, so exactly one of them is ahead of the other.\n        const otherFlow=flow(b),sameFlow=Math.cos(ownFlow-otherFlow)>.96,axis=sameFlow?Math.atan2(Math.sin(ownFlow)+Math.sin(otherFlow),Math.cos(ownFlow)+Math.cos(otherFlow)):ownFlow;\n        const dx=b.x-ant.x,dy=b.y-ant.y,along=dx*Math.cos(axis)+dy*Math.sin(axis),side=Math.abs(dx*Math.sin(axis)-dy*Math.cos(axis)),room=this.grainRoom[GRAIN.at(b.x,b.y)];",'a shared axis for ahead and behind');
 replace("if(other&&Math.hypot(other.x-ant.x,other.y-ant.y)<2.4&&this.grainRoom[GRAIN.at(ant.x,ant.y)]!==1&&other.path.length)return false;delete ant.yieldHold;","// Two workers can each have stepped aside for the other. Then the one\n        // with the load or the work goes first, as in a head-on meeting.\n        const rank=a=>(this.carriedKind(a)?100:0)+(a.job!==null?10:0)-a.id*.01,mutual=other?.yieldHold===ant.id&&rank(ant)>rank(other);\n        if(other&&!mutual&&Math.hypot(other.x-ant.x,other.y-ant.y)<2.4&&this.grainRoom[GRAIN.at(ant.x,ant.y)]!==1&&other.path.length)return false;delete ant.yieldHold;",'no mutual stepping aside');
+replace('  class Simulation {',fs.readFileSync(path.join(root,'traffic-index.js'),'utf8')+'\n  class Simulation {','traffic index source');
+replace('    move(ant,dt,occupancy,goal=null){',`    trafficIndex(){
+      if(!this._trafficIndex||this._trafficIndex.ants!==this.ants||this._trafficIndex.count!==this.ants.length)this._trafficIndex=new AntTrafficIndex(this.ants);
+      return this._trafficIndex;
+    }
+    trafficCandidates(p){return this.trafficIndex().query(p);}
+    move(ant,dt,occupancy,goal=null){`,'nearby traffic candidates');
+replace('block=ant.enemy?undefined:this.ants.find(b=>{','block=ant.enemy?undefined:this.trafficCandidates(p).find(b=>{','traffic broad phase only');
+replace('const other=this.ants.find(a=>a.id===ant.yieldHold);','const other=this.trafficIndex().byId.get(ant.yieldHold);','traffic hold id lookup');
+replace('ant.x=p.x;ant.y=p.y;ant.angle=p.angle;', 'ant.x=p.x;ant.y=p.y;ant.angle=p.angle;this._trafficIndex?.update(ant);','update index before next worker moves');
+replace('if(oldY!==ant.y||oldAngle!==ant.angle)surfaceChanged=true;', 'if(oldY!==ant.y||oldAngle!==ant.angle){surfaceChanged=true;this._trafficIndex?.update(ant);}','update index after surface settling');
+replace('this.time += dt; this.ticks++;', 'this.time += dt; this.ticks++;this._trafficIndex=null;','rebuild traffic snapshot each completed tick');
+replace('return { Simulation, Physics,', 'return { Simulation, AntTrafficIndex, Physics,','traffic index for verification');
 fs.writeFileSync(path.join(root,'core.js'),source);
 source=read('game.js');
 replace("FORMAT='ant-colony-1',KEY='antColonyGame_1',LIMIT=64","FORMAT='living-clicker-life-1',KEY='livingClicker_1',LIMIT=128",'independent lifecycle save');
