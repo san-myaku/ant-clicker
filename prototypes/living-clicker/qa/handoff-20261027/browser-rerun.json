@@ -1,0 +1,77 @@
+{
+  "results": [
+    {
+      "width": 1440,
+      "pass": true,
+      "overflow": false,
+      "protected": true,
+      "camera": {
+        "x": 46,
+        "y": 21.5,
+        "zoom": 2.574493444576877,
+        "scale": 24,
+        "width": 1138,
+        "height": 839,
+        "dpr": 1
+      },
+      "selection": "none",
+      "viewport": "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
+      "errors": []
+    },
+    {
+      "width": 393,
+      "pass": true,
+      "overflow": false,
+      "protected": true,
+      "camera": {
+        "x": 46,
+        "y": 21.5,
+        "zoom": 3.682864450127877,
+        "scale": 15,
+        "width": 391,
+        "height": 451.546875,
+        "dpr": 2
+      },
+      "selection": "none",
+      "viewport": "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
+      "errors": []
+    },
+    {
+      "width": 320,
+      "pass": true,
+      "overflow": false,
+      "protected": true,
+      "camera": {
+        "x": 46,
+        "y": 21.5,
+        "zoom": 3.8400000000000003,
+        "scale": 12.72,
+        "width": 318,
+        "height": 451.546875,
+        "dpr": 2
+      },
+      "selection": "none",
+      "viewport": "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
+      "errors": []
+    },
+    {
+      "name": "live-10x",
+      "pass": true,
+      "time": 27.03333333333308,
+      "distance": 821.2002406301937,
+      "dug": 21,
+      "errors": []
+    },
+    {
+      "name": "corrupt-save-protection",
+      "pass": true
+    }
+  ],
+  "hashes": {
+    "index.html": "1a377628c194d695ae92af706daf539686b262f3e0183633f225241b96181d46",
+    "core.js": "1b049db88ce57bc378771b28a2047e0f8a61a3e5880d26dd31e7814adb1086ea",
+    "lifecycle.js": "e3811fe72b1fece21ec7cc25a678901d80199b0d5584775a9ab509bb85371090",
+    "game.js": "250e0dc5a151e705c3253ec74a1e3953e4d63a58cb2ff48abd3c5f612c984ca0",
+    "view.js": "d53978a2461244a6d0409bacb57cebdb7ea20b03d5f49e23956aa6329abf71f7"
+  }
+}

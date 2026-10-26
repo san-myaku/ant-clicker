@@ -1,0 +1,21 @@
+{
+  "tempRoot": "C:\\Users\\yuhim\\AppData\\Local\\Temp\\ant-copy-diagnostic-FVuqnT",
+  "results": [
+    {
+      "name": "ascii",
+      "node": "v22.19.0",
+      "status": 0,
+      "signal": null,
+      "stdout": "copied\n",
+      "stderr": ""
+    },
+    {
+      "name": "unicode",
+      "node": "v22.19.0",
+      "status": 3221226505,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+chain copy: C:\Users\yuhim\AppData\Local\Temp\living-chain-v8y6fL
+PASS turn            3 s
+PASS smoke          13 s
+PASS reservation    32 s
+PASS storage        36 s
+PASS touch          37 s
+PASS headon         40 s
+PASS cargo-turn     45 s
+FAIL browser        39 s
+AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+  assert(end.time-start>20)
+
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+PASS research       58 s
+PASS rock           59 s
+PASS approach       62 s
+PASS disease        70 s
+PASS pebble        110 s
+PASS ferment       192 s
+PASS raid          205 s
+PASS housing       213 s
+PASS waste         342 s
+PASS chain         668 s
+FAILED browser in 668 s on 16 cores

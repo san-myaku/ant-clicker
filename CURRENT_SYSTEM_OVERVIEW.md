@@ -6,10 +6,18 @@
 
 # Ant Colony V23 Current System Overview
 
-Last updated: 2026-10-26 (Claude cloud: living-clicker save fix, planning cache, scale measurement)
+Last updated: 2026-10-27（Codex引き継ぎ検証・1000匹計画。ゲーム未変更）
 Target file: `index.html`
 
 This document is the current implementation overview for the single-file ant clicker game. When gameplay, UI, save data, AI behavior, or public deployment assumptions change, update this file together with `DEVELOPMENT_LOG.md`.
+
+## 2026-10-27 Codexで引き継ぎ、1000匹への計画を作成（未実装）
+
+`claude/confident-dirac-5va5rr` / `9ae35ce` から `codex/ant-1000-plan-20261027` を作成。元の手元の未コミット作業は別の作業場所で保持。指定の引き継ぎ資料・失敗1〜20を読んだ。ゲーム/生成器/保存形式/人口上限は変更していない。
+
+`npm ci` / `npm run build` は合格し生成物は同一。Node 22.19では日本語パスのコピーで異常終了したため、同じコピーが通るNode 24.22.1で全検証を実行。通常17本中16本と通し確認は合格（自然育成6754秒に128匹）。16並列時のbrowser速度条件が不合格、同条件の別コマンドの再実行は合格。**全体合格は未達**であり閾値は変えていない。終了後のソースhashと結果は [検証記録](prototypes/living-clicker/qa/VERIFICATION.md)。
+
+提案は [1000匹への計画](handoff/PLAN_1000_ANTS.md)。渋滞判定の格子化、実空洞の入口/分岐による経路共有、32bitの行動個体番号/運び手/所属と保存・人口上限研究・産卵速度をまとめて設計する。番号を優先度から引く式も大番号で崩れるため比較方法を改める案。実装・採用値の確定はまだ行っていない。main/Pages/PRは未変更。
 
 ## 2026-10-26 クラウドでの継続（living-clicker）
 
