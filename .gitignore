@@ -15,8 +15,6 @@ prototypes/**/qa/routing-results.json
 prototypes/**/qa/delivery-results.json
 prototypes/**/qa/mobile-touch-confirmation/*.png
 prototypes/**/qa/queen-detail/*.png
-prototypes/**/qa/world-60.json
-prototypes/**/qa/world-180.json
 prototypes/**/qa/world-360.json
 prototypes/**/qa/world-600.json
 prototypes/**/qa/depth-input.json
