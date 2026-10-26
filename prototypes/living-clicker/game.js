@@ -17,6 +17,10 @@
     {id:'geo_depth_4',name:'深度IV解放',branch:'地質',desc:'第5・6層を掘り進められる',food:40,cookie:32,max:1,prereq:'geo_depth_3',reached:3}
   ];
   const BY_ID=Object.fromEntries(RESEARCH.map(d=>[d.id,d]));
+  // Spoil: keep the entrance apron clear, dump below this height, and let a
+  // column taller than this many grains compact into the ground.
+  // Food appears at x 15-20; spoil columns start past its slope reach.
+  const SPOIL_CLEAR=7,SPOIL_DUMP=2,SPOIL_SETTLE=5,SPOIL_LEFT=23;
   const UPGRADE_IDS={walk:'gather_1',brood:'brood_1',dig:'dig_speed'};
   class Simulation extends Base.Simulation{
     constructor(seed=24014){
@@ -193,9 +197,32 @@
     }
     buy(key){return this.buyResearch(UPGRADE_IDS[key]);}
     upgradeCost(key){return this.researchCost(UPGRADE_IDS[key])?.food??Infinity;}
+    // Real colonies drop spoil as a low ring on both sides of the entrance.
+    // Fill the nearest low ground first, outward from a clear apron.
+    dumpSite(){
+      const ex=this.entrance.x,columns=[];
+      for(let d=SPOIL_CLEAR;d<W;d++)for(const x of [Math.floor(ex-d),Math.floor(ex+d)])if(x>=SPOIL_LEFT&&x<W-6&&!columns.includes(x))columns.push(x);
+      const height=x=>SURFACE-.9-this.surfacePoint(x+.5).y;
+      const x=columns.find(x=>height(x)<SPOIL_DUMP)??columns.reduce((best,x)=>height(x)<height(best)?x:best);
+      return idx(x,SURFACE-1);
+    }
+    // A loaded mound compacts into the ground beneath it, as rain and weight
+    // do to real spoil. Only a resting delivered grain pressed on the ground
+    // under a tall column joins the ground; the grains above slide down.
+    settleSpoil(){
+      const u=GRAIN.size,columns=new Map();
+      for(const b of this.physics.bodies)if(b.kind==='soil'&&b.state==='delivered'&&!b.carrier&&b.rest>=30&&b.y<SURFACE&&this.physics.drag?.id!==b.id){
+        const c=Math.floor(b.x/u),column=columns.get(c);if(column)column.push(b);else columns.set(c,[b]);
+      }
+      for(const column of columns.values()){
+        if(column.length<=SPOIL_SETTLE)continue;const bottom=column.reduce((a,b)=>b.y>a.y?b:a);
+        if(bottom.y<SURFACE-u)continue;this.physics.remove(bottom);this.stats.grainSettled++;
+      }
+    }
     tick(dt){
       if(this.progress&&this.ticks%30===0)this.ensureDepthRooms();
       super.tick(dt);if(!this.progress)return;
+      if(this.ticks%60===0)this.settleSpoil();
       const awards=Math.floor(this.stats.grainDelivered/80);
       if(awards>this.progress.haulAwards){const delta=awards-this.progress.haulAwards;this.progress.haulAwards=awards;this.progress.cookie+=delta;this.progress.earned+=delta;}
       if(this.ticks%30===0)for(const a of this.ants){if(a.y<SURFACE)continue;const layer=this.layerAt(a.x,a.y);if(layer>this.progress.reached){this.progress.reached=layer;if(!this.progress.claims.includes(layer)){this.progress.claims.push(layer);const amount=layer*3;this.progress.cookie+=amount;this.progress.earned+=amount;this.log('第'+layer+'層に到達。クッキーを'+amount+'個見つけました。');}}}

@@ -409,7 +409,7 @@
         if(ANT_BODY.some(([cx,rx,ry])=>((bx-cx*6.4)/(rx*6.4+.95))**2+(by/(ry*6.4+.95))**2<=1)){this.grains[i]=0;this.grainRoom[i]=1;}
       }
       for(let i=0;i<SIZE;i++)this.syncCell(i);
-      this.stats.grainDug=0;this.stats.grainDelivered=0;
+      this.stats.grainDug=0;this.stats.grainDelivered=0;this.stats.grainSettled=0;
     }
     strength(g,type=this.grains[g]) {
       if(!this._soilEffort)this._soilEffort=new Float64Array(FINE_SIZE);
@@ -1323,11 +1323,11 @@
             }
           }else this.chisel(job);
         } else if (job.phase === 'haul') {
-          if (this.move(ant, dt, occupancy)) { job.phase = 'unload'; ant.task = 'unload'; ant.wait = .65; ant.angle = 0; }
+          if (this.move(ant, dt, occupancy)) { job.phase = 'unload'; ant.task = 'unload'; ant.wait = .65; ant.angle = job.drop%W<this.entrance.x?Math.PI:0; }
         } else if (job.phase === 'unload') {
           if ((ant.wait -= dt) <= 0) {
             if (Math.floor(ant.x)!==job.drop%W || ant.y>=SURFACE || !ant.cargo || ant.cargo.source !== job.target) throw new Error('地上での土の受渡しが不正です');
-            for(const b of this.physics.bodies)if(b.carrier===ant.id){b.state='delivered';this.physics.release(b,1.4+(b.id%5)*.1,-1.3);}
+            for(const b of this.physics.bodies)if(b.carrier===ant.id){b.state='delivered';this.physics.release(b,(job.drop%W<this.entrance.x?-1:1)*(1.4+(b.id%5)*.1),-1.3);}
             this.loose[job.target]--; ant.cargo = null; this.stats.delivered++;
             for (const g of job.grains) this.grainPending[g] = 0;
             this.stats.grainDelivered += job.grains.length;
@@ -1409,7 +1409,8 @@
       }
       for(const a of s.ants)if(a.job!==null&&!jobs.has(a.job))fail();
       for(let i=0;i<SIZE;i++)if(s.loose[i]!==s.jobs.filter(j=>j.target===i&&['haul','unload'].includes(j.phase)).length)fail();
-      if(!s.stats||['dug','delivered','nursery','food','passage','grainDug','grainDelivered','yields'].some(k=>!integer(s.stats[k],0,FINE_SIZE))||!finite(s.stats.distance)||s.stats.grainDug-s.stats.grainDelivered!==pending.size||s.stats.dug-s.stats.delivered!==s.jobs.filter(j=>j.phase==='haul'||j.phase==='unload').length)fail();
+      if(s.stats&&s.stats.grainSettled===undefined)s.stats.grainSettled=0;
+      if(!s.stats||['dug','delivered','nursery','food','passage','grainDug','grainDelivered','grainSettled','yields'].some(k=>!integer(s.stats[k],0,FINE_SIZE))||!finite(s.stats.distance)||s.stats.grainDug-s.stats.grainDelivered!==pending.size||s.stats.dug-s.stats.delivered!==s.jobs.filter(j=>j.phase==='haul'||j.phase==='unload').length)fail();
       if(!Array.isArray(s.events)||s.events.length>30||s.events.some(e=>!finite(e.time)||typeof e.text!=='string'||e.text.length>200))fail();
       for(let i=0;i<SIZE;i++){
         const cells=GRAIN.cells(i);if(s.terrain[i]!==cells.reduce((n,g)=>Math.max(n,s.grains[g]),0))fail();
@@ -1418,7 +1419,7 @@
       s.initObjects(pack.physics);
       const counts={soil:0,egg:0,food:0};let delivered=0;
       for(const b of s.physics.bodies){counts[b.kind]++;if(b.carrier){const a=s.ants.find(a=>a.id===b.carrier);if(!a||(b.kind==='soil'?!s.jobs.some(j=>j.ant===a.id&&j.grains.includes(b.source)):a.itemTask?.body!==b.id))fail();}else if(s.physics.terrainOverlap(b)||s.physics.penetration(b)>1e-5)fail();if(b.state==='delivered')delivered++;}
-      if(counts.soil!==s.stats.grainDug||delivered!==s.stats.grainDelivered)fail();
+      if(counts.soil+s.stats.grainSettled!==s.stats.grainDug||delivered+s.stats.grainSettled!==s.stats.grainDelivered)fail();
       const itemOwners=new Set();
       for(const a of s.ants){
         if(a.y>=SURFACE&&!s.poseClear(a,s.carriedKind(a)))fail();

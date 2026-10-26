@@ -7,12 +7,12 @@
     "angle": 0.7853981633974483
   },
   "tipAfter": {
-    "x": 62.22560951231858,
-    "y": 24.45501146224547,
+    "x": 62.41695122850112,
+    "y": 24.416951228501112,
     "angle": 1.1780972450961724
   },
   "soilOpenedByReplanning": 0,
   "antsRepositioned": 0,
-  "realNewFoodBranchDeliveries": 89,
+  "realNewFoodBranchDeliveries": 27,
   "avoided": 1
 }

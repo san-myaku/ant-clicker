@@ -51,9 +51,9 @@
     render();
   }
   function fit() {
-    const points=[...sim.ants,...sim.physics.bodies.filter(b=>b.kind!=='soil')];
+    const points=[...sim.ants,...sim.physics.bodies.filter(b=>b.kind!=='soil'||!b.carrier&&b.y<SURFACE)];
     for(let g=0;g<sim.grains.length;g++)if(!sim.grains[g]&&sim.grainRoom[g])points.push(GRAIN.center(g));
-    const minX=Math.max(0,Math.min(...points.map(p=>p.x))-4),maxX=Math.min(W,Math.max(...points.map(p=>p.x),sim.drop%W+7)+4),minY=0,maxY=Math.max(34,...points.map(p=>p.y))+4;
+    const minX=Math.max(0,Math.min(...points.map(p=>p.x))-4),maxX=Math.min(W,Math.max(...points.map(p=>p.x),sim.entrance.x+9)+4),minY=0,maxY=Math.max(34,...points.map(p=>p.y))+4;
     cam.x=(minX+maxX)/2;cam.scale=Math.min(cam.width/(maxX-minX),cam.height/(maxY-minY))*.92;cam.y=Math.max((minY+maxY)/2,cam.height/(2*cam.scale));cam.zoom=cam.scale/Math.min(cam.width/W,cam.height/H);
   }
   function focusView() {
@@ -347,7 +347,6 @@
     const entrance = screen(sim.entrance.x, 4.5), dump = xy(sim.drop), above = screen(dump.x + 2, 3);
     ctx.font = '11px "Yu Gothic UI",Meiryo,sans-serif'; ctx.fillStyle = '#5c554a'; ctx.textAlign = 'center';
     if (entrance.y > 18) ctx.fillText('入口', entrance.x, entrance.y);
-    if (above.y > 18) ctx.fillText('土捨て場', above.x, above.y);
     const forage=screen(17.5,4.5);if(forage.y>18)ctx.fillText('採集場所',forage.x,forage.y);
   }
   const roleNames={forage:'採集係',nurse:'育児係',build:'掘削係'},stageNames={egg:'卵',larva:'幼虫',pupa:'蛹'};

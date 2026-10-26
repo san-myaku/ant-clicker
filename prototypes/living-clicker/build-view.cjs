@@ -12,9 +12,9 @@ replace('sim = new Simulation(seed); selected = null;', 'const candidate=new Sim
 replace('sim = candidate; selected = null; cachedRevision = -1; accumulator = 0; lastSave = sim.time;\n    $(\'seed\').value = sim.seed;', 'checkpoint();sim = candidate; selected = null; cachedRevision = -1; accumulator = 0; lastSave = sim.time;\n    speed=sim.progress.speed;$(\'speed\').value=String(speed);\n    $(\'seed\').value = sim.seed;','atomic adoption');
 replace("  let invalidStored = paused;","  let invalidStored = paused;\n  speed=sim.progress.speed;$('speed').value=String(speed);",'restore speed');
 replace(`    cam.x = W / 2; cam.y = H / 2; cam.zoom = .95;
-    cam.scale = Math.min(cam.width / W, cam.height / H) * cam.zoom;`,`    const points=[...sim.ants,...sim.physics.bodies.filter(b=>b.kind!=='soil')];
+    cam.scale = Math.min(cam.width / W, cam.height / H) * cam.zoom;`,`    const points=[...sim.ants,...sim.physics.bodies.filter(b=>b.kind!=='soil'||!b.carrier&&b.y<SURFACE)];
     for(let g=0;g<sim.grains.length;g++)if(!sim.grains[g]&&sim.grainRoom[g])points.push(GRAIN.center(g));
-    const minX=Math.max(0,Math.min(...points.map(p=>p.x))-4),maxX=Math.min(W,Math.max(...points.map(p=>p.x),sim.drop%W+7)+4),minY=0,maxY=Math.max(34,...points.map(p=>p.y))+4;
+    const minX=Math.max(0,Math.min(...points.map(p=>p.x))-4),maxX=Math.min(W,Math.max(...points.map(p=>p.x),sim.entrance.x+9)+4),minY=0,maxY=Math.max(34,...points.map(p=>p.y))+4;
     cam.x=(minX+maxX)/2;cam.scale=Math.min(cam.width/(maxX-minX),cam.height/(maxY-minY))*.92;cam.y=Math.max((minY+maxY)/2,cam.height/(2*cam.scale));cam.zoom=cam.scale/Math.min(cam.width/W,cam.height/H);`,'fit the living nest, not empty future world');
 replace(`    cam.x = W / 2; cam.y = 26; cam.zoom = cam.width < 600 ? 2.4 : 1.9;
     cam.scale = Math.min(cam.width / W, cam.height / H) * cam.zoom;`,`    cam.x=46;cam.y=21.5;cam.scale=cam.width<600?Math.min(15,cam.width/25):Math.min(24,cam.height/31);cam.zoom=cam.scale/Math.min(cam.width/W,cam.height/H);`,'observation scale');
@@ -31,6 +31,8 @@ replace('    floor.clearRect(0,0,FW,FH);',`    floor.clearRect(0,0,FW,FH);
     }`,'real-air lighting and hidden geology');
 replace("floor.fillStyle=rid===1?'#e2d1a9':rid===2?'#e5d7bc':rid===3?'#dcccab':'#d7c7ab';","floor.fillStyle=rid===1?'#e2d1a9':rid>=2?(sim.roomKind(rid)==='egg'?'#e5d7bc':'#dcccab'):'#d7c7ab';",'shared room purpose colors');
 replace("else{const g=selected.grain,t=sim.grains[g];line(t?['','土','硬い土','岩'][t]:names[sim.grainRoom[g]],true);line(t===3?'掘れない岩です':t?'まだ掘っていない土です':'アリが通れる空間です');}","else{const g=selected.grain,t=sim.grains[g],p=GRAIN.center(g),known=visibleGrains?.[g]>0;line(t?(known?['','土','硬い土','岩'][t]:'第'+sim.layerAt(p.x,p.y)+'層の土'):names[sim.grainRoom[g]],true);line(t?(known&&t===3?'掘れない岩です':sim.layerAt(p.x,p.y)>sim.depthAbility()?'深度研究で掘れるようになります。':'まだ掘っていない場所です。'):'アリが通れる空間です');}",'do not disclose buried rock by selection');
+// Spoil now rings the entrance on both sides; the mound itself shows where.
+replace("    if (above.y > 18) ctx.fillText('土捨て場', above.x, above.y);\n","",'no fixed dump label');
 replace("s.ants+sim.colony.brood.length>=ColonyGame.LIMIT?", "s.ants+sim.colony.brood.length>=sim.populationLimit()?",'live population cap');
 replace("Math.ceil((1-s.queen)*40)", "Math.ceil((1-s.queen)*40/sim.layRate())", 'remaining laying time follows the queen research');
 replace("if(s.ants===64)cause='64匹のコロニーに育ちました。この区画の目標達成です。';","if(s.ants+sim.colony.brood.length>=sim.populationLimit())cause='コロニーが育ちました。女王と地質の研究で、次の成長へ。';",'growth continues through research');

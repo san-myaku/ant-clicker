@@ -69,6 +69,14 @@ replace('for(const rid of [2,3]){const b=pack.builds[rid];','for(const rid of pa
 replace("['grainRoom',3]","['grainRoom',13]",'grain room tags');
 replace('!integer(a.id,1,64)','!integer(a.id,1,128)','stable ant ids');
 replace('material>2||carrier>64||','material>2||carrier>128||','bodies carried by stable ant ids');
+// Spoil lands on both sides of the entrance: face and throw away from it.
+replace("job.phase = 'unload'; ant.task = 'unload'; ant.wait = .65; ant.angle = 0;","job.phase = 'unload'; ant.task = 'unload'; ant.wait = .65; ant.angle = job.drop%W<this.entrance.x?Math.PI:0;",'face outward at the dump');
+replace("this.physics.release(b,1.4+(b.id%5)*.1,-1.3);","this.physics.release(b,(job.drop%W<this.entrance.x?-1:1)*(1.4+(b.id%5)*.1),-1.3);",'throw spoil outward');
+// Delivered grains that compacted into the ground leave the body ledger but
+// stay counted: dug = loose bodies + settled, delivered = resting + settled.
+replace("this.stats.grainDug=0;this.stats.grainDelivered=0;","this.stats.grainDug=0;this.stats.grainDelivered=0;this.stats.grainSettled=0;",'settled spoil ledger');
+replace("if(!s.stats||['dug','delivered','nursery','food','passage','grainDug','grainDelivered','yields']","if(s.stats&&s.stats.grainSettled===undefined)s.stats.grainSettled=0;\n      if(!s.stats||['dug','delivered','nursery','food','passage','grainDug','grainDelivered','grainSettled','yields']",'saved settled spoil');
+replace("if(counts.soil!==s.stats.grainDug||delivered!==s.stats.grainDelivered)fail();","if(counts.soil+s.stats.grainSettled!==s.stats.grainDug||delivered+s.stats.grainSettled!==s.stats.grainDelivered)fail();",'settled spoil balances the soil ledger');
 replace('![0,2,3].includes(j.rid)','![0,...s.roomIds()].includes(j.rid)','saved work room');
 replace('![1,2,3].includes(t.rid)','![1,...s.roomIds()].includes(t.rid)','saved item destination');
 replace('    tipFootprint(a,b){',`    // A footprint is pure geometry of its poses: no terrain, stock or actor
