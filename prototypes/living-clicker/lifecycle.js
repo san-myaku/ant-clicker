@@ -134,7 +134,7 @@
       const all=this._incoming,feeding=new Set(this.ants.filter(a=>a.itemTask?.purpose==='feed').map(a=>a.itemTask.target));
       const maximum=Math.max(10,Math.ceil(this.ants.length*1.2));
       let stocked=null;
-      this._incoming=(all||[]).filter(b=>!feeding.has(b.id)&&(ant.role==='nurse'?b.kind==='egg':b.kind==='food'&&(!this.colony.wild.includes(b.id)||(stocked??=this.foodBodies().length)<maximum)));
+      this._incoming=(all||[]).filter(b=>!feeding.has(b.id)&&(ant.role==='nurse'?b.kind==='egg':(b.kind==='food'&&(!this.colony.wild.includes(b.id)||(stocked??=this.foodBodies().length)<maximum)||b.kind==='cookie')));
       let result;try{result=super.stepItemTask(ant,dt,occupancy);}finally{this._incoming=all;}
       if(ant.itemTask?.phase==='store'&&this.colony.wild.includes(ant.itemTask.body)){
         this.colony.wild=this.colony.wild.filter(id=>id!==ant.itemTask.body);this.colony.stats.gathered++;
@@ -176,7 +176,7 @@
     }
     assertLedger(){
       const fail=()=>{throw new Error('コロニーの数が一致しません');},c=this.colony,stats=c.stats,eggs=this.physics.bodies.filter(b=>b.kind==='egg'),food=this.physics.bodies.filter(b=>b.kind==='food');
-      if(this.ants.length!==stats.initialAnts+stats.born-(stats.died||0)||c.brood.length+stats.born!==stats.initialBrood+stats.laid||food.length+stats.eaten+stats.spent!==stats.initialFood+stats.generated+(c.waste?.recycled||0)||eggs.length!==c.brood.length)fail();
+      if(this.ants.length!==stats.initialAnts+stats.born-(stats.died||0)||c.brood.length+stats.born!==stats.initialBrood+stats.laid||food.length+stats.eaten+stats.spent+(c.ferment?.used||0)!==stats.initialFood+stats.generated+(c.waste?.recycled||0)||eggs.length!==c.brood.length)fail();
       if(new Set(c.brood.map(e=>e.id)).size!==eggs.length||c.brood.some(e=>this.physics.byId.get(e.id)?.kind!=='egg')||new Set(c.wild).size!==c.wild.length||c.wild.some(id=>this.physics.byId.get(id)?.kind!=='food'))fail();
       return true;
     }

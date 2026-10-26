@@ -131,13 +131,16 @@ replace("    digPoseFor(g,preferred=null){",`    knownRoute(from,to,kind){
 replace("  const FOOTPRINT_MEMO=60000;","  const FOOTPRINT_MEMO=60000,KNOWN_ROUTES=20000;",'proven route bound');
 // Waste is a real pellet. It rests as refuse until a nurse carries it out.
 // Appended kind/state indices keep earlier saves' encoded bodies valid.
-replace("food:{hx:3/16,hy:3/16,density:.8}};","food:{hx:3/16,hy:3/16,density:.8},waste:{hx:5/32,hy:1/8,density:.7}};",'waste pellet shape');
-replace("const KINDS=['soil','egg','food'],STATES=['cargo','delivered','incoming','stored','pickup'];","const KINDS=['soil','egg','food','waste'],STATES=['cargo','delivered','incoming','stored','pickup','refuse'];",'waste kind and refuse state');
-replace("const counts={soil:0,egg:0,food:0};","const counts={soil:0,egg:0,food:0,waste:0};",'waste body count');
+replace("food:{hx:3/16,hy:3/16,density:.8}};","food:{hx:3/16,hy:3/16,density:.8},waste:{hx:5/32,hy:1/8,density:.7},cookie:{hx:5/32,hy:5/32,density:.6}};",'waste pellet shape');
+replace("const KINDS=['soil','egg','food'],STATES=['cargo','delivered','incoming','stored','pickup'];","const KINDS=['soil','egg','food','waste','cookie'],STATES=['cargo','delivered','incoming','stored','pickup','refuse'];",'waste kind and refuse state');
+replace("const counts={soil:0,egg:0,food:0};","const counts={soil:0,egg:0,food:0,waste:0,cookie:0};",'waste body count');
 // Rooms carry their purpose; a passage turning into its chamber keeps it.
 replace("b.mode='chamber';this.rooms[rid]={id:rid,x:b.tip.x,y:b.tip.y};","b.mode='chamber';this.rooms[rid]={...this.rooms[rid],id:rid,x:b.tip.x,y:b.tip.y};",'chamber keeps its purpose');
 replace("this.log(names[rid]+'に荷物を","this.log((this.roomName?.(rid)??names[rid])+'に荷物を",'room name in log');
 replace("name:names[rid],","name:this.roomName?.(rid)??names[rid],",'room name in status');
+// An item deliberately picked to move (to fermentation, or off a lane that
+// must open) stays incoming in its own kind of room until a worker takes it.
+replace("this.roomKind(this.grainRoom[GRAIN.at(b.x,b.y)])===b.kind)b.state='stored';","this.roomKind(this.grainRoom[GRAIN.at(b.x,b.y)])===b.kind&&!this.keepIncoming?.(b))b.state='stored';",'picked items stay incoming');
 fs.writeFileSync(path.join(root,'core.js'),source);
 source=read('game.js');
 replace("FORMAT='ant-colony-1',KEY='antColonyGame_1',LIMIT=64","FORMAT='living-clicker-life-1',KEY='livingClicker_1',LIMIT=128",'independent lifecycle save');
@@ -157,7 +160,7 @@ replace("if(e.feeds>=2){e.age+=dt*rate*(this.stageRate?.('larva')??1);","if(e.fe
 replace("this.physics.remove(b);e.feeds++;e.lastFed=this.time;this.colony.stats.eaten++;","this.physics.remove(b);e.feeds++;e.lastFed=this.time;this.colony.stats.eaten++;this.afterMeal?.(e,target);",'meal leaves waste');
 replace("for(const a of s.ants)if(a.itemTask?.purpose){","for(const a of s.ants)if(a.itemTask?.purpose&&a.itemTask.purpose!=='clean'){",'cleaning is checked by its own rules');
 // Recycled waste is a real source of food, counted next to forage.
-replace("food.length+stats.eaten+stats.spent!==stats.initialFood+stats.generated","food.length+stats.eaten+stats.spent!==stats.initialFood+stats.generated+(c.waste?.recycled||0)",'recycled food ledger');
+replace("food.length+stats.eaten+stats.spent!==stats.initialFood+stats.generated","food.length+stats.eaten+stats.spent+(c.ferment?.used||0)!==stats.initialFood+stats.generated+(c.waste?.recycled||0)",'recycled food ledger');
 // Deaths from disease: a birth takes the smallest free id, and the ant ledger
 // and save check count the dead. Without deaths nothing changes.
 replace("id=this.colony.nextAnt++;","id=this.freeAntId?.()??this.colony.nextAnt++;",'reuse a free ant id');
@@ -165,5 +168,7 @@ replace("c.nextAnt!==s.ants.length+1","c.nextAnt<s.ants.length+1||c.nextAnt-1-s.
 replace("this.ants.length!==stats.initialAnts+stats.born","this.ants.length!==stats.initialAnts+stats.born-(stats.died||0)",'ant ledger with deaths');
 // A real larva expels its gut contents (meconium) once, as it pupates.
 replace("if(e.age>=50){e.stage='pupa';e.age=0;}","if(e.age>=50){e.stage='pupa';e.age=0;this.afterPupate?.(e,b);}",'meconium at pupation');
+// Foragers also carry a finished sweet grain to the queen chamber.
+replace("b.kind==='food'&&(!this.colony.wild.includes(b.id)||(stocked??=this.foodBodies().length)<maximum)","(b.kind==='food'&&(!this.colony.wild.includes(b.id)||(stocked??=this.foodBodies().length)<maximum)||b.kind==='cookie')",'foragers carry sweet grains');
 fs.writeFileSync(path.join(root,'lifecycle.js'),source);
 console.log('Organic core and lifecycle generated with checked hooks.');

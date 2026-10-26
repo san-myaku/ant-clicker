@@ -125,10 +125,10 @@
       ctx.fillStyle=soilColor(b.material,b.source>=0?b.source:GRAIN.at(b.x,b.y));ctx.fillRect(p.x,p.y,GRAIN.size*cam.scale,GRAIN.size*cam.scale);return;
     }
     const brood=sim.colony.brood.find(e=>e.id===b.id);
-    const pattern=b.kind==='waste'?['0110','1111','1110','0110']:b.kind==='egg'?['00111100','01111110','11111111','01111110','00111100']:['001100','011110','111111','111111','011110','001100'];
+    const pattern=b.kind==='cookie'?['0110','1111','1111','0110']:b.kind==='waste'?['0110','1111','1110','0110']:b.kind==='egg'?['00111100','01111110','11111111','01111110','00111100']:['001100','011110','111111','111111','011110','001100'];
     const dot=shape.hx*2/pattern[0].length*cam.scale;
     for(let y=0;y<pattern.length;y++)for(let x=0;x<pattern[y].length;x++)if(pattern[y][x]==='1'){
-      ctx.fillStyle=b.kind==='waste'?(y<1?'#5d5649':x>2?'#2c2924':'#433e35'):b.kind==='egg'?(brood?.stage==='larva'?(x<2?'#bfa76e':y<2?'#f3dda1':'#cdb77e'):brood?.stage==='pupa'?(y<2?'#d6b688':'#98764f'):(y<2?'#fff3d7':y<4?'#e8d5ae':'#b8a581')):(y<2?'#9b843b':y<4?'#7b622e':'#574626');
+      ctx.fillStyle=b.kind==='cookie'?(y<1?'#f6d9a0':x>2?'#c98b43':'#e4ae63'):b.kind==='waste'?(y<1?'#5d5649':x>2?'#2c2924':'#433e35'):b.kind==='egg'?(brood?.stage==='larva'?(x<2?'#bfa76e':y<2?'#f3dda1':'#cdb77e'):brood?.stage==='pupa'?(y<2?'#d6b688':'#98764f'):(y<2?'#fff3d7':y<4?'#e8d5ae':'#b8a581')):(y<2?'#9b843b':y<4?'#7b622e':'#574626');
       ctx.fillRect(p.x+x*dot,p.y+y*dot,dot,dot);
     }
   }
@@ -360,11 +360,11 @@
       if(a.itemTask?.purpose==='feed')line(a.itemTask.phase==='fetch'?'給餌する餌を取りに行く':'幼虫へ餌を届ける');
       else if(a.itemTask)line(a.itemTask.phase==='fetch'?(a.role==='forage'?'地表の餌へ向かう':'卵・幼虫を迎えに行く'):'荷物を部屋へ届ける');
       else line(a.job!==null?tasks[a.task]:a.path.length?'巣内を移動':'次の仕事を待つ');
-      const bodies=sim.physics.bodies.filter(b=>b.carrier===a.id);line('荷物：'+(bodies.length?bodies[0].kind==='soil'?'砂 '+bodies.length+'粒':bodies[0].kind==='food'?'餌 1個':bodies[0].kind==='waste'?'ゴミ 1個':'卵・幼虫 1個':'なし'));
+      const bodies=sim.physics.bodies.filter(b=>b.carrier===a.id);line('荷物：'+(bodies.length?bodies[0].kind==='soil'?'砂 '+bodies.length+'粒':bodies[0].kind==='food'?'餌 1個':bodies[0].kind==='waste'?'ゴミ 1個':bodies[0].kind==='cookie'?'甘い粒 1個':'卵・幼虫 1個':'なし'));
       if(a.desiredRole!==a.role)line(roleNames[a.desiredRole]+'へ交代予定');
     }else if(selected.kind==='body'){
       const b=sim.physics.byId.get(selected.id);if(!b){selected=null;return;}
-      const e=sim.colony.brood.find(e=>e.id===b.id);line(e?stageNames[e.stage]:b.kind==='soil'?'砂粒':b.kind==='waste'?'ゴミ':'餌',true);
+      const e=sim.colony.brood.find(e=>e.id===b.id);line(e?stageNames[e.stage]:b.kind==='soil'?'砂粒':b.kind==='waste'?'ゴミ':b.kind==='cookie'?'甘い粒':'餌',true);
       line(b.carrier?'アリ '+b.carrier+' が運搬中':b.kind==='waste'?(b.y<SURFACE?'地表で土に還っていく':'巣の中に残っている'):sim.colony.wild.includes(b.id)?'地表の採集場所':b.rest>=30?'部屋で保管中':'落下・移動中');
       if(e?.stage==='larva')line('給餌 '+e.feeds+' / 2回');
       if(e?.stage==='pupa')line('羽化まで あと約'+Math.max(0,Math.ceil((50-e.age)/(1+sim.colony.upgrades.brood*.2)))+'秒');

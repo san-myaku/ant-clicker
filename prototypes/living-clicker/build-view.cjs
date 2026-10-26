@@ -53,11 +53,11 @@ replace("reset(seed); invalidStored = false; persist(); message('この地形で
 replace("$('new-seed').onclick = () => { reset(crypto.getRandomValues(new Uint32Array(1))[0] || 1); invalidStored = false; persist(); message('別の地形で始めました。'); };", "$('new-seed').onclick = () => {try{reset(crypto.getRandomValues(new Uint32Array(1))[0] || 1);invalidStored=false;if(persist())message('別の地形で始めました。');}catch{message('新しい巣を始められませんでした。いまの巣を書き出して保管できます。');}};",'new terrain checkpoint errors');
 replace('  window.colonyGame = {','  window.colonyGame = {','inspection api');
 // Waste pellets: small, dark and irregular, readable apart from food and soil.
-replace("const pattern=b.kind==='egg'?","const pattern=b.kind==='waste'?['0110','1111','1110','0110']:b.kind==='egg'?",'waste pellet pixels');
-replace("ctx.fillStyle=b.kind==='egg'?(","ctx.fillStyle=b.kind==='waste'?(y<1?'#5d5649':x>2?'#2c2924':'#433e35'):b.kind==='egg'?(",'waste pellet colors');
-replace("line(e?stageNames[e.stage]:b.kind==='soil'?'砂粒':'餌',true);","line(e?stageNames[e.stage]:b.kind==='soil'?'砂粒':b.kind==='waste'?'ゴミ':'餌',true);",'waste selection name');
+replace("const pattern=b.kind==='egg'?","const pattern=b.kind==='cookie'?['0110','1111','1111','0110']:b.kind==='waste'?['0110','1111','1110','0110']:b.kind==='egg'?",'waste pellet pixels');
+replace("ctx.fillStyle=b.kind==='egg'?(","ctx.fillStyle=b.kind==='cookie'?(y<1?'#f6d9a0':x>2?'#c98b43':'#e4ae63'):b.kind==='waste'?(y<1?'#5d5649':x>2?'#2c2924':'#433e35'):b.kind==='egg'?(",'waste pellet colors');
+replace("line(e?stageNames[e.stage]:b.kind==='soil'?'砂粒':'餌',true);","line(e?stageNames[e.stage]:b.kind==='soil'?'砂粒':b.kind==='waste'?'ゴミ':b.kind==='cookie'?'甘い粒':'餌',true);",'waste selection name');
 replace("line(b.carrier?'アリ '+b.carrier+' が運搬中':sim.colony.wild.includes(b.id)?","line(b.carrier?'アリ '+b.carrier+' が運搬中':b.kind==='waste'?(b.y<SURFACE?'地表で土に還っていく':'巣の中に残っている'):sim.colony.wild.includes(b.id)?",'waste selection place');
-replace("bodies[0].kind==='food'?'餌 1個':","bodies[0].kind==='food'?'餌 1個':bodies[0].kind==='waste'?'ゴミ 1個':",'carried waste');
+replace("bodies[0].kind==='food'?'餌 1個':","bodies[0].kind==='food'?'餌 1個':bodies[0].kind==='waste'?'ゴミ 1個':bodies[0].kind==='cookie'?'甘い粒 1個':",'carried waste');
 // Room labels come from each room's purpose and its order among the same kind.
 replace("ctx.measureText(names[r.id])","ctx.measureText(sim.roomName(r.id))",'room label width');
 replace("ctx.fillText(names[r.id], p.x, p.y)","ctx.fillText(sim.roomName(r.id), p.x, p.y)",'room label');

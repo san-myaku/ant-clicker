@@ -30,8 +30,8 @@
   const STEP=1/60, PICKUP_SECONDS=.2, SAVE_FORMAT='ant-colony-core-1', WALK_SPEED=9, MAX_LOAD=4, LANE_OFFSET=.35, CURVE_LANE_EXTRA=.18;
   const Physics = (function(){
 
-  const SHAPES={soil:{hx:GRAIN.size/2,hy:GRAIN.size/2,density:1},egg:{hx:1/4,hy:5/32,density:.65},food:{hx:3/16,hy:3/16,density:.8},waste:{hx:5/32,hy:1/8,density:.7}};
-  const KINDS=['soil','egg','food','waste'],STATES=['cargo','delivered','incoming','stored','pickup','refuse'];
+  const SHAPES={soil:{hx:GRAIN.size/2,hy:GRAIN.size/2,density:1},egg:{hx:1/4,hy:5/32,density:.65},food:{hx:3/16,hy:3/16,density:.8},waste:{hx:5/32,hy:1/8,density:.7},cookie:{hx:5/32,hy:5/32,density:.6}};
+  const KINDS=['soil','egg','food','waste','cookie'],STATES=['cargo','delivered','incoming','stored','pickup','refuse'];
   const BIN=.75,EPS=1e-7,STRIDE=50;
   class World {
     constructor(terrain,width,height,grain){
@@ -1304,7 +1304,7 @@
       for(const b of this.physics.bodies)if(b.kind!=='soil'&&!b.carrier&&b.state==='stored'&&b.rest>=30&&this.physics.drag?.id!==b.id){
         const rid=this.destinationRoom(b.kind,b);if(this.grainRoom[GRAIN.at(b.x,b.y)]!==rid)b.state='incoming';
       }
-      for(const b of this.physics.bodies)if(b.kind!=='soil'&&!b.carrier&&b.state==='incoming'&&b.rest>=30&&this.grainRoom[GRAIN.at(b.x,b.y)]>=2&&this.roomKind(this.grainRoom[GRAIN.at(b.x,b.y)])===b.kind)b.state='stored';
+      for(const b of this.physics.bodies)if(b.kind!=='soil'&&!b.carrier&&b.state==='incoming'&&b.rest>=30&&this.grainRoom[GRAIN.at(b.x,b.y)]>=2&&this.roomKind(this.grainRoom[GRAIN.at(b.x,b.y)])===b.kind&&!this.keepIncoming?.(b))b.state='stored';
       this._incoming=this.physics.bodies.filter(b=>b.state==='incoming');
       this._storageLedger={tick:this.ticks,stored:Object.fromEntries(this.roomIds().map(r=>[r,0])),reserved:Object.fromEntries(this.roomIds().map(r=>[r,0])),available:{},busy:{}};
       for(const b of this.physics.bodies)if(b.kind!=='soil'&&!b.carrier){const rid=this.grainRoom[GRAIN.at(b.x,b.y)];if(rid>=2&&this.roomKind(rid)===b.kind)this._storageLedger.stored[rid]++;}
@@ -1428,7 +1428,7 @@
         for(const g of cells)if(s.grains[g]&&(s.grainRoom[g]||s.grainPending[g])||!!s.grainPending[g]!==pending.has(g))fail();
       }
       s.initObjects(pack.physics);
-      const counts={soil:0,egg:0,food:0,waste:0};let delivered=0;
+      const counts={soil:0,egg:0,food:0,waste:0,cookie:0};let delivered=0;
       for(const b of s.physics.bodies){counts[b.kind]++;if(b.carrier){const a=s.ants.find(a=>a.id===b.carrier);if(!a||(b.kind==='soil'?!s.jobs.some(j=>j.ant===a.id&&j.grains.includes(b.source)):a.itemTask?.body!==b.id))fail();}else if(s.physics.terrainOverlap(b)||s.physics.penetration(b)>1e-5)fail();if(b.state==='delivered')delivered++;}
       if(counts.soil+s.stats.grainSettled!==s.stats.grainDug||delivered+s.stats.grainSettled!==s.stats.grainDelivered)fail();
       const itemOwners=new Set();
