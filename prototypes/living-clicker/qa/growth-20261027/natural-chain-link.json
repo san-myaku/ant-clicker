@@ -1,0 +1,7 @@
+{
+  "freshPrefix": "chain world-scale.json",
+  "continuationInput": "before-256.json",
+  "sha256": "08590edc2d19eb1bb7fa935fe3b6ddc7f2eab922b9c9cf2692828c45c1f7659f",
+  "byteIdentical": true,
+  "note": "今回の新規開始→128匹の通し保存と、別実行の128→256匹の入力が同一。個体/在庫/空洞の注入なしで繋がる。"
+}

@@ -1,0 +1,71 @@
+{
+  "results": [
+    {
+      "name": "new-format-has-an-independent-key-and-rejects-old-encodings",
+      "pass": true
+    },
+    {
+      "name": "all-32-bit-id-boundaries-preserve-a-workers-real-load",
+      "pass": true,
+      "tested": [
+        129,
+        199,
+        200,
+        249,
+        250,
+        255,
+        256,
+        999,
+        1000,
+        65535,
+        65536,
+        4294967295
+      ],
+      "bytesPerBody": 50
+    },
+    {
+      "name": "workers-and-invaders-simultaneously-own-wide-id-loads",
+      "pass": true
+    },
+    {
+      "name": "orphan-duplicate-mismatched-and-invalid-references-are-refused",
+      "pass": true,
+      "invalidCases": 10
+    },
+    {
+      "name": "dump-does-not-truncate-a-carrier-before-writing",
+      "pass": true
+    },
+    {
+      "name": "death-releases-only-references-to-that-worker-and-never-reuses-id",
+      "pass": true
+    },
+    {
+      "name": "births-and-invaders-share-the-monotonic-allocator",
+      "pass": true,
+      "enemy": 34,
+      "newborn": 35
+    },
+    {
+      "name": "large-numbers-never-outweigh-cargo-or-assigned-work",
+      "pass": true
+    },
+    {
+      "name": "allocator-reaches-uint32-end-without-wrapping",
+      "pass": true
+    }
+  ],
+  "inputs": {
+    "world-final.json": "028da2642b574b6490d71bc13daa5df55f2cc99f71aeeb39f8b217d3ca554d79",
+    "raid-stuck-loot.json": "6997ce7ce6935b2e60cb45a5321a09a00ebd303b9268e9d4a15ab8ad76f7eb6e",
+    "world-900.json": "bfb9fbafee2e76b4a6f4e4aec8b97def004a8e9c8ed12a07ebed1c2a000860da"
+  },
+  "hashes": {
+    "core.js": "c873a478cace730dd84ae13111832539229cfc1f3ef8b03119f287a980fea8f8",
+    "lifecycle.js": "c8c93dd72d17607a85ab9420edfc939e78803fd520d3333ee53a397939641301",
+    "game.js": "c4b01a6b31b75813877ba6c763ce5375b281be86f8bc4115bbc8958b83f73a27",
+    "build.cjs": "af5c9ea082305f4217a74ce5d708370754d73fc3ee14a140a8fa05d1011a7d8d",
+    "build-actors.cjs": "0517fcfe98bce396f29298167415843c7af63e82871dc0d9e35f4d029aa87821",
+    "verify-actors.cjs": "1bf1de38b90788e096064a24e3c3ccb3b257b525f8236f21c7aa7b754561d8ad"
+  }
+}

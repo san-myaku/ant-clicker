@@ -6,10 +6,18 @@
 
 # Ant Colony V23 Current System Overview
 
-Last updated: 2026-10-27（共通個体番号・新版保存。実人口上限128）
-Target file: `index.html`
+Last updated: 2026-10-27（実資源で256匹。保存容量の改善が次工程）
+Target: `prototypes/living-clicker/`（root index.htmlは旧公開本編）
 
 This document is the current implementation overview for the single-file ant clicker game. When gameplay, UI, save data, AI behavior, or public deployment assumptions change, update this file together with `DEVELOPMENT_LOG.md`.
+
+## 2026-10-27 実資源で256匹へ育つ段階（Codex）
+
+女王の包容力の第2段階（第2層へ実到達/100匹/48餌・18クッキー）で上限256を解放。第1段階は維持。上位段階のみ自動産卵2倍/地表の餌3秒ごと、育児は最大32かつ実育児室容量・実育児係・未予約の給餌在庫で制限する。予約済み/運搬中を二重に空きや餌へ数えない。配分/購入で同じ更新の予算を更新する。研究の表示も現在の段階の効果/費用/条件を共有し、必要な状態だけ短く示す。
+
+実物の128卵へ256回給餌し、8423秒に256匹、9857秒まで継続して混雑4匹。自然育成の前後半の128匹保存はバイト一致で接続する。最終24本合格、71ソース/23入力はhash一致。[検証記録](prototypes/living-clicker/qa/VERIFICATION.md)。保存は同じ新版2で継続可能。
+
+実256匹の通常保存/リセット/復旧は成功。大きな旧キーも残るプロフィールでは容量不足でリセットを拒否し現データを保持した。**次は512匹を解放する前に保存容量の改善。** 精度/退避に必要な履歴を維持し、旧キーを勝手に削除しない。成長の残り/方向予約/1000匹/実機/公開は未完。main/Pages/PR/push/既存配信先は未変更。
 
 ## 2026-10-27 共通の32bit個体番号と新版保存（Codex）
 

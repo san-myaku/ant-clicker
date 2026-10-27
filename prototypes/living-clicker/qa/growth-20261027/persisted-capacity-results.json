@@ -1,0 +1,48 @@
+{
+  "pass": true,
+  "node": "v24.22.1",
+  "sourceBefore": {
+    "index.html": "1a377628c194d695ae92af706daf539686b262f3e0183633f225241b96181d46",
+    "core.js": "c873a478cace730dd84ae13111832539229cfc1f3ef8b03119f287a980fea8f8",
+    "lifecycle.js": "c8c93dd72d17607a85ab9420edfc939e78803fd520d3333ee53a397939641301",
+    "game.js": "c4b01a6b31b75813877ba6c763ce5375b281be86f8bc4115bbc8958b83f73a27",
+    "view.js": "4ee66a5f00b78050b01ee4ca5202551e246d06d7ae7671e5486483377f1e4e99",
+    "qa/check-persisted-capacity.cjs": "e3ba601bf90cd6f5647b79f6a7db7c4b6e860c29ba75557a187cd87317310dd1"
+  },
+  "sourceAfter": {
+    "index.html": "1a377628c194d695ae92af706daf539686b262f3e0183633f225241b96181d46",
+    "core.js": "c873a478cace730dd84ae13111832539229cfc1f3ef8b03119f287a980fea8f8",
+    "lifecycle.js": "c8c93dd72d17607a85ab9420edfc939e78803fd520d3333ee53a397939641301",
+    "game.js": "c4b01a6b31b75813877ba6c763ce5375b281be86f8bc4115bbc8958b83f73a27",
+    "view.js": "4ee66a5f00b78050b01ee4ca5202551e246d06d7ae7671e5486483377f1e4e99",
+    "qa/check-persisted-capacity.cjs": "e3ba601bf90cd6f5647b79f6a7db7c4b6e860c29ba75557a187cd87317310dd1"
+  },
+  "inputSha256": "ea79db5a2a5488c62871365f122f27b154ea186a8e09f9c7af93d2242fd0d23d",
+  "earlierKeyBytesSha256": "08590edc2d19eb1bb7fa935fe3b6ddc7f2eab922b9c9cf2692828c45c1f7659f",
+  "setup": "通常の保存ボタンで256匹を永続化した後にリセットを実行。旧キーの内容は以前の保存相当の不透明なバイト列として保持する。",
+  "results": [
+    {
+      "legacy": false,
+      "outcome": "backup-and-undo-exact",
+      "sizes": {
+        "livingClicker_2_recovery": 125709,
+        "livingClicker_2": 2186320
+      },
+      "exportSha256": "ea79db5a2a5488c62871365f122f27b154ea186a8e09f9c7af93d2242fd0d23d",
+      "currentSha256": "ea79db5a2a5488c62871365f122f27b154ea186a8e09f9c7af93d2242fd0d23d",
+      "message": "この地形で最初から始めました。"
+    },
+    {
+      "legacy": true,
+      "outcome": "quota-refused-no-data-changed",
+      "sizes": {
+        "livingClicker_1": 1102020,
+        "livingClicker_2_recovery": 125709,
+        "livingClicker_2": 2186320
+      },
+      "exportSha256": "ea79db5a2a5488c62871365f122f27b154ea186a8e09f9c7af93d2242fd0d23d",
+      "currentSha256": "ea79db5a2a5488c62871365f122f27b154ea186a8e09f9c7af93d2242fd0d23d",
+      "message": "新しい巣を保存できませんでした。いまの巣を書き出して保管できます。"
+    }
+  ]
+}

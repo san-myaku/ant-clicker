@@ -17,9 +17,10 @@
     $('research-summary').textContent=ready?ready+'件を研究できる':'';
     if(!researchDialog.open)return;
     const d=ColonyGame.BY_ID[selectedResearch],cost=sim.researchCost(d.id),status=sim.researchStatus(d.id);
-    $('research-name').textContent=d.name;$('research-effect').textContent=d.desc;
+    $('research-name').textContent=d.name;$('research-effect').textContent=sim.researchDescription(d.id);
     $('research-cost').textContent=status==='planned'?'':status==='done'?'研究済み':[cost.food?'餌 '+cost.food+'個':null,cost.cookie?'クッキー '+cost.cookie+'個':null].filter(Boolean).join('・');
-    const condition=status==='planned'?'まだ研究できません。':d.prereq&&!sim.level(d.prereq)?ColonyGame.BY_ID[d.prereq].name+'が必要':d.minAnts&&sim.ants.length<d.minAnts?'働き手 '+d.minAnts+'匹から':d.reached&&sim.progress.reached<d.reached?'第'+d.reached+'層への到達が必要':status==='cost'?sim.availableFood().length<cost.food?'保管中の餌があと'+(cost.food-sim.availableFood().length)+'個必要':'クッキーがあと'+(cost.cookie-sim.progress.cookie)+'個必要':'';
+    const need=sim.researchRequirements(d.id);
+    const condition=status==='planned'?'まだ研究できません。':need.prereq&&!sim.level(need.prereq)?ColonyGame.BY_ID[need.prereq].name+'が必要':need.minAnts&&sim.ants.length<need.minAnts?'働き手 '+need.minAnts+'匹から':need.reached&&sim.progress.reached<need.reached?'第'+need.reached+'層への到達が必要':status==='cost'?sim.availableFood().length<cost.food?'保管中の餌があと'+(cost.food-sim.availableFood().length)+'個必要':'クッキーがあと'+(cost.cookie-sim.progress.cookie)+'個必要':'';
     $('research-condition').textContent=condition;$('research-condition').hidden=!condition;
     $('research-buy').disabled=status!=='ready';$('research-buy').textContent=status==='planned'?'準備中':status==='done'?'研究済み':'研究する';
   }

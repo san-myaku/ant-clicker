@@ -1,0 +1,7 @@
+{
+  "sourceCommit": "5c1bb7f87a2eed080da160b06fbeedf5cc3f115a",
+  "sourceRecord": "actors-20261027-r3/repeatability.json",
+  "sourceState": "world-scale.json",
+  "sha256": "08590edc2d19eb1bb7fa935fe3b6ddc7f2eab922b9c9cf2692828c45c1f7659f",
+  "method": "前回の新規女王室から注入なしで128匹へ育てた通し確認の保存を、そのまま専用入力へ複製。既存の固定回帰保存は置き換えない。"
+}

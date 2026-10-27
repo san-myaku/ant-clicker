@@ -292,5 +292,6 @@ replace("c.brood.length+stats.born!==stats.initialBrood+stats.laid","c.brood.len
 replace("food.length+stats.eaten+stats.spent+(c.ferment?.used||0)!==stats.initialFood+stats.generated+(c.waste?.recycled||0)","food.length+stats.eaten+stats.spent+(c.ferment?.used||0)+(c.raid?.stolenFood||0)!==stats.initialFood+stats.generated+(c.waste?.recycled||0)+(c.raid?.prey||0)",'stolen food and prey ledger');
 replace("      const all=this._incoming,feeding=new Set(this.ants.filter(a=>a.itemTask?.purpose==='feed').map(a=>a.itemTask.target));","      // Only a worker about to take a task reads the incoming list: the core\n      // assigns tasks on every 30th step to a worker that is not walking.\n      if(!ant.itemTask&&(ant.path.length&&!ant.returning||this.ticks%30!==0))return false;\n      const all=this._incoming,feeding=new Set(this.ants.filter(a=>a.itemTask?.purpose==='feed').map(a=>a.itemTask.target));",'incoming list only for a worker taking a task');
 source=require('./build-actors.cjs').life(source);
+replace('this.colony.nextFood=this.time+8;','this.colony.nextFood=this.time+(this.forageInterval?.()??8);','food supply follows population research');
 fs.writeFileSync(path.join(root,'lifecycle.js'),source);
 console.log('Organic core and lifecycle generated with checked hooks.');

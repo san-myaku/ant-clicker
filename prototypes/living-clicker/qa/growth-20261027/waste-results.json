@@ -1,0 +1,79 @@
+{
+  "results": [
+    {
+      "name": "clean-fixture-starts-without-waste",
+      "pass": true
+    },
+    {
+      "name": "natural-save-carries-its-own-waste",
+      "pass": true,
+      "made": 69,
+      "decayed": 54,
+      "inNest": 1
+    },
+    {
+      "name": "hygiene-studies-from-real-stock",
+      "pass": true,
+      "perSource": 0.9,
+      "cleanWalk": 1.2
+    },
+    {
+      "name": "nurses-carry-waste-out-mid-carry-save",
+      "pass": true,
+      "t": 926.4333333328194,
+      "ant": 5,
+      "body": 949
+    },
+    {
+      "name": "meals-make-waste-that-leaves-and-decays",
+      "pass": true,
+      "meals": 21,
+      "pupations": 11,
+      "made": 97,
+      "decayed": 85,
+      "inNest": 1,
+      "onSurface": 11
+    },
+    {
+      "name": "waste-near-a-fed-larva-slows-it",
+      "pass": true,
+      "t": 900.0166666661768,
+      "factor": 0.7407407407407407
+    },
+    {
+      "name": "invalid-waste-records-are-refused",
+      "pass": true
+    },
+    {
+      "name": "waste-chamber-studies-from-real-stock",
+      "pass": true
+    },
+    {
+      "name": "waste-chamber-is-dug-and-used",
+      "pass": true,
+      "chamberAt": 4279.3,
+      "dropSave": 4341.7,
+      "delivered": {
+        "room": 58,
+        "surface": 27,
+        "forager": true
+      },
+      "recycled": 42,
+      "decayed": 183,
+      "made": 230,
+      "ants": 89
+    },
+    {
+      "name": "a-pellet-that-rolls-out-of-the-chamber-is-carried-again",
+      "pass": true,
+      "returned": 3165.88
+    }
+  ],
+  "hashes": {
+    "core.js": "c873a478cace730dd84ae13111832539229cfc1f3ef8b03119f287a980fea8f8",
+    "lifecycle.js": "c8c93dd72d17607a85ab9420edfc939e78803fd520d3333ee53a397939641301",
+    "game.js": "c4b01a6b31b75813877ba6c763ce5375b281be86f8bc4115bbc8958b83f73a27"
+  },
+  "inputHash": "bfb9fbafee2e76b4a6f4e4aec8b97def004a8e9c8ed12a07ebed1c2a000860da",
+  "chamberInputHash": "028da2642b574b6490d71bc13daa5df55f2cc99f71aeeb39f8b217d3ca554d79"
+}

@@ -1,0 +1,59 @@
+{
+  "source": {
+    "index.html": "1a377628c194d695ae92af706daf539686b262f3e0183633f225241b96181d46",
+    "core.js": "c873a478cace730dd84ae13111832539229cfc1f3ef8b03119f287a980fea8f8",
+    "lifecycle.js": "c8c93dd72d17607a85ab9420edfc939e78803fd520d3333ee53a397939641301",
+    "game.js": "c4b01a6b31b75813877ba6c763ce5375b281be86f8bc4115bbc8958b83f73a27",
+    "view.js": "4ee66a5f00b78050b01ee4ca5202551e246d06d7ae7671e5486483377f1e4e99"
+  },
+  "cases": [
+    {
+      "name": "mobile-taps-selection-scroll-and-nest-pinch-393",
+      "pass": true,
+      "scale": 1,
+      "overflow": false,
+      "selection": "",
+      "bodyTouch": "pan-y",
+      "buttonTouch": "manipulation",
+      "canvasTouch": "none",
+      "rapidTaps": 4,
+      "roleIncrease": 4,
+      "researchDoubleTapScale": 1,
+      "nestDoubleTapZoomChanged": false,
+      "editable": {
+        "select": "text",
+        "font": 16
+      },
+      "customPinchFactor": 1.9091796874999998,
+      "errors": []
+    },
+    {
+      "name": "mobile-taps-selection-scroll-and-nest-pinch-320",
+      "pass": true,
+      "scale": 1,
+      "overflow": false,
+      "selection": "",
+      "bodyTouch": "pan-y",
+      "buttonTouch": "manipulation",
+      "canvasTouch": "none",
+      "rapidTaps": 4,
+      "roleIncrease": 4,
+      "researchDoubleTapScale": 1,
+      "nestDoubleTapZoomChanged": false,
+      "editable": {
+        "select": "text",
+        "font": 16
+      },
+      "customPinchFactor": 1.8310546874999996,
+      "errors": []
+    },
+    {
+      "name": "safari-gesture-cancellation-and-native-input-exception",
+      "pass": true,
+      "gestureStart": true,
+      "gestureChange": true,
+      "buttonDouble": true,
+      "inputDouble": false
+    }
+  ]
+}

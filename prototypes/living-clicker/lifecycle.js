@@ -62,7 +62,7 @@
     }
     refreshForage(){
       if(this.time+1e-9<this.colony.nextFood)return;
-      this.colony.nextFood=this.time+8;
+      this.colony.nextFood=this.time+(this.forageInterval?.()??8);
       if(this.colony.wild.length>=5)return;
       // Renewable food appears only at the visible surface patch. It is never
       // credited as colony stock until a particular worker collects that body.

@@ -34,6 +34,7 @@ replace("else{const g=selected.grain,t=sim.grains[g];line(t?['','土','硬い土
 // Spoil now rings the entrance on both sides; the mound itself shows where.
 replace("    if (above.y > 18) ctx.fillText('土捨て場', above.x, above.y);\n","",'no fixed dump label');
 replace("s.ants+sim.colony.brood.length>=ColonyGame.LIMIT?", "s.ants+sim.colony.brood.length>=sim.populationLimit()?",'live population cap');
+replace("s.food<2?'餌が届くのを待っています':!s.canLay?", "s.food<2||sim.expandedGrowth()&&sim.growthCare().food<sim.growthCare().meals+2?'餌が届くのを待っています':sim.expandedGrowth()&&!sim.growthCare().nurses?'育児係を増やしてください':sim.expandedGrowth()&&sim.colony.brood.length>=Math.floor(sim.growthCare().nursery)?'育児室が広がるのを待っています':!s.canLay?",'show actionable growth pauses');
 replace("Math.ceil((1-s.queen)*40)", "Math.ceil((1-s.queen)*40/sim.layRate())", 'remaining laying time follows the queen research');
 replace("if(s.ants===64)cause='64匹のコロニーに育ちました。この区画の目標達成です。';","if(s.ants+sim.colony.brood.length>=sim.populationLimit())cause='コロニーが育ちました。女王と地質の研究で、次の成長へ。';",'growth continues through research');
 replace("    if($('cause').textContent!==cause)","    if(s.births&&s.allocation.forage&&s.allocation.nurse&&s.allocation.build&&s.food>=2)cause=s.reached<sim.depthAbility()?'新しい地層へ、通路を掘り進めています。':s.ants<32?'働き手を育てて、巣を広げよう。':'研究と仕事の配分で、コロニーを育てよう。';\n    if(sim.colony.disease?.active)cause='育児室にゴミがたまり、病気が広がっています。掃除の手を増やそう。';\n    $('cookies').textContent=s.cookie;$('depth').textContent='第'+s.reached+'層';updateResearch();\n    if($('cause').textContent!==cause)",'show physical progression');
