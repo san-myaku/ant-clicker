@@ -238,6 +238,23 @@ replace('ant.x=p.x;ant.y=p.y;ant.angle=p.angle;', 'ant.x=p.x;ant.y=p.y;ant.angle
 replace('if(oldY!==ant.y||oldAngle!==ant.angle)surfaceChanged=true;', 'if(oldY!==ant.y||oldAngle!==ant.angle){surfaceChanged=true;this._trafficIndex?.update(ant);}','update index after surface settling');
 replace('this.time += dt; this.ticks++;', 'this.time += dt; this.ticks++;this._trafficIndex=null;','rebuild traffic snapshot each completed tick');
 replace('return { Simulation, Physics,', 'return { Simulation, AntTrafficIndex, Physics,','traffic index for verification');
+replace('  class Simulation {',fs.readFileSync(path.join(root,'route-network.js'),'utf8')+'\n  class Simulation {','shared route network source');
+replace('    path(from,to,kind=undefined,raw=false,depth=0){\n      const route=this.planPath(from,to,kind,raw,depth);',`    sharedNetworkPath(from,to,kind){
+      if(!this.builds?.some(b=>b?.complete))return null;
+      const a=typeof from==='number'?this.walkPoint(from):from,p=typeof to==='number'?this.walkPoint(to):to;
+      if(!a||!p||p.valid===false||a.yielding)return null;
+      if(kind===undefined)kind=typeof from==='object'?this.carriedKind(from):null;
+      if(!this._routeNetwork)this._routeNetwork=new RouteNetwork(this);
+      return this._routeNetwork.route(a,p,kind);
+    }
+    path(from,to,kind=undefined,raw=false,depth=0){
+      const route=(!raw&&!depth?this.sharedNetworkPath(from,to,kind):null)||this.planPath(from,to,kind,raw,depth);`,'use the shared underground network');
+replace('    invalidateNavigation(cell){','    invalidateNavigation(cell){\n      this._routeNetwork?.invalidate(cell);','local network invalidation');
+replace('const roomWander=typeof from',"const networkRoom=a._networkRoom,networkInside=q=>networkRoom===-1?q.y<SURFACE:this.grainRoom[GRAIN.at(q.x,q.y)]===networkRoom;\n      const roomWander=typeof from",'constrain local room connectors');
+replace('      for(const angle of [heading,',`      if(networkRoom!==undefined)for(let k=0,n=Math.max(1,Math.ceil(distanceToGoal/.125));k<=n;k++)if(!networkInside({x:a.x+(p.x-a.x)*k/n,y:a.y+(p.y-a.y)*k/n})){roomStraight=false;break;}
+      for(const angle of [heading,`,'local room straight-line boundary');
+replace('const safe=id=>{const z=decode(id);if(roomWander', 'const safe=id=>{const z=decode(id);if(networkRoom!==undefined&&!networkInside(z))return false;if(roomWander','local room search boundary');
+replace('return { Simulation, AntTrafficIndex, Physics,','return { Simulation, AntTrafficIndex, RouteNetwork, Physics,','network inspection for verification');
 fs.writeFileSync(path.join(root,'core.js'),source);
 source=read('game.js');
 replace("FORMAT='ant-colony-1',KEY='antColonyGame_1',LIMIT=64","FORMAT='living-clicker-life-1',KEY='livingClicker_1',LIMIT=128",'independent lifecycle save');

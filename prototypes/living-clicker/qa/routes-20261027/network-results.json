@@ -1,0 +1,95 @@
+{
+  "results": [
+    {
+      "name": "only-the-requested-direction-is-prepared-from-real-air",
+      "pass": true,
+      "metrics": {
+        "requests": 1,
+        "routes": 1,
+        "local": 0,
+        "corridorBuilds": 1,
+        "roomSearches": 0,
+        "roomHits": 0,
+        "fieldsBuilt": 1,
+        "fieldHits": 0,
+        "invalidations": 0
+      },
+      "profiles": [
+        {
+          "kind": "body",
+          "nodes": 2,
+          "corridors": 1,
+          "connections": 0,
+          "fields": 1
+        }
+      ]
+    },
+    {
+      "name": "body-and-all-real-cargo-envelopes-keep-swept-clearance",
+      "pass": true,
+      "tested": [
+        "body",
+        "egg",
+        "food",
+        "soil1",
+        "soil2",
+        "soil",
+        "waste",
+        "cookie"
+      ]
+    },
+    {
+      "name": "different-workers-share-the-graph-but-own-their-paths",
+      "pass": true,
+      "metrics": {
+        "requests": 2,
+        "routes": 2,
+        "local": 0,
+        "corridorBuilds": 2,
+        "roomSearches": 1,
+        "roomHits": 0,
+        "fieldsBuilt": 1,
+        "fieldHits": 1,
+        "invalidations": 0
+      },
+      "profiles": [
+        {
+          "kind": "body",
+          "nodes": 4,
+          "corridors": 2,
+          "connections": 1,
+          "fields": 1
+        }
+      ]
+    },
+    {
+      "name": "cold-and-warm-query-order-give-the-same-path",
+      "pass": true
+    },
+    {
+      "name": "unrelated-corridor-survives-local-invalidation",
+      "pass": true
+    },
+    {
+      "name": "a-room-tag-with-solid-soil-is-never-a-passable-link",
+      "pass": true
+    },
+    {
+      "name": "surface-portals-retain-the-complete-excavated-entrance",
+      "pass": true
+    },
+    {
+      "name": "saved-world-excludes-caches-and-resumes-identically",
+      "pass": true,
+      "comparedSteps": 180
+    }
+  ],
+  "inputHash": "9f77c6d0706d261d43e7d864f605818e0bb3a3eb7711bb95e6bee5f0b689b26f",
+  "hashes": {
+    "core.js": "1c029bf330b8459d0285f3e0539e58a7ba374d061a345a7a105ba0d61c3cb1a4",
+    "lifecycle.js": "e3811fe72b1fece21ec7cc25a678901d80199b0d5584775a9ab509bb85371090",
+    "game.js": "250e0dc5a151e705c3253ec74a1e3953e4d63a58cb2ff48abd3c5f612c984ca0",
+    "build.cjs": "f12fbbffe9105c2db41273f69bb3525126130559e545d5088eb952a06891c003",
+    "route-network.js": "79761469633dcf40083b6a68f802846c97e123aab7180ced6402fe1c81b883e3"
+  }
+}

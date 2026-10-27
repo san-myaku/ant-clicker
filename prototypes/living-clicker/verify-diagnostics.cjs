@@ -88,6 +88,6 @@ test('128-workers-preserve-state-with-monitor-enabled',()=>{
 });
 test('natural-work-over-five-minutes-has-no-false-stall',()=>{
   const s=Game.Simulation.restore(JSON.parse(fs.readFileSync(path.join(qa,'world-900.json')))),o=new Observer().attach(s);run(s,300);
-  assert.deepEqual(o.incidents,[]);s.assertLedger();assert(o.checkpoints.length<=2);return {ants:s.ants.length,samples:o.samples.length};
+  assert.equal(o.incidents.length,0,JSON.stringify(o.incidents.map(e=>({type:e.type,ids:e.ids,tick:e.tick}))));s.assertLedger();assert(o.checkpoints.length<=2);return {ants:s.ants.length,samples:o.samples.length};
 });
 fs.writeFileSync(path.join(qa,'diagnostics-results.json'),JSON.stringify({results,hashes},null,2));

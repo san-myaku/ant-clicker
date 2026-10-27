@@ -130,8 +130,10 @@
       for(const a of others){const k=key(a.home.x,a.home.y);(homes.get(k)||homes.set(k,[]).get(k)).push(a.home);if(a.job===null&&!a.itemTask){const j=key(a.x,a.y);(idle.get(j)||idle.set(j,[]).get(j)).push(a);}}
       const near=(map,p,r)=>{const out=[];for(let dx=-r;dx<=r;dx++)for(let dy=-r;dy<=r;dy++)for(const q of map.get(key(p.x+dx,p.y+dy))||[])out.push(q);return out;};
       const stock=this.physics.bodies.filter(b=>b.kind!=='soil'&&!b.carrier);
-      for(const rid of [1,...this.roomIds().filter(r=>this.builds[r]?.complete&&this.roomKind(r)!=='waste')])for(const cell of this.cells(rid)){
-        const p=this.walkPoint(cell);if(!p.valid||p.clearance<.8||this.grainRoom[GRAIN.at(p.x,p.y)]!==rid||Math.hypot(p.x-this.entranceHistory[0].x,p.y-this.entranceHistory[0].y)<2)continue;
+      // A cell's single best carrying pose is not every place an unladen
+      // worker can rest. Check all four existing half-unit standing points.
+      for(const rid of [1,...this.roomIds().filter(r=>this.builds[r]?.complete&&this.roomKind(r)!=='waste')])for(const cell of this.cells(rid))for(const [ox,oy]of [[.25,.25],[.75,.25],[.25,.75],[.75,.75]]){
+        const x=cell%W+ox,y=Math.floor(cell/W)+oy,p={x,y,angle:0,valid:true,clearance:this.clearance(x,y)};if(p.clearance<.8||this.grainRoom[GRAIN.at(p.x,p.y)]!==rid||Math.hypot(p.x-this.entranceHistory[0].x,p.y-this.entranceHistory[0].y)<2)continue;
         if(near(homes,p,1).some(q=>Math.hypot(q.x-p.x,q.y-p.y)<HOME_GAP)||stock.some(b=>Math.hypot(b.x-p.x,b.y-p.y)<.7))continue;
         if(Base.ANT_BODY.some(([cx,rx,ry])=>((p.x-48-cx*6.4)/(rx*6.4+.7))**2+((p.y-24)/(ry*6.4+.6))**2<1))continue;
         const blockers=near(idle,p,3);

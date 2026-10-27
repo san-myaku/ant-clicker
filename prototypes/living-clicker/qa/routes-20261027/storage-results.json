@@ -1,0 +1,13 @@
+{
+  "pass": true,
+  "originalAt": 1199.9999999992374,
+  "soilOpenedByRelabel": 0,
+  "itemsMovedByRelabel": 0,
+  "capacityAfterLabel": {
+    "larvae": 21,
+    "food": 21
+  },
+  "deliveredBefore": 732,
+  "deliveredAfter": 792,
+  "actualWorkResumed": true
+}

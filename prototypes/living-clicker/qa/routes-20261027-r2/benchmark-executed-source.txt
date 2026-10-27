@@ -1,0 +1,29 @@
+const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process'),assert=require('node:assert/strict'),crypto=require('node:crypto');
+const root=path.resolve(__dirname,'../..'),here=path.join(root,'prototypes/living-clicker'),before=path.join(__dirname,'before');fs.mkdirSync(before,{recursive:true});
+for(const name of ['core.js','lifecycle.js','game.js'])fs.writeFileSync(path.join(before,name),cp.execFileSync('git',['show','c6ddaed:prototypes/living-clicker/'+name],{cwd:root,maxBuffer:5e6}));
+const Old=require(path.join(before,'game.js')),New=require(path.join(here,'game.js')),bytes=fs.readFileSync(path.join(here,'qa/world-scale.json')),pack=JSON.parse(bytes),sha=v=>crypto.createHash('sha256').update(v).digest('hex');
+const survey=Old.Simulation.restore(pack),points=[];
+for(const rid of [1,...survey.roomIds()]){const p=survey.cells(rid).map(c=>survey.walkPoint(c)).filter(p=>p.valid&&p.clearance>.8&&survey.grainRoom[Old.GRAIN.at(p.x,p.y)]===rid).at(-1);if(p)points.push({rid,p:{x:p.x,y:p.y,angle:p.angle}});}
+const requests=[];
+for(const kind of [null,'egg','food','soil1','soil2','soil'])for(const a of points)for(const b of points)if(a.rid!==b.rid&&survey.poseClear(a.p,kind)&&survey.poseClear(b.p,kind))requests.push({from:a.p,to:b.p,kind});
+const sourceNames=['core.js','lifecycle.js','game.js','route-network.js'],collect=()=>Object.fromEntries(sourceNames.map(n=>[n,sha(fs.readFileSync(path.join(here,n)))])),sourceBefore=collect();
+const samples=[];
+for(let pair=0;pair<4;pair++){
+ const old=Old.Simulation.restore(pack),fresh=New.Simulation.restore(pack),stateHash=sha(JSON.stringify(old.dump()));assert.equal(sha(JSON.stringify(fresh.dump())),stateHash);
+ const samplesByType={};
+ for(const [label,s] of pair%2?[['network',fresh],['old',old]]:[['old',old],['network',fresh]]){
+  const cold=performance.now();for(const r of requests)s.path(r.from,r.to,r.kind);const coldMs=performance.now()-cold;
+  assert.equal(sha(JSON.stringify(s.dump())),stateHash,'paused path warm-up changed world');
+  const start=performance.now();let found=0;
+  for(let repeat=0;repeat<2;repeat++)for(const r of requests)if(s.path(r.from,r.to,r.kind))found++;
+  const queryMs=(performance.now()-start)/(requests.length*2);
+  const tickStart=performance.now();for(let k=0;k<1200;k++)s.step(New.STEP);const msPerStep=(performance.now()-tickStart)/1200;
+  s.assertLedger();assert.deepEqual((label==='old'?Old:New).Simulation.restore(s.dump()).dump(),s.dump());
+  samplesByType[label]={coldMs,queryMs,found,msPerStep,delivered:s.stats.grainDelivered,meals:s.colony.stats.eaten,ants:s.ants.length,network:s._routeNetwork?.report()};
+ }
+ samples.push({pair,stateHash,...samplesByType});console.log(JSON.stringify({pair,old:samplesByType.old.msPerStep,network:samplesByType.network.msPerStep,oldQuery:samplesByType.old.queryMs,networkQuery:samplesByType.network.queryMs}));
+}
+const median=values=>{const a=values.slice().sort((x,y)=>x-y);return (a[1]+a[2])/2;};
+const report={node:process.version,inputSha256:sha(bytes),requestCount:requests.length,measuredSteps:1200,samples,medianOldQueryMs:median(samples.map(s=>s.old.queryMs)),medianNetworkQueryMs:median(samples.map(s=>s.network.queryMs)),medianOldStepMs:median(samples.map(s=>s.old.msPerStep)),medianNetworkStepMs:median(samples.map(s=>s.network.msPerStep)),sourceSha256:sourceBefore,sourceAfter:collect(),baselineSha256:Object.fromEntries(['core.js','lifecycle.js','game.js'].map(n=>[n,sha(fs.readFileSync(path.join(before,n)))])),note:'同一128匹保存から、停止中の同じ経路問い合わせでwarm-upし、新旧の順序を交互にして単独計測。経路が変わるので20ゲーム秒後の状態は同一条件とは限らず、作業数も併記。1000匹/実機ではない。'};
+assert.deepEqual(report.sourceAfter,sourceBefore);assert.equal(sha(fs.readFileSync(path.join(here,'qa/world-scale.json'))),sha(bytes));
+fs.writeFileSync(path.join(__dirname,'timing.json'),JSON.stringify(report,null,2));console.log('MEDIANS '+JSON.stringify({oldQuery:report.medianOldQueryMs,networkQuery:report.medianNetworkQueryMs,oldStep:report.medianOldStepMs,networkStep:report.medianNetworkStepMs}));

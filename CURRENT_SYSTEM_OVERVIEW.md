@@ -6,10 +6,18 @@
 
 # Ant Colony V23 Current System Overview
 
-Last updated: 2026-10-27（停止診断・交通の格子化。旧公開本編は不変）
+Last updated: 2026-10-27（実空洞の経路共有・居室の床探索。旧公開本編は不変）
 Target file: `index.html`
 
 This document is the current implementation overview for the single-file ant clicker game. When gameplay, UI, save data, AI behavior, or public deployment assumptions change, update this file together with `DEVELOPMENT_LOG.md`.
+
+## 2026-10-27 実空洞の経路共有と居室の床探索（Codex）
+
+`route-network.js` を `build.cjs` から組み込み、完成した実通路の有向区間と目的地側の距離場を必要な荷姿/方向だけ作って共有する。始点/終点・同室・未完成・地表は細かな探索を維持。身体/荷/旋回を検査し、部屋の中心への強制経由は加えない。関係区間の無効化と有界キャッシュ、原本凍結/個体への複製を実装。保存には含めない。全ての部屋間の絶対最短経路を保証するものではない。[仕様](prototypes/living-clicker/ROUTE_NETWORK.md)。
+
+自然育成で見つかった居室の床候補の漏れを `game.js` で修正。1セルの代表的な運搬姿勢だけでなく、既存の半単位の立ち位置4点を調べる。間隔・身体・荷・女王の除外は維持。実際に次の居室が必要になる直前の専用保存を追加し、深度用の元入力は保持。検証の待ち時間/実掘削/徒歩/混雑減少の条件は緩めない。
+
+最終21本合格・自然128匹（5673ゲーム秒）。65ソース/21入力は検証前後hash一致。128匹の同一固定保存・同じ経路問い合わせ・新旧交互4組の単独測定で、再利用後の1問は中央値 7.416→8.848ms、全体の1コマは 2.266→2.248ms。経路選択が変わるため終了状態の同一性は要求せず、作業数を併記した。128匹での全体速度はほぼ同程度で、広い問い合わせ条件では速くなっていない。初回組み立ての合計時間と再利用回数は計測JSONを参照。1000匹/実機の値ではない。 最初のhousing不合格は別の証跡として保持。[全結果とhash](prototypes/living-clicker/qa/VERIFICATION.md)。人口上限/保存形式は据え置き、旧公開index.htmlは不変。次は番号/保存と上限研究・産卵/育児/供給/容量の一体設計。狭い区間の方向予約は未実装。main/Pages/PR/push/既存配信先への反映は行っていない。
 
 ## 2026-10-27 停止診断・交通の格子化（Codex）
 

@@ -1,0 +1,85 @@
+{
+  "results": [
+    {
+      "name": "mixed-wait-graph-detects-components-without-recursion",
+      "pass": true
+    },
+    {
+      "name": "persistent-waitingFor-and-yieldHold-cycle-is-recorded",
+      "pass": true,
+      "detectedAt": 20.500000000000117,
+      "edges": [
+        {
+          "from": 1,
+          "to": 2,
+          "reason": "waitingFor"
+        },
+        {
+          "from": 2,
+          "to": 3,
+          "reason": "yieldHold"
+        },
+        {
+          "from": 3,
+          "to": 1,
+          "reason": "waitingFor"
+        }
+      ]
+    },
+    {
+      "name": "transient-cycle-and-moving-queue-are-not-stalls",
+      "pass": true
+    },
+    {
+      "name": "rest-laying-off-feed-interval-and-fighting-are-expected",
+      "pass": true
+    },
+    {
+      "name": "one-stalled-assignment-is-visible-while-others-move",
+      "pass": true
+    },
+    {
+      "name": "global-assigned-work-without-progress-is-recorded",
+      "pass": true
+    },
+    {
+      "name": "lost-target-carrier-and-physics-index-remain-unrepaired",
+      "pass": true
+    },
+    {
+      "name": "removed-workers-do-not-leave-observer-timers",
+      "pass": true
+    },
+    {
+      "name": "buffers-are-bounded-and-detach-restores-methods",
+      "pass": true
+    },
+    {
+      "name": "simulation-exceptions-are-reported-and-rethrown",
+      "pass": true
+    },
+    {
+      "name": "actual-game-is-identical-and-actions-replay-exactly",
+      "pass": true,
+      "comparedEveryStep": 180,
+      "replayedOperations": 6
+    },
+    {
+      "name": "128-workers-preserve-state-with-monitor-enabled",
+      "pass": true,
+      "ants": 128
+    },
+    {
+      "name": "natural-work-over-five-minutes-has-no-false-stall",
+      "pass": true,
+      "ants": 39,
+      "samples": 120
+    }
+  ],
+  "hashes": {
+    "diagnostics.js": "faf372b4fd39f287971c8bafa6f8682ebc10bcba68074a639ecef120170dcbf9",
+    "game.js": "bb711d5ba878dd09b34f7abe534c40819ee67ed22189d285553f186455e9b4b3",
+    "core.js": "1c029bf330b8459d0285f3e0539e58a7ba374d061a345a7a105ba0d61c3cb1a4",
+    "lifecycle.js": "e3811fe72b1fece21ec7cc25a678901d80199b0d5584775a9ab509bb85371090"
+  }
+}

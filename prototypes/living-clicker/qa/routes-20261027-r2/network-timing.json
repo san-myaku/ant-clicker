@@ -1,0 +1,346 @@
+{
+  "node": "v24.22.1",
+  "inputSha256": "9a7040181eb0e78eea03d30b560c6df205c11d41961447ea379bf8a456d8a2f8",
+  "requestCount": 432,
+  "measuredSteps": 1200,
+  "samples": [
+    {
+      "pair": 0,
+      "stateHash": "9a7040181eb0e78eea03d30b560c6df205c11d41961447ea379bf8a456d8a2f8",
+      "old": {
+        "coldMs": 7538.7335,
+        "queryMs": 7.5473258101851854,
+        "found": 864,
+        "msPerStep": 2.5396081666666683,
+        "delivered": 5676,
+        "meals": 232,
+        "ants": 128
+      },
+      "network": {
+        "coldMs": 8387.5864,
+        "queryMs": 8.697263773148144,
+        "found": 864,
+        "msPerStep": 2.5229400833333298,
+        "delivered": 5676,
+        "meals": 232,
+        "ants": 128,
+        "network": {
+          "metrics": {
+            "requests": 1361,
+            "routes": 820,
+            "local": 541,
+            "corridorBuilds": 116,
+            "roomSearches": 83,
+            "roomHits": 667,
+            "fieldsBuilt": 661,
+            "fieldHits": 402,
+            "invalidations": 21
+          },
+          "profiles": [
+            {
+              "kind": "body",
+              "nodes": 30,
+              "corridors": 15,
+              "connections": 14,
+              "fields": 0
+            },
+            {
+              "kind": "egg",
+              "nodes": 28,
+              "corridors": 14,
+              "connections": 12,
+              "fields": 0
+            },
+            {
+              "kind": "food",
+              "nodes": 28,
+              "corridors": 14,
+              "connections": 12,
+              "fields": 0
+            },
+            {
+              "kind": "soil1",
+              "nodes": 30,
+              "corridors": 15,
+              "connections": 13,
+              "fields": 0
+            },
+            {
+              "kind": "soil2",
+              "nodes": 30,
+              "corridors": 15,
+              "connections": 14,
+              "fields": 0
+            },
+            {
+              "kind": "soil",
+              "nodes": 30,
+              "corridors": 15,
+              "connections": 13,
+              "fields": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "pair": 1,
+      "stateHash": "9a7040181eb0e78eea03d30b560c6df205c11d41961447ea379bf8a456d8a2f8",
+      "network": {
+        "coldMs": 8642.250200000002,
+        "queryMs": 9.810206365740745,
+        "found": 864,
+        "msPerStep": 2.302264500000001,
+        "delivered": 5676,
+        "meals": 232,
+        "ants": 128,
+        "network": {
+          "metrics": {
+            "requests": 1361,
+            "routes": 820,
+            "local": 541,
+            "corridorBuilds": 116,
+            "roomSearches": 83,
+            "roomHits": 667,
+            "fieldsBuilt": 661,
+            "fieldHits": 402,
+            "invalidations": 21
+          },
+          "profiles": [
+            {
+              "kind": "body",
+              "nodes": 30,
+              "corridors": 15,
+              "connections": 14,
+              "fields": 0
+            },
+            {
+              "kind": "egg",
+              "nodes": 28,
+              "corridors": 14,
+              "connections": 12,
+              "fields": 0
+            },
+            {
+              "kind": "food",
+              "nodes": 28,
+              "corridors": 14,
+              "connections": 12,
+              "fields": 0
+            },
+            {
+              "kind": "soil1",
+              "nodes": 30,
+              "corridors": 15,
+              "connections": 13,
+              "fields": 0
+            },
+            {
+              "kind": "soil2",
+              "nodes": 30,
+              "corridors": 15,
+              "connections": 14,
+              "fields": 0
+            },
+            {
+              "kind": "soil",
+              "nodes": 30,
+              "corridors": 15,
+              "connections": 13,
+              "fields": 0
+            }
+          ]
+        }
+      },
+      "old": {
+        "coldMs": 7665.370999999999,
+        "queryMs": 7.289798842592602,
+        "found": 864,
+        "msPerStep": 2.2874998333333254,
+        "delivered": 5676,
+        "meals": 232,
+        "ants": 128
+      }
+    },
+    {
+      "pair": 2,
+      "stateHash": "9a7040181eb0e78eea03d30b560c6df205c11d41961447ea379bf8a456d8a2f8",
+      "old": {
+        "coldMs": 7729.530199999994,
+        "queryMs": 7.294531018518531,
+        "found": 864,
+        "msPerStep": 2.2440326666666683,
+        "delivered": 5676,
+        "meals": 232,
+        "ants": 128
+      },
+      "network": {
+        "coldMs": 8288.18280000001,
+        "queryMs": 8.561883333333332,
+        "found": 864,
+        "msPerStep": 2.157402416666676,
+        "delivered": 5676,
+        "meals": 232,
+        "ants": 128,
+        "network": {
+          "metrics": {
+            "requests": 1361,
+            "routes": 820,
+            "local": 541,
+            "corridorBuilds": 116,
+            "roomSearches": 83,
+            "roomHits": 667,
+            "fieldsBuilt": 661,
+            "fieldHits": 402,
+            "invalidations": 21
+          },
+          "profiles": [
+            {
+              "kind": "body",
+              "nodes": 30,
+              "corridors": 15,
+              "connections": 14,
+              "fields": 0
+            },
+            {
+              "kind": "egg",
+              "nodes": 28,
+              "corridors": 14,
+              "connections": 12,
+              "fields": 0
+            },
+            {
+              "kind": "food",
+              "nodes": 28,
+              "corridors": 14,
+              "connections": 12,
+              "fields": 0
+            },
+            {
+              "kind": "soil1",
+              "nodes": 30,
+              "corridors": 15,
+              "connections": 13,
+              "fields": 0
+            },
+            {
+              "kind": "soil2",
+              "nodes": 30,
+              "corridors": 15,
+              "connections": 14,
+              "fields": 0
+            },
+            {
+              "kind": "soil",
+              "nodes": 30,
+              "corridors": 15,
+              "connections": 13,
+              "fields": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "pair": 3,
+      "stateHash": "9a7040181eb0e78eea03d30b560c6df205c11d41961447ea379bf8a456d8a2f8",
+      "network": {
+        "coldMs": 8431.833400000003,
+        "queryMs": 8.998963541666651,
+        "found": 864,
+        "msPerStep": 2.1943174999999973,
+        "delivered": 5676,
+        "meals": 232,
+        "ants": 128,
+        "network": {
+          "metrics": {
+            "requests": 1361,
+            "routes": 820,
+            "local": 541,
+            "corridorBuilds": 116,
+            "roomSearches": 83,
+            "roomHits": 667,
+            "fieldsBuilt": 661,
+            "fieldHits": 402,
+            "invalidations": 21
+          },
+          "profiles": [
+            {
+              "kind": "body",
+              "nodes": 30,
+              "corridors": 15,
+              "connections": 14,
+              "fields": 0
+            },
+            {
+              "kind": "egg",
+              "nodes": 28,
+              "corridors": 14,
+              "connections": 12,
+              "fields": 0
+            },
+            {
+              "kind": "food",
+              "nodes": 28,
+              "corridors": 14,
+              "connections": 12,
+              "fields": 0
+            },
+            {
+              "kind": "soil1",
+              "nodes": 30,
+              "corridors": 15,
+              "connections": 13,
+              "fields": 0
+            },
+            {
+              "kind": "soil2",
+              "nodes": 30,
+              "corridors": 15,
+              "connections": 14,
+              "fields": 0
+            },
+            {
+              "kind": "soil",
+              "nodes": 30,
+              "corridors": 15,
+              "connections": 13,
+              "fields": 0
+            }
+          ]
+        }
+      },
+      "old": {
+        "coldMs": 7449.632800000007,
+        "queryMs": 7.538340509259258,
+        "found": 864,
+        "msPerStep": 2.207325416666669,
+        "delivered": 5676,
+        "meals": 232,
+        "ants": 128
+      }
+    }
+  ],
+  "medianOldQueryMs": 7.416435763888894,
+  "medianNetworkQueryMs": 8.848113657407398,
+  "medianOldStepMs": 2.265766249999997,
+  "medianNetworkStepMs": 2.248290999999999,
+  "sourceSha256": {
+    "core.js": "1c029bf330b8459d0285f3e0539e58a7ba374d061a345a7a105ba0d61c3cb1a4",
+    "lifecycle.js": "e3811fe72b1fece21ec7cc25a678901d80199b0d5584775a9ab509bb85371090",
+    "game.js": "bb711d5ba878dd09b34f7abe534c40819ee67ed22189d285553f186455e9b4b3",
+    "route-network.js": "79761469633dcf40083b6a68f802846c97e123aab7180ced6402fe1c81b883e3"
+  },
+  "sourceAfter": {
+    "core.js": "1c029bf330b8459d0285f3e0539e58a7ba374d061a345a7a105ba0d61c3cb1a4",
+    "lifecycle.js": "e3811fe72b1fece21ec7cc25a678901d80199b0d5584775a9ab509bb85371090",
+    "game.js": "bb711d5ba878dd09b34f7abe534c40819ee67ed22189d285553f186455e9b4b3",
+    "route-network.js": "79761469633dcf40083b6a68f802846c97e123aab7180ced6402fe1c81b883e3"
+  },
+  "baselineSha256": {
+    "core.js": "10a24bb9014046e7e3ac48abd82b41b88adffe2e0e04057a8644e24b31912bfb",
+    "lifecycle.js": "e3811fe72b1fece21ec7cc25a678901d80199b0d5584775a9ab509bb85371090",
+    "game.js": "250e0dc5a151e705c3253ec74a1e3953e4d63a58cb2ff48abd3c5f612c984ca0"
+  },
+  "note": "同一128匹保存から、停止中の同じ経路問い合わせでwarm-upし、新旧の順序を交互にして単独計測。経路が変わるので20ゲーム秒後の状態は同一条件とは限らず、作業数も併記。1000匹/実機ではない。"
+}

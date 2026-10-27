@@ -1,0 +1,56 @@
+chain copy: C:\Users\yuhim\AppData\Local\Temp\living-chain-5ZxUZW
+START chain
+START waste
+START raid
+START ferment
+START housing
+START pebble
+START disease
+START approach
+START rock
+START research
+START cargo-turn
+START storage
+START reservation
+START headon
+START turn
+START diagnostics
+PASS turn            2 s
+START traffic
+PASS reservation    26 s
+START network
+PASS storage        30 s
+PASS headon         34 s
+PASS cargo-turn     38 s
+PASS research       54 s
+PASS disease        60 s
+PASS rock           60 s
+PASS approach       61 s
+PASS network        45 s
+PASS diagnostics    85 s
+PASS pebble        100 s
+PASS ferment       156 s
+FAIL housing       163 s
+
+AssertionError [ERR_ASSERTION]: fewer workers share places
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v24.22.1
+
+PASS traffic       177 s
+PASS raid          189 s
+PASS waste         273 s
+PASS chain         534 s
+START smoke (exclusive)
+PASS smoke           2 s
+START touch (exclusive)
+PASS touch          11 s
+START browser (exclusive)
+PASS browser        21 s
+FAILED housing in 569 s on 16 cores

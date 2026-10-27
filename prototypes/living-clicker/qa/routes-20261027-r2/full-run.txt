@@ -1,0 +1,44 @@
+chain copy: C:\Users\yuhim\AppData\Local\Temp\living-chain-LQeLwH
+START chain
+START waste
+START raid
+START ferment
+START housing
+START pebble
+START disease
+START approach
+START rock
+START research
+START cargo-turn
+START storage
+START reservation
+START headon
+START turn
+START diagnostics
+PASS turn            2 s
+START traffic
+PASS reservation    26 s
+START network
+PASS storage        34 s
+PASS headon         38 s
+PASS cargo-turn     41 s
+PASS disease        51 s
+PASS research       58 s
+PASS approach       59 s
+PASS rock           62 s
+PASS network        50 s
+PASS diagnostics    84 s
+PASS pebble         99 s
+PASS housing       132 s
+PASS ferment       162 s
+PASS traffic       179 s
+PASS raid          193 s
+PASS waste         247 s
+PASS chain         516 s
+START smoke (exclusive)
+PASS smoke           2 s
+START touch (exclusive)
+PASS touch          12 s
+START browser (exclusive)
+PASS browser        21 s
+ALL PASS in 551 s on 16 cores

@@ -1,0 +1,14 @@
+{
+  "fixture": "home-pose-coverage.json",
+  "sha256": "83bdefb24fcde86fc181f5ca2c2b272cd6bda6d05775b013faa2febfc039a2e6",
+  "sourceRecord": "routes-20261027/verification.json",
+  "sourceSha256": {
+    "core.js": "1c029bf330b8459d0285f3e0539e58a7ba374d061a345a7a105ba0d61c3cb1a4",
+    "lifecycle.js": "e3811fe72b1fece21ec7cc25a678901d80199b0d5584775a9ab509bb85371090",
+    "game.js": "250e0dc5a151e705c3253ec74a1e3953e4d63a58cb2ff48abd3c5f612c984ca0",
+    "route-network.js": "79761469633dcf40083b6a68f802846c97e123aab7180ced6402fe1c81b883e3"
+  },
+  "input": "before-depth.json",
+  "inputSha256": "847281d5c80ece745c09ad407a4462869b1426a79285b09d5d800d9b0862ce7f",
+  "method": "初回不合格の経路共有実装（床候補の修正前）で、深度用の自然保存から居室検証と同じ進行を行った後の実状態。蟻58番に空き床が見つからない一方で、44.25/24.75などの既存の立ち位置は身体と移動の検査を通る。修正を検証する固定の失敗状態として保持する。"
+}

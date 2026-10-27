@@ -1,0 +1,5 @@
+{
+  "method": "記録後、読みやすいGit差分にするためCRLFをLFへ統一。文字/行/失敗内容は変更しない。",
+  "capturedSha256": "5031203b17483bf0d92139458f1fc3f709b2ab90466b3dcefdfe0e4b2c7ae2e2",
+  "trackedSha256": "e5c8618ede285e31a78269407e3642628a932f9e2ced4ad6e31d1b521e7512cf"
+}
