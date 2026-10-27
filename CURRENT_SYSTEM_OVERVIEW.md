@@ -6,10 +6,16 @@
 
 # Ant Colony V23 Current System Overview
 
-Last updated: 2026-10-27（実資源で256匹。保存容量の改善が次工程）
+Last updated: 2026-10-27（実256匹の保存容量を改善。次は512匹）
 Target: `prototypes/living-clicker/`（root index.htmlは旧公開本編）
 
 This document is the current implementation overview for the single-file ant clicker game. When gameplay, UI, save data, AI behavior, or public deployment assumptions change, update this file together with `DEVELOPMENT_LOG.md`.
+
+## 2026-10-27 保存と復旧の損失なし圧縮（Codex）
+
+ブラウザ内の現保存と復旧を、精度/歩行履歴を保ったまま損失なく圧縮。256匹は2,186,320→542,925文字（75.17%減）。JSON書き出し/モデル保存形式/新版2キーは維持し、他のキーは変更しない。同じ形式の既存非圧縮保存は読めるが起動時の書き換えはしない。圧縮の破損/サイズ/形式を検査してから従来のモデル検証を通す。
+
+全26本合格、前後hash一致。大きな旧キー併存でも256匹の通常保存/リセット/復旧が成功。実保存枠を満杯にした時はデータを保護して拒否し、実書き出しも一致。同期保存の負荷/実機Safari/512/1000匹は未完。**次は第3層/512匹の成長と実保存容量の確認。** 旧公開本編/main/Pages/PR/pushは変更なし。
 
 ## 2026-10-27 実資源で256匹へ育つ段階（Codex）
 

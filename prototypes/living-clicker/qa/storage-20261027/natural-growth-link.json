@@ -1,0 +1,12 @@
+{
+  "unchangedModelSha256": {
+    "core.js": "c873a478cace730dd84ae13111832539229cfc1f3ef8b03119f287a980fea8f8",
+    "lifecycle.js": "c8c93dd72d17607a85ab9420edfc939e78803fd520d3333ee53a397939641301",
+    "game.js": "c4b01a6b31b75813877ba6c763ce5375b281be86f8bc4115bbc8958b83f73a27"
+  },
+  "previousNaturalResult": "../growth-20261027/growth-256-results.json",
+  "previousNaturalResultSha256": "679f80dd75258ada0d37e984648009efc1b2c981defcb362dd45824fdd0db707",
+  "fresh128InputSha256": "08590edc2d19eb1bb7fa935fe3b6ddc7f2eab922b9c9cf2692828c45c1f7659f",
+  "before256InputSha256": "08590edc2d19eb1bb7fa935fe3b6ddc7f2eab922b9c9cf2692828c45c1f7659f",
+  "note": "今回の新規128匹の終了状態は、前回の自然128→256匹の入力とバイト一致。256匹まで全体を今回再実行した意味ではない。"
+}

@@ -14,5 +14,8 @@
   },
   "devDependencies": {
     "playwright": "1.62.1"
+  },
+  "dependencies": {
+    "fflate": "0.8.3"
   }
 }

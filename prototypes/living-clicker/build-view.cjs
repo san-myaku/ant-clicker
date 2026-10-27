@@ -94,5 +94,14 @@ replace('const candidate=new Simulation(seed);checkpoint();sim = candidate;', 'c
 replace('checkpoint();sim = candidate; selected = null;', 'checkpoint();stopDiagnostics();sim = candidate; selected = null;', 'stop diagnostics across restored nests');
 replace('sim.colony.laying=!sim.colony.laying;', "diagnostics?.recordSetting('colony.laying',!sim.colony.laying);sim.colony.laying=!sim.colony.laying;", 'record laying input');
 replace("speed = +$('speed').value;persist();", "speed = +$('speed').value;diagnostics?.recordSetting('progress.speed',speed);persist();", 'record speed input');
-source=fs.readFileSync(path.join(root,'diagnostics.js'),'utf8')+'\n'+source;
+// Compress only browser storage. Export/import and the model retain the same
+// JSON contract; validation still runs on every decoded candidate.
+replace("JSON.stringify(sim.dump());if(bytes)localStorage.setItem(KEY+'_recovery',bytes);","LivingSaveCodec.encode(sim.dump());if(bytes)localStorage.setItem(KEY+'_recovery',bytes);",'compressed checkpoint');
+replace('localStorage.setItem(KEY, JSON.stringify(sim.dump()))','localStorage.setItem(KEY, LivingSaveCodec.encode(sim.dump()))','compressed current save');
+replace('Simulation.restore(JSON.parse(saved))','Simulation.restore(LivingSaveCodec.decode(saved))','decode stored startup');
+replace('Simulation.restore(JSON.parse(data))','Simulation.restore(LivingSaveCodec.decode(data))','decode explicit restore');
+replace('Simulation.restore(JSON.parse(bytes))','Simulation.restore(LivingSaveCodec.decode(bytes))','decode undo checkpoint');
+const zipRoot=path.dirname(require.resolve('fflate/package.json'));
+const license='/* fflate 0.8.3 — '+fs.readFileSync(path.join(zipRoot,'LICENSE'),'utf8')+' */\n';
+source=license+fs.readFileSync(path.join(zipRoot,'umd/index.js'),'utf8')+';\n'+fs.readFileSync(path.join(root,'save-codec.js'),'utf8')+'\n'+fs.readFileSync(path.join(root,'diagnostics.js'),'utf8')+'\n'+source;
 fs.writeFileSync(path.join(root,'view.js'),source);console.log('Observation view generated with checked hooks.');

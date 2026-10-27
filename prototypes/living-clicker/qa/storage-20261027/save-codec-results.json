@@ -1,0 +1,244 @@
+{
+  "pass": true,
+  "fixtureCount": 20,
+  "invalidCases": 24,
+  "continuationCases": 3,
+  "source": {
+    "save-codec.js": "13417ccb76bd179ebe40ba3275e6d6a716039f0ba855c138e0328fd294f185dd",
+    "build-view.cjs": "ee4d6d53a978893aca3b7458c2f7f0d2666b30ed18d1015361503673a97eb078",
+    "view.js": "4bb44a8cf17b7af1a6ab6b2c09e18a56433e2b006a062b7a3a99eb9ec896fb8e",
+    "game.js": "c4b01a6b31b75813877ba6c763ce5375b281be86f8bc4115bbc8958b83f73a27",
+    "core.js": "c873a478cace730dd84ae13111832539229cfc1f3ef8b03119f287a980fea8f8",
+    "lifecycle.js": "c8c93dd72d17607a85ab9420edfc939e78803fd520d3333ee53a397939641301",
+    "verify-save-codec.cjs": "ece3354ffe6950b83a1ac5af852f9ef6134a6a382465d28b3a28900b1eb8d73b",
+    "../../package.json": "945e02c26e1da8b7be5f6f47ed7772b83eac25944a74f91bf925e36d36090881",
+    "../../package-lock.json": "16e69863bda29d64f38eaa2245f7099996ddc7951852d07513f88e6006ff7d66"
+  },
+  "inputs": {
+    "prototypes/clicker-integration/qa/journey-save.json": "3aa240e1db6022cc5fd1780ea071b6a696ce9d16be27ac1275927fed31ccb707",
+    "prototypes/living-clicker/qa/approach-stall.json": "425775dab8acaa5fc3151e6c23300c36e32b0f5241955966d0da948ce208f5be",
+    "prototypes/living-clicker/qa/before-depth.json": "c62461d2cc921bdd99e5b6e240abc4e4983126aafc1da37437d211aad5642707",
+    "prototypes/living-clicker/qa/blocked-turn.json": "ec6dfd88e392a232d54cf80de71e61a9bc7a3bbc8e8fdb74f070a78f1941adca",
+    "prototypes/living-clicker/qa/collision.json": "7e8912f50dc5a833ac8c4b4ff95394a8116691c883795708f7627cd63938ac24",
+    "prototypes/living-clicker/qa/deep-collision.json": "4d07d928491f787a5e17f78821ecabfab5440e452c6ca77fa985912c2089c7c8",
+    "prototypes/living-clicker/qa/head-on-retreat.json": "f7b76e9316a23fdef8315b2bb3ee3f622cf5048c58505f51aded32fdbe5e0c81",
+    "prototypes/living-clicker/qa/heap-ceiling.json": "0043346a5f6df877c3025744eb24c783147920104a59430526d1f5852f9c52b2",
+    "prototypes/living-clicker/qa/raid-stuck-loot.json": "6997ce7ce6935b2e60cb45a5321a09a00ebd303b9268e9d4a15ab8ad76f7eb6e",
+    "prototypes/living-clicker/qa/research-catalog.json": "c85c73765284045aba52352165d30b702ad6ac06f39eed90a24818a7641445ea",
+    "prototypes/living-clicker/qa/room-reservation.json": "f36ba44a40233deeb28b60ea2cb7086fb21f69fcc42e4f677f2303cfcdc786a6",
+    "prototypes/living-clicker/qa/storage-ring.json": "b4d94449347967e195893c0c889d4751290999cc3e827ad09450d24c718210d5",
+    "prototypes/living-clicker/qa/waste-spill.json": "ae3d25a53a9c348f2f3d6037f1f84cee0f6dd3f666da68dca622a72b70dde88c",
+    "prototypes/living-clicker/qa/world-1200.json": "da2874099cd10a723093f7590552ac61b84c16c769f6296d305fefa29c4b53cf",
+    "prototypes/living-clicker/qa/world-180.json": "3419a484817d9181006fcbf02f6a93b8aeaaea44981986db0869f584b03af5e2",
+    "prototypes/living-clicker/qa/world-60.json": "7514c2e4d126d416f245dad779bf5500a28f3d456fe17f81ad090f27a82417a0",
+    "prototypes/living-clicker/qa/world-900.json": "bfb9fbafee2e76b4a6f4e4aec8b97def004a8e9c8ed12a07ebed1c2a000860da",
+    "prototypes/living-clicker/qa/world-final.json": "028da2642b574b6490d71bc13daa5df55f2cc99f71aeeb39f8b217d3ca554d79",
+    "prototypes/living-clicker/qa/world-scale.json": "15d03b034f3619e0dbdc04846fae7173c546823a413acd74456fa8f781676f91",
+    "prototypes/living-clicker/qa/home-pose-coverage.json": "9e98a5674d7ea2af03759fbba640763d276ff7959b9991e140da9dcd07cc83f4",
+    "prototypes/living-clicker/qa/housing-demand.json": "7fdfcb06d462c3c9ad14572ec451e0a93e0e186d63bfb2eecaa0f9420c967a37",
+    "prototypes/living-clicker/qa/before-256.json": "08590edc2d19eb1bb7fa935fe3b6ddc7f2eab922b9c9cf2692828c45c1f7659f",
+    "prototypes/living-clicker/qa/world-256.json": "ea79db5a2a5488c62871365f122f27b154ea186a8e09f9c7af93d2242fd0d23d"
+  },
+  "results": [
+    {
+      "name": "approach-stall.json",
+      "pass": true,
+      "rawCharacters": 594251,
+      "storedCharacters": 152806,
+      "ratio": 0.2571405012360097,
+      "encodeMs": 217.54410000000001,
+      "decodeMs": 179.30949999999996,
+      "decodedSha256": "425775dab8acaa5fc3151e6c23300c36e32b0f5241955966d0da948ce208f5be"
+    },
+    {
+      "name": "before-depth.json",
+      "pass": true,
+      "rawCharacters": 533087,
+      "storedCharacters": 131238,
+      "ratio": 0.24618495667686513,
+      "encodeMs": 123.10109999999986,
+      "decodeMs": 62.19749999999999,
+      "decodedSha256": "c62461d2cc921bdd99e5b6e240abc4e4983126aafc1da37437d211aad5642707"
+    },
+    {
+      "name": "blocked-turn.json",
+      "pass": true,
+      "rawCharacters": 671684,
+      "storedCharacters": 172690,
+      "ratio": 0.25710006491147624,
+      "encodeMs": 71.66910000000007,
+      "decodeMs": 182.74299999999994,
+      "decodedSha256": "ec6dfd88e392a232d54cf80de71e61a9bc7a3bbc8e8fdb74f070a78f1941adca"
+    },
+    {
+      "name": "deep-collision.json",
+      "pass": true,
+      "rawCharacters": 706260,
+      "storedCharacters": 177821,
+      "ratio": 0.25177838189901736,
+      "encodeMs": 126.91629999999986,
+      "decodeMs": 141.65020000000004,
+      "decodedSha256": "c9946b9f18b5fd9eac775bee0a6090de040006c2308b0a68c596b9e0925e9438"
+    },
+    {
+      "name": "head-on-retreat.json",
+      "pass": true,
+      "rawCharacters": 581083,
+      "storedCharacters": 140294,
+      "ratio": 0.2414353887482511,
+      "encodeMs": 115.9042999999997,
+      "decodeMs": 154.57850000000053,
+      "decodedSha256": "f7b76e9316a23fdef8315b2bb3ee3f622cf5048c58505f51aded32fdbe5e0c81"
+    },
+    {
+      "name": "heap-ceiling.json",
+      "pass": true,
+      "rawCharacters": 1281299,
+      "storedCharacters": 332171,
+      "ratio": 0.25924550007453373,
+      "encodeMs": 208.10229999999956,
+      "decodeMs": 189.63210000000072,
+      "decodedSha256": "0043346a5f6df877c3025744eb24c783147920104a59430526d1f5852f9c52b2"
+    },
+    {
+      "name": "raid-stuck-loot.json",
+      "pass": true,
+      "rawCharacters": 991651,
+      "storedCharacters": 247046,
+      "ratio": 0.24912595257807435,
+      "encodeMs": 143.3148000000001,
+      "decodeMs": 126.72619999999915,
+      "decodedSha256": "6997ce7ce6935b2e60cb45a5321a09a00ebd303b9268e9d4a15ab8ad76f7eb6e"
+    },
+    {
+      "name": "room-reservation.json",
+      "pass": true,
+      "rawCharacters": 304056,
+      "storedCharacters": 67518,
+      "ratio": 0.2220577788302155,
+      "encodeMs": 77.88339999999971,
+      "decodeMs": 57.59490000000005,
+      "decodedSha256": "f36ba44a40233deeb28b60ea2cb7086fb21f69fcc42e4f677f2303cfcdc786a6"
+    },
+    {
+      "name": "storage-ring.json",
+      "pass": true,
+      "rawCharacters": 422325,
+      "storedCharacters": 92145,
+      "ratio": 0.2181850470609128,
+      "encodeMs": 41.04569999999967,
+      "decodeMs": 38.1850000000004,
+      "decodedSha256": "b4d94449347967e195893c0c889d4751290999cc3e827ad09450d24c718210d5"
+    },
+    {
+      "name": "waste-spill.json",
+      "pass": true,
+      "rawCharacters": 809344,
+      "storedCharacters": 215938,
+      "ratio": 0.2668062035426222,
+      "encodeMs": 103.26950000000033,
+      "decodeMs": 99.99109999999928,
+      "decodedSha256": "ae3d25a53a9c348f2f3d6037f1f84cee0f6dd3f666da68dca622a72b70dde88c"
+    },
+    {
+      "name": "world-1200.json",
+      "pass": true,
+      "rawCharacters": 534301,
+      "storedCharacters": 131570,
+      "ratio": 0.24624696566167759,
+      "encodeMs": 63.725000000000364,
+      "decodeMs": 40.35620000000017,
+      "decodedSha256": "da2874099cd10a723093f7590552ac61b84c16c769f6296d305fefa29c4b53cf"
+    },
+    {
+      "name": "world-180.json",
+      "pass": true,
+      "rawCharacters": 271796,
+      "storedCharacters": 63350,
+      "ratio": 0.23307922118059132,
+      "encodeMs": 39.038399999999456,
+      "decodeMs": 33.973400000000765,
+      "decodedSha256": "3419a484817d9181006fcbf02f6a93b8aeaaea44981986db0869f584b03af5e2"
+    },
+    {
+      "name": "world-60.json",
+      "pass": true,
+      "rawCharacters": 242080,
+      "storedCharacters": 54470,
+      "ratio": 0.22500826173165894,
+      "encodeMs": 64.07289999999921,
+      "decodeMs": 24.708400000001348,
+      "decodedSha256": "7514c2e4d126d416f245dad779bf5500a28f3d456fe17f81ad090f27a82417a0"
+    },
+    {
+      "name": "world-900.json",
+      "pass": true,
+      "rawCharacters": 400945,
+      "storedCharacters": 97265,
+      "ratio": 0.24258938258364612,
+      "encodeMs": 71.42319999999927,
+      "decodeMs": 48.49330000000009,
+      "decodedSha256": "bfb9fbafee2e76b4a6f4e4aec8b97def004a8e9c8ed12a07ebed1c2a000860da"
+    },
+    {
+      "name": "world-final.json",
+      "pass": true,
+      "rawCharacters": 835331,
+      "storedCharacters": 204838,
+      "ratio": 0.24521776397619627,
+      "encodeMs": 105.79550000000017,
+      "decodeMs": 80.32430000000022,
+      "decodedSha256": "028da2642b574b6490d71bc13daa5df55f2cc99f71aeeb39f8b217d3ca554d79"
+    },
+    {
+      "name": "world-scale.json",
+      "pass": true,
+      "rawCharacters": 1215372,
+      "storedCharacters": 292555,
+      "ratio": 0.24071230865940635,
+      "encodeMs": 146.33020000000033,
+      "decodeMs": 175.4274000000005,
+      "decodedSha256": "15d03b034f3619e0dbdc04846fae7173c546823a413acd74456fa8f781676f91"
+    },
+    {
+      "name": "home-pose-coverage.json",
+      "pass": true,
+      "rawCharacters": 798785,
+      "storedCharacters": 196294,
+      "ratio": 0.24574071871655076,
+      "encodeMs": 120.34399999999914,
+      "decodeMs": 93.66500000000087,
+      "decodedSha256": "9e98a5674d7ea2af03759fbba640763d276ff7959b9991e140da9dcd07cc83f4"
+    },
+    {
+      "name": "housing-demand.json",
+      "pass": true,
+      "rawCharacters": 694250,
+      "storedCharacters": 182230,
+      "ratio": 0.26248469571480015,
+      "encodeMs": 78.7440000000006,
+      "decodeMs": 131.9501999999993,
+      "decodedSha256": "7fdfcb06d462c3c9ad14572ec451e0a93e0e186d63bfb2eecaa0f9420c967a37"
+    },
+    {
+      "name": "before-256.json",
+      "pass": true,
+      "rawCharacters": 1102020,
+      "storedCharacters": 260815,
+      "ratio": 0.2366699333950382,
+      "encodeMs": 179.77169999999933,
+      "decodeMs": 114.58710000000065,
+      "decodedSha256": "08590edc2d19eb1bb7fa935fe3b6ddc7f2eab922b9c9cf2692828c45c1f7659f"
+    },
+    {
+      "name": "world-256.json",
+      "pass": true,
+      "rawCharacters": 2186320,
+      "storedCharacters": 542925,
+      "ratio": 0.24832824106260748,
+      "encodeMs": 266.8244999999988,
+      "decodeMs": 283.3787000000011,
+      "decodedSha256": "ea79db5a2a5488c62871365f122f27b154ea186a8e09f9c7af93d2242fd0d23d"
+    }
+  ]
+}

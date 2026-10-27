@@ -2,6 +2,7 @@ const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),
 const {chromium,launchOptions}=require('./qa-runtime.cjs');
 const root=__dirname,qa=path.join(root,'qa');fs.mkdirSync(qa,{recursive:true});
 const files=['index.html','core.js','lifecycle.js','game.js','view.js'],server=http.createServer((req,res)=>{const name=new URL(req.url,'http://localhost').pathname.split('/').at(-1)||'index.html';if(!files.includes(name)){res.writeHead(404);return res.end();}res.setHeader('Content-Type',name.endsWith('.js')?'text/javascript; charset=utf-8':'text/html; charset=utf-8');res.end(fs.readFileSync(path.join(root,name)));});
+const SaveCodec=require('./save-codec.js');
 const hashes=Object.fromEntries(files.map(n=>[n,crypto.createHash('sha256').update(fs.readFileSync(path.join(root,n))).digest('hex')]));
 const results=[];let browser;
 (async()=>{try{
@@ -28,17 +29,17 @@ const results=[];let browser;
     }
   }
   await page.locator('#settings>summary').click();await page.screenshot({path:path.join(qa,`settings-${width}.png`),fullPage:true,scale:'css'});
-  const exact=await page.evaluate(()=>JSON.stringify(colonyGame.dump()));await page.locator('#save').click();const saved=await page.evaluate(()=>localStorage.getItem('livingClicker_2'));await page.reload();await page.evaluate(()=>colonyGame.pause(true));assert.equal(await page.evaluate(()=>JSON.stringify(colonyGame.dump())),saved);
-  await page.locator('#settings>summary').click();await page.locator('#import').setInputFiles({name:'invalid.json',mimeType:'application/json',buffer:Buffer.from('{"format":"invalid"}')});await page.waitForFunction(()=>document.getElementById('message').textContent.includes('開けません'),null,{polling:100});assert.equal(await page.evaluate(()=>JSON.stringify(colonyGame.dump())),saved);assert.equal(await page.evaluate(()=>localStorage.getItem('livingClicker_2')),saved);
-  const previous=JSON.parse(saved);previous.format='living-clicker-1';
+  const exact=await page.evaluate(()=>JSON.stringify(colonyGame.dump()));await page.locator('#save').click();const saved=await page.evaluate(()=>localStorage.getItem('livingClicker_2'));assert.equal(JSON.stringify(SaveCodec.decode(saved)),exact);await page.reload();await page.evaluate(()=>colonyGame.pause(true));assert.equal(await page.evaluate(()=>JSON.stringify(colonyGame.dump())),exact);
+  await page.locator('#settings>summary').click();await page.locator('#import').setInputFiles({name:'invalid.json',mimeType:'application/json',buffer:Buffer.from('{"format":"invalid"}')});await page.waitForFunction(()=>document.getElementById('message').textContent.includes('開けません'),null,{polling:100});assert.equal(await page.evaluate(()=>JSON.stringify(colonyGame.dump())),exact);assert.equal(await page.evaluate(()=>localStorage.getItem('livingClicker_2')),saved);
+  const previous=JSON.parse(exact);previous.format='living-clicker-1';
   await page.evaluate(()=>document.getElementById('message').textContent='');
   await page.locator('#import').setInputFiles({name:'previous-version.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(previous))});
   await page.waitForFunction(()=>document.getElementById('message').textContent.includes('開けません'),null,{polling:100});
-  assert.equal(await page.evaluate(()=>JSON.stringify(colonyGame.dump())),saved);assert.equal(await page.evaluate(()=>localStorage.getItem('livingClicker_2')),saved);
+  assert.equal(await page.evaluate(()=>JSON.stringify(colonyGame.dump())),exact);assert.equal(await page.evaluate(()=>localStorage.getItem('livingClicker_2')),saved);
   assert.equal(await page.evaluate(()=>localStorage.getItem('livingClicker_1')),'PROTECTED_livingClicker_1');
 
-  await page.locator('#reset').click();assert.equal(await page.evaluate(()=>colonyGame.sim.ants.length),12);await page.locator('#undo').click();assert.equal(await page.evaluate(()=>JSON.stringify(colonyGame.dump())),saved);
-  await page.evaluate(()=>{window.qaSetItem=Storage.prototype.setItem;Storage.prototype.setItem=function(){throw new DOMException('Quota exceeded','QuotaExceededError');};});await page.locator('#save').click();assert.match(await page.locator('#message').textContent(),/書き出/);await page.locator('#reset').click();assert.equal(await page.evaluate(()=>JSON.stringify(colonyGame.dump())),saved);await page.evaluate(()=>Storage.prototype.setItem=window.qaSetItem);
+  await page.locator('#reset').click();assert.equal(await page.evaluate(()=>colonyGame.sim.ants.length),12);await page.locator('#undo').click();assert.equal(await page.evaluate(()=>JSON.stringify(colonyGame.dump())),exact);
+  await page.evaluate(()=>{window.qaSetItem=Storage.prototype.setItem;Storage.prototype.setItem=function(){throw new DOMException('Quota exceeded','QuotaExceededError');};});await page.locator('#save').click();assert.match(await page.locator('#message').textContent(),/書き出/);await page.locator('#reset').click();assert.equal(await page.evaluate(()=>JSON.stringify(colonyGame.dump())),exact);await page.evaluate(()=>Storage.prototype.setItem=window.qaSetItem);
   const report=await page.evaluate(keys=>({overflow:document.documentElement.scrollWidth>innerWidth,protected:keys.every(k=>localStorage.getItem(k)==='PROTECTED_'+k),camera:colonyGame.camera,selection:getComputedStyle(document.querySelector('#lay')).userSelect,viewport:document.querySelector('meta[name=viewport]').content}),protectedKeys);
   assert(!report.overflow);assert(report.protected);assert.equal(report.selection,'none');assert.deepEqual(errors,[]);results.push({width,pass:true,...report,errors});console.log(width+' PASS');
   const populationPack=JSON.parse(fs.readFileSync(path.join(qa,'before-256.json')));await page.evaluate(p=>colonyGame.load(p),populationPack);
