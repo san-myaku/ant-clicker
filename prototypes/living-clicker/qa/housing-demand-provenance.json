@@ -8,12 +8,18 @@
   "rest": [
     4
   ],
-  "fixtureSha256": "a68e71f3acfd3e7f2bc032c842526727c1cde4a93cc966f4ff48df68446a5766",
+  "fixtureSha256": "7fdfcb06d462c3c9ad14572ec451e0a93e0e186d63bfb2eecaa0f9420c967a37",
   "sourceSha256": {
     "core.js": "1c029bf330b8459d0285f3e0539e58a7ba374d061a345a7a105ba0d61c3cb1a4",
     "lifecycle.js": "e3811fe72b1fece21ec7cc25a678901d80199b0d5584775a9ab509bb85371090",
     "game.js": "bb711d5ba878dd09b34f7abe534c40819ee67ed22189d285553f186455e9b4b3",
     "route-network.js": "79761469633dcf40083b6a68f802846c97e123aab7180ced6402fe1c81b883e3"
   },
-  "method": "既存の自然保存から固定1/60秒で進行。個体・餌・空洞・家の注入なし。実際に次の居室が計画される直前の完了ステップを保存し、復元した次の1ステップで同じ計画の発生を確認。元の入力保存は置き換えない。"
+  "method": "既存の自然保存から固定1/60秒で進行。個体・餌・空洞・家の注入なし。実際に次の居室が計画される直前の完了ステップを保存し、復元した次の1ステップで同じ計画の発生を確認。元の入力保存は置き換えない。",
+  "originalFixtureSha256": "a68e71f3acfd3e7f2bc032c842526727c1cde4a93cc966f4ff48df68446a5766",
+  "formatRevision": {
+    "record": "actors-v2-fixtures.json",
+    "base": "7d95df6ad116dd015408b9cbee2d7d97d44994b9",
+    "note": "元の自然進行/失敗状態の位置・物体・作業を保ったQA用の形式更新。元の生成ソースhashは履歴として維持。"
+  }
 }

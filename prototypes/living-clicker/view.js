@@ -593,7 +593,7 @@
   };
   $('export').onclick = () => {
     const blob = new Blob([JSON.stringify(sim.dump())], { type: 'application/json' }), url = URL.createObjectURL(blob), a = document.createElement('a');
-    a.href = url; a.download = `living-clicker-1-${sim.seed}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); message('いまの状態を書き出しました。');
+    a.href = url; a.download = `living-clicker-2-${sim.seed}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); message('いまの状態を書き出しました。');
   };
   $('import').onchange = async () => {
     const f = $('import').files[0]; if (!f) return;

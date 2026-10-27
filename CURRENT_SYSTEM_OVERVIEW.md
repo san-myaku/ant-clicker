@@ -6,10 +6,18 @@
 
 # Ant Colony V23 Current System Overview
 
-Last updated: 2026-10-27（実空洞の経路共有・居室の床探索。旧公開本編は不変）
+Last updated: 2026-10-27（共通個体番号・新版保存。実人口上限128）
 Target file: `index.html`
 
 This document is the current implementation overview for the single-file ant clicker game. When gameplay, UI, save data, AI behavior, or public deployment assumptions change, update this file together with `DEVELOPMENT_LOG.md`.
+
+## 2026-10-27 共通の32bit個体番号と新版保存（Codex）
+
+共通nextActorから働きアリ/侵入者を単調に採番し、死亡後の再利用と敵専用番号帯を廃止。運び手は50バイト内の予約語へ32bitで保存し座標精度/サイズを維持。譲りは荷→掘削仕事→番号を別比較。死亡した相手への参照だけを解放する。編集元build-actors.cjsを既存生成器から適用する。
+
+外側living-clicker-2/育成living-clicker-life-2/地形living-clicker-core-2、物体version3/bodies50u32le。保存はlivingClicker_2と同版の復旧キー。旧キーを保持し旧保存を変換/自動読込しない。この作業版は新規の巣で開始。番号と荷/仕事/待ち/戦闘等を照合し、不正な新版を拒否する。固定回帰19件だけをQA用に状態保持で再エンコードした。
+
+最終22本合格、自然128匹（5673ゲーム秒）。構造上の人数枠1000は準備したが、実人口64/研究後128は維持。産卵だけ加速すると供給不足になるため、[成長設計](handoff/POPULATION_GROWTH_DESIGN.md) に人口研究・餌・育児/居室容量を合わせた次段階を記録。調整値は未採用。次はまず256匹の実資源による育成。[結果とhash](prototypes/living-clicker/qa/VERIFICATION.md)。main/Pages/PR/pushは行っていない。
 
 ## 2026-10-27 実空洞の経路共有と居室の床探索（Codex）
 

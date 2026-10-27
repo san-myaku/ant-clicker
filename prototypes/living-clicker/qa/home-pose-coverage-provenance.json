@@ -1,6 +1,6 @@
 {
   "fixture": "home-pose-coverage.json",
-  "sha256": "83bdefb24fcde86fc181f5ca2c2b272cd6bda6d05775b013faa2febfc039a2e6",
+  "sha256": "9e98a5674d7ea2af03759fbba640763d276ff7959b9991e140da9dcd07cc83f4",
   "sourceRecord": "routes-20261027/verification.json",
   "sourceSha256": {
     "core.js": "1c029bf330b8459d0285f3e0539e58a7ba374d061a345a7a105ba0d61c3cb1a4",
@@ -10,5 +10,11 @@
   },
   "input": "before-depth.json",
   "inputSha256": "847281d5c80ece745c09ad407a4462869b1426a79285b09d5d800d9b0862ce7f",
-  "method": "初回不合格の経路共有実装（床候補の修正前）で、深度用の自然保存から居室検証と同じ進行を行った後の実状態。蟻58番に空き床が見つからない一方で、44.25/24.75などの既存の立ち位置は身体と移動の検査を通る。修正を検証する固定の失敗状態として保持する。"
+  "method": "初回不合格の経路共有実装（床候補の修正前）で、深度用の自然保存から居室検証と同じ進行を行った後の実状態。蟻58番に空き床が見つからない一方で、44.25/24.75などの既存の立ち位置は身体と移動の検査を通る。修正を検証する固定の失敗状態として保持する。",
+  "originalFixtureSha256": "83bdefb24fcde86fc181f5ca2c2b272cd6bda6d05775b013faa2febfc039a2e6",
+  "formatRevision": {
+    "record": "actors-v2-fixtures.json",
+    "base": "7d95df6ad116dd015408b9cbee2d7d97d44994b9",
+    "note": "元の自然進行/失敗状態の位置・物体・作業を保ったQA用の形式更新。元の生成ソースhashは履歴として維持。"
+  }
 }

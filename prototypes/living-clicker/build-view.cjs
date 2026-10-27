@@ -46,7 +46,7 @@ replace("$('speed').onchange = () => { speed = +$('speed').value; };","$('speed'
 replace("$('save').onclick = () => { invalidStored = false; persist(true); };","$('save').onclick = () => { persist(true); };",'explicit save does not bypass corrupt protection');
 replace("$('zoom-in').onclick = () => zoom(1.25);","$('focus').onclick=focusView;\n  $('undo').onclick=()=>{try{const bytes=localStorage.getItem(KEY+'_recovery');if(!bytes){message('一つ前の巣はまだありません。');return;}const candidate=Simulation.restore(JSON.parse(bytes));adopt(candidate);invalidStored=false;persist();message('一つ前の巣に戻りました。');}catch{message('一つ前の巣を開けませんでした。いまの巣はそのままです。');}};\n  $('zoom-in').onclick = () => zoom(1.25);",'recovery action');
 replace('      selectionUI();','      selectionUI();if(selected)$(\'selection-detail\').open=true;','selection disclosure');
-replace('`ant-colony-1-${sim.seed}.json`','`living-clicker-1-${sim.seed}.json`','current file name');
+replace('`ant-colony-1-${sim.seed}.json`','`living-clicker-2-${sim.seed}.json`','current file name');
 replace("adopt(next); invalidStored = false; persist(); message('保存データを開きました。');", "adopt(next); invalidStored = false; if(persist())message('保存データを開きました。');",'keep import write-failure warning');
 replace("catch (e) { message('有効な保存データではありません。いまの巣はそのままです。'); }", "catch (e) { message('保存データを開けませんでした。いまの巣はそのままです。'); }",'import validation and checkpoint errors');
 replace("reset(seed); invalidStored = false; persist(); message('この地形で最初から始めました。');", "try{reset(seed); invalidStored = false; if(persist())message('この地形で最初から始めました。');}catch{message('新しい巣を保存できませんでした。いまの巣を書き出して保管できます。');}",'atomic reset checkpoint failure');

@@ -1,0 +1,19 @@
+{
+  "status": "中止・合格ではない",
+  "reason": "再実行コーディネータを通常サンドボックスで起動したためGit付属shがNtCreateDirectoryObject 0xC0000022で開始できずchain即時失敗。今回の親/子PIDだけを特定して停止し、最初と同じ許可された実行環境で全体を再実行する。",
+  "sourceManifestSha256": "4779801fa3454e3566f4973d569c677948b8007b5c58dcb16ba580a622aaa01d",
+  "completedOrFailed": [
+    "FAIL chain           0 s",
+    "PASS turn            3 s",
+    "PASS reservation    27 s",
+    "PASS storage        32 s",
+    "PASS headon         34 s",
+    "PASS cargo-turn     36 s",
+    "PASS actors         19 s",
+    "PASS disease        50 s",
+    "PASS research       54 s",
+    "PASS approach       55 s",
+    "PASS rock           58 s",
+    "PASS network        59 s"
+  ]
+}

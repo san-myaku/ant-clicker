@@ -6,7 +6,7 @@ const qa=path.join(__dirname,'qa'),sha=b=>crypto.createHash('sha256').update(b).
 const hashes=Object.fromEntries(['core.js','lifecycle.js','game.js'].map(n=>[n,sha(fs.readFileSync(path.join(__dirname,n)))]));
 function test(name,fn){const detail=fn()||{};results.push({name,pass:true,...detail});console.log('PASS '+name+' '+JSON.stringify(detail));}
 const input=fs.readFileSync(path.join(qa,'world-900.json')),s=Game.Simulation.restore(JSON.parse(input));
-test('save-from-before-hygiene-starts-without-waste',()=>{const old=Game.Simulation.restore(JSON.parse(fs.readFileSync(path.join(qa,'storage-ring.json'))));assert.deepEqual(old.colony.waste,{due:0,made:0,decayed:0,recycled:0});assert.deepEqual(old.colony.refuse,[]);});
+test('clean-fixture-starts-without-waste',()=>{const old=Game.Simulation.restore(JSON.parse(fs.readFileSync(path.join(qa,'storage-ring.json'))));assert.deepEqual(old.colony.waste,{due:0,made:0,decayed:0,recycled:0});assert.deepEqual(old.colony.refuse,[]);});
 // The natural 900 s save already carries the pellets of its own meals.
 test('natural-save-carries-its-own-waste',()=>{const w=s.colony.waste;assert(w.made>0);s.assertLedger();return {made:w.made,decayed:w.decayed,inNest:s.wasteInNest().length};});
 test('hygiene-studies-from-real-stock',()=>{

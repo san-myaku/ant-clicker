@@ -1,0 +1,34 @@
+chain copy: C:\Users\yuhim\AppData\Local\Packages\sandbox.{706bdae2-3745-4a69-b679-a2253504b0bf}\AC\Temp\living-chain-aogxUI
+START chain
+START waste
+START raid
+START ferment
+START housing
+START pebble
+START disease
+START approach
+START rock
+START research
+START cargo-turn
+START storage
+START reservation
+START headon
+START turn
+START diagnostics
+FAIL chain           0 s
+      0 [main] sh (32708) C:\Program Files\Git\usr\bin\sh.exe: *** fatal error - NtCreateDirectoryObject(\BaseNamedObjects\msys-2.0S5-1888ae32e00d56aa): 0xC0000022
+
+START traffic
+PASS turn            3 s
+START network
+PASS reservation    27 s
+START actors
+PASS storage        32 s
+PASS headon         34 s
+PASS cargo-turn     36 s
+PASS actors         19 s
+PASS disease        50 s
+PASS research       54 s
+PASS approach       55 s
+PASS rock           58 s
+PASS network        59 s

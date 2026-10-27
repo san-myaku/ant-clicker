@@ -13,7 +13,7 @@ const roundtrip=s=>{const d=s.dump();assert.deepEqual(Game.Simulation.restore(d)
 const settling=s=>s.physics.bodies.every(b=>b.carrier||b.rest>=30||s.physics.moving.has(b));
 const input=fs.readFileSync(path.join(qa,'world-final.json')),load=()=>Game.Simulation.restore(JSON.parse(input));
 
-test('save-from-before-raids-starts-quiet-without-guards',()=>{
+test('quiet-fixture-starts-without-guards',()=>{
   const s=Game.Simulation.restore(JSON.parse(fs.readFileSync(path.join(qa,'storage-ring.json'))));
   assert.equal(s.colony.raid.phase,'quiet');assert.equal(s.colony.raid.next,0);assert.equal(s.colony.roleWeights.guard,0);assert.equal(s.roleCounts().guard,0);roundtrip(s);
 });

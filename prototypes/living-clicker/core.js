@@ -27,7 +27,8 @@
   const GRAIN = grainUnit(4);
   const GRID = GRAIN.perUnit, FW = GRAIN.width, FH = GRAIN.height, FINE_SIZE = GRAIN.count, GRAIN_AREA = GRAIN.area;
   const FOOTPRINT_MEMO=60000,KNOWN_ROUTES=20000,DROP_KINDS={soil:0,egg:1,food:2,waste:3,cookie:4};
-  const STEP=1/60, PICKUP_SECONDS=.2, SAVE_FORMAT='ant-colony-core-1', WALK_SPEED=9, MAX_LOAD=4, LANE_OFFSET=.35, CURVE_LANE_EXTRA=.18;
+  const ACTOR_MAX=4294967295,MAX_ACTORS=1000;
+  const STEP=1/60, PICKUP_SECONDS=.2, SAVE_FORMAT='living-clicker-core-2', WALK_SPEED=9, MAX_LOAD=4, LANE_OFFSET=.35, CURVE_LANE_EXTRA=.18;
   const Physics = (function(){
 
   const SHAPES={soil:{hx:GRAIN.size/2,hy:GRAIN.size/2,density:1},egg:{hx:1/4,hy:5/32,density:.65},food:{hx:3/16,hy:3/16,density:.8},waste:{hx:5/32,hy:1/8,density:.7},cookie:{hx:5/32,hy:5/32,density:.6}};
@@ -217,22 +218,22 @@
     dump(){
       const buffer=new ArrayBuffer(this.bodies.length*STRIDE),v=new DataView(buffer);
       for(let i=0;i<this.bodies.length;i++){
-        const b=this.bodies[i],at=i*STRIDE;
-        v.setUint32(at,b.id,true);v.setUint8(at+4,KINDS.indexOf(b.kind));v.setUint8(at+5,b.material);v.setUint8(at+6,b.carrier);v.setUint8(at+7,STATES.indexOf(b.state));
+        const b=this.bodies[i],at=i*STRIDE;if(!Number.isInteger(b.carrier)||b.carrier<0||b.carrier>ACTOR_MAX)throw Error('運び手の番号が正しくありません');
+        v.setUint32(at,b.id,true);v.setUint8(at+4,KINDS.indexOf(b.kind));v.setUint8(at+5,b.material);v.setUint8(at+6,0);v.setUint8(at+7,STATES.indexOf(b.state));
         for(const [k,key] of ['x','y','vx','vy'].entries())v.setFloat64(at+8+k*8,b[key],true);
-        v.setUint16(at+40,b.rest,true);v.setInt32(at+42,b.source,true);v.setUint32(at+46,0,true);
+        v.setUint16(at+40,b.rest,true);v.setInt32(at+42,b.source,true);v.setUint32(at+46,b.carrier,true);
       }
       const bytes=new Uint8Array(buffer);let binary='';for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
-      return {version:2,encoding:'bodies50le',count:this.bodies.length,nextId:this.nextId,clock:this.clock,remainder:this.remainder,data:typeof btoa==='function'?btoa(binary):Buffer.from(bytes).toString('base64')};
+      return {version:3,encoding:'bodies50u32le',count:this.bodies.length,nextId:this.nextId,clock:this.clock,remainder:this.remainder,data:typeof btoa==='function'?btoa(binary):Buffer.from(bytes).toString('base64')};
     }
     restore(pack){
       const fail=()=>{throw new Error('不正な物体の保存データです');};
-      if(!pack||pack.version!==2||pack.encoding!=='bodies50le'||!Number.isInteger(pack.count)||pack.count<0||pack.count>GRAIN.count+2400||!Number.isInteger(pack.nextId)||pack.nextId<1||pack.nextId>1e9||!Number.isSafeInteger(pack.clock)||pack.clock<0||typeof pack.data!=='string'||pack.data.length!==Math.ceil(pack.count*STRIDE/3)*4||!/^[A-Za-z0-9+/]*={0,2}$/.test(pack.data))fail();
+      if(!pack||pack.version!==3||pack.encoding!=='bodies50u32le'||!Number.isInteger(pack.count)||pack.count<0||pack.count>GRAIN.count+2400||!Number.isInteger(pack.nextId)||pack.nextId<1||pack.nextId>1e9||!Number.isSafeInteger(pack.clock)||pack.clock<0||typeof pack.data!=='string'||pack.data.length!==Math.ceil(pack.count*STRIDE/3)*4||!/^[A-Za-z0-9+/]*={0,2}$/.test(pack.data))fail();
       const binary=typeof atob==='function'?atob(pack.data):Buffer.from(pack.data,'base64').toString('binary');
       if(binary.length!==pack.count*STRIDE)fail();const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0)),v=new DataView(bytes.buffer);
       for(let i=0;i<pack.count;i++){
-        const at=i*STRIDE,id=v.getUint32(at,true),kind=KINDS[v.getUint8(at+4)],material=v.getUint8(at+5),carrier=v.getUint8(at+6),state=STATES[v.getUint8(at+7)],values=['x','y','vx','vy'].map((_,k)=>v.getFloat64(at+8+k*8,true)),rest=v.getUint16(at+40,true),source=v.getInt32(at+42,true);
-        if(!id||id>=pack.nextId||this.byId.has(id)||!kind||material<1||material>4||carrier>128&&(carrier<200||carrier>249)||!state||values.some(n=>!Number.isFinite(n))||Math.abs(values[2])>20||Math.abs(values[3])>20||rest>30||v.getUint32(at+46,true)!==0)fail();
+        const at=i*STRIDE,id=v.getUint32(at,true),kind=KINDS[v.getUint8(at+4)],material=v.getUint8(at+5),carrier=v.getUint32(at+46,true),state=STATES[v.getUint8(at+7)],values=['x','y','vx','vy'].map((_,k)=>v.getFloat64(at+8+k*8,true)),rest=v.getUint16(at+40,true),source=v.getInt32(at+42,true);
+        if(!id||id>=pack.nextId||this.byId.has(id)||!kind||material<1||material>4||carrier>ACTOR_MAX||!state||values.some(n=>!Number.isFinite(n))||Math.abs(values[2])>20||Math.abs(values[3])>20||rest>30||v.getUint8(at+6)!==0)fail();
         const [x,y,vx,vy]=values,s=SHAPES[kind];
         if(x<s.hx-EPS||x>this.width-s.hx+EPS||y<s.hy-EPS||y>this.height-s.hy+EPS||(kind!=='soil'&&source!==-1))fail();
         this.spawn(kind,x,y,{id,material,carrier,state,vx,vy,rest,source});
@@ -260,7 +261,7 @@
     if(offset!==count)fail();return values;
   }
   const SOIL = 1, HARD = 2, ROCK = 3, PEBBLE = 4;
-  const KEY = 'livingClicker_1';
+  const KEY = 'livingClicker_2';
   const ANT_SIZE = 1.8;
   const ANT_BODY = [[-.25, .24, .17], [0, .14, .12], [.24, .16, .14]];
   // The four real square grains form an axis-aligned 2x2 load at the mouth.
@@ -1438,6 +1439,10 @@
         if(Math.hypot(b.history[k].x-p.x,b.history[k].y-p.y)<1.2&&!this.passingIndex(b,k))return true;
       }return false;
     }
+    trafficPriority(a,b){
+      // Compare separate criteria; large ids cannot outweigh loads/work.
+      return Number(!!this.carriedKind(a))-Number(!!this.carriedKind(b))||Number(a.job!==null)-Number(b.job!==null)||b.id-a.id;
+    }
     trafficIndex(){
       if(!this._trafficIndex||this._trafficIndex.ants!==this.ants||this._trafficIndex.count!==this.ants.length)this._trafficIndex=new AntTrafficIndex(this.ants);
       return this._trafficIndex;
@@ -1447,7 +1452,7 @@
       if(!ant.path.length)return true;
       if(ant.yieldHold){const other=this.trafficIndex().byId.get(ant.yieldHold);// Two workers can each have stepped aside for the other. Then the one
         // with the load or the work goes first, as in a head-on meeting.
-        const rank=a=>(this.carriedKind(a)?100:0)+(a.job!==null?10:0)-a.id*.01,mutual=other?.yieldHold===ant.id&&rank(ant)>rank(other);
+        const mutual=other?.yieldHold===ant.id&&this.trafficPriority(ant,other)>0;
         if(other&&!mutual&&Math.hypot(other.x-ant.x,other.y-ant.y)<2.4&&this.grainRoom[GRAIN.at(ant.x,ant.y)]!==1&&other.path.length)return false;delete ant.yieldHold;}
       const target=ant.path[ant.next],grounded=ant.y<SURFACE&&target.y<SURFACE&&Math.abs(Math.sin(ant.angle))<.7&&Math.abs(Math.sin(target.angle))<.7&&Math.abs(ant.x-this.entrance.x)>2&&Math.abs(target.x-this.entrance.x)>2&&this.soilAt(ant.x,SURFACE+.01)&&this.soilAt(target.x,SURFACE+.01);
       // Walking follows the heap, including its last stationary waypoint.
@@ -1488,9 +1493,9 @@
         return !(Math.hypot(ant.x-b.x,ant.y-b.y)<.67&&Math.hypot(p.x-b.x,p.y-b.y)>Math.hypot(ant.x-b.x,ant.y-b.y)+.0001);
       });
         if(block){ant.waitingFor=block.id;ant.blocked=(ant.blocked||0)+dt;this.stats.waitSeconds+=dt;this.makeSpace(block,ant);
-          if(!following&&ant.blocked>.25&&!ant.yielding){const rank=a=>(this.carriedKind(a)?100:0)+(a.job!==null?10:0)-a.id*.01,next=block.path[block.next];
+          if(!following&&ant.blocked>.25&&!ant.yielding){const next=block.path[block.next];
             if(block.yielding){if(next&&(next.x-block.x)*(ant.x-block.x)+(next.y-block.y)*(ant.y-block.y)>0)this.retreat(ant,block);}
-            else {const pair=rank(ant)<rank(block)?[ant,block]:[block,ant];for(const yielding of pair){if(yielding.task==='dig')continue;const passing=yielding===ant?block:ant;if(this.retreat(yielding,passing))break;}}
+            else {const pair=this.trafficPriority(ant,block)<0?[ant,block]:[block,ant];for(const yielding of pair){if(yielding.task==='dig')continue;const passing=yielding===ant?block:ant;if(this.retreat(yielding,passing))break;}}
           }return false;
         }
       }
@@ -1504,7 +1509,7 @@
       if(!ant.enemy){this.traffic[ant.cell]+=step*.2;this._flowCells?.add(ant.cell);}
       if(d<=step+1e-8&&Math.abs(da-rotation)<1e-7){ant.angle=q.angle;ant.next++;}
       if(ant.next>=ant.path.length){ant.path=[];ant.next=0;
-        if(ant.yielding){ant.yielding=false;ant.yieldHold=ant.yieldFor;delete ant.yieldPriority;const target=ant.resume.path.at(-1);delete ant.resume;ant.path=target?(this.path(ant,target)||[]):[];ant.wait=.6;return false;}
+        if(ant.yielding){ant.yielding=false;ant.yieldHold=ant.yieldFor;delete ant.yieldFor;delete ant.yieldPriority;const target=ant.resume.path.at(-1);delete ant.resume;ant.path=target?(this.path(ant,target)||[]):[];ant.wait=.6;return false;}
         return true;
       }return false;
     }
@@ -1607,14 +1612,14 @@
         ants: JSON.parse(JSON.stringify(this.ants)), jobs: JSON.parse(JSON.stringify(this.jobs)), stats: { ...this.stats },
         events: this.events.map(e => ({ ...e })), physics:this.physics.dump() };
     }
-    static restore(pack) {
+    static restore(pack,externalActors=[]) {
       const fail=()=>{throw new Error('この試作の有効な保存データではありません');};
       const finite=(n,min=0,max=1e9)=>typeof n==='number'&&Number.isFinite(n)&&n>=min&&n<=max;
       const integer=(n,min,max)=>Number.isInteger(n)&&finite(n,min,max);
       if(!pack||pack.format!==SAVE_FORMAT||pack.w!==W||pack.h!==H||pack.grid!==GRID||!pack.physics)fail();
       for(const [key,max,ints] of [['terrain',3,true],['room',254,true],['loose',64,true],['traffic',1e6,false],['jam',1e6,false]])if(!Array.isArray(pack[key])||pack[key].length!==SIZE||pack[key].some(n=>!(ints?integer(n,0,max):finite(n,0,max))))fail();
       if(!integer(pack.seed,0,4294967295)||!integer(pack.rng,0,4294967295)||!integer(pack.ticks,0,1e9)||!finite(pack.time)||!finite(pack.planAt)||!finite(pack.remainder,0,STEP)||!integer(pack.revision,1,1e9)||!integer(pack.nextJob,1,1e9)||pack.drop!==DUMP_CELL||!['balanced','nursery','food'].includes(pack.priority)||typeof pack.hardDig!=='boolean')fail();
-      if(!pack.demands||!integer(pack.demands.larvae,0,800)||!integer(pack.demands.food,0,1600)||!Array.isArray(pack.ants)||(pack.ants.length<1||pack.ants.length>128)||!Array.isArray(pack.jobs)||pack.jobs.length>128)fail();
+      if(!pack.demands||!integer(pack.demands.larvae,0,800)||!integer(pack.demands.food,0,1600)||!Array.isArray(pack.ants)||(pack.ants.length<1||pack.ants.length>MAX_ACTORS)||!Array.isArray(pack.jobs)||pack.jobs.length>MAX_ACTORS)fail();
       if(!Array.isArray(pack.rooms)||pack.rooms.length<4||pack.rooms.length>254||pack.rooms.slice(1).some((r,k)=>r?.id!==k+1||!finite(r.x,1,W-1)||!finite(r.y,SURFACE,H-1)))fail();
       if(!Array.isArray(pack.builds)||pack.builds.length!==pack.rooms.length)fail();
       const pose=p=>p&&finite(p.x,.1,W-.1)&&finite(p.y,.1,H-.1)&&finite(p.angle,-Math.PI*4,Math.PI*4);
@@ -1626,8 +1631,10 @@
       s.terrain=Uint8Array.from(pack.terrain);s.room=Uint8Array.from(pack.room);s.loose=Uint8Array.from(pack.loose);s.traffic=Float64Array.from(pack.traffic);s.jam=Float64Array.from(pack.jam);
       for(const [key,max] of [['grains',4],['grainRoom',254],['grainPending',1]])s[key]=decodeGrains(pack[key],FINE_SIZE,max);
       const ids=new Set(),jobs=new Set(),pending=new Set(),reserved=new Set(),targets=new Set();
+      if(!Array.isArray(externalActors)||externalActors.length>50||externalActors.some(a=>!a||!integer(a.id,1,ACTOR_MAX)))fail();
+      const externalIds=new Set(externalActors.map(a=>a.id));if(externalIds.size!==externalActors.length)fail();
       for(const a of s.ants){
-        if(!integer(a.id,1,128)||ids.has(a.id)||!pose(a)||!pose(a.home)||!integer(a.cell,0,SIZE-1)||!['idle','travel','dig','haul','unload'].includes(a.task)||!finite(a.walked)||!finite(a.wait,-2,100)||!poses(a.path)||!integer(a.next,0,Math.max(0,a.path.length-1))||a.trail&&!poses(a.trail,100)||a.resume&&!poses(a.resume.path))fail();ids.add(a.id);
+        if(!integer(a.id,1,ACTOR_MAX)||ids.has(a.id)||externalIds.has(a.id)||!pose(a)||!pose(a.home)||!integer(a.cell,0,SIZE-1)||!['idle','travel','dig','haul','unload'].includes(a.task)||!finite(a.walked)||!finite(a.wait,-2,100)||!poses(a.path)||!integer(a.next,0,Math.max(0,a.path.length-1))||a.trail&&!poses(a.trail,100)||a.resume&&!poses(a.resume.path))fail();ids.add(a.id);
       }
       for(const j of s.jobs){
         const a=s.ants.find(a=>a.id===j.ant);
@@ -1650,7 +1657,7 @@
       }
       s.initObjects(pack.physics);
       const counts={soil:0,egg:0,food:0,waste:0,cookie:0};let delivered=0;
-      for(const b of s.physics.bodies){counts[b.kind]++;if(b.carrier){const a=s.ants.find(a=>a.id===b.carrier);if(!a&&b.carrier>=200)continue;if(!a||(b.kind==='soil'?!s.jobs.some(j=>j.ant===a.id&&j.grains.includes(b.source)):a.itemTask?.body!==b.id))fail();}else if(s.physics.terrainOverlap(b)||s.physics.penetration(b)>1e-5)fail();if(b.state==='delivered')delivered++;}
+      for(const b of s.physics.bodies){counts[b.kind]++;if(b.carrier){const a=s.ants.find(a=>a.id===b.carrier);if(!a&&externalIds.has(b.carrier))continue;if(!a||(b.kind==='soil'?!s.jobs.some(j=>j.ant===a.id&&j.grains.includes(b.source)):a.itemTask?.body!==b.id))fail();}else if(s.physics.terrainOverlap(b)||s.physics.penetration(b)>1e-5)fail();if(b.state==='delivered')delivered++;}
       if(counts.soil+s.stats.grainSettled!==s.stats.grainDug||delivered+s.stats.grainSettled!==s.stats.grainDelivered)fail();
       const itemOwners=new Set();
       for(const a of s.ants){
@@ -1660,7 +1667,7 @@
       return s;
     }
   }
-  return { Simulation, AntTrafficIndex, RouteNetwork, Physics, W, H, SIZE, SURFACE, PEBBLE, KEY, STEP, PICKUP_SECONDS, SAVE_FORMAT, WALK_SPEED, MAX_LOAD, LANE_OFFSET, LOAD_OFFSETS, carryShape, GRAIN, GRID, FW, FH, FINE_SIZE, GRAIN_AREA, ANT_SIZE, ANT_BODY, DUMP_CELL, renderAngle, names, xy, idx, neighbors, hash, encodeGrains, decodeGrains, layerBoundaries, grainCost, workCost, soilResistance };
+  return { Simulation, AntTrafficIndex, RouteNetwork, ACTOR_MAX, MAX_ACTORS, Physics, W, H, SIZE, SURFACE, PEBBLE, KEY, STEP, PICKUP_SECONDS, SAVE_FORMAT, WALK_SPEED, MAX_LOAD, LANE_OFFSET, LOAD_OFFSETS, carryShape, GRAIN, GRID, FW, FH, FINE_SIZE, GRAIN_AREA, ANT_SIZE, ANT_BODY, DUMP_CELL, renderAngle, names, xy, idx, neighbors, hash, encodeGrains, decodeGrains, layerBoundaries, grainCost, workCost, soilResistance };
 });
 
 

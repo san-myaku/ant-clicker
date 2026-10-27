@@ -1,0 +1,56 @@
+{
+  "comparison": "同じゲームソースの初回（研究検証の旧契約のみ不合格）と最終の自然育成保存。検証の期待変更でゲーム状態が変わらないことを確認。旧版の保存との比較ではない。",
+  "states": [
+    {
+      "file": "world-60.json",
+      "sha256": "a19914e90d0acc42a3ecc508ee5d4ea9517f84f1eb57275602366699d10990cb",
+      "identical": true
+    },
+    {
+      "file": "world-180.json",
+      "sha256": "7457515dd45b23d5036e5e5f4b66dc638e5168ad967a5658e968c87c26f11585",
+      "identical": true
+    },
+    {
+      "file": "world-360.json",
+      "sha256": "5c26f57a446cdd4db33eecd748f47dc2b704b049f0c09b685321f91cffe5f1da",
+      "identical": true
+    },
+    {
+      "file": "world-600.json",
+      "sha256": "47a8deae0fe9ed67ee6c95ee3c70e8f4c0671f431320ef22f17453f241b72e86",
+      "identical": true
+    },
+    {
+      "file": "world-900.json",
+      "sha256": "731d927ca28fecd96d218b6c41a7d9914007f0b27b920dfafcc2ec14db79be1b",
+      "identical": true
+    },
+    {
+      "file": "world-1200.json",
+      "sha256": "73c30e7afefb8a2a724089b6bdac3f18c175f67043fb6ccc73ce51667f604714",
+      "identical": true
+    },
+    {
+      "file": "before-depth.json",
+      "sha256": "b90bfd4fdcea8d992f98799a95146a5fa0bd3b3e28c11f10a4573c262088b1fb",
+      "identical": true
+    },
+    {
+      "file": "world-final.json",
+      "sha256": "1191fe9b5c51550862779081179c6886e1c4fe334e5f8cd143c583b4adb5caa7",
+      "identical": true
+    },
+    {
+      "file": "world-scale.json",
+      "sha256": "08590edc2d19eb1bb7fa935fe3b6ddc7f2eab922b9c9cf2692828c45c1f7659f",
+      "identical": true
+    }
+  ],
+  "ants": 128,
+  "maxWorkerId": 157,
+  "nextActor": 158,
+  "differentTestSource": [
+    "prototypes/living-clicker/verify-research.cjs"
+  ]
+}

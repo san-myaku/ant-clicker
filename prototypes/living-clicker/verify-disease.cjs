@@ -26,11 +26,14 @@ test('restoring-nurses-ends-the-disease',()=>{
   assert(cured,'disease ended');assert(s.wasteRatio()<.7+1e-9);s.assertLedger();assert.deepEqual(Game.Simulation.restore(s.dump()).dump(),s.dump());
   return {cured,ratio:s.wasteRatio(),died:s.colony.stats.died};
 });
-test('a-later-birth-reuses-a-freed-id',()=>{
-  const free=s.freeAntId(),born=s.colony.stats.born,next=s.colony.nextAnt;if(free===undefined)return {note:'no id freed'};
-  for(let k=0;k<60*600&&s.colony.stats.born===born;k++)s.step(STEP);if(s.colony.stats.born===born)return {note:'no birth within 600 s'};
-  assert(s.ants.some(a=>a.id===free));assert.equal(s.colony.nextAnt,next);return {reused:free};
+test('a-later-birth-does-not-reuse-a-dead-workers-id',()=>{
+  const before=new Set(s.ants.map(a=>a.id)),born=s.colony.stats.born,next=s.colony.nextActor;
+  for(let k=0;k<60*600&&s.colony.stats.born===born;k++)s.step(STEP);
+  assert(s.colony.stats.born>born,'a real birth after the disease');
+  const added=s.ants.filter(a=>!before.has(a.id));assert(added.length>0);assert(added.every(a=>a.id>=next));assert(s.colony.nextActor>next);
+  assert.deepEqual(Game.Simulation.restore(s.dump()).dump(),s.dump());return {nextBefore:next,ids:added.map(a=>a.id)};
 });
+
 test('clean-colony-study-speeds-foragers-while-nurseries-are-clean',()=>{
   const r=Game.Simulation.restore(JSON.parse(fs.readFileSync(path.join(qa,'world-final.json'))));
   for(const id of ['hygiene_1','hygiene_2','hygiene_clean_bonus'])assert(r.buyResearch(id),id);

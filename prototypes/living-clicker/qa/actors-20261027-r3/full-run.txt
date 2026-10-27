@@ -1,0 +1,46 @@
+chain copy: C:\Users\yuhim\AppData\Local\Temp\living-chain-JZzxtX
+START chain
+START waste
+START raid
+START ferment
+START housing
+START pebble
+START disease
+START approach
+START rock
+START research
+START cargo-turn
+START storage
+START reservation
+START headon
+START turn
+START diagnostics
+PASS turn            2 s
+START traffic
+PASS reservation    25 s
+START network
+PASS storage        31 s
+START actors
+PASS headon         34 s
+PASS cargo-turn     35 s
+PASS disease        48 s
+PASS actors         18 s
+PASS research       55 s
+PASS approach       56 s
+PASS rock           60 s
+PASS network        46 s
+PASS diagnostics    79 s
+PASS pebble         94 s
+PASS housing       125 s
+PASS ferment       151 s
+PASS traffic       176 s
+PASS raid          181 s
+PASS waste         238 s
+PASS chain         519 s
+START smoke (exclusive)
+PASS smoke           3 s
+START touch (exclusive)
+PASS touch          13 s
+START browser (exclusive)
+PASS browser        21 s
+ALL PASS in 556 s on 16 cores

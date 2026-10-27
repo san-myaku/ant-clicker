@@ -1,0 +1,58 @@
+[
+  {
+    "origin": "http://127.0.0.1:58378",
+    "pass": true,
+    "files": [
+      {
+        "url": "/clicker/",
+        "hash": "1a377628c194d695ae92af706daf539686b262f3e0183633f225241b96181d46"
+      },
+      {
+        "url": "/clicker/core.js",
+        "hash": "c873a478cace730dd84ae13111832539229cfc1f3ef8b03119f287a980fea8f8"
+      },
+      {
+        "url": "/clicker/lifecycle.js",
+        "hash": "d523185e24f24da47c0f40b1767b3a072af531bdf662849328cb24fa636f3155"
+      },
+      {
+        "url": "/clicker/game.js",
+        "hash": "641b97d5e1ae6294d20cbad75b2952796222a9ded9591fba287eff54121b2fa4"
+      },
+      {
+        "url": "/clicker/view.js",
+        "hash": "86a6135b48473a11d2c77f39f8695f24d359ba00410cebd0b5723526687ff081"
+      },
+      {
+        "url": "/clicker-previous/",
+        "hash": "7bf429328cbaaf614a6accc296d9aece3cb8b029161b4920d59081bf60a5451c"
+      },
+      {
+        "url": "/clicker-previous/core.js",
+        "hash": "2fc7db70e72d3f116e806705c9f626eb546669e861b43774a312c43d142aa5fd"
+      },
+      {
+        "url": "/clicker-previous/nest.js",
+        "hash": "fcdb5b95750693510e42d4fc99484a05764f553179d6e3b0ca82f38aa3e326eb"
+      },
+      {
+        "url": "/clicker-previous/sprites.js",
+        "hash": "bf92fdfcf8f1bb71dd7bbcd8f01488933120cbc0a2bd77b8c2287f3c07b7ad8d"
+      },
+      {
+        "url": "/play/",
+        "hash": "0399e8dfcafb515d7b01f1104f3b813b2398cbaa43e9061b21ca8183063a9856"
+      },
+      {
+        "url": "/play/game.js",
+        "hash": "b2c8162d2e9df5327ef0ccde7c2a4acceabb5b18d8184edf314a6683e7edc674"
+      },
+      {
+        "url": "/",
+        "hash": "d4dccd431bbf6097d9c1321af27d23576cfb81f4fa1b22d44a9026a484099a15"
+      }
+    ],
+    "privateFiles404": 13,
+    "redirects": 3
+  }
+]

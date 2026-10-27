@@ -8,7 +8,7 @@
    Names (e.g. `raid waste`) run only those checks. */
 const {spawn}=require('node:child_process'),os=require('node:os'),path=require('node:path'),fs=require('node:fs');
 const root=path.resolve(__dirname,'../..'),here=__dirname;
-const suites=['waste','raid','ferment','housing','pebble','disease','approach','rock','research','cargo-turn','storage','reservation','headon','turn','diagnostics','traffic','network'].map(n=>({name:n,cmd:[process.execPath,[path.join(here,'verify-'+n+'.cjs')]]}));
+const suites=['waste','raid','ferment','housing','pebble','disease','approach','rock','research','cargo-turn','storage','reservation','headon','turn','diagnostics','traffic','network','actors'].map(n=>({name:n,cmd:[process.execPath,[path.join(here,'verify-'+n+'.cjs')]]}));
 if(process.argv.includes('--chain')){const copy=fs.mkdtempSync(path.join(os.tmpdir(),'living-chain-'));fs.cpSync(here,copy,{recursive:true});
   suites.unshift({name:'chain',cmd:['sh',['-c','node verify-world.cjs && node verify-depth.cjs && node verify-scale.cjs']],cwd:copy});console.log('chain copy: '+copy);}
 if(process.argv.includes('--browser'))suites.push(...[{name:'smoke',file:path.join(root,'scripts/verify-cloud.cjs')},{name:'touch',file:path.join(here,'verify-touch.cjs')},{name:'browser',file:path.join(here,'verify-browser.cjs')}].map(s=>({name:s.name,exclusive:true,cmd:[process.execPath,[s.file]]})));

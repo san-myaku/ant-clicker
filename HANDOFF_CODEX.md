@@ -1,5 +1,7 @@
 # Codexへの引き継ぎ
 
+2026-10-27 Codex追補3: 共通の32bit個体番号と新版保存を実装、最終22本合格・自然128匹まで確認。新版livingClicker_2で新しい巣から始め、旧キー/復旧を保持。実人口上限は128を維持。次はPOPULATION_GROWTH_DESIGNの256匹段階を供給/育児/実容量と同時に実装する。旧記録は以下。
+
 2026-10-27 Codex追補2: 実空洞の経路共有と居室の床探索を実装、最終21本合格・自然5673秒に128匹。次は番号/運び手/襲撃隊の保存と人口研究・産卵/育児/供給/容量。人口/保存は据え置き。最新は OVERVIEW、qa/VERIFICATION.md、handoff/PLAN_1000_ANTS.md。旧記録は以下へ保持。
 
 2026-10-27 Codex追補: 停止診断・交通の格子化・速度試験の負荷分離を実装。最終20本合格、自然128匹まで従来と9保存バイト一致。次は実空洞による経路共有。現行は OVERVIEW と qa/VERIFICATION.md の先頭を参照。以下はClaude引き継ぎ時点の記録。
@@ -10,7 +12,7 @@
 
 1. AGENTS.md（共通ルール。必ず守る）。
 2. この文書。
-3. handoff/PROJECT_CONTEXT.md（採用された方向、戻してはいけない失敗1〜20）。
+3. handoff/PROJECT_CONTEXT.md（採用された方向、戻してはいけない失敗1〜25）。
 4. CURRENT_SYSTEM_OVERVIEW.md の「2026-10-26 クラウドでの継続（living-clicker）」節（現在の仕組みの要約）。
 5. DEVELOPMENT_LOG.md の 2026-10-26 の各節（なぜそうしたか）。
 6. prototypes/living-clicker/qa/VERIFICATION.md の先頭（最新の検証と訂正）。
@@ -38,7 +40,7 @@
 
 ## 編集と生成
 
-- 編集元: `game.js`、`index.html`、`build.cjs`、`build-view.cjs`、`view-research.js`、`queen-art.js`、`traffic-index.js`、`route-network.js`、`diagnostics.js`、`view-diagnostics.js`。
+- 編集元: `game.js`、`index.html`、`build.cjs`、`build-actors.cjs`、`build-view.cjs`、`view-research.js`、`queen-art.js`、`traffic-index.js`、`route-network.js`、`diagnostics.js`、`view-diagnostics.js`。
 - `core.js` / `lifecycle.js` / `view.js` は生成物で直接編集しない。`npm run build` で生成（比較版 `prototypes/colony-game/` の core.js / game.js / view.js が元になる）。
 - `build.cjs` の `replace(from,to,label)` は元の文字列がちょうど1回現れないと失敗する。新しい差し替えは `fs.writeFileSync(path.join(root,'core.js'),source);`（lifecycle も同様）の直前に足す。先の差し替えの結果を対象にしてよい。
 

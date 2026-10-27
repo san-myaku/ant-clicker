@@ -1,0 +1,58 @@
+chain copy: C:\Users\yuhim\AppData\Local\Temp\living-chain-eBAdLG
+START chain
+START waste
+START raid
+START ferment
+START housing
+START pebble
+START disease
+START approach
+START rock
+START research
+START cargo-turn
+START storage
+START reservation
+START headon
+START turn
+START diagnostics
+PASS turn            2 s
+START traffic
+FAIL research        3 s
+PASS queen-studies-change-real-laying
+PASS gather-studies-change-forager-walking
+PASS repeatable-cost-grows-from-real-units
+PASS brood-stage-study-ages-a-real-egg-faster
+C:\Users\yuhim\.codex\worktrees\ant-1000-handoff\ありクリッカー\prototypes\living-clicker\game.js:834
+      const p=this.progress,int=(v,lo=0,hi=1e9)=>Number.isInteger(v)&&v>=lo&&v<=hi,fail=()=>{throw Error('研究と巣の記録が一致しません');};
+                                                                                             ^
+
+Error: 研究と巣の記録が一致しません
+
+Node.js v24.22.1
+
+START network
+PASS reservation    25 s
+START actors
+PASS storage        32 s
+PASS headon         36 s
+PASS cargo-turn     39 s
+PASS actors         21 s
+PASS disease        51 s
+PASS approach       56 s
+PASS rock           60 s
+PASS network        58 s
+PASS diagnostics    77 s
+PASS pebble         93 s
+PASS housing       125 s
+PASS ferment       152 s
+PASS traffic       172 s
+PASS raid          181 s
+PASS waste         237 s
+PASS chain         517 s
+START smoke (exclusive)
+PASS smoke           2 s
+START touch (exclusive)
+PASS touch          11 s
+START browser (exclusive)
+PASS browser        21 s
+FAILED research in 551 s on 16 cores

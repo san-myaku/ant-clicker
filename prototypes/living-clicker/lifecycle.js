@@ -5,13 +5,13 @@
 })(typeof globalThis!=='undefined'?globalThis:this,function(Core){
   'use strict';
   const {Simulation:TerrainSimulation,Physics,GRAIN,SURFACE,WALK_SPEED,idx,STEP}=Core;
-  const FORMAT='living-clicker-life-1',KEY='livingClicker_1',LIMIT=128;
+  const FORMAT='living-clicker-life-2',KEY='livingClicker_2',LIMIT=Core.MAX_ACTORS;
   const ROLES=['forage','nurse','build','guard'];
   const UPGRADES={walk:{name:'足どりを軽く',cost:8,max:3},brood:{name:'育児の手ほどき',cost:6,max:3},dig:{name:'掘削の手ほどき',cost:6,max:3}};
   class Simulation extends TerrainSimulation{
     constructor(seed=24014){
       super(seed);
-      this.colony={nextAnt:13,brood:this.physics.bodies.filter(b=>b.kind==='egg').map(b=>({id:b.id,stage:'egg',age:0,feeds:0,lastFed:-100})),
+      this.colony={nextActor:13,brood:this.physics.bodies.filter(b=>b.kind==='egg').map(b=>({id:b.id,stage:'egg',age:0,feeds:0,lastFed:-100})),
         wild:[],queen:0,laying:true,lastTap:-10,nextFood:0,roleWeights:{forage:1,nurse:1,build:1,guard:0},upgrades:{walk:0,brood:0,dig:0},
         stats:{initialAnts:12,initialBrood:3,initialFood:6,laid:0,born:0,generated:0,gathered:0,eaten:0,spent:0}};
       this.ants.forEach((a,k)=>{a.role=a.desiredRole=ROLES[Math.floor(k/4)];});
@@ -144,11 +144,15 @@
       }
       return result;
     }
+    allocateActorId(){
+      const id=this.colony.nextActor;if(!Number.isInteger(id)||id<13||id>Core.ACTOR_MAX)throw Error('個体の番号を発行できません');
+      this.colony.nextActor++;return id;
+    }
     hatch(e,b){
       if(this.ants.length>=LIMIT||b.carrier||b.rest<30||this.ants.some(a=>a.itemTask?.body===b.id))return false;
       const pose=this.itemAccess(b).map(p=>p.pose).find(p=>this.poseClear(p));if(!pose)return false;
       const counts=this.roleCounts(true),weights=this.colony.roleWeights,total=ROLES.reduce((n,r)=>n+weights[r],0),score=r=>(this.ants.length+1)*weights[r]/total-counts[r];
-      const role=ROLES.filter(r=>weights[r]>0).sort((a,b)=>score(b)-score(a)||ROLES.indexOf(a)-ROLES.indexOf(b))[0],id=this.freeAntId?.()??this.colony.nextAnt++;
+      const role=ROLES.filter(r=>weights[r]>0).sort((a,b)=>score(b)-score(a)||ROLES.indexOf(a)-ROLES.indexOf(b))[0],id=this.allocateActorId();
       const home=this.ants[(id-1)%this.ants.length].home;
       this.ants.push({id,cell:idx(Math.floor(pose.x),Math.floor(pose.y)),...pose,home:{...home},role,desiredRole:role,task:'idle',job:null,cargo:null,path:[],next:0,wait:0,walked:0,broodId:e.id});
       this.physics.remove(b);this.afterBirth?.(this.ants.at(-1));this.colony.brood=this.colony.brood.filter(a=>a!==e);this.colony.stats.born++;this.log('働き手が羽化しました。'+this.ants.length+'匹になりました。');return true;
@@ -188,14 +192,14 @@
       const fail=()=>{throw new Error('このコロニーの有効な保存データではありません');};
       if(pack?.format!==FORMAT||!pack.colony)fail();
       const c=structuredClone(pack.colony),finite=(n,min=0,max=1e9)=>Number.isFinite(n)&&n>=min&&n<=max,int=(n,min=0,max=1e9)=>Number.isInteger(n)&&finite(n,min,max);
-      if(!int(c.nextAnt,13,LIMIT+1)||!finite(c.queen,0,40)||typeof c.laying!=='boolean'||!finite(c.lastTap,-10)||!finite(c.nextFood)||!Array.isArray(c.brood)||c.brood.length>LIMIT||!Array.isArray(c.wild)||c.wild.length>5||!c.stats||!c.upgrades)fail();
+      if(!int(c.nextActor,13,Core.ACTOR_MAX+1)||!finite(c.queen,0,40)||typeof c.laying!=='boolean'||!finite(c.lastTap,-10)||!finite(c.nextFood)||!Array.isArray(c.brood)||c.brood.length>LIMIT||!Array.isArray(c.wild)||c.wild.length>5||!c.stats||!c.upgrades)fail();
       if(!c.roleWeights||ROLES.some(r=>!int(c.roleWeights[r],0,LIMIT))||ROLES.reduce((n,r)=>n+c.roleWeights[r],0)<1)fail();
       if(c.brood.some(e=>!int(e.id,1)||!['egg','larva','pupa'].includes(e.stage)||!finite(e.age,0,1e8)||!int(e.feeds,0,2)||!finite(e.lastFed,-100)))fail();
       for(const k of Object.keys(UPGRADES))if(!int(c.upgrades[k],0,3))fail();
       for(const k of ['initialAnts','initialBrood','initialFood','laid','born','generated','gathered','eaten','spent'])if(!int(c.stats[k]))fail();
       if(c.stats.initialAnts!==12||c.stats.initialBrood!==3||c.stats.initialFood!==6)fail();
-      const s=TerrainSimulation.restore(pack.world);Object.setPrototypeOf(s,Simulation.prototype);s.colony=c;
-      if(c.nextAnt<s.ants.length+1||c.nextAnt-1-s.ants.length>(c.stats.died||0)||s.ants.length+c.brood.length>LIMIT||s.ants.some(a=>!ROLES.includes(a.role)||!ROLES.includes(a.desiredRole)||a.id>=c.nextAnt))fail();
+      const s=TerrainSimulation.restore(pack.world,c.raid?.enemies||[]);Object.setPrototypeOf(s,Simulation.prototype);s.colony=c;
+      if(c.nextActor<13+c.stats.born||s.ants.length+c.brood.length>LIMIT||s.ants.some(a=>!ROLES.includes(a.role)||!ROLES.includes(a.desiredRole)||a.id>=c.nextActor))fail();
       const targets=new Set();
       for(const a of s.ants)if(a.itemTask?.purpose&&a.itemTask.purpose!=='clean'){const t=a.itemTask,e=c.brood.find(e=>e.id===t.target);if(t.purpose!=='feed'||a.role!=='nurse'||s.physics.byId.get(t.body)?.kind!=='food'||!e||e.stage!=='larva'||targets.has(t.target)||t.chew!==undefined&&!finite(t.chew,0,1.3))fail();targets.add(t.target);}
       s.assertLedger();return s;

@@ -1,0 +1,177 @@
+{
+  "base": "7d95df6ad116dd015408b9cbee2d7d97d44994b9",
+  "method": "QA固定保存のみを新版へ再エンコード。旧読込器で既存の省略項目を明示化し、番号の上限メタデータと50バイト内の運び手位置を更新。終了済み譲りの未使用参照だけを削除。個体/空洞/物体/運搬の実状態は保持。ゲーム内に旧版変換はない。",
+  "records": [
+    {
+      "file": "prototypes/living-clicker/qa/approach-stall.json",
+      "beforeSha256": "ee92727ebca1be9b768aa538f158539673c6ef3c962a17dab27dc014f86ad0cf",
+      "afterSha256": "425775dab8acaa5fc3151e6c23300c36e32b0f5241955966d0da948ce208f5be",
+      "ants": 50,
+      "enemies": 0,
+      "nextActor": 51,
+      "obsoleteYieldRefsRemoved": 1
+    },
+    {
+      "file": "prototypes/living-clicker/qa/before-depth.json",
+      "beforeSha256": "847281d5c80ece745c09ad407a4462869b1426a79285b09d5d800d9b0862ce7f",
+      "afterSha256": "c62461d2cc921bdd99e5b6e240abc4e4983126aafc1da37437d211aad5642707",
+      "ants": 40,
+      "enemies": 0,
+      "nextActor": 41,
+      "obsoleteYieldRefsRemoved": 1
+    },
+    {
+      "file": "prototypes/living-clicker/qa/blocked-turn.json",
+      "beforeSha256": "f8ce79a55c0e230905faac3ba4cdd5413644265bcd13161202f3784fa5ab0419",
+      "afterSha256": "ec6dfd88e392a232d54cf80de71e61a9bc7a3bbc8e8fdb74f070a78f1941adca",
+      "ants": 63,
+      "enemies": 0,
+      "nextActor": 64,
+      "obsoleteYieldRefsRemoved": 1
+    },
+    {
+      "file": "prototypes/living-clicker/qa/collision.json",
+      "beforeSha256": "2fae75fa90a3e155ea897ae1917cd5ca07454d1a835ffb3e6b3d3bdf2054bac4",
+      "afterSha256": "7e8912f50dc5a833ac8c4b4ff95394a8116691c883795708f7627cd63938ac24",
+      "ants": 18,
+      "enemies": 0,
+      "nextActor": 19,
+      "obsoleteYieldRefsRemoved": 0
+    },
+    {
+      "file": "prototypes/living-clicker/qa/deep-collision.json",
+      "beforeSha256": "a14a100356a4ee26d7a47b87fb111bb4e42ab0efde7111195460e1bfacc84f7e",
+      "afterSha256": "4d07d928491f787a5e17f78821ecabfab5440e452c6ca77fa985912c2089c7c8",
+      "ants": 51,
+      "enemies": 0,
+      "nextActor": 52,
+      "obsoleteYieldRefsRemoved": 2
+    },
+    {
+      "file": "prototypes/living-clicker/qa/head-on-retreat.json",
+      "beforeSha256": "4604233dc409e6460ca1ae4e00284e87403079895d3c83dad453a7019b061fa7",
+      "afterSha256": "f7b76e9316a23fdef8315b2bb3ee3f622cf5048c58505f51aded32fdbe5e0c81",
+      "ants": 64,
+      "enemies": 0,
+      "nextActor": 65,
+      "obsoleteYieldRefsRemoved": 0
+    },
+    {
+      "file": "prototypes/living-clicker/qa/heap-ceiling.json",
+      "beforeSha256": "181ca789286ca154a434e254b77861b58dda4718ea30cb553a35ec6b9699244d",
+      "afterSha256": "0043346a5f6df877c3025744eb24c783147920104a59430526d1f5852f9c52b2",
+      "ants": 107,
+      "enemies": 0,
+      "nextActor": 108,
+      "obsoleteYieldRefsRemoved": 10
+    },
+    {
+      "file": "prototypes/living-clicker/qa/raid-stuck-loot.json",
+      "beforeSha256": "671505f60e9875ec264d3baae1e5af32ffe1c882908562fd8f2ede1a65968f34",
+      "afterSha256": "6997ce7ce6935b2e60cb45a5321a09a00ebd303b9268e9d4a15ab8ad76f7eb6e",
+      "ants": 126,
+      "enemies": 2,
+      "nextActor": 203,
+      "obsoleteYieldRefsRemoved": 5
+    },
+    {
+      "file": "prototypes/living-clicker/qa/room-reservation.json",
+      "beforeSha256": "472180f583e985defd92a10d259c89f0d4e6feb78d88b8e6815143021fb13140",
+      "afterSha256": "f36ba44a40233deeb28b60ea2cb7086fb21f69fcc42e4f677f2303cfcdc786a6",
+      "ants": 40,
+      "enemies": 0,
+      "nextActor": 41,
+      "obsoleteYieldRefsRemoved": 0
+    },
+    {
+      "file": "prototypes/living-clicker/qa/storage-ring.json",
+      "beforeSha256": "3612e952feade6687573daae0cdb755cc152c3e17a764778899ecaf1370a410a",
+      "afterSha256": "b4d94449347967e195893c0c889d4751290999cc3e827ad09450d24c718210d5",
+      "ants": 40,
+      "enemies": 0,
+      "nextActor": 41,
+      "obsoleteYieldRefsRemoved": 1
+    },
+    {
+      "file": "prototypes/living-clicker/qa/waste-spill.json",
+      "beforeSha256": "edab3ceef7895b9f3eef66df717f7e545854d53215724763b12236f0ebbc2c06",
+      "afterSha256": "ae3d25a53a9c348f2f3d6037f1f84cee0f6dd3f666da68dca622a72b70dde88c",
+      "ants": 72,
+      "enemies": 0,
+      "nextActor": 73,
+      "obsoleteYieldRefsRemoved": 5
+    },
+    {
+      "file": "prototypes/living-clicker/qa/world-1200.json",
+      "beforeSha256": "d9bd20c81dea5d29d5e5af066202bd73fcb4e2f2af3be2e16541c95a961a8db1",
+      "afterSha256": "da2874099cd10a723093f7590552ac61b84c16c769f6296d305fefa29c4b53cf",
+      "ants": 40,
+      "enemies": 0,
+      "nextActor": 41,
+      "obsoleteYieldRefsRemoved": 1
+    },
+    {
+      "file": "prototypes/living-clicker/qa/world-180.json",
+      "beforeSha256": "67267d93cf75e8cf7e5a6a6fb3e6ad11442b037cdbd63deb609601c0976dc546",
+      "afterSha256": "3419a484817d9181006fcbf02f6a93b8aeaaea44981986db0869f584b03af5e2",
+      "ants": 15,
+      "enemies": 0,
+      "nextActor": 16,
+      "obsoleteYieldRefsRemoved": 1
+    },
+    {
+      "file": "prototypes/living-clicker/qa/world-60.json",
+      "beforeSha256": "3948fd9861ec07e2078e976725f600edac713904a0a414f879c24b048cf4fc15",
+      "afterSha256": "7514c2e4d126d416f245dad779bf5500a28f3d456fe17f81ad090f27a82417a0",
+      "ants": 12,
+      "enemies": 0,
+      "nextActor": 13,
+      "obsoleteYieldRefsRemoved": 0
+    },
+    {
+      "file": "prototypes/living-clicker/qa/world-900.json",
+      "beforeSha256": "9b9ee65118da227f7f4f918831e75275d483859b92375195e1692127fd35a4ab",
+      "afterSha256": "bfb9fbafee2e76b4a6f4e4aec8b97def004a8e9c8ed12a07ebed1c2a000860da",
+      "ants": 33,
+      "enemies": 0,
+      "nextActor": 34,
+      "obsoleteYieldRefsRemoved": 1
+    },
+    {
+      "file": "prototypes/living-clicker/qa/world-final.json",
+      "beforeSha256": "9f77c6d0706d261d43e7d864f605818e0bb3a3eb7711bb95e6bee5f0b689b26f",
+      "afterSha256": "028da2642b574b6490d71bc13daa5df55f2cc99f71aeeb39f8b217d3ca554d79",
+      "ants": 64,
+      "enemies": 0,
+      "nextActor": 65,
+      "obsoleteYieldRefsRemoved": 2
+    },
+    {
+      "file": "prototypes/living-clicker/qa/world-scale.json",
+      "beforeSha256": "9a7040181eb0e78eea03d30b560c6df205c11d41961447ea379bf8a456d8a2f8",
+      "afterSha256": "15d03b034f3619e0dbdc04846fae7173c546823a413acd74456fa8f781676f91",
+      "ants": 128,
+      "enemies": 0,
+      "nextActor": 129,
+      "obsoleteYieldRefsRemoved": 9
+    },
+    {
+      "file": "prototypes/living-clicker/qa/home-pose-coverage.json",
+      "beforeSha256": "83bdefb24fcde86fc181f5ca2c2b272cd6bda6d05775b013faa2febfc039a2e6",
+      "afterSha256": "9e98a5674d7ea2af03759fbba640763d276ff7959b9991e140da9dcd07cc83f4",
+      "ants": 64,
+      "enemies": 0,
+      "nextActor": 65,
+      "obsoleteYieldRefsRemoved": 1
+    },
+    {
+      "file": "prototypes/living-clicker/qa/housing-demand.json",
+      "beforeSha256": "a68e71f3acfd3e7f2bc032c842526727c1cde4a93cc966f4ff48df68446a5766",
+      "afterSha256": "7fdfcb06d462c3c9ad14572ec451e0a93e0e186d63bfb2eecaa0f9420c967a37",
+      "ants": 58,
+      "enemies": 1,
+      "nextActor": 201,
+      "obsoleteYieldRefsRemoved": 1
+    }
+  ]
+}

@@ -36,9 +36,9 @@ test('brood-stage-study-ages-a-real-egg-faster',()=>{
   const age=egg.age,rate=y.broodRate()*y.stageRate('egg');y.biology(Game.STEP);
   assert(Math.abs(egg.age-age-Game.STEP*rate)<1e-12);y.assertLedger();y.assertProgress();return {rate,eggAge:age};
 });
-test('older-save-without-new-levels-loads-at-zero',()=>{
+test('new-format-refuses-missing-invalid-and-unknown-research-levels',()=>{
   const p=JSON.parse(input);for(const id of Object.keys(p.progress.research))if(!['gather_1','brood_1','dig_speed','queen_fertile','queen_embrace','geo_depth_2','geo_depth_3','geo_depth_4'].includes(id))delete p.progress.research[id];
-  const r=Game.Simulation.restore(p);for(const d of Game.ACTIVE)assert(Number.isInteger(r.progress.research[d.id]));
+  assert.deepEqual(Game.Simulation.restore(JSON.parse(input)).dump(),JSON.parse(input));assert.throws(()=>Game.Simulation.restore(p),'new saves require every connected research level');
   const planned=JSON.parse(input);planned.progress.research.hygiene_1=1;assert.throws(()=>Game.Simulation.restore(planned));
   const unknown=JSON.parse(input);unknown.progress.research.nope=0;assert.throws(()=>Game.Simulation.restore(unknown));
 });

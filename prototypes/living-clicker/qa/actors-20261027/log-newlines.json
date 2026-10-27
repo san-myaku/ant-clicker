@@ -1,0 +1,5 @@
+{
+  "method": "記録後のログのCRLFのみLFへ統一。内容/行/失敗は維持。",
+  "capturedSha256": "6f9f0645d60df1b371ed7fa99e6d12ecd0997ef9940874238274369c083e9b91",
+  "trackedSha256": "3a9475e97142c9b5d0d076ad9cbb197401aa58d1e06a6261d03f580ac8b5be49"
+}

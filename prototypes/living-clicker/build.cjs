@@ -255,6 +255,7 @@ replace('      for(const angle of [heading,',`      if(networkRoom!==undefined)f
       for(const angle of [heading,`,'local room straight-line boundary');
 replace('const safe=id=>{const z=decode(id);if(roomWander', 'const safe=id=>{const z=decode(id);if(networkRoom!==undefined&&!networkInside(z))return false;if(roomWander','local room search boundary');
 replace('return { Simulation, AntTrafficIndex, Physics,','return { Simulation, AntTrafficIndex, RouteNetwork, Physics,','network inspection for verification');
+source=require('./build-actors.cjs').core(source);
 fs.writeFileSync(path.join(root,'core.js'),source);
 source=read('game.js');
 replace("FORMAT='ant-colony-1',KEY='antColonyGame_1',LIMIT=64","FORMAT='living-clicker-life-1',KEY='livingClicker_1',LIMIT=128",'independent lifecycle save');
@@ -290,5 +291,6 @@ replace("roleWeights:{forage:1,nurse:1,build:1}","roleWeights:{forage:1,nurse:1,
 replace("c.brood.length+stats.born!==stats.initialBrood+stats.laid","c.brood.length+stats.born+(c.raid?.stolenBrood||0)!==stats.initialBrood+stats.laid",'stolen brood ledger');
 replace("food.length+stats.eaten+stats.spent+(c.ferment?.used||0)!==stats.initialFood+stats.generated+(c.waste?.recycled||0)","food.length+stats.eaten+stats.spent+(c.ferment?.used||0)+(c.raid?.stolenFood||0)!==stats.initialFood+stats.generated+(c.waste?.recycled||0)+(c.raid?.prey||0)",'stolen food and prey ledger');
 replace("      const all=this._incoming,feeding=new Set(this.ants.filter(a=>a.itemTask?.purpose==='feed').map(a=>a.itemTask.target));","      // Only a worker about to take a task reads the incoming list: the core\n      // assigns tasks on every 30th step to a worker that is not walking.\n      if(!ant.itemTask&&(ant.path.length&&!ant.returning||this.ticks%30!==0))return false;\n      const all=this._incoming,feeding=new Set(this.ants.filter(a=>a.itemTask?.purpose==='feed').map(a=>a.itemTask.target));",'incoming list only for a worker taking a task');
+source=require('./build-actors.cjs').life(source);
 fs.writeFileSync(path.join(root,'lifecycle.js'),source);
 console.log('Organic core and lifecycle generated with checked hooks.');
