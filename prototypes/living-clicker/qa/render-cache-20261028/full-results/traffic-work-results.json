@@ -1,0 +1,74 @@
+{
+  "pass": true,
+  "source": {
+    "game.js": "a38fabdaf9c8b49fdef59094a03037c70c49b805a6053dd3f211d7b66174cd16",
+    "core.js": "081d5909faa962192b229942a87771665c60656d4f856133b775e72b36477f27",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "build.cjs": "5f8b9ed490d78441a63dd40562f62988f0d85e9329605e7fba80445d99246a79",
+    "build-surface.cjs": "8022e37dcfe2de04574367711fe7d35e961ad13581f41545987311790ca048d3",
+    "build-retreat.cjs": "abb4332ca97e608ae4870e1844495ea5851441c180c71ae42cb5c1fd40c5f8bd",
+    "qa/surface-reference.cjs": "7275aaabafc5bde64d2b48330d0f6d2c103024fb0738a38f17f6a2f6177234c2",
+    "verify-traffic-work.cjs": "4f4b99aaa2a0748774d6ea9992bd93099682b4f05e04a9e1768952f4b5914835",
+    "qa/pop512-20261027/before-optimization/game.js": "4734964bc21ddf7bad5a3557650ee606b5b466a593675860dc7159f7a69a9e4a",
+    "qa/pop512-20261027/before-optimization/core.js": "c873a478cace730dd84ae13111832539229cfc1f3ef8b03119f287a980fea8f8",
+    "qa/pop512-20261027/before-optimization/lifecycle.js": "c8c93dd72d17607a85ab9420edfc939e78803fd520d3333ee53a397939641301"
+  },
+  "inputs": {
+    "world-900.json": "bfb9fbafee2e76b4a6f4e4aec8b97def004a8e9c8ed12a07ebed1c2a000860da",
+    "before-512.json": "524443b0e8436a73275aa0e723f359e72ef7ef56f6d8a9ef623a4a378f62a6de",
+    "head-on-retreat.json": "f7b76e9316a23fdef8315b2bb3ee3f622cf5048c58505f51aded32fdbe5e0c81",
+    "raid-stuck-loot.json": "6997ce7ce6935b2e60cb45a5321a09a00ebd303b9268e9d4a15ab8ad76f7eb6e",
+    "world-512.json": "2b43a65e181bd53635770d12888a93415febd059755e23a001b90f657b6fb1d0",
+    "retreat-turnback-64.json": "54d0a3ac4d32f5227d2ef5d1718438c64f62a907c35eb9f33cfbdaab52575b92"
+  },
+  "results": [
+    {
+      "name": "world-900.json",
+      "pass": true,
+      "steps": 600,
+      "neckQueries": 40,
+      "oldMsPerStep": 9.860642333333308,
+      "newMsPerStep": 7.201097666666677
+    },
+    {
+      "name": "before-512.json",
+      "pass": true,
+      "steps": 600,
+      "neckQueries": 365,
+      "oldMsPerStep": 70.67053383333322,
+      "newMsPerStep": 40.40137166666672
+    },
+    {
+      "name": "head-on-retreat.json",
+      "pass": true,
+      "steps": 600,
+      "neckQueries": 160,
+      "oldMsPerStep": 8.208705000000725,
+      "newMsPerStep": 6.048863999999715
+    },
+    {
+      "name": "raid-stuck-loot.json",
+      "pass": true,
+      "steps": 600,
+      "neckQueries": 140,
+      "oldMsPerStep": 11.352571499999758,
+      "newMsPerStep": 8.214730166666413
+    },
+    {
+      "name": "world-512.json",
+      "pass": true,
+      "steps": 300,
+      "neckQueries": 795,
+      "oldMsPerStep": 75.76274033333426,
+      "newMsPerStep": 49.30936866666588
+    },
+    {
+      "name": "retreat-turnback-64.json",
+      "pass": true,
+      "steps": 600,
+      "neckQueries": 145,
+      "oldMsPerStep": 10.341257333333244,
+      "newMsPerStep": 7.4738315000008155
+    }
+  ]
+}

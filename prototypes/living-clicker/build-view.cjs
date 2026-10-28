@@ -104,4 +104,5 @@ replace('Simulation.restore(JSON.parse(bytes))','Simulation.restore(LivingSaveCo
 const zipRoot=path.dirname(require.resolve('fflate/package.json'));
 const license='/* fflate 0.8.3 — '+fs.readFileSync(path.join(zipRoot,'LICENSE'),'utf8')+' */\n';
 source=license+fs.readFileSync(path.join(zipRoot,'umd/index.js'),'utf8')+';\n'+fs.readFileSync(path.join(root,'save-codec.js'),'utf8')+'\n'+fs.readFileSync(path.join(root,'diagnostics.js'),'utf8')+'\n'+source;
+source=require('./build-ground-cache.cjs')(source);
 fs.writeFileSync(path.join(root,'view.js'),source);console.log('Observation view generated with checked hooks.');

@@ -1,0 +1,22 @@
+{
+  "before": {
+    "time": 9857.499999940703,
+    "distance": 1100106.4231600543,
+    "wall": 8830.799999999814,
+    "paused": false,
+    "hidden": false,
+    "speed": "10",
+    "rafText": "function requestAnimationFrame() { [native code] }"
+  },
+  "after": {
+    "time": 9872.499999940484,
+    "distance": 1101911.7408196765,
+    "wall": 15014.200000000186,
+    "paused": true,
+    "hidden": false,
+    "speed": "10",
+    "rafText": "function requestAnimationFrame() { [native code] }"
+  },
+  "gameSeconds": 14.999999999781721,
+  "errors": []
+}

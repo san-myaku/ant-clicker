@@ -1,0 +1,79 @@
+{
+  "pass": true,
+  "finishedAt": "2026-10-28T10:21:31.041Z",
+  "source": {
+    "index.html": "1a377628c194d695ae92af706daf539686b262f3e0183633f225241b96181d46",
+    "core.js": "c444427f4493d71fbff56f4f523a6720a3bea81cae4ffacb3ef0df608380f3ab",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "game.js": "a38fabdaf9c8b49fdef59094a03037c70c49b805a6053dd3f211d7b66174cd16",
+    "view.js": "4bb44a8cf17b7af1a6ab6b2c09e18a56433e2b006a062b7a3a99eb9ec896fb8e"
+  },
+  "candidate": {
+    "index.html": "1a377628c194d695ae92af706daf539686b262f3e0183633f225241b96181d46",
+    "core.js": "081d5909faa962192b229942a87771665c60656d4f856133b775e72b36477f27",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "game.js": "a38fabdaf9c8b49fdef59094a03037c70c49b805a6053dd3f211d7b66174cd16",
+    "view.js": "627297bb0907e010b23b9c6c2ebeb78e55c2cf07198cfd4f7197a059b43c29cf"
+  },
+  "rows": [
+    {
+      "file": "pop512-20261027/active512-post-turnback-input.json",
+      "research": null,
+      "inputSha256": "02b55685ce47e5bbd6eee41dbb423ac316a5753f8581f2909660e9d9186016c6",
+      "stateSha256": "6fd81292c9fff18c144305bab03f45c158ae0b4b14d5063c73cab543cfe94874",
+      "work": {
+        "dug": 1,
+        "delivered": 8,
+        "distance": 853.2737140837125
+      },
+      "runs": {
+        "old": {
+          "steps": 360,
+          "stepMs": 2396.300000190735,
+          "renderMs": 4134.299999803305,
+          "msPerStep": 6.656388889418708,
+          "msPerRender": 11.484166666120291,
+          "totalMsPerFrame": 18.140555555539
+        },
+        "new": {
+          "steps": 360,
+          "stepMs": 2401.0999998152256,
+          "renderMs": 2857.500000178814,
+          "msPerStep": 6.66972222170896,
+          "msPerRender": 7.937500000496706,
+          "totalMsPerFrame": 14.607222222205666
+        }
+      }
+    },
+    {
+      "file": "world-512.json",
+      "research": "geo_depth_4",
+      "inputSha256": "2b43a65e181bd53635770d12888a93415febd059755e23a001b90f657b6fb1d0",
+      "stateSha256": "11ee27cfcb314692529edccceeb19033cf2d0fcd8e61a5b7c71e7d06dc0a8b72",
+      "work": {
+        "dug": 16,
+        "delivered": 25,
+        "distance": 2818.4305272973143
+      },
+      "runs": {
+        "new": {
+          "steps": 360,
+          "stepMs": 4851.200000107288,
+          "renderMs": 2980.0999997854233,
+          "msPerStep": 13.475555555853578,
+          "msPerRender": 8.27805555495951,
+          "totalMsPerFrame": 21.75361111081309
+        },
+        "old": {
+          "steps": 360,
+          "stepMs": 4917.899999886751,
+          "renderMs": 13328.600000053644,
+          "msPerStep": 13.660833333018754,
+          "msPerRender": 37.0238888890379,
+          "totalMsPerFrame": 50.68472222205666
+        }
+      }
+    }
+  ],
+  "note": "別コンテキストで各120コマ準備+360コマ。1step+1renderを固定し前後の全保存一致。2入力で旧/新の順を反転。他の当方負荷検証と並走せず。rAF/定期UI更新を除くモデル+描画の固定処理比較であり、実時間のFPSやiPhoneの保証ではない。"
+}

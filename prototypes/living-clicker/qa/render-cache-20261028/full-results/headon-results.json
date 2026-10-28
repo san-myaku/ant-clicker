@@ -1,0 +1,30 @@
+{
+  "pass": true,
+  "yields": 3,
+  "delivered": [
+    2254,
+    2340
+  ],
+  "turnback": {
+    "pass": true,
+    "inputSha256": "54d0a3ac4d32f5227d2ef5d1718438c64f62a907c35eb9f33cfbdaab52575b92",
+    "oldReproductionSeconds": 10,
+    "newContinuationSeconds": 120,
+    "replanned": 1,
+    "delivered": [
+      3091,
+      3105
+    ],
+    "source": {
+      "game.js": "a38fabdaf9c8b49fdef59094a03037c70c49b805a6053dd3f211d7b66174cd16",
+      "core.js": "081d5909faa962192b229942a87771665c60656d4f856133b775e72b36477f27",
+      "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+      "build.cjs": "5f8b9ed490d78441a63dd40562f62988f0d85e9329605e7fba80445d99246a79",
+      "build-retreat.cjs": "abb4332ca97e608ae4870e1844495ea5851441c180c71ae42cb5c1fd40c5f8bd",
+      "verify-headon.cjs": "40282eb677209524b8e79cd37b382edf74cc0c24e450f09ff97200cf8b54f9ed",
+      "qa/pop512-20261027/before-turnback-fix/game.js": "66fe1b1573993e07fb2ee88eeb06b0fc0a1fad8b2e6057c4168463dff2218f3d",
+      "qa/pop512-20261027/before-turnback-fix/core.js": "9b779fd0f25deed86efd9cdce0f965604d999495bfebe2c7265d227424b38c45",
+      "qa/pop512-20261027/before-turnback-fix/lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0"
+    }
+  }
+}

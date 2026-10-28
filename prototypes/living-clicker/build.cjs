@@ -270,6 +270,7 @@ source=require('./build-actors.cjs').core(source);
 source=require('./build-retreat.cjs')(source);
 source=require('./build-storage-inputs.cjs')(source);
 source=require('./build-pose-cache.cjs')(source);
+source=require('./build-room-cells.cjs')(source);
 fs.writeFileSync(path.join(root,'core.js'),source);
 source=read('game.js');
 replace("FORMAT='ant-colony-1',KEY='antColonyGame_1',LIMIT=64","FORMAT='living-clicker-life-1',KEY='livingClicker_1',LIMIT=128",'independent lifecycle save');

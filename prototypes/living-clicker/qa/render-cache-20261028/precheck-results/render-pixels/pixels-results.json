@@ -1,0 +1,323 @@
+{
+  "pass": true,
+  "finishedAt": "2026-10-28T10:14:04.460Z",
+  "source": {
+    "index.html": "1a377628c194d695ae92af706daf539686b262f3e0183633f225241b96181d46",
+    "core.js": "c444427f4493d71fbff56f4f523a6720a3bea81cae4ffacb3ef0df608380f3ab",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "game.js": "a38fabdaf9c8b49fdef59094a03037c70c49b805a6053dd3f211d7b66174cd16",
+    "view.js": "4bb44a8cf17b7af1a6ab6b2c09e18a56433e2b006a062b7a3a99eb9ec896fb8e"
+  },
+  "candidate": {
+    "index.html": "1a377628c194d695ae92af706daf539686b262f3e0183633f225241b96181d46",
+    "core.js": "081d5909faa962192b229942a87771665c60656d4f856133b775e72b36477f27",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "game.js": "a38fabdaf9c8b49fdef59094a03037c70c49b805a6053dd3f211d7b66174cd16",
+    "view.js": "627297bb0907e010b23b9c6c2ebeb78e55c2cf07198cfd4f7197a059b43c29cf"
+  },
+  "inputs": {
+    "world-900.json": "bfb9fbafee2e76b4a6f4e4aec8b97def004a8e9c8ed12a07ebed1c2a000860da",
+    "world-256.json": "ea79db5a2a5488c62871365f122f27b154ea186a8e09f9c7af93d2242fd0d23d",
+    "world-512.json": "2b43a65e181bd53635770d12888a93415febd059755e23a001b90f657b6fb1d0",
+    "raid-stuck-loot.json": "6997ce7ce6935b2e60cb45a5321a09a00ebd303b9268e9d4a15ab8ad76f7eb6e",
+    "retreat-turnback-64.json": "54d0a3ac4d32f5227d2ef5d1718438c64f62a907c35eb9f33cfbdaab52575b92",
+    "pop512-20261027/active512-post-turnback-input.json": "02b55685ce47e5bbd6eee41dbb423ac316a5753f8581f2909660e9d9186016c6"
+  },
+  "rows": [
+    {
+      "label": "world-900.json load",
+      "ground": "a113605429c6635f6676936f42a5d540e773ab89eb20cd0ad363f4c6488650c9",
+      "light": "d348a0e78fae672d46387b06ba6ab6d8f7b83d60b3805d23c0cc14cc0eacd5ec",
+      "canvas": "825c7a8607a10baeab55465a161a0ac7c0c781db46fc1673e6b257e8fd3ca896",
+      "stateSha256": "bfb9fbafee2e76b4a6f4e4aec8b97def004a8e9c8ed12a07ebed1c2a000860da"
+    },
+    {
+      "label": "world-900.json advance 1",
+      "ground": "b5ba0d538dd4f9c3e916dde1422b839201c4177ec3ca88446cf16fc081713561",
+      "light": "547b15c7a5441f5b0de27534a9616724e825343228f126719ee346481e9db654",
+      "canvas": "559b100864910dc6dd90dd83b8ba06ef9f59a58be29f619b5d75451f51d9d134",
+      "stateSha256": "f056f6af5c0d7ea9f0cc041fa2b8c08e1ee998c6bc0548dc29051645ef20e6b6"
+    },
+    {
+      "label": "world-900.json advance 2",
+      "ground": "cdc41ccc3862be3abec209774da9df0f6832c23b322ec8f94e81ddcfc4c31a22",
+      "light": "8bb3c852d259830fd86df38de7005e4c7ab3f0bac4e9cc4ff25b2de45bbd5a26",
+      "canvas": "690014c193b37ee0e43e8c48bdc16b7e7ca0fbbb0a71601af6fc36af572c9710",
+      "stateSha256": "23978a05e20fccb9aa79524a1eb7b02ac6aed565ddb568e2c78d624f9368ac52"
+    },
+    {
+      "label": "world-900.json advance 3",
+      "ground": "8aad60f53bc44d5d868553b6e2931679d16c4f45c056b2e95bcc6e69e45e8d72",
+      "light": "47307dd62430106ec7217c1919e9dbddac799f56608a0d606f5d44b19faba371",
+      "canvas": "b0017b5c5a39999892c1d8cec33533ed7ec111fd45f4b5e25678bdc40120a91e",
+      "stateSha256": "27c7a39fb4fb1b147182d87524d46bbb6239cec88a4abdc7e95acf0b51cb6468"
+    },
+    {
+      "label": "world-900.json fit",
+      "ground": "8aad60f53bc44d5d868553b6e2931679d16c4f45c056b2e95bcc6e69e45e8d72",
+      "light": "47307dd62430106ec7217c1919e9dbddac799f56608a0d606f5d44b19faba371",
+      "canvas": "b0017b5c5a39999892c1d8cec33533ed7ec111fd45f4b5e25678bdc40120a91e",
+      "stateSha256": "27c7a39fb4fb1b147182d87524d46bbb6239cec88a4abdc7e95acf0b51cb6468"
+    },
+    {
+      "label": "world-256.json load",
+      "ground": "c1b1e9f500769ad8eefb2c2123263b5c137f6fa6fc780a03064ca9af49f685e5",
+      "light": "b183591224103b07bc194967312fa5b1cebbb1415e43690bd7a9e4cf4fe6a653",
+      "canvas": "0ccbab8a41231f7379c6f95757dce217e03afe7f1f74763f9317febc5f501c46",
+      "stateSha256": "ea79db5a2a5488c62871365f122f27b154ea186a8e09f9c7af93d2242fd0d23d"
+    },
+    {
+      "label": "world-256.json advance 1",
+      "ground": "2d5684948039e19353fcc319754c3583857d0fe986c9874965e8988d15e907b9",
+      "light": "b92072e7a227de495b0bcda68fe59ac23da97c2112df843fbf7428827c1839c6",
+      "canvas": "fd028fa0d992c0390f433a8c06083a5974721cac4196b6f87bd1f841fcab4fd1",
+      "stateSha256": "ca2848d87562a3072a778c4c4989057ca3a593c19128b0f54fb4040ba84fccb8"
+    },
+    {
+      "label": "world-256.json advance 2",
+      "ground": "2d5684948039e19353fcc319754c3583857d0fe986c9874965e8988d15e907b9",
+      "light": "b92072e7a227de495b0bcda68fe59ac23da97c2112df843fbf7428827c1839c6",
+      "canvas": "8b0e125441b8b436458f38959c7ec5874f0398a3658f86c246cef5eb0269e964",
+      "stateSha256": "b9c6662f46f41626d42c35ab97a878f58f3d6eef142334f0e97c6843a611892d"
+    },
+    {
+      "label": "world-256.json advance 3",
+      "ground": "e8a77b7f6a8cd3feeba004e5166f1ca3114b51256dce7fca18bd849b899cff34",
+      "light": "765364f0620b958a121f72215702b6d6eb5d04d57096c383ec5af6f58045f64a",
+      "canvas": "afb1d1e4f364ea1c27eb50cd41819f5703a5e8d3f7b9ad9582171dcc5aa172d8",
+      "stateSha256": "9adeba67e214fb755e260109d3cfb5590636dc5674d7d6abd8d1d84fc22ebbe3"
+    },
+    {
+      "label": "world-256.json fit",
+      "ground": "e8a77b7f6a8cd3feeba004e5166f1ca3114b51256dce7fca18bd849b899cff34",
+      "light": "765364f0620b958a121f72215702b6d6eb5d04d57096c383ec5af6f58045f64a",
+      "canvas": "afb1d1e4f364ea1c27eb50cd41819f5703a5e8d3f7b9ad9582171dcc5aa172d8",
+      "stateSha256": "9adeba67e214fb755e260109d3cfb5590636dc5674d7d6abd8d1d84fc22ebbe3"
+    },
+    {
+      "label": "world-512.json load",
+      "ground": "d8009caa9a2183ba5e7183715a9fa1abf602dd7cdaef92887115b48bd300f374",
+      "light": "02fd4232f04a037ab6edba4c5e3b17ca6fb834c066c183e1cba253e50b318dad",
+      "canvas": "ca6202ec04ae4862456b7a3c60e202258f02ad79d15b8e85ac0f52db1ca6bb4b",
+      "stateSha256": "2b43a65e181bd53635770d12888a93415febd059755e23a001b90f657b6fb1d0"
+    },
+    {
+      "label": "world-512.json advance 1",
+      "ground": "82ef45c9237f50c3ef14e3fff43dcfb302ea3b5491d25edc2bb7385943183141",
+      "light": "4fefda90e50ec567df880d65f06402f19ffcbede732719eab8aa067852302d0d",
+      "canvas": "17fe2a7e84f89433221255016cd803db28ac45d6423a0ac87e42d3c6a2455427",
+      "stateSha256": "14f89abb6b84c52c75e95fef0cd6f4abdf3e170d736678a86f20562ff35e3e0a"
+    },
+    {
+      "label": "world-512.json advance 2",
+      "ground": "6d22761831b567471dc86c999d70ebe98483237dbf3650edd95f08a22d37c3fe",
+      "light": "9700005a26204be6f29aa4d2eece4d15eacf24a234a236072ffaf1d257d6b3a0",
+      "canvas": "aedbf80fa9cfee9f9167276c4f0eb99275a82c48e30aef07bbbd61e13a697a5d",
+      "stateSha256": "2d9bad5ca8c657b000ac0650f592d674763a4f4424c190047e9a7d41cbc3ec1f"
+    },
+    {
+      "label": "world-512.json advance 3",
+      "ground": "81a8657cb21a9e068915e865b630ee82aa7e53b6bf3536ab06e907abd4f79e6d",
+      "light": "74b2b7e450b36e567ed94f66ee03bfc5fe3667f6d48793504b2bbb3f4e91f9b2",
+      "canvas": "1ebfeabe1534cb7bbd335821e2a9cf581a01103404da9bd6d609e7c369aba67e",
+      "stateSha256": "89d35f087323dc5fe7298753ae2a9d5813ab19aba051a3d500893908d1046056"
+    },
+    {
+      "label": "world-512.json fit",
+      "ground": "81a8657cb21a9e068915e865b630ee82aa7e53b6bf3536ab06e907abd4f79e6d",
+      "light": "74b2b7e450b36e567ed94f66ee03bfc5fe3667f6d48793504b2bbb3f4e91f9b2",
+      "canvas": "1ebfeabe1534cb7bbd335821e2a9cf581a01103404da9bd6d609e7c369aba67e",
+      "stateSha256": "89d35f087323dc5fe7298753ae2a9d5813ab19aba051a3d500893908d1046056"
+    },
+    {
+      "label": "raid-stuck-loot.json load",
+      "ground": "21aaa7dfc9f5226713b73fe7172280d707425937ebbc3167b5482953cba001a9",
+      "light": "621738a669cacc7be85a7325c584f7054b5fceddd12095a48f45cf0f2915bda0",
+      "canvas": "c88bf2dd3c8f76dc09f27ddb5f33c326890be4729d808244a4303523e25f865e",
+      "stateSha256": "6997ce7ce6935b2e60cb45a5321a09a00ebd303b9268e9d4a15ab8ad76f7eb6e"
+    },
+    {
+      "label": "raid-stuck-loot.json advance 1",
+      "ground": "21aaa7dfc9f5226713b73fe7172280d707425937ebbc3167b5482953cba001a9",
+      "light": "621738a669cacc7be85a7325c584f7054b5fceddd12095a48f45cf0f2915bda0",
+      "canvas": "b71686f54149081a39610a5744b5a8e3a297fb898981ca03197fa25545ed562d",
+      "stateSha256": "739839d348bf89f290a4769a4d8027066cff9b8261220b69ea98dd4897bef882"
+    },
+    {
+      "label": "raid-stuck-loot.json advance 2",
+      "ground": "21aaa7dfc9f5226713b73fe7172280d707425937ebbc3167b5482953cba001a9",
+      "light": "621738a669cacc7be85a7325c584f7054b5fceddd12095a48f45cf0f2915bda0",
+      "canvas": "ddf40bcbdd27f8148a378f3a1874318f256afb0cd74008c372461f8906201573",
+      "stateSha256": "62f76801b7b0d5f934bc270172e6d291a6b4349c7a6edac0365653371c604492"
+    },
+    {
+      "label": "raid-stuck-loot.json advance 3",
+      "ground": "d8a221bd5cc915710b22c946bb0985c364eb094670039fadb12c7d65928494cc",
+      "light": "8596cb4b38e27d4c6add1bfd94ba7b71d7ee47a14eb16ac6cfab09a0058a45b1",
+      "canvas": "77c3e922daae0790fc314133f75ed02478fcc8b5fdc0a86b418c369303b8f52c",
+      "stateSha256": "ec285de16b62488bada4b01a74c5cebfe129576ce73cc360dda3b8b5385027b2"
+    },
+    {
+      "label": "raid-stuck-loot.json fit",
+      "ground": "d8a221bd5cc915710b22c946bb0985c364eb094670039fadb12c7d65928494cc",
+      "light": "8596cb4b38e27d4c6add1bfd94ba7b71d7ee47a14eb16ac6cfab09a0058a45b1",
+      "canvas": "77c3e922daae0790fc314133f75ed02478fcc8b5fdc0a86b418c369303b8f52c",
+      "stateSha256": "ec285de16b62488bada4b01a74c5cebfe129576ce73cc360dda3b8b5385027b2"
+    },
+    {
+      "label": "retreat-turnback-64.json load",
+      "ground": "8cd0c6d5bb81cc870c0aa2e0fb40d06dae03a881926f64f3a28f2be9746e376f",
+      "light": "3e4756f06b6a09b617084afa8a24001d78b18f609aa787b9049ba5fc10dc4c7c",
+      "canvas": "2b1d631e5af150aa0b6a5c8322f84535bc572e24fd7b1471f717574097c7ec54",
+      "stateSha256": "5e9031e401634c8990b8b245b357127100188bf9de61f714ba32fdc683d9dfad"
+    },
+    {
+      "label": "retreat-turnback-64.json advance 1",
+      "ground": "8cd0c6d5bb81cc870c0aa2e0fb40d06dae03a881926f64f3a28f2be9746e376f",
+      "light": "3e4756f06b6a09b617084afa8a24001d78b18f609aa787b9049ba5fc10dc4c7c",
+      "canvas": "2a742c0c87a0b9d4ebc6aa2028495ff8556cb6979ba0c51b324808b6721341de",
+      "stateSha256": "eafbeace9fee2272976a46bdae7bb6784058ed963f4615757af075e413cbe26c"
+    },
+    {
+      "label": "retreat-turnback-64.json advance 2",
+      "ground": "8cd0c6d5bb81cc870c0aa2e0fb40d06dae03a881926f64f3a28f2be9746e376f",
+      "light": "3e4756f06b6a09b617084afa8a24001d78b18f609aa787b9049ba5fc10dc4c7c",
+      "canvas": "3e92c336b230961e3f0ca3979f66ef04b5acba8657616cae0372f13a0c5e392b",
+      "stateSha256": "2dd26835060844cfa845866a996cf1f03796f9a8b608e4bc53d833bef9f6bcdc"
+    },
+    {
+      "label": "retreat-turnback-64.json advance 3",
+      "ground": "8cd0c6d5bb81cc870c0aa2e0fb40d06dae03a881926f64f3a28f2be9746e376f",
+      "light": "3e4756f06b6a09b617084afa8a24001d78b18f609aa787b9049ba5fc10dc4c7c",
+      "canvas": "8c34da7fad13700a0aa7b76e5ff136a65ac63772bf81ad35be54c800a3e28c35",
+      "stateSha256": "0907d390aef6937bbac06db86f5d1a2dc6d548b59fbef01d186e8256622acc49"
+    },
+    {
+      "label": "retreat-turnback-64.json fit",
+      "ground": "8cd0c6d5bb81cc870c0aa2e0fb40d06dae03a881926f64f3a28f2be9746e376f",
+      "light": "3e4756f06b6a09b617084afa8a24001d78b18f609aa787b9049ba5fc10dc4c7c",
+      "canvas": "8c34da7fad13700a0aa7b76e5ff136a65ac63772bf81ad35be54c800a3e28c35",
+      "stateSha256": "0907d390aef6937bbac06db86f5d1a2dc6d548b59fbef01d186e8256622acc49"
+    },
+    {
+      "label": "pop512-20261027/active512-post-turnback-input.json load",
+      "ground": "a0b49a9ddb3c10f6b97598fc58eb20590f3961f2bc5ea1edce1e55fe8932ce88",
+      "light": "3616d7036291dfad8789dd662bed21e15557d73de5f65ef076cae2b24f0d9128",
+      "canvas": "6369b81491b56ea8b7a0b4683ae5eb9aef93114b96d400ae83ac9c25940b65d9",
+      "stateSha256": "02b55685ce47e5bbd6eee41dbb423ac316a5753f8581f2909660e9d9186016c6"
+    },
+    {
+      "label": "pop512-20261027/active512-post-turnback-input.json advance 1",
+      "ground": "363702a5b9eba665d8f10915438e9abcd836890256b3aa2d0514afa0a0b4faf1",
+      "light": "82b648c507a265143b5a493fb3a60d1bf88ccb360d8e3ac686d00a424a6b09fd",
+      "canvas": "699784840de2d4ee3b5e157d7dce4a8871d164e1c5cfa8ea5a05cdb4283c5970",
+      "stateSha256": "d548e6dd6998ede755e8d26da91c423d5be8820d1e7638a86f6984363c65f134"
+    },
+    {
+      "label": "pop512-20261027/active512-post-turnback-input.json advance 2",
+      "ground": "363702a5b9eba665d8f10915438e9abcd836890256b3aa2d0514afa0a0b4faf1",
+      "light": "82b648c507a265143b5a493fb3a60d1bf88ccb360d8e3ac686d00a424a6b09fd",
+      "canvas": "7fe33d91d479578796c3107d332cd5851b5aafdcdc57b6d89b40444f23922dff",
+      "stateSha256": "f505f237abde65eb8189b47bdad764670bfe6e7713c882c1b82a13307d9e8c7a"
+    },
+    {
+      "label": "pop512-20261027/active512-post-turnback-input.json advance 3",
+      "ground": "363702a5b9eba665d8f10915438e9abcd836890256b3aa2d0514afa0a0b4faf1",
+      "light": "82b648c507a265143b5a493fb3a60d1bf88ccb360d8e3ac686d00a424a6b09fd",
+      "canvas": "84cc46cdb5c2090b6fc9122eda0189d2c11fdbb69e230b75ef8d73c6885c8670",
+      "stateSha256": "ab2b2fe50a7fb6189eff4bf0ff1b4fe65cdc1a623d96ca0f0c1230c80aea7fd8"
+    },
+    {
+      "label": "pop512-20261027/active512-post-turnback-input.json fit",
+      "ground": "363702a5b9eba665d8f10915438e9abcd836890256b3aa2d0514afa0a0b4faf1",
+      "light": "82b648c507a265143b5a493fb3a60d1bf88ccb360d8e3ac686d00a424a6b09fd",
+      "canvas": "84cc46cdb5c2090b6fc9122eda0189d2c11fdbb69e230b75ef8d73c6885c8670",
+      "stateSha256": "ab2b2fe50a7fb6189eff4bf0ff1b4fe65cdc1a623d96ca0f0c1230c80aea7fd8"
+    },
+    {
+      "label": "resize 1440",
+      "ground": "363702a5b9eba665d8f10915438e9abcd836890256b3aa2d0514afa0a0b4faf1",
+      "light": "82b648c507a265143b5a493fb3a60d1bf88ccb360d8e3ac686d00a424a6b09fd",
+      "canvas": "60a8cffb416a352828bead01d1231ab9c17ec4631da1bc579b0cf2c4e419b7c8",
+      "stateSha256": "ab2b2fe50a7fb6189eff4bf0ff1b4fe65cdc1a623d96ca0f0c1230c80aea7fd8"
+    },
+    {
+      "label": "zoom 1440",
+      "ground": "363702a5b9eba665d8f10915438e9abcd836890256b3aa2d0514afa0a0b4faf1",
+      "light": "82b648c507a265143b5a493fb3a60d1bf88ccb360d8e3ac686d00a424a6b09fd",
+      "canvas": "60a8cffb416a352828bead01d1231ab9c17ec4631da1bc579b0cf2c4e419b7c8",
+      "stateSha256": "ab2b2fe50a7fb6189eff4bf0ff1b4fe65cdc1a623d96ca0f0c1230c80aea7fd8"
+    },
+    {
+      "label": "resize 320",
+      "ground": "363702a5b9eba665d8f10915438e9abcd836890256b3aa2d0514afa0a0b4faf1",
+      "light": "82b648c507a265143b5a493fb3a60d1bf88ccb360d8e3ac686d00a424a6b09fd",
+      "canvas": "4b9d31e2141706d196b54f6882673f9d0a3473b5b096b22a5cc8512ae0d2aecf",
+      "stateSha256": "ab2b2fe50a7fb6189eff4bf0ff1b4fe65cdc1a623d96ca0f0c1230c80aea7fd8"
+    },
+    {
+      "label": "zoom 320",
+      "ground": "363702a5b9eba665d8f10915438e9abcd836890256b3aa2d0514afa0a0b4faf1",
+      "light": "82b648c507a265143b5a493fb3a60d1bf88ccb360d8e3ac686d00a424a6b09fd",
+      "canvas": "4b9d31e2141706d196b54f6882673f9d0a3473b5b096b22a5cc8512ae0d2aecf",
+      "stateSha256": "ab2b2fe50a7fb6189eff4bf0ff1b4fe65cdc1a623d96ca0f0c1230c80aea7fd8"
+    },
+    {
+      "label": "seed 1",
+      "ground": "db051509d82cc2b31708e0e3809a2b391f8ecd40681f1031919e777494c29664",
+      "light": "202e1832b8599fd320393483af0527f6e356e25bc75be06802645bd15787f7e4",
+      "canvas": "16f6933830550214f3fba7723bd3427cdcdd05be2dd6c7f99a436d71b457cd1b",
+      "stateSha256": "0017e95f91388c23d8243fd88db89415457694f39ce222f13ba8c056d36d6073"
+    },
+    {
+      "label": "seed 24014",
+      "ground": "a7976bd82681a8e89f8542f09ef5e5b130a7dc46c26adeb21f3df26375895d72",
+      "light": "2c0b93445cfbbeb7d39bd8064a882f08738fe0590153e0c07421ae2f375b68fb",
+      "canvas": "b65841a0c5a283d772cae052df003bf9895b05f55acc177bdb8e15b89c7179fb",
+      "stateSha256": "d2c975fd377fcfa8c37b58340fcd34abafe0e91eafc49a2fa3e75d9ca46b8cef"
+    },
+    {
+      "label": "seed 987654",
+      "ground": "495acfcf6cfdbbd9687d0d725df10d1d4e4290e2d15570508fa4a3670313079e",
+      "light": "a453d9fc034faed2292940f5c09ccbaf1fe7203d4f500324ffc6fb30e1e187a2",
+      "canvas": "7c5d4128ca2d2f0c2997a27693dd956b7e8e64d959824467376db38b1db2a080",
+      "stateSha256": "54683b38347cab806316859e6a3efc8637562d400ede00699ae41da03eb53355"
+    },
+    {
+      "label": "synthetic dig",
+      "ground": "f0061a1cee6d19f672a38ab85f713f73c6170627995fc1f6eda54f3bd7cae6bb",
+      "light": "2d306b70c94f1ea56b3a6cb2360098de15c047e662414ed27e87543627c126a2",
+      "canvas": "7c5d4128ca2d2f0c2997a27693dd956b7e8e64d959824467376db38b1db2a080",
+      "stateSha256": "27e44270b8b53768b435d84f94b158ae4198662c9685543c4a00b745d574299f"
+    },
+    {
+      "label": "synthetic relabel",
+      "ground": "d6fb93b53e26404d6c270c44fbafac369dc058b685b60773557ae30520c32849",
+      "light": "2d306b70c94f1ea56b3a6cb2360098de15c047e662414ed27e87543627c126a2",
+      "canvas": "7c5d4128ca2d2f0c2997a27693dd956b7e8e64d959824467376db38b1db2a080",
+      "stateSha256": "ad069a93fcdd2df2cdf68225d7cea7c10dcced77e9cac72fa9ce5cfbb140dcbb"
+    },
+    {
+      "label": "synthetic palette",
+      "ground": "2aeb418b9f7746ddccfb72452c0318678f955198091ec8c077749ccb5d365ec6",
+      "light": "2d306b70c94f1ea56b3a6cb2360098de15c047e662414ed27e87543627c126a2",
+      "canvas": "7c5d4128ca2d2f0c2997a27693dd956b7e8e64d959824467376db38b1db2a080",
+      "stateSha256": "31f73de474c45772ea0d97e2dfd1392f0b99f120295bb72aff2425dd655d21f9"
+    },
+    {
+      "label": "synthetic solid",
+      "ground": "495acfcf6cfdbbd9687d0d725df10d1d4e4290e2d15570508fa4a3670313079e",
+      "light": "a453d9fc034faed2292940f5c09ccbaf1fe7203d4f500324ffc6fb30e1e187a2",
+      "canvas": "7c5d4128ca2d2f0c2997a27693dd956b7e8e64d959824467376db38b1db2a080",
+      "stateSha256": "4613b75621324b60ae2df315ee20b481525cc4b48859fe0ada063c767c44e295"
+    },
+    {
+      "label": "reset after synthetic",
+      "ground": "495acfcf6cfdbbd9687d0d725df10d1d4e4290e2d15570508fa4a3670313079e",
+      "light": "a453d9fc034faed2292940f5c09ccbaf1fe7203d4f500324ffc6fb30e1e187a2",
+      "canvas": "7c5d4128ca2d2f0c2997a27693dd956b7e8e64d959824467376db38b1db2a080",
+      "stateSha256": "54683b38347cab806316859e6a3efc8637562d400ede00699ae41da03eb53355"
+    }
+  ],
+  "note": "隔離HTTP/Chromium、rAFを停止し各版の同じ操作・保存を比較。地形RGBA全画素/照明配列/画面キャンバス/全保存のhash一致。合成地形は描画専用で正規保存の受理条件を緩めず、その後resetで有効な巣へ戻す。"
+}

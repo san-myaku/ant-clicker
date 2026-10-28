@@ -1,0 +1,14 @@
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');let s=fs.readFileSync(path.join(__dirname,'../pose-numeric-20261028/full-check.cjs'),'utf8').replaceAll('pose-numeric-20261028','render-cache-20261028');
+const edits=[
+ ["candidate=path.join(__dirname,'candidate/living-clicker')","candidate=path.join(__dirname,'candidate/prototypes/living-clicker')"],
+ ["['comparison.json','memory-results.json']","['comparison.json','frame-fixed-results.json']"],
+ ["['build.cjs','build-pose-cache.cjs','verify-pose-cache.cjs']","['build.cjs','build-view.cjs','build-room-cells.cjs','build-ground-cache.cjs','ground-cache.js','verify-render-cells.cjs','verify-ground-browser.cjs']"],
+ ["fs.cpSync(path.join(candidate,'qa/pose-reference'),path.join(target,'qa/pose-reference'),{recursive:true});","fs.cpSync(path.join(candidate,'qa/render-reference'),path.join(target,'qa/render-reference'),{recursive:true});fs.mkdirSync(path.join(target,'qa/render-pixels'),{recursive:true});"],
+ ["all.split(\"const suites=['room-classification'\")","all.split(\"const suites=['pose-cache'\")"],
+ ["all.replace(\"const suites=['room-classification'\",\"const suites=['pose-cache','room-classification'\")","all.replace(\"const suites=['pose-cache'\",\"const suites=['render-cells','pose-cache'\").replace(\"suites.push(...[{name:'smoke'\",\"suites.push(...[{name:'ground-browser',file:path.join(here,'verify-ground-browser.cjs')},{name:'smoke'\")"],
+ ["['core.js','lifecycle.js','game.js','build.cjs','build-pose-cache.cjs']","['core.js','lifecycle.js','game.js','view.js','build.cjs','build-view.cjs','build-room-cells.cjs','build-ground-cache.cjs','ground-cache.js']"],
+ ["qa/gaussian-20261028/adoption.json","qa/pose-numeric-20261028/adoption.json"],
+ ["qa/gaussian-20261028/full-verification.json","qa/pose-numeric-20261028/full-verification.json"],
+ ["['build-pose-cache.cjs','verify-pose-cache.cjs','qa/pose-reference/core.js','qa/pose-reference/lifecycle.js','qa/pose-reference/game.js']","['build-room-cells.cjs','build-ground-cache.cjs','ground-cache.js','verify-render-cells.cjs','verify-ground-browser.cjs','qa/render-reference/index.html','qa/render-reference/core.js','qa/render-reference/lifecycle.js','qa/render-reference/game.js','qa/render-reference/view.js']"],
+ ["concat(['prototypes/living-clicker/qa/pose-reference/source.json'])","concat(['prototypes/living-clicker/qa/render-reference/source.json'])"],
+ ["const chain=log.match", "fs.cpSync(path.join(target,'qa/render-pixels'),path.join(archived,'render-pixels'),{recursive:true});\n const chain=log.match"]];for(const[from,to]of edits){assert.equal(s.split(from).length,2,from);s=s.replace(from,to);}fs.writeFileSync(path.join(__dirname,'full-check.cjs'),s);console.log('全35本の別コピー実行器を準備（未実行）');

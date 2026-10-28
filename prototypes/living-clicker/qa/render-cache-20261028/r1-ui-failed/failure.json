@@ -1,0 +1,281 @@
+{
+  "pass": false,
+  "source": {
+    "build.cjs": "3dafbba8611498f2071616d0b72fc7217b0e6ef8cda846045c3691646e3583f2",
+    "build-view.cjs": "ee4d6d53a978893aca3b7458c2f7f0d2666b30ed18d1015361503673a97eb078",
+    "core.js": "c444427f4493d71fbff56f4f523a6720a3bea81cae4ffacb3ef0df608380f3ab",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "game.js": "a38fabdaf9c8b49fdef59094a03037c70c49b805a6053dd3f211d7b66174cd16",
+    "view.js": "4bb44a8cf17b7af1a6ab6b2c09e18a56433e2b006a062b7a3a99eb9ec896fb8e"
+  },
+  "candidate": {
+    "build.cjs": "5f8b9ed490d78441a63dd40562f62988f0d85e9329605e7fba80445d99246a79",
+    "build-view.cjs": "5e827e3a84f8ba306c53b0d771fad9bd8281616cdd8c27ec7b82b9e6726ff243",
+    "core.js": "081d5909faa962192b229942a87771665c60656d4f856133b775e72b36477f27",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "game.js": "a38fabdaf9c8b49fdef59094a03037c70c49b805a6053dd3f211d7b66174cd16",
+    "view.js": "627297bb0907e010b23b9c6c2ebeb78e55c2cf07198cfd4f7197a059b43c29cf"
+  },
+  "rows": [
+    {
+      "label": "world-900.json load",
+      "ground": "a113605429c6635f6676936f42a5d540e773ab89eb20cd0ad363f4c6488650c9",
+      "light": "d348a0e78fae672d46387b06ba6ab6d8f7b83d60b3805d23c0cc14cc0eacd5ec",
+      "canvas": "0eb0d32bb030e991e4b28fb06477029e7f98318656b5444baae0a8d8d0fd3a2f",
+      "stateSha256": "bfb9fbafee2e76b4a6f4e4aec8b97def004a8e9c8ed12a07ebed1c2a000860da"
+    },
+    {
+      "label": "world-900.json advance 1",
+      "ground": "b5ba0d538dd4f9c3e916dde1422b839201c4177ec3ca88446cf16fc081713561",
+      "light": "547b15c7a5441f5b0de27534a9616724e825343228f126719ee346481e9db654",
+      "canvas": "346d67e9339cdd6e8558dc3153685cb8e747d879c400c05b9efeb88bc104dc5e",
+      "stateSha256": "f056f6af5c0d7ea9f0cc041fa2b8c08e1ee998c6bc0548dc29051645ef20e6b6"
+    },
+    {
+      "label": "world-900.json advance 2",
+      "ground": "cdc41ccc3862be3abec209774da9df0f6832c23b322ec8f94e81ddcfc4c31a22",
+      "light": "8bb3c852d259830fd86df38de7005e4c7ab3f0bac4e9cc4ff25b2de45bbd5a26",
+      "canvas": "4ddf2931df655d4ff414c483c2d0a91118eb44b6aa11876a04a2b05c5b201544",
+      "stateSha256": "23978a05e20fccb9aa79524a1eb7b02ac6aed565ddb568e2c78d624f9368ac52"
+    },
+    {
+      "label": "world-900.json advance 3",
+      "ground": "8aad60f53bc44d5d868553b6e2931679d16c4f45c056b2e95bcc6e69e45e8d72",
+      "light": "47307dd62430106ec7217c1919e9dbddac799f56608a0d606f5d44b19faba371",
+      "canvas": "556132e6b39d9b58142dcad49d759995bc5c3683926f8ba78d1fcc756e481667",
+      "stateSha256": "27c7a39fb4fb1b147182d87524d46bbb6239cec88a4abdc7e95acf0b51cb6468"
+    },
+    {
+      "label": "world-900.json fit",
+      "ground": "8aad60f53bc44d5d868553b6e2931679d16c4f45c056b2e95bcc6e69e45e8d72",
+      "light": "47307dd62430106ec7217c1919e9dbddac799f56608a0d606f5d44b19faba371",
+      "canvas": "556132e6b39d9b58142dcad49d759995bc5c3683926f8ba78d1fcc756e481667",
+      "stateSha256": "27c7a39fb4fb1b147182d87524d46bbb6239cec88a4abdc7e95acf0b51cb6468"
+    },
+    {
+      "label": "world-256.json load",
+      "ground": "c1b1e9f500769ad8eefb2c2123263b5c137f6fa6fc780a03064ca9af49f685e5",
+      "light": "b183591224103b07bc194967312fa5b1cebbb1415e43690bd7a9e4cf4fe6a653",
+      "canvas": "2bad789389ca25745e03a051c692f10fe988c0742517dfcda2f093d10afec28a",
+      "stateSha256": "ea79db5a2a5488c62871365f122f27b154ea186a8e09f9c7af93d2242fd0d23d"
+    },
+    {
+      "label": "world-256.json advance 1",
+      "ground": "2d5684948039e19353fcc319754c3583857d0fe986c9874965e8988d15e907b9",
+      "light": "b92072e7a227de495b0bcda68fe59ac23da97c2112df843fbf7428827c1839c6",
+      "canvas": "638cacb6bd6e2ab34e176774f195c9ebc0f5e37162ec2fd695b12842f207723b",
+      "stateSha256": "ca2848d87562a3072a778c4c4989057ca3a593c19128b0f54fb4040ba84fccb8"
+    },
+    {
+      "label": "world-256.json advance 2",
+      "ground": "2d5684948039e19353fcc319754c3583857d0fe986c9874965e8988d15e907b9",
+      "light": "b92072e7a227de495b0bcda68fe59ac23da97c2112df843fbf7428827c1839c6",
+      "canvas": "58cb6e8e1f4ed99d47ad2011903fb6d6862412ef75c6a81c1ca752bf0ed795a6",
+      "stateSha256": "b9c6662f46f41626d42c35ab97a878f58f3d6eef142334f0e97c6843a611892d"
+    },
+    {
+      "label": "world-256.json advance 3",
+      "ground": "e8a77b7f6a8cd3feeba004e5166f1ca3114b51256dce7fca18bd849b899cff34",
+      "light": "765364f0620b958a121f72215702b6d6eb5d04d57096c383ec5af6f58045f64a",
+      "canvas": "4d3cf896e2f6b87bdf3a7b8b1cab6c617e6b9de9cd8605ea3666be4ecb7fefc1",
+      "stateSha256": "9adeba67e214fb755e260109d3cfb5590636dc5674d7d6abd8d1d84fc22ebbe3"
+    },
+    {
+      "label": "world-256.json fit",
+      "ground": "e8a77b7f6a8cd3feeba004e5166f1ca3114b51256dce7fca18bd849b899cff34",
+      "light": "765364f0620b958a121f72215702b6d6eb5d04d57096c383ec5af6f58045f64a",
+      "canvas": "4d3cf896e2f6b87bdf3a7b8b1cab6c617e6b9de9cd8605ea3666be4ecb7fefc1",
+      "stateSha256": "9adeba67e214fb755e260109d3cfb5590636dc5674d7d6abd8d1d84fc22ebbe3"
+    },
+    {
+      "label": "world-512.json load",
+      "ground": "d8009caa9a2183ba5e7183715a9fa1abf602dd7cdaef92887115b48bd300f374",
+      "light": "02fd4232f04a037ab6edba4c5e3b17ca6fb834c066c183e1cba253e50b318dad",
+      "canvas": "f9928f1475ad514136c00d390d65b981fcebc614add4fd9bc2db842d1e0b621e",
+      "stateSha256": "2b43a65e181bd53635770d12888a93415febd059755e23a001b90f657b6fb1d0"
+    },
+    {
+      "label": "world-512.json advance 1",
+      "ground": "82ef45c9237f50c3ef14e3fff43dcfb302ea3b5491d25edc2bb7385943183141",
+      "light": "4fefda90e50ec567df880d65f06402f19ffcbede732719eab8aa067852302d0d",
+      "canvas": "c5738ffc18ac0eebd4eeee113cf60857f6793b6337c7a6208678ab478d5d05f7",
+      "stateSha256": "14f89abb6b84c52c75e95fef0cd6f4abdf3e170d736678a86f20562ff35e3e0a"
+    },
+    {
+      "label": "world-512.json advance 2",
+      "ground": "6d22761831b567471dc86c999d70ebe98483237dbf3650edd95f08a22d37c3fe",
+      "light": "9700005a26204be6f29aa4d2eece4d15eacf24a234a236072ffaf1d257d6b3a0",
+      "canvas": "527998fab078394fbc30553b86195fd5987a57e6e88afc664be633a8547d4174",
+      "stateSha256": "2d9bad5ca8c657b000ac0650f592d674763a4f4424c190047e9a7d41cbc3ec1f"
+    },
+    {
+      "label": "world-512.json advance 3",
+      "ground": "81a8657cb21a9e068915e865b630ee82aa7e53b6bf3536ab06e907abd4f79e6d",
+      "light": "74b2b7e450b36e567ed94f66ee03bfc5fe3667f6d48793504b2bbb3f4e91f9b2",
+      "canvas": "3bfdad9b601b9b6ddad0b6e0ab2b7aac1aebeb0dee8d53fac6f0801094bf593e",
+      "stateSha256": "89d35f087323dc5fe7298753ae2a9d5813ab19aba051a3d500893908d1046056"
+    },
+    {
+      "label": "world-512.json fit",
+      "ground": "81a8657cb21a9e068915e865b630ee82aa7e53b6bf3536ab06e907abd4f79e6d",
+      "light": "74b2b7e450b36e567ed94f66ee03bfc5fe3667f6d48793504b2bbb3f4e91f9b2",
+      "canvas": "3bfdad9b601b9b6ddad0b6e0ab2b7aac1aebeb0dee8d53fac6f0801094bf593e",
+      "stateSha256": "89d35f087323dc5fe7298753ae2a9d5813ab19aba051a3d500893908d1046056"
+    },
+    {
+      "label": "raid-stuck-loot.json load",
+      "ground": "21aaa7dfc9f5226713b73fe7172280d707425937ebbc3167b5482953cba001a9",
+      "light": "621738a669cacc7be85a7325c584f7054b5fceddd12095a48f45cf0f2915bda0",
+      "canvas": "b3dbe8da9e12f2943e553bad78f07c8675b98d3f096d3d9014987c30af236376",
+      "stateSha256": "6997ce7ce6935b2e60cb45a5321a09a00ebd303b9268e9d4a15ab8ad76f7eb6e"
+    },
+    {
+      "label": "raid-stuck-loot.json advance 1",
+      "ground": "21aaa7dfc9f5226713b73fe7172280d707425937ebbc3167b5482953cba001a9",
+      "light": "621738a669cacc7be85a7325c584f7054b5fceddd12095a48f45cf0f2915bda0",
+      "canvas": "72688fa57ba89d9776afacd8a2e74869bf5bdb7417809847d64bc49ba7f311b9",
+      "stateSha256": "739839d348bf89f290a4769a4d8027066cff9b8261220b69ea98dd4897bef882"
+    },
+    {
+      "label": "raid-stuck-loot.json advance 2",
+      "ground": "21aaa7dfc9f5226713b73fe7172280d707425937ebbc3167b5482953cba001a9",
+      "light": "621738a669cacc7be85a7325c584f7054b5fceddd12095a48f45cf0f2915bda0",
+      "canvas": "feeec4107fc332d8d4830f0997bc6bb49bb5d47a36a115178e492d0a7d26360f",
+      "stateSha256": "62f76801b7b0d5f934bc270172e6d291a6b4349c7a6edac0365653371c604492"
+    },
+    {
+      "label": "raid-stuck-loot.json advance 3",
+      "ground": "d8a221bd5cc915710b22c946bb0985c364eb094670039fadb12c7d65928494cc",
+      "light": "8596cb4b38e27d4c6add1bfd94ba7b71d7ee47a14eb16ac6cfab09a0058a45b1",
+      "canvas": "525dd5ad479dbf445e415ddf90b37d5c6b324ab0161277151603f319784aa73c",
+      "stateSha256": "ec285de16b62488bada4b01a74c5cebfe129576ce73cc360dda3b8b5385027b2"
+    },
+    {
+      "label": "raid-stuck-loot.json fit",
+      "ground": "d8a221bd5cc915710b22c946bb0985c364eb094670039fadb12c7d65928494cc",
+      "light": "8596cb4b38e27d4c6add1bfd94ba7b71d7ee47a14eb16ac6cfab09a0058a45b1",
+      "canvas": "525dd5ad479dbf445e415ddf90b37d5c6b324ab0161277151603f319784aa73c",
+      "stateSha256": "ec285de16b62488bada4b01a74c5cebfe129576ce73cc360dda3b8b5385027b2"
+    },
+    {
+      "label": "retreat-turnback-64.json load",
+      "ground": "8cd0c6d5bb81cc870c0aa2e0fb40d06dae03a881926f64f3a28f2be9746e376f",
+      "light": "3e4756f06b6a09b617084afa8a24001d78b18f609aa787b9049ba5fc10dc4c7c",
+      "canvas": "97204ee93f36e88f1bc4b914a31b2642caacbf416ab28c23e8180198c571a8a9",
+      "stateSha256": "5e9031e401634c8990b8b245b357127100188bf9de61f714ba32fdc683d9dfad"
+    },
+    {
+      "label": "retreat-turnback-64.json advance 1",
+      "ground": "8cd0c6d5bb81cc870c0aa2e0fb40d06dae03a881926f64f3a28f2be9746e376f",
+      "light": "3e4756f06b6a09b617084afa8a24001d78b18f609aa787b9049ba5fc10dc4c7c",
+      "canvas": "d633115af85e82ef6ef237bb5e820467af780717b84f3ddd846f22b38222afdb",
+      "stateSha256": "eafbeace9fee2272976a46bdae7bb6784058ed963f4615757af075e413cbe26c"
+    },
+    {
+      "label": "retreat-turnback-64.json advance 2",
+      "ground": "8cd0c6d5bb81cc870c0aa2e0fb40d06dae03a881926f64f3a28f2be9746e376f",
+      "light": "3e4756f06b6a09b617084afa8a24001d78b18f609aa787b9049ba5fc10dc4c7c",
+      "canvas": "1f55d3991d526ffaa2b3173d1deea012e8d9714882b28b04a62ab7a8a3c28425",
+      "stateSha256": "2dd26835060844cfa845866a996cf1f03796f9a8b608e4bc53d833bef9f6bcdc"
+    },
+    {
+      "label": "retreat-turnback-64.json advance 3",
+      "ground": "8cd0c6d5bb81cc870c0aa2e0fb40d06dae03a881926f64f3a28f2be9746e376f",
+      "light": "3e4756f06b6a09b617084afa8a24001d78b18f609aa787b9049ba5fc10dc4c7c",
+      "canvas": "79c797c051cfb5cd13303f0f1e2ebc315f6b8fb34df516b40bd07ba3e9e56fa8",
+      "stateSha256": "0907d390aef6937bbac06db86f5d1a2dc6d548b59fbef01d186e8256622acc49"
+    },
+    {
+      "label": "retreat-turnback-64.json fit",
+      "ground": "8cd0c6d5bb81cc870c0aa2e0fb40d06dae03a881926f64f3a28f2be9746e376f",
+      "light": "3e4756f06b6a09b617084afa8a24001d78b18f609aa787b9049ba5fc10dc4c7c",
+      "canvas": "79c797c051cfb5cd13303f0f1e2ebc315f6b8fb34df516b40bd07ba3e9e56fa8",
+      "stateSha256": "0907d390aef6937bbac06db86f5d1a2dc6d548b59fbef01d186e8256622acc49"
+    },
+    {
+      "label": "pop512-20261027/active512-post-turnback-input.json load",
+      "ground": "a0b49a9ddb3c10f6b97598fc58eb20590f3961f2bc5ea1edce1e55fe8932ce88",
+      "light": "3616d7036291dfad8789dd662bed21e15557d73de5f65ef076cae2b24f0d9128",
+      "canvas": "05ee52bf3b7362d07253626b80ed03ab3cb06b3c02f7a1f421627f0619f6c907",
+      "stateSha256": "02b55685ce47e5bbd6eee41dbb423ac316a5753f8581f2909660e9d9186016c6"
+    },
+    {
+      "label": "pop512-20261027/active512-post-turnback-input.json advance 1",
+      "ground": "363702a5b9eba665d8f10915438e9abcd836890256b3aa2d0514afa0a0b4faf1",
+      "light": "82b648c507a265143b5a493fb3a60d1bf88ccb360d8e3ac686d00a424a6b09fd",
+      "canvas": "e302e9cb947270b46b7694d6e313324962deb7629a91b0d46805bda9dfe93abf",
+      "stateSha256": "d548e6dd6998ede755e8d26da91c423d5be8820d1e7638a86f6984363c65f134"
+    },
+    {
+      "label": "pop512-20261027/active512-post-turnback-input.json advance 2",
+      "ground": "363702a5b9eba665d8f10915438e9abcd836890256b3aa2d0514afa0a0b4faf1",
+      "light": "82b648c507a265143b5a493fb3a60d1bf88ccb360d8e3ac686d00a424a6b09fd",
+      "canvas": "7b911728ad8b595a57d132b89ccdb57941203a8f8c10d56f2a6d606f9521e6aa",
+      "stateSha256": "f505f237abde65eb8189b47bdad764670bfe6e7713c882c1b82a13307d9e8c7a"
+    },
+    {
+      "label": "pop512-20261027/active512-post-turnback-input.json advance 3",
+      "ground": "363702a5b9eba665d8f10915438e9abcd836890256b3aa2d0514afa0a0b4faf1",
+      "light": "82b648c507a265143b5a493fb3a60d1bf88ccb360d8e3ac686d00a424a6b09fd",
+      "canvas": "74c23e0266563bf3d3a035e058abe61374a7bb6ef0ce41acbf2804f60013c530",
+      "stateSha256": "ab2b2fe50a7fb6189eff4bf0ff1b4fe65cdc1a623d96ca0f0c1230c80aea7fd8"
+    },
+    {
+      "label": "pop512-20261027/active512-post-turnback-input.json fit",
+      "ground": "363702a5b9eba665d8f10915438e9abcd836890256b3aa2d0514afa0a0b4faf1",
+      "light": "82b648c507a265143b5a493fb3a60d1bf88ccb360d8e3ac686d00a424a6b09fd",
+      "canvas": "74c23e0266563bf3d3a035e058abe61374a7bb6ef0ce41acbf2804f60013c530",
+      "stateSha256": "ab2b2fe50a7fb6189eff4bf0ff1b4fe65cdc1a623d96ca0f0c1230c80aea7fd8"
+    },
+    {
+      "label": "seed 1",
+      "ground": "db051509d82cc2b31708e0e3809a2b391f8ecd40681f1031919e777494c29664",
+      "light": "202e1832b8599fd320393483af0527f6e356e25bc75be06802645bd15787f7e4",
+      "canvas": "e4e26971ed651c22f1c1f914f7811e6fc132b92bea2d875e2c1d4e2f817154a5",
+      "stateSha256": "0017e95f91388c23d8243fd88db89415457694f39ce222f13ba8c056d36d6073"
+    },
+    {
+      "label": "seed 24014",
+      "ground": "a7976bd82681a8e89f8542f09ef5e5b130a7dc46c26adeb21f3df26375895d72",
+      "light": "2c0b93445cfbbeb7d39bd8064a882f08738fe0590153e0c07421ae2f375b68fb",
+      "canvas": "6b2fb2bf7c033a6a0a60addedb7cf178b8401a75c98798ae0edb35ad8d1ddd9e",
+      "stateSha256": "d2c975fd377fcfa8c37b58340fcd34abafe0e91eafc49a2fa3e75d9ca46b8cef"
+    },
+    {
+      "label": "seed 987654",
+      "ground": "495acfcf6cfdbbd9687d0d725df10d1d4e4290e2d15570508fa4a3670313079e",
+      "light": "a453d9fc034faed2292940f5c09ccbaf1fe7203d4f500324ffc6fb30e1e187a2",
+      "canvas": "7273cd1727ae270cd3b0a181655da7bf943f89d4dadc8729bbd5a762f1bd4605",
+      "stateSha256": "54683b38347cab806316859e6a3efc8637562d400ede00699ae41da03eb53355"
+    },
+    {
+      "label": "synthetic dig",
+      "ground": "f0061a1cee6d19f672a38ab85f713f73c6170627995fc1f6eda54f3bd7cae6bb",
+      "light": "2d306b70c94f1ea56b3a6cb2360098de15c047e662414ed27e87543627c126a2",
+      "canvas": "7273cd1727ae270cd3b0a181655da7bf943f89d4dadc8729bbd5a762f1bd4605",
+      "stateSha256": "27e44270b8b53768b435d84f94b158ae4198662c9685543c4a00b745d574299f"
+    },
+    {
+      "label": "synthetic relabel",
+      "ground": "d6fb93b53e26404d6c270c44fbafac369dc058b685b60773557ae30520c32849",
+      "light": "2d306b70c94f1ea56b3a6cb2360098de15c047e662414ed27e87543627c126a2",
+      "canvas": "7273cd1727ae270cd3b0a181655da7bf943f89d4dadc8729bbd5a762f1bd4605",
+      "stateSha256": "ad069a93fcdd2df2cdf68225d7cea7c10dcced77e9cac72fa9ce5cfbb140dcbb"
+    },
+    {
+      "label": "synthetic palette",
+      "ground": "2aeb418b9f7746ddccfb72452c0318678f955198091ec8c077749ccb5d365ec6",
+      "light": "2d306b70c94f1ea56b3a6cb2360098de15c047e662414ed27e87543627c126a2",
+      "canvas": "7273cd1727ae270cd3b0a181655da7bf943f89d4dadc8729bbd5a762f1bd4605",
+      "stateSha256": "31f73de474c45772ea0d97e2dfd1392f0b99f120295bb72aff2425dd655d21f9"
+    },
+    {
+      "label": "synthetic solid",
+      "ground": "495acfcf6cfdbbd9687d0d725df10d1d4e4290e2d15570508fa4a3670313079e",
+      "light": "a453d9fc034faed2292940f5c09ccbaf1fe7203d4f500324ffc6fb30e1e187a2",
+      "canvas": "7273cd1727ae270cd3b0a181655da7bf943f89d4dadc8729bbd5a762f1bd4605",
+      "stateSha256": "4613b75621324b60ae2df315ee20b481525cc4b48859fe0ada063c767c44e295"
+    }
+  ],
+  "error": "TimeoutError: locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#reset')\u001b[22m\n\u001b[2m    - locator resolved to <button id=\"reset\">この巣を最初から</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    58 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is not visible\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n"
+}

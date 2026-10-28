@@ -1,0 +1,28 @@
+{
+  "pass": true,
+  "results": [
+    {
+      "file": "world-900.json",
+      "pass": true,
+      "checks": 39,
+      "inputSha256": "bfb9fbafee2e76b4a6f4e4aec8b97def004a8e9c8ed12a07ebed1c2a000860da"
+    },
+    {
+      "file": "world-256.json",
+      "pass": true,
+      "checks": 72,
+      "inputSha256": "ea79db5a2a5488c62871365f122f27b154ea186a8e09f9c7af93d2242fd0d23d"
+    },
+    {
+      "file": "world-512.json",
+      "pass": true,
+      "checks": 132,
+      "inputSha256": "2b43a65e181bd53635770d12888a93415febd059755e23a001b90f657b6fb1d0"
+    }
+  ],
+  "source": {
+    "core.js": "081d5909faa962192b229942a87771665c60656d4f856133b775e72b36477f27",
+    "game.js": "a38fabdaf9c8b49fdef59094a03037c70c49b805a6053dd3f211d7b66174cd16",
+    "build-room-cells.cjs": "79a40e5935c5eee50e4cf6cac2db8b9640db4a7b094480de0e42a55c6dfb2b9c"
+  }
+}

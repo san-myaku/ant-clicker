@@ -1,0 +1,71 @@
+{
+  "pass": true,
+  "finishedAt": "2026-10-28T13:03:45.637Z",
+  "rows": [
+    {
+      "origin": "http://127.0.0.1:5189",
+      "pass": true,
+      "files": [
+        {
+          "name": "index.html",
+          "sha256": "1a377628c194d695ae92af706daf539686b262f3e0183633f225241b96181d46"
+        },
+        {
+          "name": "core.js",
+          "sha256": "081d5909faa962192b229942a87771665c60656d4f856133b775e72b36477f27"
+        },
+        {
+          "name": "lifecycle.js",
+          "sha256": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0"
+        },
+        {
+          "name": "game.js",
+          "sha256": "a38fabdaf9c8b49fdef59094a03037c70c49b805a6053dd3f211d7b66174cd16"
+        },
+        {
+          "name": "view.js",
+          "sha256": "627297bb0907e010b23b9c6c2ebeb78e55c2cf07198cfd4f7197a059b43c29cf"
+        }
+      ],
+      "privatePaths404": [
+        "/clicker/build-room-cells.cjs",
+        "/clicker/ground-cache.js",
+        "/clicker/qa/render-reference/view.js",
+        "/.git/config"
+      ]
+    },
+    {
+      "origin": "https://yuhi.taila25a99.ts.net:5189",
+      "pass": true,
+      "files": [
+        {
+          "name": "index.html",
+          "sha256": "1a377628c194d695ae92af706daf539686b262f3e0183633f225241b96181d46"
+        },
+        {
+          "name": "core.js",
+          "sha256": "081d5909faa962192b229942a87771665c60656d4f856133b775e72b36477f27"
+        },
+        {
+          "name": "lifecycle.js",
+          "sha256": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0"
+        },
+        {
+          "name": "game.js",
+          "sha256": "a38fabdaf9c8b49fdef59094a03037c70c49b805a6053dd3f211d7b66174cd16"
+        },
+        {
+          "name": "view.js",
+          "sha256": "627297bb0907e010b23b9c6c2ebeb78e55c2cf07198cfd4f7197a059b43c29cf"
+        }
+      ],
+      "privatePaths404": [
+        "/clicker/build-room-cells.cjs",
+        "/clicker/ground-cache.js",
+        "/clicker/qa/render-reference/view.js",
+        "/.git/config"
+      ]
+    }
+  ],
+  "note": "既存のPC/Tailnetプレビューの公開5ファイルが採用後と一致。生成器/追加検証/参照QA/.gitは404。サーバー/公開設定は変更せず、実機iPhone確認とは区別。"
+}

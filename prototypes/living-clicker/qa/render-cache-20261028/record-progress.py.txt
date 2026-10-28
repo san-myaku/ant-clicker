@@ -1,0 +1,18 @@
+from pathlib import Path
+import json,hashlib,sys
+sys.stdout.reconfigure(encoding='utf-8')
+root=Path(__file__).resolve().parents[2];out=root/'prototypes/living-clicker/qa/render-cache-20261028';read=lambda n:json.loads((out/n).read_text(encoding='utf-8'));start=read('execution-start.json');c=read('comparison.json');fixed=read('frame-fixed-results.json');diagnosis=read('diagnosis-256/results.json')
+assert c['pass'] and fixed['pass'] and all(r['code']==0 for r in diagnosis['rows'])
+for n,h in fixed['candidate'].items():assert start['sourceBefore']['prototypes/living-clicker/'+n]==h,n
+title='## 2026-10-28 描画軽量化の再検証中（未採用）'
+note='地形/照明/床の差分描画と部屋セル共有の候補を隔離コピーで作成。42ケースの画素/光/画面/全保存一致、8保存の全保存一致、512匹2入力の固定モデル+描画で19.48%/57.08%減を確認済み。ただし全体の初回はbrowser256が6秒/1ゲーム秒超の条件で不合格、browser512中にセッションを失い終了記録も無いため未完。単独再診断では旧版が約6.2秒で15ゲーム秒/候補30秒、両方合格し初回は再現しなかった。原因未確定で環境原因と断定しない。条件を緩めず、失敗時の数値ログだけを補って別コピーで全35本を再実行中。本体は05fb0e2のまま。最終採用/全体合格/公開/追加pushは未実施。詳細handoff/IN_PROGRESS_RENDER_20261028.md。'
+doc='# 描画軽量化の途中記録 — 未採用\n\n2026-10-28。'+note+'\n\n## 再開位置\n\n- 実行器: audit/render-cache-20261028/full-check.cjs\n- 現在の別コピー: '+start['fullCopy']+'\n- 開始時の117ソース/32入力: qa/render-cache-20261028/execution-start.json（これは開始記録で、合格結果ではない）\n- 初回UI手順の失敗: qa/render-cache-20261028/r1-ui-failed/\n- 初回全体の不合格/中断: qa/render-cache-20261028/r2-full-interrupted/\n- 旧版/候補の単独診断: qa/render-cache-20261028/diagnosis-256/\n- 再試行のブラウザ検証は元と同じ6秒/1秒超。256匹のassertに不合格時のbefore/after/errorsを表示するメッセージだけを追加。\n- 終了したfull-verification.jsonを確認し、全35本が合格した時だけadopt.cjsを実行する。終了記録がない/不合格なら採用しない。\n- native描画検証の出力フォルダはqa/render-pixels/README.mdを追跡して新規cloneでも存在させる。\n- 採用後にframe.cjsで1xの画面観測、preview.cjsで公開5ファイル/非公開404、record.pyとseal.pyで結果を記録する。record.py/record-vault.pyは未実行の完成後用スクリプトであり、存在を完了の証拠にしない。\n\n## 完了済み測定のソース\n\n'+json.dumps({'fixedBaseline':fixed['source'],'fixedCandidate':fixed['candidate'],'modelBaseline':c['source'],'modelCandidate':c['candidate']},ensure_ascii=False,indent=2)+'\n'
+(root/'handoff/IN_PROGRESS_RENDER_20261028.md').write_text(doc,encoding='utf-8')
+for name in ['CURRENT_SYSTEM_OVERVIEW.md','DEVELOPMENT_LOG.md']:
+    p=root/name;s=p.read_text(encoding='utf-8');anchor='## 2026-10-28 姿勢判定キャッシュの数値化';assert s.count(anchor)==1 and title not in s;p.write_text(s.replace(anchor,title+'\n\n'+note+'\n\n'+anchor,1),encoding='utf-8')
+p=root/'HANDOFF_CODEX.md';s=p.read_text(encoding='utf-8');assert '2026-10-28 作業中（描画）' not in s;s=s.replace('# Codexへの引き継ぎ','# Codexへの引き継ぎ\n\n2026-10-28 作業中（描画）: 候補は未採用。初回全体の256匹ブラウザ不合格/セッション中断を保持し、単独の旧版/候補診断合格後、元の条件で全35本を再実行中。完了扱いしない。詳細handoff/IN_PROGRESS_RENDER_20261028.md。',1);p.write_text(s,encoding='utf-8')
+p=root/'handoff/PROJECT_LOG.md';s=p.read_text(encoding='utf-8');assert title not in s;p.write_text(s+'\n\n'+title+'\n\n'+note+'\n',encoding='utf-8')
+bundle=out/'candidate-editable';bundle.mkdir(exist_ok=True)
+for name in ['build.cjs','build-view.cjs','build-room-cells.cjs','build-ground-cache.cjs','ground-cache.js','verify-render-cells.cjs','verify-ground-browser.cjs','verify-256-browser.cjs']:
+    (bundle/(name+'.txt')).write_bytes((root/'audit/render-cache-20261028/candidate/prototypes/living-clicker'/name).read_bytes())
+print('未採用/再実行中の記録と候補の編集元を保存')

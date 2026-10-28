@@ -1,0 +1,72 @@
+chain copy: C:\Users\yuhim\AppData\Local\Temp\living-chain-2NIvta
+START chain
+START render-cells
+START pose-cache
+START room-classification
+START storage-inputs
+START waste
+START raid
+START ferment
+START housing
+START pebble
+START disease
+START approach
+START rock
+START research
+START cargo-turn
+START storage
+PASS room-classification    0 s
+START reservation
+PASS pose-cache      8 s
+START headon
+PASS render-cells    8 s
+START turn
+PASS turn            2 s
+START diagnostics
+PASS storage-inputs   11 s
+START surface
+PASS reservation    27 s
+START traffic
+PASS storage        32 s
+START traffic-work
+PASS cargo-turn     39 s
+START network
+PASS research       52 s
+START actors
+PASS disease        61 s
+START growth
+PASS approach       67 s
+START growth-512
+PASS actors         21 s
+START save-codec
+PASS rock           75 s
+PASS network        70 s
+PASS diagnostics   101 s
+PASS growth         69 s
+PASS pebble        138 s
+PASS headon        141 s
+PASS housing       188 s
+PASS growth-512    154 s
+PASS ferment       250 s
+PASS raid          286 s
+PASS traffic-work  259 s
+PASS traffic       264 s
+PASS waste         366 s
+PASS save-codec    377 s
+PASS surface       557 s
+PASS chain         633 s
+START ground-browser (exclusive)
+PASS ground-browser   77 s
+START smoke (exclusive)
+PASS smoke           2 s
+START touch (exclusive)
+PASS touch          12 s
+START browser (exclusive)
+PASS browser        38 s
+START browser256 (exclusive)
+PASS browser256     28 s
+START save-browser (exclusive)
+PASS save-browser   18 s
+START browser512 (exclusive)
+PASS browser512     72 s
+ALL PASS in 880 s on 16 cores

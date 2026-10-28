@@ -1,0 +1,59 @@
+{
+  "pass": true,
+  "finishedAt": "2026-10-28T12:59:08.445Z",
+  "source": {
+    "index.html": "1a377628c194d695ae92af706daf539686b262f3e0183633f225241b96181d46",
+    "core.js": "081d5909faa962192b229942a87771665c60656d4f856133b775e72b36477f27",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "game.js": "a38fabdaf9c8b49fdef59094a03037c70c49b805a6053dd3f211d7b66174cd16",
+    "view.js": "627297bb0907e010b23b9c6c2ebeb78e55c2cf07198cfd4f7197a059b43c29cf"
+  },
+  "inputSha256": "2b43a65e181bd53635770d12888a93415febd059755e23a001b90f657b6fb1d0",
+  "rows": [
+    {
+      "width": 1440,
+      "pass": true,
+      "wallSeconds": 10.1195,
+      "gameSeconds": 8.94999999986976,
+      "gameSecondsPerWallSecond": 0.8844310489519996,
+      "rafCount": 197,
+      "observedRafPerSecond": 19.467364988388752,
+      "intervalP50Ms": 33.39999999999782,
+      "intervalP95Ms": 116.79999999999927,
+      "maxIntervalMs": 333.2999999999993,
+      "steps": 537,
+      "measuredStepMs": 6311.4000000003725,
+      "msPerStep": 11.753072625699017,
+      "work": {
+        "distance": 4087.6182662644424,
+        "dug": 29,
+        "delivered": 18
+      },
+      "finalSha256": "e8c3679206740b757ec87ae22a0877ca07ef4479b2cf67f0f19a49437dad2b52",
+      "errors": []
+    },
+    {
+      "width": 393,
+      "pass": true,
+      "wallSeconds": 10.0835,
+      "gameSeconds": 9.316666666531091,
+      "gameSecondsPerWallSecond": 0.9239516702068816,
+      "rafCount": 313,
+      "observedRafPerSecond": 31.04080924282243,
+      "intervalP50Ms": 16.700000000000728,
+      "intervalP95Ms": 83.40000000000146,
+      "maxIntervalMs": 283.40000000000146,
+      "steps": 559,
+      "measuredStepMs": 6385.499999992549,
+      "msPerStep": 11.423076923063595,
+      "work": {
+        "distance": 4355.436194811482,
+        "dug": 24,
+        "delivered": 31
+      },
+      "finalSha256": "c39b131d93ebfc016143efefde5c11abbc788d00e21b5032f194b1ec9dfd2e1a",
+      "errors": []
+    }
+  ],
+  "note": "採用後Headless Chromium、実512匹保存+実深度IV研究、通常速度1x、各幅2秒準備+10秒描画。step実時間とrAFを計装する観測で、モデル単独比較とは別。rAF頻度は実描画/実ディスプレイのFPS保証ではなく、実機iPhoneや1000匹/実効10倍の証拠ではない。待機時間は壁時計のため異なる幅の最終保存一致を要求しない。台帳/復元/入力hashは確認。"
+}

@@ -1,0 +1,18 @@
+{
+  "pass": false,
+  "reason": "256匹ブラウザの6秒で1ゲーム秒以上という条件が不合格。512匹ブラウザ中に実行セッションを失い終了記録なし。ホストで当該検証プロセスが残っていないことを確認。全体合格にしない。",
+  "passed": 33,
+  "failed": [
+    "browser256"
+  ],
+  "unfinished": [
+    "browser512"
+  ],
+  "sourceObservedAfterInterruption": {
+    "core.js": "081d5909faa962192b229942a87771665c60656d4f856133b775e72b36477f27",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "game.js": "a38fabdaf9c8b49fdef59094a03037c70c49b805a6053dd3f211d7b66174cd16",
+    "view.js": "627297bb0907e010b23b9c6c2ebeb78e55c2cf07198cfd4f7197a059b43c29cf",
+    "verify-all.cjs": "f2b8eba698f0cbd5268439cd6e03aa042b1878e9a87da3d88fcffb9e362cd649"
+  }
+}
