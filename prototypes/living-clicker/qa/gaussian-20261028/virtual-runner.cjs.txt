@@ -1,0 +1,21 @@
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto'),root=path.resolve(__dirname,'../..'),here=path.join(root,'prototypes/living-clicker'),copy=path.join(__dirname,'rooms'),out=path.join(here,'qa/gaussian-20261028'),G=require(path.join(copy,'game.js')),sha=b=>crypto.createHash('sha256').update(b).digest('hex'),rows=[];
+function instrument(s){const stats={calls:0,placements:0,fullTerms:0,skippedTerms:{1:0,4:0,8:0,16:0,32:0},pruned:{1:0,4:0,8:0,16:0,32:0}},original=s.storageDrop;
+ s.storageDrop=function(rid,point,kind,reach,inputs=null){const actualReach=reach===undefined?this.storageReachOut(point,kind):reach,{hx,hy}=G.Physics.SHAPES[kind],stock=inputs?inputs.stock:this.physics.bodies.filter(b=>b.kind===kind&&!b.carrier),under=inputs?inputs.under(point.x):this.physics.bodies.filter(b=>!b.carrier&&Math.abs(point.x-b.x)<hx+G.Physics.SHAPES[b.kind].hx+G.ANT_SIZE*.55+.01);stats.calls++;let best=null;
+  for(const {angle,x,y,floor}of actualReach){if(this.physics.penetration({kind,x,y})>1e-7||floor<0)continue;let landing=floor*G.GRAIN.size-hy;
+   for(const b of under){const shape=G.Physics.SHAPES[b.kind],top=b.y-shape.hy;if(Math.abs(x-b.x)<hx+shape.hx-1e-7&&top>=y+hy-1e-7)landing=Math.min(landing,top-hy);}
+   if(this.grainRoom[G.GRAIN.at(x,landing)]!==rid||this.physics.terrainOverlap({kind,x,y:landing})||this.physics.penetration({kind,x,y:landing})>1e-7)continue;
+   stats.placements++;const offset=(landing-y)*.03;let density=0,firstCross=0;
+   for(let j=0;j<stock.length;j++){const b=stock[j];density+=Math.exp(-((x-b.x)**2+(landing-b.y)**2)/1.5);stats.fullTerms++;if(best&&!firstCross&&density+offset>best.score)firstCross=j+1;}
+   if(firstCross)for(const n of [1,4,8,16,32]){const stop=Math.min(stock.length,Math.ceil(firstCross/n)*n);stats.skippedTerms[n]+=stock.length-stop;if(stop<stock.length)stats.pruned[n]++;}
+   const choice={angle,x,y,landing,score:density+offset};if(!best||choice.score<best.score||choice.score===best.score&&choice.angle<best.angle)best=choice;
+  }
+  const result=original.call(this,rid,point,kind,actualReach,inputs);assert.deepEqual(best,result,'仮想計算も元の完全評価と一致');return result;
+ };return stats;
+}
+function same(a,b){assert.equal(JSON.stringify(a.dump()),JSON.stringify(b.dump()));}
+try{for(const item of [{file:'pop512-20261027/active512-post-turnback-input.json'},{file:'world-512.json',buy:'geo_depth_4'}]){
+ const bytes=fs.readFileSync(path.join(here,'qa',item.file)),p=JSON.parse(bytes),a=G.Simulation.restore(p),b=G.Simulation.restore(p);if(item.buy){assert(a.buyResearch(item.buy));assert(b.buyResearch(item.buy));}for(let k=0;k<300;k++){a.step(G.STEP);b.step(G.STEP);}same(a,b);const stats=instrument(b);
+ for(let k=0;k<600;k++){a.step(G.STEP);b.step(G.STEP);if(k%60===0)same(a,b);}same(a,b);b.assertLedger();b.assertProgress();assert.deepEqual(G.Simulation.restore(b.dump()).dump(),b.dump());
+ const row={file:item.file,inputSha256:sha(bytes),research:item.buy||null,warmup:300,steps:600,stateSha256:sha(JSON.stringify(b.dump())),stats};rows.push(row);console.log(JSON.stringify(row));}
+ fs.copyFileSync(__filename,path.join(out,'virtual-runner.cjs.txt'));fs.writeFileSync(path.join(out,'virtual-results.json'),JSON.stringify({pass:true,finishedAt:new Date().toISOString(),source:Object.fromEntries(['game.js','core.js','lifecycle.js'].map(n=>[n,sha(fs.readFileSync(path.join(copy,n)))])),rows,note:'全項を元順序で完全評価し、途中和＋補正が直前までの完全評価bestを厳密に超えた最初の位置から、各判定間隔で省略可能な項を仮想集計。実際には項を省略しておらず、ゲーム状態は元モデルと全保存一致。計装時間を速度の根拠にしない。'},null,2)+'\n');
+}catch(e){fs.writeFileSync(path.join(out,'virtual-failure.json'),JSON.stringify({pass:false,rows,error:String(e),stack:e.stack},null,2)+'\n');console.error(e);process.exitCode=1;}

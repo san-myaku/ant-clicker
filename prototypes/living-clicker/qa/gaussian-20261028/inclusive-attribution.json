@@ -1,0 +1,37 @@
+{
+  "rows": [
+    {
+      "profile": 0,
+      "sha256": "ede294b2a32cdcb7c731a6d40b2d69f864f6b5595097e3bbddc045a0573c48b4",
+      "inclusivePercent": {
+        "trafficIndex": 1.3741833746339265,
+        "AntTrafficIndex": 1.306600585717504,
+        "sweptClear": 24.014417661635502,
+        "poseClear": 19.035818878125703,
+        "carriedKind": 0.20274836674926786,
+        "receivingRoom": 13.967109709394007,
+        "updateCarriers": 0.991214237440865,
+        "substep": 2.7934219418788016,
+        "storageDestination": 10.81324622662762,
+        "storageDrop": 6.217616580310881
+      }
+    },
+    {
+      "profile": 1,
+      "sha256": "a6d145e92eb1aeb387a515a42e55b224e0af6e470e7410c784eab51072eb1fad",
+      "inclusivePercent": {
+        "trafficIndex": 1.0947893569844789,
+        "AntTrafficIndex": 1.0947893569844789,
+        "sweptClear": 31.055986696230597,
+        "poseClear": 24.95842572062084,
+        "carriedKind": 0.3187361419068736,
+        "storageDestination": 12.3059866962306,
+        "storageDrop": 4.836474501108648,
+        "receivingRoom": 6.1529933481153,
+        "updateCarriers": 1.9539911308203992,
+        "substep": 2.9240576496674056
+      }
+    }
+  ],
+  "note": "保存済みCPU profileの祖先を集計。各項は子の時間を含み、項どうしは重なるので合計しない。substepは静止再確認だけを分離した値ではない。"
+}

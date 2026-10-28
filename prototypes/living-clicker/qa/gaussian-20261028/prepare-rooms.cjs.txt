@@ -1,0 +1,12 @@
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),root=path.resolve(__dirname,'../..'),here=path.join(root,'prototypes/living-clicker'),copy=path.join(__dirname,'rooms');fs.mkdirSync(copy,{recursive:true});for(const n of ['game.js','core.js','lifecycle.js'])fs.copyFileSync(path.join(here,n),path.join(copy,n));
+let code=fs.readFileSync(path.join(copy,'game.js'),'utf8');const marker='    receivingRoom(body){';assert.equal(code.split(marker).length,2);
+const helper=`    roomsOfKind(kind){
+      // Kinds and identities are append-only; restored colonies use a new
+      // room array. Transport, occupancy and reservations stay live.
+      let cache=this._roomsByKind;if(cache?.rooms!==this.rooms||cache?.length!==this.rooms.length){
+        const kinds=new Map();for(const rid of this.roomIds()){const k=this.roomKind(rid);if(!kinds.has(k))kinds.set(k,[]);kinds.get(k).push(rid);}
+        for(const list of kinds.values())Object.freeze(list);cache=this._roomsByKind={rooms:this.rooms,length:this.rooms.length,kinds};
+      }return cache.kinds.get(kind)||[];
+    }
+`;
+code=code.replace(marker,helper+marker);const dest='this.roomIds().filter(r=>this.roomKind(r)===kind&&this.transportReady(r))',recv='for(const rid of this.roomIds().filter(r=>this.roomKind(r)===body.kind&&this.transportReady(r))){';assert.equal(code.split(dest).length,2);assert.equal(code.split(recv).length,2);code=code.replace(dest,'this.roomsOfKind(kind).filter(r=>this.transportReady(r))').replace(recv,'for(const rid of this.roomsOfKind(body.kind)){\n        if(!this.transportReady(rid))continue;');fs.writeFileSync(path.join(copy,'game.js'),code);console.log('現行の物体索引化版へ部屋分類の候補を再適用。本体未変更。');

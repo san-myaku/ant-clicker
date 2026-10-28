@@ -295,7 +295,15 @@
     destinationRoom(kind,body=null){
       if(!this.colony)return super.destinationRoom(kind);
       if(body){const rid=this.grainRoom[GRAIN.at(body.x,body.y)];if(rid>=2&&(this.roomKind(rid)===kind||kind==='food'&&this.roomKind(rid)==='ferment')&&this.transportReady(rid))return rid;}
-      return this.roomIds().filter(r=>this.roomKind(r)===kind&&this.transportReady(r)).sort((a,b)=>a-b)[0]||1;
+      return this.roomsOfKind(kind).filter(r=>this.transportReady(r)).sort((a,b)=>a-b)[0]||1;
+    }
+    roomsOfKind(kind){
+      // Kinds and identities are append-only; restored colonies use a new
+      // room array. Transport, occupancy and reservations stay live.
+      let cache=this._roomsByKind;if(cache?.rooms!==this.rooms||cache?.length!==this.rooms.length){
+        const kinds=new Map();for(const rid of this.roomIds()){const k=this.roomKind(rid);if(!kinds.has(k))kinds.set(k,[]);kinds.get(k).push(rid);}
+        for(const list of kinds.values())Object.freeze(list);cache=this._roomsByKind={rooms:this.rooms,length:this.rooms.length,kinds};
+      }return cache.kinds.get(kind)||[];
     }
     receivingRoom(body){
       if(!this.colony)return super.receivingRoom(body);
@@ -308,7 +316,8 @@
         const queued=this.fermentFood(r).length+this.ants.filter(a=>a.itemTask?.rid===r).length;
         if(queued<this.fermentBatch()&&this.foodBodies(true).length>=Math.ceil(this.ants.length*.5)&&this.storageDestination(r,{cell:idx(48,24)},'food')!==undefined)return r;
       }}
-      for(const rid of this.roomIds().filter(r=>this.roomKind(r)===body.kind&&this.transportReady(r))){
+      for(const rid of this.roomsOfKind(body.kind)){
+        if(!this.transportReady(rid))continue;
         const stored=this._storageLedger?.stored[rid]||0,reserved=this._storageLedger?.reserved[rid]||0;
         // The task allocator checks and shares physical storage availability
         // for this tick. Do not rescan every drop pose for every waiting item.

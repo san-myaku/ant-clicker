@@ -1,0 +1,66 @@
+chain copy: C:\Users\yuhim\AppData\Local\Temp\living-chain-CvBLl2
+START chain
+START room-classification
+START storage-inputs
+START waste
+START raid
+START ferment
+START housing
+START pebble
+START disease
+START approach
+START rock
+START research
+START cargo-turn
+START storage
+START reservation
+START headon
+PASS room-classification    0 s
+START turn
+PASS turn            3 s
+START diagnostics
+PASS storage-inputs   11 s
+START surface
+PASS reservation    30 s
+START traffic
+PASS storage        35 s
+START traffic-work
+PASS cargo-turn     41 s
+START network
+PASS disease        65 s
+START actors
+PASS research       65 s
+START growth
+PASS approach       71 s
+START growth-512
+PASS rock           74 s
+START save-codec
+PASS actors         21 s
+PASS network        71 s
+PASS diagnostics   112 s
+PASS growth         69 s
+PASS headon        145 s
+PASS pebble        148 s
+PASS housing       195 s
+PASS growth-512    153 s
+PASS ferment       255 s
+PASS traffic-work  259 s
+PASS traffic       274 s
+PASS raid          304 s
+PASS waste         395 s
+PASS save-codec    419 s
+PASS surface       606 s
+PASS chain         716 s
+START smoke (exclusive)
+PASS smoke           2 s
+START touch (exclusive)
+PASS touch          13 s
+START browser (exclusive)
+PASS browser        39 s
+START browser256 (exclusive)
+PASS browser256     31 s
+START save-browser (exclusive)
+PASS save-browser   19 s
+START browser512 (exclusive)
+PASS browser512     87 s
+ALL PASS in 907 s on 16 cores

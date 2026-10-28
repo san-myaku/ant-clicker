@@ -1,0 +1,248 @@
+{
+  "pass": true,
+  "finishedAt": "2026-10-28T08:43:16.004Z",
+  "source": {
+    "core.js": "d45203a932744cd8ab1fd17d94ab458f268b028c3de12262777e030d242f4b24",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "game.js": "a38fabdaf9c8b49fdef59094a03037c70c49b805a6053dd3f211d7b66174cd16"
+  },
+  "rows": [
+    {
+      "file": "pop512-20261027/active512-post-turnback-input.json",
+      "research": null,
+      "warmup": 300,
+      "steps": 600,
+      "elapsedMs": 6798.098999999998,
+      "stateSha256": "aff366d85e724a570ebb56ad60556621985be19e9727700859e620a615a2cbcb",
+      "profileFile": "profile-0.cpuprofile",
+      "profileSha256": "ede294b2a32cdcb7c731a6d40b2d69f864f6b5595097e3bbddc045a0573c48b4",
+      "samples": 4439,
+      "gaussianCallbackSamples": 90,
+      "gaussianCallbackPercent": 2.0274836674926786,
+      "densityLine": 836,
+      "top": [
+        {
+          "name": "poseClear",
+          "count": 796,
+          "percent": 17.931966659157467
+        },
+        {
+          "name": "",
+          "count": 682,
+          "percent": 15.363820680333408
+        },
+        {
+          "name": "tick",
+          "count": 377,
+          "percent": 8.492903807163776
+        },
+        {
+          "name": "receivingRoom",
+          "count": 374,
+          "percent": 8.425321018247352
+        },
+        {
+          "name": "sweptClear",
+          "count": 216,
+          "percent": 4.865960801982428
+        },
+        {
+          "name": "foodBodies",
+          "count": 162,
+          "percent": 3.6494706014868212
+        },
+        {
+          "name": "frontier",
+          "count": 152,
+          "percent": 3.424194638432079
+        },
+        {
+          "name": "cells",
+          "count": 142,
+          "percent": 3.198918675377337
+        },
+        {
+          "name": "stepItemTask",
+          "count": 121,
+          "percent": 2.725839152962379
+        },
+        {
+          "name": "near",
+          "count": 115,
+          "percent": 2.5906735751295336
+        },
+        {
+          "name": "(garbage collector)",
+          "count": 102,
+          "percent": 2.297814823158369
+        },
+        {
+          "name": "storageDrop",
+          "count": 80,
+          "percent": 1.8022077044379365
+        },
+        {
+          "name": "homeSpots",
+          "count": 69,
+          "percent": 1.5544041450777202
+        },
+        {
+          "name": "plan",
+          "count": 60,
+          "percent": 1.3516557783284524
+        },
+        {
+          "name": "roomKind",
+          "count": 58,
+          "percent": 1.306600585717504
+        },
+        {
+          "name": "sweptCargoCells",
+          "count": 54,
+          "percent": 1.216490200495607
+        },
+        {
+          "name": "move",
+          "count": 49,
+          "percent": 1.103852218968236
+        },
+        {
+          "name": "answer",
+          "count": 48,
+          "percent": 1.081324622662762
+        },
+        {
+          "name": "planPath",
+          "count": 47,
+          "percent": 1.0587970263572877
+        },
+        {
+          "name": "storageDestination",
+          "count": 45,
+          "percent": 1.0137418337463393
+        }
+      ]
+    },
+    {
+      "file": "world-512.json",
+      "research": "geo_depth_4",
+      "warmup": 300,
+      "steps": 600,
+      "elapsedMs": 11442.583499999993,
+      "stateSha256": "2e01ca79ed9898ac7ea0cc8694db7148b01b90e4411c46016850072f9cb956c7",
+      "profileFile": "profile-1.cpuprofile",
+      "profileSha256": "a6d145e92eb1aeb387a515a42e55b224e0af6e470e7410c784eab51072eb1fad",
+      "samples": 7216,
+      "gaussianCallbackSamples": 102,
+      "gaussianCallbackPercent": 1.4135254988913526,
+      "densityLine": 836,
+      "top": [
+        {
+          "name": "poseClear",
+          "count": 1688,
+          "percent": 23.392461197339244
+        },
+        {
+          "name": "",
+          "count": 937,
+          "percent": 12.985033259423503
+        },
+        {
+          "name": "tick",
+          "count": 624,
+          "percent": 8.647450110864744
+        },
+        {
+          "name": "sweptClear",
+          "count": 416,
+          "percent": 5.764966740576496
+        },
+        {
+          "name": "receivingRoom",
+          "count": 285,
+          "percent": 3.949556541019956
+        },
+        {
+          "name": "foodBodies",
+          "count": 258,
+          "percent": 3.5753880266075386
+        },
+        {
+          "name": "move",
+          "count": 196,
+          "percent": 2.7161862527716187
+        },
+        {
+          "name": "(garbage collector)",
+          "count": 195,
+          "percent": 2.7023281596452327
+        },
+        {
+          "name": "stepItemTask",
+          "count": 184,
+          "percent": 2.549889135254989
+        },
+        {
+          "name": "near",
+          "count": 135,
+          "percent": 1.8708425720620843
+        },
+        {
+          "name": "plan",
+          "count": 134,
+          "percent": 1.8569844789356984
+        },
+        {
+          "name": "supportsStock",
+          "count": 131,
+          "percent": 1.815410199556541
+        },
+        {
+          "name": "sweptCargoCells",
+          "count": 128,
+          "percent": 1.7738359201773837
+        },
+        {
+          "name": "frontier",
+          "count": 122,
+          "percent": 1.6906873614190687
+        },
+        {
+          "name": "storageDrop",
+          "count": 109,
+          "percent": 1.5105321507760532
+        },
+        {
+          "name": "answer",
+          "count": 105,
+          "percent": 1.45509977827051
+        },
+        {
+          "name": "storageDestination",
+          "count": 101,
+          "percent": 1.3996674057649667
+        },
+        {
+          "name": "planPath",
+          "count": 99,
+          "percent": 1.3719512195121952
+        },
+        {
+          "name": "itemAccess",
+          "count": 82,
+          "percent": 1.1363636363636365
+        },
+        {
+          "name": "updateCarriers",
+          "count": 81,
+          "percent": 1.1225055432372506
+        }
+      ]
+    }
+  ],
+  "host": {
+    "node": "v24.22.1",
+    "cpu": "AMD Ryzen 7 5800H with Radeon Graphics         "
+  },
+  "note": "索引化＋部屋分類候補の未計装モデルを単独サンプリング。Gaussian項コールバックには距離/加算/Math.expを含み、Math.exp単体の自己時間とは区別する。最終状態は同入力/同操作の従来計装検証のhashと一致。"
+}

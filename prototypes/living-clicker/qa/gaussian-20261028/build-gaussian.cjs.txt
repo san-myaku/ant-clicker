@@ -1,0 +1,16 @@
+module.exports=function gaussian(source){
+ const start=source.indexOf('    storageDrop('),end=source.indexOf('    storageDestination(',start);if(start<0||end<0)throw Error('Gaussian method boundary');let method=source.slice(start,end);
+ function replace(from,to,label){if(method.split(from).length!==2)throw Error('Gaussian hook: '+label);method=method.replace(from,to);}
+ replace(',choices=[];',';let best=null;','running complete incumbent');
+ replace('          const density=stock.reduce((sum,b)=>sum+Math.exp(-((x-b.x)**2+(landing-b.y)**2)/1.5),0);\n          choices.push({angle,x,y,landing,score:density+(landing-y)*.03});',`          const offset=(landing-y)*.03;let density=0,pruned=false;
+          // Addition order and each term are unchanged. Every eight terms,
+          // the partial sum plus the original offset is a lower bound.
+          // Strict > cannot discard an equal score or its angle tie-break.
+          for(let k=0;k<stock.length;k++){const b=stock[k];density+=Math.exp(-((x-b.x)**2+(landing-b.y)**2)/1.5);
+            if(best&&(k&7)===7&&density+offset>best.score){pruned=true;break;}
+          }
+          if(pruned)continue;const score=density+offset;
+          if(!best||score<best.score||score===best.score&&angle<best.angle)best={angle,x,y,landing,score};`,'nonnegative-prefix rejection');
+ replace('return choices.sort((a,b)=>a.score-b.score||a.angle-b.angle)[0]||null;','return best;','same minimum and angle tie-break');
+ return source.slice(0,start)+method+source.slice(end);
+};

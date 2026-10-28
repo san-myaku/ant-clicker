@@ -1,0 +1,58 @@
+{
+  "pass": true,
+  "adopted": false,
+  "stage": "gaussian",
+  "beganAt": "2026-10-28T08:50:01.149Z",
+  "finishedAt": "2026-10-28T08:52:23.826Z",
+  "source": {
+    "core.js": "d45203a932744cd8ab1fd17d94ab458f268b028c3de12262777e030d242f4b24",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "game.js": "a38fabdaf9c8b49fdef59094a03037c70c49b805a6053dd3f211d7b66174cd16"
+  },
+  "candidate": {
+    "core.js": "08911b6841c7cc86e6547022f236e391c320daa6b1c2699dabe357c9b8b55573",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "game.js": "a38fabdaf9c8b49fdef59094a03037c70c49b805a6053dd3f211d7b66174cd16"
+  },
+  "inputs": {
+    "pop512-20261027/active512-post-turnback-input.json": "02b55685ce47e5bbd6eee41dbb423ac316a5753f8581f2909660e9d9186016c6",
+    "world-512.json": "2b43a65e181bd53635770d12888a93415febd059755e23a001b90f657b6fb1d0"
+  },
+  "rows": [
+    {
+      "file": "pop512-20261027/active512-post-turnback-input.json",
+      "ants": 512,
+      "research": null,
+      "warmup": 120,
+      "steps": 1200,
+      "oldMsPerStep": 10.4097640833334,
+      "newMsPerStep": 10.023941499999903,
+      "stateSha256": "4d4369efb79307d8c1bcff9820ec85b28955f24ce46a3baa38da02f406716fc5",
+      "delta": {
+        "dug": 26,
+        "delivered": 28,
+        "distance": 2562.090191137977
+      }
+    },
+    {
+      "file": "world-512.json",
+      "ants": 512,
+      "research": "geo_depth_4",
+      "warmup": 120,
+      "steps": 1200,
+      "oldMsPerStep": 17.605809583333624,
+      "newMsPerStep": 16.91009799999926,
+      "stateSha256": "34be06d5f25f96a37b97cfc43a54c87d2322ef191e0600e289453a6d3e6022a7",
+      "delta": {
+        "dug": 52,
+        "delivered": 62,
+        "distance": 8573.5451406613
+      }
+    }
+  ],
+  "host": {
+    "node": "v24.22.1",
+    "cpu": "AMD Ryzen 7 5800H with Radeon Graphics         "
+  },
+  "note": "現在の索引化版を基準に一段ずつ比較。各コマ順序交互、当方の他の負荷試験と並走せず、準備後/60コマごと/最終の全保存バイト一致。改善率を前段と足し合わせない。"
+}

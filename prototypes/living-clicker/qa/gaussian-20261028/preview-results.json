@@ -1,0 +1,61 @@
+{
+  "pass": true,
+  "finishedAt": "2026-10-28T09:14:22.093Z",
+  "rows": [
+    {
+      "origin": "http://127.0.0.1:5189",
+      "pass": true,
+      "files": [
+        {
+          "name": "index.html",
+          "sha256": "1a377628c194d695ae92af706daf539686b262f3e0183633f225241b96181d46"
+        },
+        {
+          "name": "core.js",
+          "sha256": "d45203a932744cd8ab1fd17d94ab458f268b028c3de12262777e030d242f4b24"
+        },
+        {
+          "name": "lifecycle.js",
+          "sha256": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0"
+        },
+        {
+          "name": "game.js",
+          "sha256": "a38fabdaf9c8b49fdef59094a03037c70c49b805a6053dd3f211d7b66174cd16"
+        },
+        {
+          "name": "view.js",
+          "sha256": "4bb44a8cf17b7af1a6ab6b2c09e18a56433e2b006a062b7a3a99eb9ec896fb8e"
+        }
+      ],
+      "privateFiles404": 4
+    },
+    {
+      "origin": "https://yuhi.taila25a99.ts.net:5189",
+      "pass": true,
+      "files": [
+        {
+          "name": "index.html",
+          "sha256": "1a377628c194d695ae92af706daf539686b262f3e0183633f225241b96181d46"
+        },
+        {
+          "name": "core.js",
+          "sha256": "d45203a932744cd8ab1fd17d94ab458f268b028c3de12262777e030d242f4b24"
+        },
+        {
+          "name": "lifecycle.js",
+          "sha256": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0"
+        },
+        {
+          "name": "game.js",
+          "sha256": "a38fabdaf9c8b49fdef59094a03037c70c49b805a6053dd3f211d7b66174cd16"
+        },
+        {
+          "name": "view.js",
+          "sha256": "4bb44a8cf17b7af1a6ab6b2c09e18a56433e2b006a062b7a3a99eb9ec896fb8e"
+        }
+      ],
+      "privateFiles404": 4
+    }
+  ],
+  "note": "既存のPC/Tailnetプレビューが採用後の公開5ファイルと一致。生成器/追加検証/QA/.gitは404。サーバー/公開設定は変更せず、実機iPhoneの動作確認とは区別する。"
+}

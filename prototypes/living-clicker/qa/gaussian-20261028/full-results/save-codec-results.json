@@ -1,0 +1,310 @@
+{
+  "pass": true,
+  "fixtureCount": 26,
+  "invalidCases": 24,
+  "continuationCases": 7,
+  "source": {
+    "save-codec.js": "13417ccb76bd179ebe40ba3275e6d6a716039f0ba855c138e0328fd294f185dd",
+    "build-view.cjs": "ee4d6d53a978893aca3b7458c2f7f0d2666b30ed18d1015361503673a97eb078",
+    "view.js": "4bb44a8cf17b7af1a6ab6b2c09e18a56433e2b006a062b7a3a99eb9ec896fb8e",
+    "game.js": "a38fabdaf9c8b49fdef59094a03037c70c49b805a6053dd3f211d7b66174cd16",
+    "core.js": "d45203a932744cd8ab1fd17d94ab458f268b028c3de12262777e030d242f4b24",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "verify-save-codec.cjs": "f1ea24f0590f14275945ca5d34b76194df3853d64cedc183ec7c66160448608e",
+    "../../package.json": "945e02c26e1da8b7be5f6f47ed7772b83eac25944a74f91bf925e36d36090881",
+    "../../package-lock.json": "16e69863bda29d64f38eaa2245f7099996ddc7951852d07513f88e6006ff7d66"
+  },
+  "inputs": {
+    "prototypes/clicker-integration/qa/journey-save.json": "3aa240e1db6022cc5fd1780ea071b6a696ce9d16be27ac1275927fed31ccb707",
+    "prototypes/living-clicker/qa/approach-stall.json": "425775dab8acaa5fc3151e6c23300c36e32b0f5241955966d0da948ce208f5be",
+    "prototypes/living-clicker/qa/before-depth.json": "c62461d2cc921bdd99e5b6e240abc4e4983126aafc1da37437d211aad5642707",
+    "prototypes/living-clicker/qa/blocked-turn.json": "ec6dfd88e392a232d54cf80de71e61a9bc7a3bbc8e8fdb74f070a78f1941adca",
+    "prototypes/living-clicker/qa/collision.json": "7e8912f50dc5a833ac8c4b4ff95394a8116691c883795708f7627cd63938ac24",
+    "prototypes/living-clicker/qa/deep-collision.json": "4d07d928491f787a5e17f78821ecabfab5440e452c6ca77fa985912c2089c7c8",
+    "prototypes/living-clicker/qa/head-on-retreat.json": "f7b76e9316a23fdef8315b2bb3ee3f622cf5048c58505f51aded32fdbe5e0c81",
+    "prototypes/living-clicker/qa/heap-ceiling.json": "0043346a5f6df877c3025744eb24c783147920104a59430526d1f5852f9c52b2",
+    "prototypes/living-clicker/qa/raid-stuck-loot.json": "6997ce7ce6935b2e60cb45a5321a09a00ebd303b9268e9d4a15ab8ad76f7eb6e",
+    "prototypes/living-clicker/qa/research-catalog.json": "c85c73765284045aba52352165d30b702ad6ac06f39eed90a24818a7641445ea",
+    "prototypes/living-clicker/qa/room-reservation.json": "f36ba44a40233deeb28b60ea2cb7086fb21f69fcc42e4f677f2303cfcdc786a6",
+    "prototypes/living-clicker/qa/storage-ring.json": "b4d94449347967e195893c0c889d4751290999cc3e827ad09450d24c718210d5",
+    "prototypes/living-clicker/qa/waste-spill.json": "ae3d25a53a9c348f2f3d6037f1f84cee0f6dd3f666da68dca622a72b70dde88c",
+    "prototypes/living-clicker/qa/world-1200.json": "da2874099cd10a723093f7590552ac61b84c16c769f6296d305fefa29c4b53cf",
+    "prototypes/living-clicker/qa/world-180.json": "3419a484817d9181006fcbf02f6a93b8aeaaea44981986db0869f584b03af5e2",
+    "prototypes/living-clicker/qa/world-60.json": "7514c2e4d126d416f245dad779bf5500a28f3d456fe17f81ad090f27a82417a0",
+    "prototypes/living-clicker/qa/world-900.json": "bfb9fbafee2e76b4a6f4e4aec8b97def004a8e9c8ed12a07ebed1c2a000860da",
+    "prototypes/living-clicker/qa/world-final.json": "028da2642b574b6490d71bc13daa5df55f2cc99f71aeeb39f8b217d3ca554d79",
+    "prototypes/living-clicker/qa/world-scale.json": "15d03b034f3619e0dbdc04846fae7173c546823a413acd74456fa8f781676f91",
+    "prototypes/living-clicker/qa/home-pose-coverage.json": "9e98a5674d7ea2af03759fbba640763d276ff7959b9991e140da9dcd07cc83f4",
+    "prototypes/living-clicker/qa/housing-demand.json": "7fdfcb06d462c3c9ad14572ec451e0a93e0e186d63bfb2eecaa0f9420c967a37",
+    "prototypes/living-clicker/qa/before-256.json": "08590edc2d19eb1bb7fa935fe3b6ddc7f2eab922b9c9cf2692828c45c1f7659f",
+    "prototypes/living-clicker/qa/world-256.json": "ea79db5a2a5488c62871365f122f27b154ea186a8e09f9c7af93d2242fd0d23d",
+    "prototypes/living-clicker/qa/before-512.json": "524443b0e8436a73275aa0e723f359e72ef7ef56f6d8a9ef623a4a378f62a6de",
+    "prototypes/living-clicker/qa/world-512.json": "2b43a65e181bd53635770d12888a93415febd059755e23a001b90f657b6fb1d0",
+    "prototypes/living-clicker/qa/housing-512-pressure.json": "c12a0d8aedddcfe10355ae944227bf2195ba0c16381aca38e2e3949c58ad6cd3",
+    "prototypes/living-clicker/qa/surface-airborne-512.json": "4e3b1dd2dada07f1df529964e55aab6a32042c96b307eb06bac2f56c818ba2be",
+    "prototypes/living-clicker/qa/surface-stance-512.json": "1ae702622054caa770bfb976380d33368e8832f8a45c9406a9bd92d510ffebe5",
+    "prototypes/living-clicker/qa/surface-walk-512.json": "04e2fae63d4ff2a9c7868198c6b12c6da466a26cbc9e82ea49d23c84dd54745d"
+  },
+  "results": [
+    {
+      "name": "approach-stall.json",
+      "pass": true,
+      "rawCharacters": 594251,
+      "storedCharacters": 152806,
+      "ratio": 0.2571405012360097,
+      "encodeMs": 122.28520000000003,
+      "decodeMs": 128.02829999999994,
+      "decodedSha256": "425775dab8acaa5fc3151e6c23300c36e32b0f5241955966d0da948ce208f5be"
+    },
+    {
+      "name": "before-depth.json",
+      "pass": true,
+      "rawCharacters": 533087,
+      "storedCharacters": 131238,
+      "ratio": 0.24618495667686513,
+      "encodeMs": 84.71679999999992,
+      "decodeMs": 60.13150000000019,
+      "decodedSha256": "c62461d2cc921bdd99e5b6e240abc4e4983126aafc1da37437d211aad5642707"
+    },
+    {
+      "name": "blocked-turn.json",
+      "pass": true,
+      "rawCharacters": 671684,
+      "storedCharacters": 172690,
+      "ratio": 0.25710006491147624,
+      "encodeMs": 91.10979999999995,
+      "decodeMs": 71.25929999999994,
+      "decodedSha256": "ec6dfd88e392a232d54cf80de71e61a9bc7a3bbc8e8fdb74f070a78f1941adca"
+    },
+    {
+      "name": "deep-collision.json",
+      "pass": true,
+      "rawCharacters": 706260,
+      "storedCharacters": 177821,
+      "ratio": 0.25177838189901736,
+      "encodeMs": 78.91379999999981,
+      "decodeMs": 65.1497000000004,
+      "decodedSha256": "c9946b9f18b5fd9eac775bee0a6090de040006c2308b0a68c596b9e0925e9438"
+    },
+    {
+      "name": "head-on-retreat.json",
+      "pass": true,
+      "rawCharacters": 581083,
+      "storedCharacters": 140294,
+      "ratio": 0.2414353887482511,
+      "encodeMs": 76.3107,
+      "decodeMs": 69.14589999999998,
+      "decodedSha256": "f7b76e9316a23fdef8315b2bb3ee3f622cf5048c58505f51aded32fdbe5e0c81"
+    },
+    {
+      "name": "heap-ceiling.json",
+      "pass": true,
+      "rawCharacters": 1281299,
+      "storedCharacters": 332171,
+      "ratio": 0.25924550007453373,
+      "encodeMs": 189.74739999999974,
+      "decodeMs": 168.22209999999995,
+      "decodedSha256": "0043346a5f6df877c3025744eb24c783147920104a59430526d1f5852f9c52b2"
+    },
+    {
+      "name": "raid-stuck-loot.json",
+      "pass": true,
+      "rawCharacters": 991651,
+      "storedCharacters": 247046,
+      "ratio": 0.24912595257807435,
+      "encodeMs": 145.48480000000018,
+      "decodeMs": 143.17419999999947,
+      "decodedSha256": "6997ce7ce6935b2e60cb45a5321a09a00ebd303b9268e9d4a15ab8ad76f7eb6e"
+    },
+    {
+      "name": "room-reservation.json",
+      "pass": true,
+      "rawCharacters": 304056,
+      "storedCharacters": 67518,
+      "ratio": 0.2220577788302155,
+      "encodeMs": 41.15549999999985,
+      "decodeMs": 56.60150000000067,
+      "decodedSha256": "f36ba44a40233deeb28b60ea2cb7086fb21f69fcc42e4f677f2303cfcdc786a6"
+    },
+    {
+      "name": "storage-ring.json",
+      "pass": true,
+      "rawCharacters": 422325,
+      "storedCharacters": 92145,
+      "ratio": 0.2181850470609128,
+      "encodeMs": 99.69160000000011,
+      "decodeMs": 49.5587000000005,
+      "decodedSha256": "b4d94449347967e195893c0c889d4751290999cc3e827ad09450d24c718210d5"
+    },
+    {
+      "name": "waste-spill.json",
+      "pass": true,
+      "rawCharacters": 809344,
+      "storedCharacters": 215938,
+      "ratio": 0.2668062035426222,
+      "encodeMs": 99.97350000000006,
+      "decodeMs": 163.40779999999995,
+      "decodedSha256": "ae3d25a53a9c348f2f3d6037f1f84cee0f6dd3f666da68dca622a72b70dde88c"
+    },
+    {
+      "name": "world-1200.json",
+      "pass": true,
+      "rawCharacters": 534301,
+      "storedCharacters": 131570,
+      "ratio": 0.24624696566167759,
+      "encodeMs": 82.41139999999996,
+      "decodeMs": 61.98440000000028,
+      "decodedSha256": "da2874099cd10a723093f7590552ac61b84c16c769f6296d305fefa29c4b53cf"
+    },
+    {
+      "name": "world-180.json",
+      "pass": true,
+      "rawCharacters": 271796,
+      "storedCharacters": 63350,
+      "ratio": 0.23307922118059132,
+      "encodeMs": 70.73030000000017,
+      "decodeMs": 25.6866,
+      "decodedSha256": "3419a484817d9181006fcbf02f6a93b8aeaaea44981986db0869f584b03af5e2"
+    },
+    {
+      "name": "world-60.json",
+      "pass": true,
+      "rawCharacters": 242080,
+      "storedCharacters": 54470,
+      "ratio": 0.22500826173165894,
+      "encodeMs": 54.082800000000134,
+      "decodeMs": 45.38959999999952,
+      "decodedSha256": "7514c2e4d126d416f245dad779bf5500a28f3d456fe17f81ad090f27a82417a0"
+    },
+    {
+      "name": "world-900.json",
+      "pass": true,
+      "rawCharacters": 400945,
+      "storedCharacters": 97265,
+      "ratio": 0.24258938258364612,
+      "encodeMs": 38.54949999999917,
+      "decodeMs": 32.04769999999917,
+      "decodedSha256": "bfb9fbafee2e76b4a6f4e4aec8b97def004a8e9c8ed12a07ebed1c2a000860da"
+    },
+    {
+      "name": "world-final.json",
+      "pass": true,
+      "rawCharacters": 835331,
+      "storedCharacters": 204838,
+      "ratio": 0.24521776397619627,
+      "encodeMs": 117.92109999999957,
+      "decodeMs": 122.94490000000042,
+      "decodedSha256": "028da2642b574b6490d71bc13daa5df55f2cc99f71aeeb39f8b217d3ca554d79"
+    },
+    {
+      "name": "world-scale.json",
+      "pass": true,
+      "rawCharacters": 1215372,
+      "storedCharacters": 292555,
+      "ratio": 0.24071230865940635,
+      "encodeMs": 176.5547000000006,
+      "decodeMs": 251.4922000000006,
+      "decodedSha256": "15d03b034f3619e0dbdc04846fae7173c546823a413acd74456fa8f781676f91"
+    },
+    {
+      "name": "home-pose-coverage.json",
+      "pass": true,
+      "rawCharacters": 798785,
+      "storedCharacters": 196294,
+      "ratio": 0.24574071871655076,
+      "encodeMs": 138.377199999999,
+      "decodeMs": 125.90450000000055,
+      "decodedSha256": "9e98a5674d7ea2af03759fbba640763d276ff7959b9991e140da9dcd07cc83f4"
+    },
+    {
+      "name": "housing-demand.json",
+      "pass": true,
+      "rawCharacters": 694250,
+      "storedCharacters": 182230,
+      "ratio": 0.26248469571480015,
+      "encodeMs": 204.05069999999978,
+      "decodeMs": 128.01869999999872,
+      "decodedSha256": "7fdfcb06d462c3c9ad14572ec451e0a93e0e186d63bfb2eecaa0f9420c967a37"
+    },
+    {
+      "name": "before-256.json",
+      "pass": true,
+      "rawCharacters": 1102020,
+      "storedCharacters": 260815,
+      "ratio": 0.2366699333950382,
+      "encodeMs": 161.64829999999893,
+      "decodeMs": 142.7484999999997,
+      "decodedSha256": "08590edc2d19eb1bb7fa935fe3b6ddc7f2eab922b9c9cf2692828c45c1f7659f"
+    },
+    {
+      "name": "world-256.json",
+      "pass": true,
+      "rawCharacters": 2186320,
+      "storedCharacters": 542925,
+      "ratio": 0.24832824106260748,
+      "encodeMs": 268.2487000000001,
+      "decodeMs": 254.0041000000001,
+      "decodedSha256": "ea79db5a2a5488c62871365f122f27b154ea186a8e09f9c7af93d2242fd0d23d"
+    },
+    {
+      "name": "before-512.json",
+      "pass": true,
+      "rawCharacters": 2256690,
+      "storedCharacters": 550263,
+      "ratio": 0.24383632665541125,
+      "encodeMs": 341.66380000000026,
+      "decodeMs": 238.46630000000005,
+      "decodedSha256": "524443b0e8436a73275aa0e723f359e72ef7ef56f6d8a9ef623a4a378f62a6de"
+    },
+    {
+      "name": "world-512.json",
+      "pass": true,
+      "rawCharacters": 5391604,
+      "storedCharacters": 1324295,
+      "ratio": 0.2456217110900578,
+      "encodeMs": 732.0455999999976,
+      "decodeMs": 522.2968000000001,
+      "decodedSha256": "2b43a65e181bd53635770d12888a93415febd059755e23a001b90f657b6fb1d0"
+    },
+    {
+      "name": "housing-512-pressure.json",
+      "pass": true,
+      "rawCharacters": 3013837,
+      "storedCharacters": 738995,
+      "ratio": 0.2452007192160691,
+      "encodeMs": 334.96199999999953,
+      "decodeMs": 284.00090000000273,
+      "decodedSha256": "e960f444c2f74429cd32cb4206f03d6defbd2e29c1e16960437c2fa0aa181f32"
+    },
+    {
+      "name": "surface-airborne-512.json",
+      "pass": true,
+      "rawCharacters": 4209685,
+      "storedCharacters": 1016622,
+      "ratio": 0.241495978915287,
+      "encodeMs": 492.15350000000035,
+      "decodeMs": 364.41149999999834,
+      "decodedSha256": "36ab332e4f4de729bbd8bc3014da0b4ba9e419ddc0ebd3b8f9ef4ee3d4bb8ee8"
+    },
+    {
+      "name": "surface-stance-512.json",
+      "pass": true,
+      "rawCharacters": 4346347,
+      "storedCharacters": 1080275,
+      "ratio": 0.24854780347726493,
+      "encodeMs": 449.40880000000107,
+      "decodeMs": 367.04030000000057,
+      "decodedSha256": "86ef9c8161b1b856ddb226a206b6e720d5c9286ecf95b57c0692dd48c7b5a219"
+    },
+    {
+      "name": "surface-walk-512.json",
+      "pass": true,
+      "rawCharacters": 4338109,
+      "storedCharacters": 1040399,
+      "ratio": 0.23982776827414895,
+      "encodeMs": 471.16460000000006,
+      "decodeMs": 415.01870000000054,
+      "decodedSha256": "286a7b50eead37f8a4b21940f3d03cf0c6ebeca47b9250f4f8de430e84cf8f2c"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+from pathlib import Path
+from collections import Counter
+import json,hashlib,sys
+sys.stdout.reconfigure(encoding='utf-8')
+out=Path('prototypes/living-clicker/qa/gaussian-20261028');rows=[]
+for i in [0,1]:
+    raw=(out/f'profile-{i}.cpuprofile').read_bytes();p=json.loads(raw);nodes={n['id']:n for n in p['nodes']};parent={k:n['id'] for n in p['nodes'] for k in n.get('children',[])};counts=Counter(p['samples']);inclusive=Counter()
+    for n in p['nodes']:
+        names=set();k=n['id']
+        while k is not None:names.add(nodes[k]['callFrame']['functionName']);k=parent.get(k)
+        for name in ['poseClear','sweptClear','updateCarriers','carriedKind','AntTrafficIndex','trafficIndex','storageDrop','storageDestination','receivingRoom','substep']:
+            if name in names:inclusive[name]+=counts[n['id']]
+    row={'profile':i,'sha256':hashlib.sha256(raw).hexdigest(),'inclusivePercent':{k:100*v/len(p['samples']) for k,v in inclusive.items()}};rows.append(row)
+(out/'inclusive-attribution.json').write_text(json.dumps({'rows':rows,'note':'保存済みCPU profileの祖先を集計。各項は子の時間を含み、項どうしは重なるので合計しない。substepは静止再確認だけを分離した値ではない。'},ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+print(json.dumps(rows,ensure_ascii=False))

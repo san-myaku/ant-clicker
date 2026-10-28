@@ -1,0 +1,66 @@
+{
+  "pass": true,
+  "finishedAt": "2026-10-28T08:48:04.708Z",
+  "source": {
+    "game.js": "a38fabdaf9c8b49fdef59094a03037c70c49b805a6053dd3f211d7b66174cd16",
+    "core.js": "d45203a932744cd8ab1fd17d94ab458f268b028c3de12262777e030d242f4b24",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0"
+  },
+  "rows": [
+    {
+      "file": "pop512-20261027/active512-post-turnback-input.json",
+      "inputSha256": "02b55685ce47e5bbd6eee41dbb423ac316a5753f8581f2909660e9d9186016c6",
+      "research": null,
+      "warmup": 300,
+      "steps": 600,
+      "stateSha256": "aff366d85e724a570ebb56ad60556621985be19e9727700859e620a615a2cbcb",
+      "stats": {
+        "calls": 5642,
+        "placements": 19096,
+        "fullTerms": 11877712,
+        "skippedTerms": {
+          "1": 3455632,
+          "4": 3438148,
+          "8": 3420912,
+          "16": 3371312,
+          "32": 3285008
+        },
+        "pruned": {
+          "1": 10168,
+          "4": 10168,
+          "8": 10168,
+          "16": 10168,
+          "32": 10168
+        }
+      }
+    },
+    {
+      "file": "world-512.json",
+      "inputSha256": "2b43a65e181bd53635770d12888a93415febd059755e23a001b90f657b6fb1d0",
+      "research": "geo_depth_4",
+      "warmup": 300,
+      "steps": 600,
+      "stateSha256": "2e01ca79ed9898ac7ea0cc8694db7148b01b90e4411c46016850072f9cb956c7",
+      "stats": {
+        "calls": 6102,
+        "placements": 21912,
+        "fullTerms": 12144582,
+        "skippedTerms": {
+          "1": 3275289,
+          "4": 3255906,
+          "8": 3236150,
+          "16": 3192815,
+          "32": 3098894
+        },
+        "pruned": {
+          "1": 11401,
+          "4": 11401,
+          "8": 11401,
+          "16": 11343,
+          "32": 11301
+        }
+      }
+    }
+  ],
+  "note": "全項を元順序で完全評価し、途中和＋補正が直前までの完全評価bestを厳密に超えた最初の位置から、各判定間隔で省略可能な項を仮想集計。実際には項を省略しておらず、ゲーム状態は元モデルと全保存一致。計装時間を速度の根拠にしない。"
+}
