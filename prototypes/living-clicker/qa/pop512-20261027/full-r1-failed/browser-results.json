@@ -1,0 +1,130 @@
+{
+  "results": [
+    {
+      "width": 1440,
+      "pass": true,
+      "overflow": false,
+      "protected": true,
+      "camera": {
+        "x": 46,
+        "y": 21.5,
+        "zoom": 2.574493444576877,
+        "scale": 24,
+        "width": 1138,
+        "height": 839,
+        "dpr": 1
+      },
+      "selection": "none",
+      "viewport": "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
+      "errors": []
+    },
+    {
+      "name": "population-stage-2",
+      "width": 1440,
+      "pass": true,
+      "cap": 256,
+      "ants": 128
+    },
+    {
+      "width": 393,
+      "pass": true,
+      "overflow": false,
+      "protected": true,
+      "camera": {
+        "x": 46,
+        "y": 21.5,
+        "zoom": 3.682864450127877,
+        "scale": 15,
+        "width": 391,
+        "height": 451.546875,
+        "dpr": 2
+      },
+      "selection": "none",
+      "viewport": "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
+      "errors": []
+    },
+    {
+      "name": "population-stage-2",
+      "width": 393,
+      "pass": true,
+      "cap": 256,
+      "ants": 128
+    },
+    {
+      "name": "care-pause",
+      "pass": true,
+      "nurses": 0,
+      "canLay": false
+    },
+    {
+      "width": 320,
+      "pass": true,
+      "overflow": false,
+      "protected": true,
+      "camera": {
+        "x": 46,
+        "y": 21.5,
+        "zoom": 3.8400000000000003,
+        "scale": 12.72,
+        "width": 318,
+        "height": 451.546875,
+        "dpr": 2
+      },
+      "selection": "none",
+      "viewport": "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
+      "errors": []
+    },
+    {
+      "name": "population-stage-2",
+      "width": 320,
+      "pass": true,
+      "cap": 256,
+      "ants": 128
+    },
+    {
+      "name": "live-10x",
+      "pass": true,
+      "startTime": 0.5333333333333333,
+      "time": 27.699999999999708,
+      "at": 6978.0999999940395,
+      "distance": 837.5794062662119,
+      "dug": 21,
+      "advanced": 27.166666666666373,
+      "wallSeconds": 6.120700000017881,
+      "errors": []
+    },
+    {
+      "name": "diagnostics-browser-replay",
+      "pass": true,
+      "same": true,
+      "restoredStep": true,
+      "incidents": 0,
+      "operations": [
+        "call",
+        "call",
+        "setting",
+        "setting",
+        "step"
+      ],
+      "calls": [
+        "tap",
+        "shiftRole"
+      ],
+      "settings": [
+        "colony.laying",
+        "progress.speed"
+      ]
+    },
+    {
+      "name": "corrupt-save-protection",
+      "pass": true
+    }
+  ],
+  "hashes": {
+    "index.html": "1a377628c194d695ae92af706daf539686b262f3e0183633f225241b96181d46",
+    "core.js": "9b779fd0f25deed86efd9cdce0f965604d999495bfebe2c7265d227424b38c45",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "game.js": "66fe1b1573993e07fb2ee88eeb06b0fc0a1fad8b2e6057c4168463dff2218f3d",
+    "view.js": "4bb44a8cf17b7af1a6ab6b2c09e18a56433e2b006a062b7a3a99eb9ec896fb8e"
+  }
+}

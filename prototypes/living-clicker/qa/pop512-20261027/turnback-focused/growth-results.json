@@ -1,0 +1,62 @@
+{
+  "results": [
+    {
+      "name": "second-stage-requires-real-depth-and-population",
+      "pass": true
+    },
+    {
+      "name": "real-purchase-pays-for-the-stage-without-opening-air-or-adding-life",
+      "pass": true,
+      "cap": 256,
+      "price": {
+        "food": 48,
+        "cookie": 18
+      }
+    },
+    {
+      "name": "only-complete-reachable-nursery-floor-and-actual-nurses-count",
+      "pass": true
+    },
+    {
+      "name": "remaining-meals-and-reservations-are-counted-once",
+      "pass": true
+    },
+    {
+      "name": "second-stage-laying-needs-two-more-meals-and-a-place",
+      "pass": true
+    },
+    {
+      "name": "public-allocation-and-purchase-refresh-the-shared-care-budget",
+      "pass": true
+    },
+    {
+      "name": "earlier-growth-rules-stay-byte-identical-with-the-same-surface-physics",
+      "pass": true,
+      "counts": [
+        {
+          "input": "new",
+          "ants": 12,
+          "steps": 600
+        },
+        {
+          "input": "world-900.json",
+          "ants": 33,
+          "steps": 600
+        },
+        {
+          "input": "before-256.json",
+          "ants": 128,
+          "steps": 600
+        }
+      ]
+    }
+  ],
+  "source": {
+    "game.js": "763c181eb8e8e8a3770178b8f72c3092043c101994a82959a3b210be69340644",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "build.cjs": "e68c1736f03f0ccd588ea22d11fb5c6d6e49be362c78eec5eee5f462820a82d8",
+    "view-research.js": "25f9450b8485fb488765c432726bd13f43cfa1236b20ce5e8113f4550bdeb5bb",
+    "verify-growth.cjs": "66d4cb11b0ad8d7cc7aef25049ddb16677509c1637647a795d470d7e855c0123"
+  },
+  "inputSha256": "08590edc2d19eb1bb7fa935fe3b6ddc7f2eab922b9c9cf2692828c45c1f7659f"
+}

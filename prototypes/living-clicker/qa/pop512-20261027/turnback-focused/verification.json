@@ -1,0 +1,16 @@
+{
+  "completedAt": "2026-10-27T22:27:40.954562+00:00",
+  "source": {
+    "game.js": "763c181eb8e8e8a3770178b8f72c3092043c101994a82959a3b210be69340644",
+    "core.js": "c7d73a8f8f662b4a20d6b17803e0040d816e1422edf2604d08b7f25706982582",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "build.cjs": "e68c1736f03f0ccd588ea22d11fb5c6d6e49be362c78eec5eee5f462820a82d8",
+    "build-surface.cjs": "8022e37dcfe2de04574367711fe7d35e961ad13581f41545987311790ca048d3",
+    "build-retreat.cjs": "abb4332ca97e608ae4870e1844495ea5851441c180c71ae42cb5c1fd40c5f8bd"
+  },
+  "runnerCommand": "node prototypes/living-clicker/verify-all.cjs headon growth growth-512 --chain chain",
+  "runnerResult": "4本すべて合格、606秒。地表3ケースは別実行で合格。headon検証の記録対象にbuild-retreatを追記した後の最終確認はまだ。",
+  "nextSession": 11416,
+  "nextCommand": "node audit/pop512-20261027/run-paired.cjs",
+  "status": "性能比較→関連9本→自然512匹/晩期継続→全30本を実行中。全体合格ではない。"
+}

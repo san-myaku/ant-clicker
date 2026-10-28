@@ -1,0 +1,120 @@
+{
+  "pass": true,
+  "source": {
+    "game.js": "763c181eb8e8e8a3770178b8f72c3092043c101994a82959a3b210be69340644",
+    "core.js": "c7d73a8f8f662b4a20d6b17803e0040d816e1422edf2604d08b7f25706982582",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "build-surface.cjs": "8022e37dcfe2de04574367711fe7d35e961ad13581f41545987311790ca048d3",
+    "diagnostics.js": "faf372b4fd39f287971c8bafa6f8682ebc10bcba68074a639ecef120170dcbf9",
+    "save-codec.js": "13417ccb76bd179ebe40ba3275e6d6a716039f0ba855c138e0328fd294f185dd",
+    "qa/verify-late-surface.cjs": "e028ef181e934a40cc7fcb6fd21827a30b38c661099ff71643526ce621cdd2e5"
+  },
+  "inputSha256": "1ae702622054caa770bfb976380d33368e8832f8a45c9406a9bd92d510ffebe5",
+  "began": 15557.99999985775,
+  "finished": 17206.999999833755,
+  "initialCrowded": 88,
+  "finalCrowded": 5,
+  "delivered": 3221,
+  "worldSha256": "7aeb54d3fae28de954144c5851536cbf31407edb3dcf1fb91793866f88312c92",
+  "samples": [
+    {
+      "time": 15558.999999857735,
+      "ants": 512,
+      "crowded": 88,
+      "delivered": 20250,
+      "incidents": []
+    },
+    {
+      "time": 15678.999999855989,
+      "ants": 512,
+      "crowded": 84,
+      "delivered": 20472,
+      "incidents": []
+    },
+    {
+      "time": 15798.999999854243,
+      "ants": 512,
+      "crowded": 78,
+      "delivered": 20699,
+      "incidents": []
+    },
+    {
+      "time": 15918.999999852496,
+      "ants": 512,
+      "crowded": 72,
+      "delivered": 20902,
+      "incidents": []
+    },
+    {
+      "time": 16038.99999985075,
+      "ants": 512,
+      "crowded": 68,
+      "delivered": 21085,
+      "incidents": []
+    },
+    {
+      "time": 16158.999999849004,
+      "ants": 512,
+      "crowded": 61,
+      "delivered": 21309,
+      "incidents": []
+    },
+    {
+      "time": 16278.999999847258,
+      "ants": 512,
+      "crowded": 55,
+      "delivered": 21581,
+      "incidents": []
+    },
+    {
+      "time": 16398.999999845513,
+      "ants": 512,
+      "crowded": 46,
+      "delivered": 21846,
+      "incidents": []
+    },
+    {
+      "time": 16518.999999843767,
+      "ants": 512,
+      "crowded": 43,
+      "delivered": 22074,
+      "incidents": []
+    },
+    {
+      "time": 16638.99999984202,
+      "ants": 512,
+      "crowded": 35,
+      "delivered": 22343,
+      "incidents": []
+    },
+    {
+      "time": 16758.999999840275,
+      "ants": 512,
+      "crowded": 31,
+      "delivered": 22535,
+      "incidents": []
+    },
+    {
+      "time": 16878.99999983853,
+      "ants": 512,
+      "crowded": 26,
+      "delivered": 22758,
+      "incidents": []
+    },
+    {
+      "time": 16998.999999836782,
+      "ants": 512,
+      "crowded": 21,
+      "delivered": 22984,
+      "incidents": []
+    },
+    {
+      "time": 17118.999999835036,
+      "ants": 512,
+      "crowded": 16,
+      "delivered": 23248,
+      "incidents": []
+    }
+  ],
+  "note": "旧ソースで実際に育った晩期512匹の保存から、修正後の姿勢で居室不足が減るまで継続。今回の元256匹入力からの自然育成とは別の回帰で、最終world-512を置き換えない。"
+}

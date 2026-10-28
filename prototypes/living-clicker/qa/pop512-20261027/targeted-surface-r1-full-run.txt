@@ -1,0 +1,19 @@
+START housing
+START pebble
+START approach
+START rock
+START research
+START cargo-turn
+START storage
+START headon
+START turn
+PASS turn            1 s
+PASS storage        20 s
+PASS headon         21 s
+PASS cargo-turn     22 s
+PASS approach       33 s
+PASS research       33 s
+PASS rock           37 s
+PASS pebble         67 s
+PASS housing        95 s
+ALL PASS in 95 s on 16 cores

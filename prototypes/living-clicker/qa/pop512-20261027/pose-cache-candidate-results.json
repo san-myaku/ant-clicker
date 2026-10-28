@@ -1,0 +1,19 @@
+{
+  "pass": true,
+  "inputSha256": "524443b0e8436a73275aa0e723f359e72ef7ef56f6d8a9ef623a4a378f62a6de",
+  "oldSource": {
+    "game.js": "66fe1b1573993e07fb2ee88eeb06b0fc0a1fad8b2e6057c4168463dff2218f3d",
+    "core.js": "6ef879b37b84e72a97066b8f9f0fb8064ff2b5d718e1c45158437356964105a8",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0"
+  },
+  "candidateSource": {
+    "game.js": "66fe1b1573993e07fb2ee88eeb06b0fc0a1fad8b2e6057c4168463dff2218f3d",
+    "core.js": "07fb72347dbef84e64181ac968c7f5a42a7918f8d6fa325b20237a161ae3c9a4",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "build.cjs": "a2a2a4a3a78d63b316f495699e85ea5c87169500b07bdd5b5401dcbdb622ecd5"
+  },
+  "oldMsPerStep": 13.51874708333333,
+  "newMsPerStep": 11.569978249999874,
+  "steps": 1200,
+  "helper": "  class PoseAnswerCache{\n    constructor(){this.mask=(1<<17)-1;this.x=new Float64Array(this.mask+1);this.y=new Float64Array(this.mask+1);this.tags=new Uint32Array(this.mask+1);this.answers=new Int32Array(this.mask+1);this.kinds=new Map();}\n    tag(h,kind){const k=h+':'+(kind||'body');let t=this.kinds.get(k);if(t===undefined){t=this.kinds.size+1;this.kinds.set(k,t);}return t;}\n    slot(x,y,tag){let h=Math.imul(Math.floor(x*1e6),0x9e3779b1)^Math.imul(Math.floor(y*1e6),0x85ebca6b)^Math.imul(tag,0xc2b2ae35);h^=h>>>16;h=Math.imul(h,0x85ebca6b);h^=h>>>13;return h&this.mask;}\n    get(x,y,t){const i=this.slot(x,y,t);return this.tags[i]===t&&this.x[i]===x&&this.y[i]===y?this.answers[i]:undefined;}\n    set(x,y,t,value){const i=this.slot(x,y,t);this.x[i]=x;this.y[i]=y;this.tags[i]=t;this.answers[i]=value;}\n  }"
+}

@@ -1,0 +1,19 @@
+{
+  "recordedAt": "2026-10-27T17:45:49.578Z",
+  "failureTime": 15562.04999985769,
+  "failureTick": 933723,
+  "checkpointTime": 15557.99999985775,
+  "checkpointTick": 933480,
+  "source": {
+    "core.js": "6cf945e87ed87fdca1afcf97ec0a993130f1b0b252f28e887bca2bad9390be5f",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "game.js": "66fe1b1573993e07fb2ee88eeb06b0fc0a1fad8b2e6057c4168463dff2218f3d",
+    "diagnostics.js": "faf372b4fd39f287971c8bafa6f8682ebc10bcba68074a639ecef120170dcbf9",
+    "save-codec.js": "13417ccb76bd179ebe40ba3275e6d6a716039f0ba855c138e0328fd294f185dd",
+    "verify-512.cjs": "4e05d301aa154947ed8bdb484bbcd8b987915a4ea653cec7153fcd34662c0fd4"
+  },
+  "inputSha256": "524443b0e8436a73275aa0e723f359e72ef7ef56f6d8a9ef623a4a378f62a6de",
+  "failureSha256": "65cecf3b9c264ff0a9d6ae33445de0c1ef988c339b0c596c3360e9ca84e01b23",
+  "beforeSha256": "86ef9c8161b1b856ddb226a206b6e720d5c9286ecf95b57c0692dd48c7b5a219",
+  "error": "Error: 身体または荷物が土に触れる移動を停止しました"
+}

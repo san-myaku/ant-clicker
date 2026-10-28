@@ -1,0 +1,62 @@
+{
+  "pass": true,
+  "source": {
+    "game.js": "66fe1b1573993e07fb2ee88eeb06b0fc0a1fad8b2e6057c4168463dff2218f3d",
+    "core.js": "9b779fd0f25deed86efd9cdce0f965604d999495bfebe2c7265d227424b38c45",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "build.cjs": "177cc1baa7a8a84e50d48bdaaea0c9397237ce9dab82720467a9a840ea44bb6e",
+    "verify-traffic-work.cjs": "63405a9de97d745ac1f1f27b43ccdcdaf3d6cb3f463a9154b1affd56293a2b35",
+    "qa/pop512-20261027/before-optimization/game.js": "4734964bc21ddf7bad5a3557650ee606b5b466a593675860dc7159f7a69a9e4a",
+    "qa/pop512-20261027/before-optimization/core.js": "c873a478cace730dd84ae13111832539229cfc1f3ef8b03119f287a980fea8f8",
+    "qa/pop512-20261027/before-optimization/lifecycle.js": "c8c93dd72d17607a85ab9420edfc939e78803fd520d3333ee53a397939641301"
+  },
+  "inputs": {
+    "world-900.json": "bfb9fbafee2e76b4a6f4e4aec8b97def004a8e9c8ed12a07ebed1c2a000860da",
+    "before-512.json": "524443b0e8436a73275aa0e723f359e72ef7ef56f6d8a9ef623a4a378f62a6de",
+    "head-on-retreat.json": "f7b76e9316a23fdef8315b2bb3ee3f622cf5048c58505f51aded32fdbe5e0c81",
+    "raid-stuck-loot.json": "6997ce7ce6935b2e60cb45a5321a09a00ebd303b9268e9d4a15ab8ad76f7eb6e",
+    "world-512.json": "2b43a65e181bd53635770d12888a93415febd059755e23a001b90f657b6fb1d0"
+  },
+  "results": [
+    {
+      "name": "world-900.json",
+      "pass": true,
+      "steps": 600,
+      "neckQueries": 40,
+      "oldMsPerStep": 10.083063166666651,
+      "newMsPerStep": 10.362590499999975
+    },
+    {
+      "name": "before-512.json",
+      "pass": true,
+      "steps": 600,
+      "neckQueries": 365,
+      "oldMsPerStep": 59.42617733333295,
+      "newMsPerStep": 48.385628833332774
+    },
+    {
+      "name": "head-on-retreat.json",
+      "pass": true,
+      "steps": 600,
+      "neckQueries": 160,
+      "oldMsPerStep": 7.095486166667033,
+      "newMsPerStep": 7.173348333332469
+    },
+    {
+      "name": "raid-stuck-loot.json",
+      "pass": true,
+      "steps": 600,
+      "neckQueries": 140,
+      "oldMsPerStep": 10.450269166666597,
+      "newMsPerStep": 10.302882000000002
+    },
+    {
+      "name": "world-512.json",
+      "pass": true,
+      "steps": 300,
+      "neckQueries": 795,
+      "oldMsPerStep": 71.591683,
+      "newMsPerStep": 68.64811033333399
+    }
+  ]
+}

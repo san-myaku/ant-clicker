@@ -1,0 +1,39 @@
+{
+  "pass": true,
+  "source": {
+    "game.js": "4734964bc21ddf7bad5a3557650ee606b5b466a593675860dc7159f7a69a9e4a",
+    "core.js": "6ef879b37b84e72a97066b8f9f0fb8064ff2b5d718e1c45158437356964105a8",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "build.cjs": "c37d481d3f9a27f4be6bb791ca353f658c43971f511a43f41f79b81fd5960294"
+  },
+  "results": [
+    {
+      "name": "world-900.json",
+      "steps": 600,
+      "oldMsPerStep": 3.1582261666666698,
+      "newMsPerStep": 3.0248180000000064,
+      "same": true
+    },
+    {
+      "name": "before-512.json",
+      "steps": 1800,
+      "oldMsPerStep": 22.329325611111056,
+      "newMsPerStep": 16.68857738888882,
+      "same": true
+    },
+    {
+      "name": "head-on-retreat.json",
+      "steps": 600,
+      "oldMsPerStep": 8.22425483333347,
+      "newMsPerStep": 8.246867666666706,
+      "same": true
+    },
+    {
+      "name": "raid-stuck-loot.json",
+      "steps": 600,
+      "oldMsPerStep": 8.67597849999991,
+      "newMsPerStep": 8.668275333333538,
+      "same": true
+    }
+  ]
+}

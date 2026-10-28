@@ -1,0 +1,157 @@
+{
+  "source": {
+    "game.js": "4734964bc21ddf7bad5a3557650ee606b5b466a593675860dc7159f7a69a9e4a",
+    "core.js": "5f119dda32daeee0b18ea7e6e7d031255338163220a90b71e071d9ba3c2aad08",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0"
+  },
+  "elapsedMs": 14690.5192,
+  "steps": 1200,
+  "msPerStep": 12.242099333333334,
+  "totalSamples": 9265,
+  "rows": [
+    {
+      "name": "",
+      "url": "core.js",
+      "line": 1474,
+      "samples": 364
+    },
+    {
+      "name": "tick",
+      "url": "core.js",
+      "line": 1531,
+      "samples": 349
+    },
+    {
+      "name": "storageDestination",
+      "url": "core.js",
+      "line": 796,
+      "samples": 343
+    },
+    {
+      "name": "(garbage collector)",
+      "url": "",
+      "line": 0,
+      "samples": 286
+    },
+    {
+      "name": "storageDestination",
+      "url": "core.js",
+      "line": 796,
+      "samples": 281
+    },
+    {
+      "name": "storageDrop",
+      "url": "core.js",
+      "line": 777,
+      "samples": 245
+    },
+    {
+      "name": "storageDrop",
+      "url": "core.js",
+      "line": 777,
+      "samples": 244
+    },
+    {
+      "name": "move",
+      "url": "core.js",
+      "line": 1459,
+      "samples": 237
+    },
+    {
+      "name": "query",
+      "url": "core.js",
+      "line": 360,
+      "samples": 229
+    },
+    {
+      "name": "poseClear",
+      "url": "core.js",
+      "line": 882,
+      "samples": 218
+    },
+    {
+      "name": "poseClear",
+      "url": "core.js",
+      "line": 882,
+      "samples": 180
+    },
+    {
+      "name": "poseClear",
+      "url": "core.js",
+      "line": 882,
+      "samples": 145
+    },
+    {
+      "name": "poseClear",
+      "url": "core.js",
+      "line": 882,
+      "samples": 131
+    },
+    {
+      "name": "poseClear",
+      "url": "core.js",
+      "line": 882,
+      "samples": 123
+    },
+    {
+      "name": "singleFileSection",
+      "url": "core.js",
+      "line": 1434,
+      "samples": 121
+    },
+    {
+      "name": "poseClear",
+      "url": "core.js",
+      "line": 882,
+      "samples": 116
+    },
+    {
+      "name": "",
+      "url": "core.js",
+      "line": 790,
+      "samples": 111
+    },
+    {
+      "name": "stepItemTask",
+      "url": "core.js",
+      "line": 814,
+      "samples": 107
+    },
+    {
+      "name": "poseClear",
+      "url": "core.js",
+      "line": 882,
+      "samples": 103
+    },
+    {
+      "name": "tick",
+      "url": "lifecycle.js",
+      "line": 174,
+      "samples": 102
+    },
+    {
+      "name": "",
+      "url": "core.js",
+      "line": 790,
+      "samples": 92
+    },
+    {
+      "name": "storageDestination",
+      "url": "core.js",
+      "line": 796,
+      "samples": 91
+    },
+    {
+      "name": "poseClear",
+      "url": "core.js",
+      "line": 882,
+      "samples": 91
+    },
+    {
+      "name": "updateCarriers",
+      "url": "core.js",
+      "line": 724,
+      "samples": 90
+    }
+  ]
+}

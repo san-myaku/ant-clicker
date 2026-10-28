@@ -1,0 +1,77 @@
+{
+  "pass": true,
+  "source": {
+    "game.js": "763c181eb8e8e8a3770178b8f72c3092043c101994a82959a3b210be69340644",
+    "core.js": "c7d73a8f8f662b4a20d6b17803e0040d816e1422edf2604d08b7f25706982582",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0"
+  },
+  "candidateGameSha256": "cbe6b561df6ccf97cbdbd3b9bb26803462738928abe33140c202e30da268d84d",
+  "results": [
+    {
+      "name": "world-900.json",
+      "pass": true,
+      "inputSha256": "bfb9fbafee2e76b4a6f4e4aec8b97def004a8e9c8ed12a07ebed1c2a000860da",
+      "steps": 600,
+      "oldMsPerStep": 1.678139500000006,
+      "newMsPerStep": 1.64424700000002
+    },
+    {
+      "name": "world-256.json",
+      "pass": true,
+      "inputSha256": "ea79db5a2a5488c62871365f122f27b154ea186a8e09f9c7af93d2242fd0d23d",
+      "steps": 600,
+      "oldMsPerStep": 7.52901366666653,
+      "newMsPerStep": 7.1739698333332
+    },
+    {
+      "name": "before-512.json",
+      "pass": true,
+      "inputSha256": "524443b0e8436a73275aa0e723f359e72ef7ef56f6d8a9ef623a4a378f62a6de",
+      "steps": 600,
+      "oldMsPerStep": 17.28318983333315,
+      "newMsPerStep": 17.36281433333336
+    },
+    {
+      "name": "housing-512-pressure.json",
+      "pass": true,
+      "inputSha256": "c12a0d8aedddcfe10355ae944227bf2195ba0c16381aca38e2e3949c58ad6cd3",
+      "steps": 600,
+      "oldMsPerStep": 20.051666166666596,
+      "newMsPerStep": 19.16346949999963
+    },
+    {
+      "name": "raid-stuck-loot.json",
+      "pass": true,
+      "inputSha256": "6997ce7ce6935b2e60cb45a5321a09a00ebd303b9268e9d4a15ab8ad76f7eb6e",
+      "steps": 600,
+      "oldMsPerStep": 2.124976000000558,
+      "newMsPerStep": 2.121433833332606
+    },
+    {
+      "name": "retreat-turnback-64.json",
+      "pass": true,
+      "inputSha256": "54d0a3ac4d32f5227d2ef5d1718438c64f62a907c35eb9f33cfbdaab52575b92",
+      "steps": 600,
+      "oldMsPerStep": 5.4440046666674125,
+      "newMsPerStep": 5.45353883333286
+    },
+    {
+      "name": "world-512.json",
+      "pass": true,
+      "inputSha256": "2b43a65e181bd53635770d12888a93415febd059755e23a001b90f657b6fb1d0",
+      "steps": 600,
+      "oldMsPerStep": 27.38293866666713,
+      "newMsPerStep": 25.720821166666816
+    },
+    {
+      "name": "pop512-20261027/active512-post-turnback-input.json",
+      "pass": true,
+      "inputSha256": "02b55685ce47e5bbd6eee41dbb423ac316a5753f8581f2909660e9d9186016c6",
+      "steps": 600,
+      "oldMsPerStep": 16.4065511666671,
+      "newMsPerStep": 14.872446333332045
+    }
+  ],
+  "helper": "    roomsOfKind(kind){\n      // Room identities and kinds are append-only during gameplay. A restored\n      // colony has a new array. Do not memoize transport or reservation results.\n      let cache=this._roomsByKind;if(cache?.rooms!==this.rooms||cache?.length!==this.rooms.length){\n        const kinds=new Map();for(const rid of this.roomIds()){const k=this.roomKind(rid);if(!kinds.has(k))kinds.set(k,[]);kinds.get(k).push(rid);}\n        for(const list of kinds.values())Object.freeze(list);cache=this._roomsByKind={rooms:this.rooms,length:this.rooms.length,kinds};\n      }return cache.kinds.get(kind)||[];\n    }\n",
+  "note": "退避/地表修正後の隔離コピー。自然512匹検証と並走した参考比較。固定8入力、各準備120コマ+600コマの全保存バイト一致。部屋の分類だけを共有し、通行可否/空き/予約は都度評価。未採用で最終30本の実装ではない。"
+}

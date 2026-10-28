@@ -1,0 +1,1350 @@
+{
+  "pass": true,
+  "began": 10677.999999928763,
+  "reached": 13428.99999988873,
+  "finished": 17062.99999983585,
+  "ants": 512,
+  "peakBrood": 22,
+  "wideCarrier": {
+    "time": 12778.99999989819,
+    "id": 17926,
+    "carrier": 536,
+    "kind": "soil"
+  },
+  "initial": {
+    "ants": 256,
+    "laid": 241,
+    "born": 244,
+    "eaten": 488,
+    "generated": 962,
+    "gathered": 958,
+    "dug": 11215,
+    "delivered": 11205,
+    "died": 0,
+    "raidLost": 0
+  },
+  "final": {
+    "laid": 497,
+    "born": 500,
+    "eaten": 1000,
+    "generated": 1908,
+    "gathered": 1903,
+    "dug": 23960,
+    "delivered": 23905,
+    "crowded": 4,
+    "died": 0,
+    "raidLost": 0
+  },
+  "storage": {
+    "jsonBytes": 5392782,
+    "rawCharacters": 5391604,
+    "storedCharacters": 1324295
+  },
+  "samples": [
+    {
+      "time": 10678.999999928748,
+      "wallSeconds": 12.324921400000001,
+      "ants": 256,
+      "brood": 0,
+      "stock": 93,
+      "crowded": 0,
+      "rooms": 15,
+      "capacity": {
+        "larvae": 92,
+        "food": 310
+      },
+      "dug": 11216,
+      "delivered": 11205,
+      "care": {
+        "stamp": "640740:23353:241:244:488:206:963:0:0:256:1523:0:0:57:0:3",
+        "limit": 64,
+        "nursery": 92.0625,
+        "nurses": 85,
+        "meals": 0,
+        "food": 93
+      },
+      "incidents": []
+    },
+    {
+      "time": 10798.999999927002,
+      "wallSeconds": 91.1553718,
+      "ants": 256,
+      "brood": 12,
+      "stock": 227,
+      "crowded": 0,
+      "rooms": 15,
+      "capacity": {
+        "larvae": 92,
+        "food": 310
+      },
+      "dug": 11290,
+      "delivered": 11273,
+      "care": {
+        "stamp": "647940:23504:253:244:498:206:996:0:12:256:1584:0:0:57:0:3",
+        "limit": 64,
+        "nursery": 92.0625,
+        "nurses": 85,
+        "meals": 11,
+        "food": 227
+      },
+      "incidents": []
+    },
+    {
+      "time": 10918.999999925256,
+      "wallSeconds": 153.83031480000002,
+      "ants": 260,
+      "brood": 20,
+      "stock": 261,
+      "crowded": 0,
+      "rooms": 15,
+      "capacity": {
+        "larvae": 92,
+        "food": 310
+      },
+      "dug": 11394,
+      "delivered": 11381,
+      "care": {
+        "stamp": "655140:23718:265:248:521:206:1050:0:20:260:1683:0:0:57:0:3",
+        "limit": 64,
+        "nursery": 92.0625,
+        "nurses": 87,
+        "meals": 12,
+        "food": 261
+      },
+      "incidents": []
+    },
+    {
+      "time": 11038.99999992351,
+      "wallSeconds": 213.02746670000002,
+      "ants": 272,
+      "brood": 20,
+      "stock": 291,
+      "crowded": 0,
+      "rooms": 15,
+      "capacity": {
+        "larvae": 92,
+        "food": 310
+      },
+      "dug": 11461,
+      "delivered": 11448,
+      "care": {
+        "stamp": "662340:23883:277:260:544:206:1107:0:20:272:1757:0:0:57:0:3",
+        "limit": 64,
+        "nursery": 92.0625,
+        "nurses": 91,
+        "meals": 13,
+        "food": 291
+      },
+      "incidents": []
+    },
+    {
+      "time": 11158.999999921763,
+      "wallSeconds": 279.497493,
+      "ants": 283,
+      "brood": 21,
+      "stock": 329,
+      "crowded": 11,
+      "rooms": 15,
+      "capacity": {
+        "larvae": 92,
+        "food": 310
+      },
+      "dug": 11536,
+      "delivered": 11521,
+      "care": {
+        "stamp": "669540:24055:289:271:571:206:1168:0:21:283:1849:0:0:57:0:3",
+        "limit": 64,
+        "nursery": 92.0625,
+        "nurses": 94,
+        "meals": 11,
+        "food": 329
+      },
+      "incidents": []
+    },
+    {
+      "time": 11278.999999920017,
+      "wallSeconds": 352.23462670000004,
+      "ants": 296,
+      "brood": 20,
+      "stock": 342,
+      "crowded": 28,
+      "rooms": 16,
+      "capacity": {
+        "larvae": 92,
+        "food": 310
+      },
+      "dug": 11643,
+      "delivered": 11629,
+      "care": {
+        "stamp": "676740:24270:301:284:592:206:1209:0:20:296:1885:0:0:57:0:3",
+        "limit": 64,
+        "nursery": 92.0625,
+        "nurses": 99,
+        "meals": 13,
+        "food": 342
+      },
+      "incidents": []
+    },
+    {
+      "time": 11398.999999918271,
+      "wallSeconds": 432.7588244,
+      "ants": 307,
+      "brood": 21,
+      "stock": 351,
+      "crowded": 37,
+      "rooms": 17,
+      "capacity": {
+        "larvae": 92,
+        "food": 324
+      },
+      "dug": 11814,
+      "delivered": 11778,
+      "care": {
+        "stamp": "683940:24582:313:295:619:206:1250:0:21:307:1946:0:0:57:0:3",
+        "limit": 64,
+        "nursery": 92.0625,
+        "nurses": 102,
+        "meals": 11,
+        "food": 351
+      },
+      "incidents": []
+    },
+    {
+      "time": 11518.999999916525,
+      "wallSeconds": 526.1688214999999,
+      "ants": 321,
+      "brood": 19,
+      "stock": 380,
+      "crowded": 49,
+      "rooms": 17,
+      "capacity": {
+        "larvae": 92,
+        "food": 333
+      },
+      "dug": 11992,
+      "delivered": 11965,
+      "care": {
+        "stamp": "691140:24941:325:309:642:206:1289:0:19:321:1948:0:0:57:0:3",
+        "limit": 64,
+        "nursery": 92.0625,
+        "nurses": 107,
+        "meals": 12,
+        "food": 380
+      },
+      "incidents": []
+    },
+    {
+      "time": 11638.999999914779,
+      "wallSeconds": 620.3742768,
+      "ants": 332,
+      "brood": 20,
+      "stock": 393,
+      "crowded": 60,
+      "rooms": 18,
+      "capacity": {
+        "larvae": 92,
+        "food": 341
+      },
+      "dug": 12172,
+      "delivered": 12136,
+      "care": {
+        "stamp": "698340:25310:337:320:667:206:1329:0:20:332:2001:0:0:57:0:3",
+        "limit": 64,
+        "nursery": 92.0625,
+        "nurses": 111,
+        "meals": 12,
+        "food": 393
+      },
+      "incidents": []
+    },
+    {
+      "time": 11758.999999913032,
+      "wallSeconds": 723.0480595,
+      "ants": 344,
+      "brood": 20,
+      "stock": 401,
+      "crowded": 69,
+      "rooms": 18,
+      "capacity": {
+        "larvae": 92,
+        "food": 349
+      },
+      "dug": 12402,
+      "delivered": 12358,
+      "care": {
+        "stamp": "705540:25775:349:332:691:206:1366:0:20:344:2070:0:0:57:0:3",
+        "limit": 64,
+        "nursery": 92.0625,
+        "nurses": 115,
+        "meals": 11,
+        "food": 401
+      },
+      "incidents": []
+    },
+    {
+      "time": 11878.999999911286,
+      "wallSeconds": 841.6551898,
+      "ants": 357,
+      "brood": 19,
+      "stock": 421,
+      "crowded": 78,
+      "rooms": 18,
+      "capacity": {
+        "larvae": 92,
+        "food": 357
+      },
+      "dug": 12605,
+      "delivered": 12566,
+      "care": {
+        "stamp": "712740:26188:361:345:716:206:1404:0:19:357:2073:0:0:57:0:3",
+        "limit": 64,
+        "nursery": 92.0625,
+        "nurses": 119,
+        "meals": 12,
+        "food": 421
+      },
+      "incidents": []
+    },
+    {
+      "time": 11998.99999990954,
+      "wallSeconds": 953.9290485,
+      "ants": 368,
+      "brood": 20,
+      "stock": 438,
+      "crowded": 88,
+      "rooms": 18,
+      "capacity": {
+        "larvae": 92,
+        "food": 366
+      },
+      "dug": 12797,
+      "delivered": 12768,
+      "care": {
+        "stamp": "719940:26588:373:356:737:206:1443:0:20:368:2123:0:0:57:0:3",
+        "limit": 64,
+        "nursery": 92.0625,
+        "nurses": 123,
+        "meals": 11,
+        "food": 438
+      },
+      "incidents": []
+    },
+    {
+      "time": 12118.999999907794,
+      "wallSeconds": 1074.4054193,
+      "ants": 381,
+      "brood": 19,
+      "stock": 446,
+      "crowded": 98,
+      "rooms": 19,
+      "capacity": {
+        "larvae": 92,
+        "food": 373
+      },
+      "dug": 13033,
+      "delivered": 13000,
+      "care": {
+        "stamp": "727140:27052:385:369:762:206:1479:0:19:381:2180:0:0:57:0:3",
+        "limit": 64,
+        "nursery": 92.0625,
+        "nurses": 127,
+        "meals": 11,
+        "food": 446
+      },
+      "incidents": []
+    },
+    {
+      "time": 12238.999999906047,
+      "wallSeconds": 1191.8705183000002,
+      "ants": 393,
+      "brood": 19,
+      "stock": 464,
+      "crowded": 103,
+      "rooms": 21,
+      "capacity": {
+        "larvae": 100,
+        "food": 375
+      },
+      "dug": 13239,
+      "delivered": 13202,
+      "care": {
+        "stamp": "734340:27525:397:381:786:206:1519:0:19:393:2204:0:0:57:0:3",
+        "limit": 64,
+        "nursery": 92.0625,
+        "nurses": 131,
+        "meals": 12,
+        "food": 464
+      },
+      "incidents": []
+    },
+    {
+      "time": 12358.999999904301,
+      "wallSeconds": 1304.8240107,
+      "ants": 405,
+      "brood": 19,
+      "stock": 472,
+      "crowded": 114,
+      "rooms": 21,
+      "capacity": {
+        "larvae": 103,
+        "food": 375
+      },
+      "dug": 13463,
+      "delivered": 13432,
+      "care": {
+        "stamp": "741540:27996:409:393:810:206:1556:0:19:405:2282:0:0:57:0:3",
+        "limit": 64,
+        "nursery": 103.25,
+        "nurses": 135,
+        "meals": 12,
+        "food": 472
+      },
+      "incidents": []
+    },
+    {
+      "time": 12478.999999902555,
+      "wallSeconds": 1442.5025181,
+      "ants": 417,
+      "brood": 19,
+      "stock": 499,
+      "crowded": 123,
+      "rooms": 23,
+      "capacity": {
+        "larvae": 105,
+        "food": 375
+      },
+      "dug": 13737,
+      "delivered": 13703,
+      "care": {
+        "stamp": "748740:28515:421:405:836:206:1598:0:19:417:2339:0:0:57:0:3",
+        "limit": 64,
+        "nursery": 105.5,
+        "nurses": 139,
+        "meals": 11,
+        "food": 499
+      },
+      "incidents": []
+    },
+    {
+      "time": 12598.999999900809,
+      "wallSeconds": 1590.5785738,
+      "ants": 429,
+      "brood": 19,
+      "stock": 513,
+      "crowded": 128,
+      "rooms": 23,
+      "capacity": {
+        "larvae": 110,
+        "food": 375
+      },
+      "dug": 14079,
+      "delivered": 14020,
+      "care": {
+        "stamp": "755940:29174:433:417:858:206:1636:0:19:429:2413:0:0:57:0:3",
+        "limit": 64,
+        "nursery": 110,
+        "nurses": 143,
+        "meals": 12,
+        "food": 513
+      },
+      "incidents": []
+    },
+    {
+      "time": 12718.999999899062,
+      "wallSeconds": 1731.7829789,
+      "ants": 440,
+      "brood": 20,
+      "stock": 524,
+      "crowded": 134,
+      "rooms": 23,
+      "capacity": {
+        "larvae": 110,
+        "food": 375
+      },
+      "dug": 14312,
+      "delivered": 14285,
+      "care": {
+        "stamp": "763140:29655:445:428:883:206:1671:0:20:440:2474:0:0:57:0:3",
+        "limit": 64,
+        "nursery": 110.1875,
+        "nurses": 147,
+        "meals": 11,
+        "food": 524
+      },
+      "incidents": []
+    },
+    {
+      "time": 12838.999999897316,
+      "wallSeconds": 1897.297354,
+      "ants": 454,
+      "brood": 18,
+      "stock": 534,
+      "crowded": 139,
+      "rooms": 24,
+      "capacity": {
+        "larvae": 110,
+        "food": 375
+      },
+      "dug": 14569,
+      "delivered": 14529,
+      "care": {
+        "stamp": "770340:30194:457:442:906:206:1710:0:18:454:2580:0:0:57:0:3",
+        "limit": 64,
+        "nursery": 110.1875,
+        "nurses": 151,
+        "meals": 12,
+        "food": 534
+      },
+      "incidents": []
+    },
+    {
+      "time": 12958.99999989557,
+      "wallSeconds": 2071.709436,
+      "ants": 465,
+      "brood": 19,
+      "stock": 546,
+      "crowded": 143,
+      "rooms": 24,
+      "capacity": {
+        "larvae": 110,
+        "food": 375
+      },
+      "dug": 14859,
+      "delivered": 14806,
+      "care": {
+        "stamp": "777540:30829:469:453:931:206:1752:0:19:465:2616:0:0:63:0:3",
+        "limit": 64,
+        "nursery": 110.25,
+        "nurses": 155,
+        "meals": 10,
+        "food": 546
+      },
+      "incidents": []
+    },
+    {
+      "time": 13078.999999893824,
+      "wallSeconds": 2250.8084981,
+      "ants": 477,
+      "brood": 19,
+      "stock": 566,
+      "crowded": 150,
+      "rooms": 25,
+      "capacity": {
+        "larvae": 110,
+        "food": 375
+      },
+      "dug": 15128,
+      "delivered": 15075,
+      "care": {
+        "stamp": "784740:31375:481:465:952:206:1793:0:19:477:2701:0:0:63:0:3",
+        "limit": 64,
+        "nursery": 110.25,
+        "nurses": 159,
+        "meals": 11,
+        "food": 566
+      },
+      "incidents": []
+    },
+    {
+      "time": 13198.999999892078,
+      "wallSeconds": 2420.9642307,
+      "ants": 489,
+      "brood": 19,
+      "stock": 575,
+      "crowded": 160,
+      "rooms": 25,
+      "capacity": {
+        "larvae": 110,
+        "food": 375
+      },
+      "dug": 15406,
+      "delivered": 15380,
+      "care": {
+        "stamp": "791940:31933:493:477:980:206:1833:0:19:489:2781:0:0:63:0:3",
+        "limit": 64,
+        "nursery": 110.25,
+        "nurses": 163,
+        "meals": 10,
+        "food": 575
+      },
+      "incidents": []
+    },
+    {
+      "time": 13318.999999890331,
+      "wallSeconds": 2583.3648603999995,
+      "ants": 501,
+      "brood": 11,
+      "stock": 600,
+      "crowded": 168,
+      "rooms": 25,
+      "capacity": {
+        "larvae": 110,
+        "food": 375
+      },
+      "dug": 15624,
+      "delivered": 15590,
+      "care": {
+        "stamp": "799140:32356:497:489:999:206:1871:0:11:501:2789:0:0:63:0:3",
+        "limit": 64,
+        "nursery": 110.25,
+        "nurses": 167,
+        "meals": 0,
+        "food": 600
+      },
+      "incidents": []
+    },
+    {
+      "time": 13438.999999888585,
+      "wallSeconds": 2726.6720116999995,
+      "ants": 512,
+      "brood": 0,
+      "stock": 614,
+      "crowded": 176,
+      "rooms": 25,
+      "capacity": {
+        "larvae": 110,
+        "food": 375
+      },
+      "dug": 15834,
+      "delivered": 15803,
+      "care": {
+        "stamp": "806340:32794:497:500:1000:206:1884:0:0:512:2816:0:0:63:0:3",
+        "limit": 64,
+        "nursery": 110.25,
+        "nurses": 171,
+        "meals": 0,
+        "food": 614
+      },
+      "incidents": []
+    },
+    {
+      "time": 13558.999999886839,
+      "wallSeconds": 2883.6537528999997,
+      "ants": 512,
+      "brood": 0,
+      "stock": 619,
+      "crowded": 170,
+      "rooms": 26,
+      "capacity": {
+        "larvae": 110,
+        "food": 375
+      },
+      "dug": 16114,
+      "delivered": 16074,
+      "care": {
+        "stamp": "813540:33381:497:500:1000:206:1887:0:0:512:2971:0:0:63:0:3",
+        "limit": 64,
+        "nursery": 110.25,
+        "nurses": 171,
+        "meals": 0,
+        "food": 619
+      },
+      "incidents": []
+    },
+    {
+      "time": 13678.999999885093,
+      "wallSeconds": 3045.6326295,
+      "ants": 512,
+      "brood": 0,
+      "stock": 618,
+      "crowded": 167,
+      "rooms": 26,
+      "capacity": {
+        "larvae": 110,
+        "food": 375
+      },
+      "dug": 16401,
+      "delivered": 16362,
+      "care": {
+        "stamp": "820740:33965:497:500:1000:206:1892:0:0:512:3029:0:0:69:0:3",
+        "limit": 64,
+        "nursery": 110.25,
+        "nurses": 171,
+        "meals": 0,
+        "food": 618
+      },
+      "incidents": []
+    },
+    {
+      "time": 13798.999999883346,
+      "wallSeconds": 3200.3027926,
+      "ants": 512,
+      "brood": 0,
+      "stock": 618,
+      "crowded": 160,
+      "rooms": 27,
+      "capacity": {
+        "larvae": 110,
+        "food": 375
+      },
+      "dug": 16746,
+      "delivered": 16689,
+      "care": {
+        "stamp": "827940:34655:497:500:1000:206:1892:0:0:512:3116:0:0:69:0:3",
+        "limit": 64,
+        "nursery": 110.3125,
+        "nurses": 171,
+        "meals": 0,
+        "food": 618
+      },
+      "incidents": []
+    },
+    {
+      "time": 13918.9999998816,
+      "wallSeconds": 3354.1405972,
+      "ants": 512,
+      "brood": 0,
+      "stock": 618,
+      "crowded": 154,
+      "rooms": 27,
+      "capacity": {
+        "larvae": 110,
+        "food": 375
+      },
+      "dug": 17018,
+      "delivered": 16990,
+      "care": {
+        "stamp": "835140:35269:497:500:1000:206:1892:0:0:512:3304:0:0:69:0:3",
+        "limit": 64,
+        "nursery": 110.3125,
+        "nurses": 171,
+        "meals": 0,
+        "food": 618
+      },
+      "incidents": []
+    },
+    {
+      "time": 14038.999999879854,
+      "wallSeconds": 3497.1611426,
+      "ants": 512,
+      "brood": 0,
+      "stock": 618,
+      "crowded": 149,
+      "rooms": 27,
+      "capacity": {
+        "larvae": 110,
+        "food": 375
+      },
+      "dug": 17223,
+      "delivered": 17186,
+      "care": {
+        "stamp": "842340:35705:497:500:1000:206:1892:0:0:512:3382:0:0:69:0:3",
+        "limit": 64,
+        "nursery": 110.3125,
+        "nurses": 171,
+        "meals": 0,
+        "food": 618
+      },
+      "incidents": []
+    },
+    {
+      "time": 14158.999999878108,
+      "wallSeconds": 3652.8875067999998,
+      "ants": 512,
+      "brood": 0,
+      "stock": 618,
+      "crowded": 147,
+      "rooms": 28,
+      "capacity": {
+        "larvae": 110,
+        "food": 375
+      },
+      "dug": 17465,
+      "delivered": 17424,
+      "care": {
+        "stamp": "849540:36194:497:500:1000:206:1892:0:0:512:3513:0:0:69:0:3",
+        "limit": 64,
+        "nursery": 110.3125,
+        "nurses": 171,
+        "meals": 0,
+        "food": 618
+      },
+      "incidents": []
+    },
+    {
+      "time": 14278.999999876361,
+      "wallSeconds": 3820.8843570999998,
+      "ants": 512,
+      "brood": 0,
+      "stock": 618,
+      "crowded": 140,
+      "rooms": 28,
+      "capacity": {
+        "larvae": 110,
+        "food": 375
+      },
+      "dug": 17717,
+      "delivered": 17692,
+      "care": {
+        "stamp": "856740:36720:497:500:1000:206:1892:0:0:512:3542:0:0:69:0:3",
+        "limit": 64,
+        "nursery": 110.3125,
+        "nurses": 171,
+        "meals": 0,
+        "food": 618
+      },
+      "incidents": []
+    },
+    {
+      "time": 14398.999999874615,
+      "wallSeconds": 3992.0268499999997,
+      "ants": 512,
+      "brood": 0,
+      "stock": 617,
+      "crowded": 134,
+      "rooms": 28,
+      "capacity": {
+        "larvae": 110,
+        "food": 375
+      },
+      "dug": 17993,
+      "delivered": 17955,
+      "care": {
+        "stamp": "863940:37303:497:500:1000:206:1897:0:0:512:3680:0:0:75:0:3",
+        "limit": 64,
+        "nursery": 110.3125,
+        "nurses": 171,
+        "meals": 0,
+        "food": 617
+      },
+      "incidents": []
+    },
+    {
+      "time": 14518.999999872869,
+      "wallSeconds": 4170.6225687,
+      "ants": 512,
+      "brood": 0,
+      "stock": 617,
+      "crowded": 130,
+      "rooms": 28,
+      "capacity": {
+        "larvae": 110,
+        "food": 375
+      },
+      "dug": 18285,
+      "delivered": 18245,
+      "care": {
+        "stamp": "871140:37938:497:500:1000:206:1897:0:0:512:3849:0:0:75:0:3",
+        "limit": 64,
+        "nursery": 110.3125,
+        "nurses": 171,
+        "meals": 0,
+        "food": 617
+      },
+      "incidents": []
+    },
+    {
+      "time": 14638.999999871123,
+      "wallSeconds": 4355.1680493,
+      "ants": 512,
+      "brood": 0,
+      "stock": 617,
+      "crowded": 124,
+      "rooms": 29,
+      "capacity": {
+        "larvae": 110,
+        "food": 375
+      },
+      "dug": 18585,
+      "delivered": 18537,
+      "care": {
+        "stamp": "878340:38585:497:500:1000:206:1897:0:0:512:4098:0:0:75:0:3",
+        "limit": 64,
+        "nursery": 110.3125,
+        "nurses": 171,
+        "meals": 0,
+        "food": 617
+      },
+      "incidents": []
+    },
+    {
+      "time": 14758.999999869377,
+      "wallSeconds": 4563.9318687,
+      "ants": 512,
+      "brood": 0,
+      "stock": 617,
+      "crowded": 119,
+      "rooms": 29,
+      "capacity": {
+        "larvae": 110,
+        "food": 375
+      },
+      "dug": 18868,
+      "delivered": 18818,
+      "care": {
+        "stamp": "885540:39219:497:500:1000:206:1897:0:0:512:4210:0:0:75:0:3",
+        "limit": 64,
+        "nursery": 110.3125,
+        "nurses": 171,
+        "meals": 0,
+        "food": 617
+      },
+      "incidents": []
+    },
+    {
+      "time": 14878.99999986763,
+      "wallSeconds": 4769.068028,
+      "ants": 512,
+      "brood": 0,
+      "stock": 617,
+      "crowded": 113,
+      "rooms": 29,
+      "capacity": {
+        "larvae": 110,
+        "food": 375
+      },
+      "dug": 19113,
+      "delivered": 19085,
+      "care": {
+        "stamp": "892740:39725:497:500:1000:206:1897:0:0:512:4274:0:0:75:0:3",
+        "limit": 64,
+        "nursery": 110.3125,
+        "nurses": 171,
+        "meals": 0,
+        "food": 617
+      },
+      "incidents": []
+    },
+    {
+      "time": 14998.999999865884,
+      "wallSeconds": 4961.2500386,
+      "ants": 512,
+      "brood": 0,
+      "stock": 617,
+      "crowded": 111,
+      "rooms": 30,
+      "capacity": {
+        "larvae": 110,
+        "food": 375
+      },
+      "dug": 19288,
+      "delivered": 19260,
+      "care": {
+        "stamp": "899940:40060:497:500:1000:206:1897:0:0:512:4364:0:0:75:0:3",
+        "limit": 64,
+        "nursery": 110.3125,
+        "nurses": 171,
+        "meals": 0,
+        "food": 617
+      },
+      "incidents": []
+    },
+    {
+      "time": 15118.999999864138,
+      "wallSeconds": 5144.8337994,
+      "ants": 512,
+      "brood": 0,
+      "stock": 616,
+      "crowded": 109,
+      "rooms": 30,
+      "capacity": {
+        "larvae": 110,
+        "food": 375
+      },
+      "dug": 19446,
+      "delivered": 19420,
+      "care": {
+        "stamp": "907140:40373:497:500:1000:206:1902:0:0:512:4474:0:0:81:0:3",
+        "limit": 64,
+        "nursery": 110.3125,
+        "nurses": 171,
+        "meals": 0,
+        "food": 616
+      },
+      "incidents": []
+    },
+    {
+      "time": 15238.999999862392,
+      "wallSeconds": 5342.8255963,
+      "ants": 512,
+      "brood": 0,
+      "stock": 616,
+      "crowded": 105,
+      "rooms": 30,
+      "capacity": {
+        "larvae": 110,
+        "food": 375
+      },
+      "dug": 19662,
+      "delivered": 19627,
+      "care": {
+        "stamp": "914340:40808:497:500:1000:206:1902:0:0:512:4594:0:0:81:0:3",
+        "limit": 64,
+        "nursery": 110.3125,
+        "nurses": 171,
+        "meals": 0,
+        "food": 616
+      },
+      "incidents": []
+    },
+    {
+      "time": 15358.999999860645,
+      "wallSeconds": 5553.4860641000005,
+      "ants": 512,
+      "brood": 0,
+      "stock": 616,
+      "crowded": 102,
+      "rooms": 30,
+      "capacity": {
+        "larvae": 110,
+        "food": 375
+      },
+      "dug": 19876,
+      "delivered": 19855,
+      "care": {
+        "stamp": "921540:41244:497:500:1000:206:1902:0:0:512:4707:0:0:81:0:3",
+        "limit": 64,
+        "nursery": 110.3125,
+        "nurses": 171,
+        "meals": 0,
+        "food": 616
+      },
+      "incidents": []
+    },
+    {
+      "time": 15478.9999998589,
+      "wallSeconds": 5787.941375300001,
+      "ants": 512,
+      "brood": 0,
+      "stock": 616,
+      "crowded": 96,
+      "rooms": 32,
+      "capacity": {
+        "larvae": 110,
+        "food": 375
+      },
+      "dug": 20126,
+      "delivered": 20080,
+      "care": {
+        "stamp": "928740:41767:497:500:1000:206:1902:0:0:512:4826:0:0:81:0:3",
+        "limit": 64,
+        "nursery": 110.3125,
+        "nurses": 171,
+        "meals": 0,
+        "food": 616
+      },
+      "incidents": []
+    },
+    {
+      "time": 15598.999999857153,
+      "wallSeconds": 6105.8968765,
+      "ants": 512,
+      "brood": 0,
+      "stock": 616,
+      "crowded": 91,
+      "rooms": 32,
+      "capacity": {
+        "larvae": 110,
+        "food": 375
+      },
+      "dug": 20411,
+      "delivered": 20380,
+      "care": {
+        "stamp": "935940:42389:497:500:1000:206:1902:0:0:512:4983:0:0:81:0:3",
+        "limit": 64,
+        "nursery": 110.3125,
+        "nurses": 171,
+        "meals": 0,
+        "food": 616
+      },
+      "incidents": []
+    },
+    {
+      "time": 15718.999999855407,
+      "wallSeconds": 6348.2360576,
+      "ants": 512,
+      "brood": 0,
+      "stock": 595,
+      "crowded": 86,
+      "rooms": 32,
+      "capacity": {
+        "larvae": 110,
+        "food": 375
+      },
+      "dug": 20673,
+      "delivered": 20623,
+      "care": {
+        "stamp": "943140:42930:497:500:1000:206:1902:0:0:512:5145:0:0:81:0:3",
+        "limit": 64,
+        "nursery": 110.3125,
+        "nurses": 171,
+        "meals": 0,
+        "food": 595
+      },
+      "incidents": []
+    },
+    {
+      "time": 15838.99999985366,
+      "wallSeconds": 6622.8703371,
+      "ants": 512,
+      "brood": 0,
+      "stock": 612,
+      "crowded": 80,
+      "rooms": 32,
+      "capacity": {
+        "larvae": 117,
+        "food": 375
+      },
+      "dug": 20992,
+      "delivered": 20950,
+      "care": {
+        "stamp": "950340:43588:497:500:1000:206:1904:0:0:512:5410:0:0:87:0:3",
+        "limit": 64,
+        "nursery": 110.3125,
+        "nurses": 171,
+        "meals": 0,
+        "food": 612
+      },
+      "incidents": []
+    },
+    {
+      "time": 15958.999999851914,
+      "wallSeconds": 6922.1039315,
+      "ants": 512,
+      "brood": 0,
+      "stock": 612,
+      "crowded": 71,
+      "rooms": 32,
+      "capacity": {
+        "larvae": 119,
+        "food": 375
+      },
+      "dug": 21356,
+      "delivered": 21302,
+      "care": {
+        "stamp": "957540:44323:497:500:1000:206:1904:0:0:512:5664:0:0:87:0:3",
+        "limit": 64,
+        "nursery": 119.5,
+        "nurses": 171,
+        "meals": 0,
+        "food": 612
+      },
+      "incidents": []
+    },
+    {
+      "time": 16078.999999850168,
+      "wallSeconds": 7256.2278219,
+      "ants": 512,
+      "brood": 0,
+      "stock": 612,
+      "crowded": 62,
+      "rooms": 32,
+      "capacity": {
+        "larvae": 121,
+        "food": 375
+      },
+      "dug": 21719,
+      "delivered": 21672,
+      "care": {
+        "stamp": "964740:45079:497:500:1000:206:1904:0:0:512:5852:0:0:87:0:3",
+        "limit": 64,
+        "nursery": 121.875,
+        "nurses": 171,
+        "meals": 0,
+        "food": 612
+      },
+      "incidents": []
+    },
+    {
+      "time": 16198.999999848422,
+      "wallSeconds": 7564.154998000001,
+      "ants": 512,
+      "brood": 0,
+      "stock": 612,
+      "crowded": 54,
+      "rooms": 32,
+      "capacity": {
+        "larvae": 124,
+        "food": 375
+      },
+      "dug": 22019,
+      "delivered": 21968,
+      "care": {
+        "stamp": "971940:45700:497:500:1000:206:1904:0:0:512:5974:0:0:87:0:3",
+        "limit": 64,
+        "nursery": 124.875,
+        "nurses": 171,
+        "meals": 0,
+        "food": 612
+      },
+      "incidents": []
+    },
+    {
+      "time": 16318.999999846676,
+      "wallSeconds": 7904.8564548,
+      "ants": 512,
+      "brood": 0,
+      "stock": 612,
+      "crowded": 50,
+      "rooms": 32,
+      "capacity": {
+        "larvae": 130,
+        "food": 375
+      },
+      "dug": 22301,
+      "delivered": 22268,
+      "care": {
+        "stamp": "979140:46274:497:500:1000:206:1904:0:0:512:6153:0:0:87:0:3",
+        "limit": 64,
+        "nursery": 130.0625,
+        "nurses": 171,
+        "meals": 0,
+        "food": 612
+      },
+      "incidents": []
+    },
+    {
+      "time": 16438.99999984493,
+      "wallSeconds": 8238.8509057,
+      "ants": 512,
+      "brood": 0,
+      "stock": 606,
+      "crowded": 42,
+      "rooms": 32,
+      "capacity": {
+        "larvae": 134,
+        "food": 375
+      },
+      "dug": 22529,
+      "delivered": 22494,
+      "care": {
+        "stamp": "986340:46795:497:500:1000:206:1904:0:0:512:6312:0:0:92:0:3",
+        "limit": 64,
+        "nursery": 134.625,
+        "nurses": 171,
+        "meals": 0,
+        "food": 606
+      },
+      "incidents": []
+    },
+    {
+      "time": 16558.999999843185,
+      "wallSeconds": 8585.8743122,
+      "ants": 512,
+      "brood": 0,
+      "stock": 606,
+      "crowded": 30,
+      "rooms": 32,
+      "capacity": {
+        "larvae": 139,
+        "food": 375
+      },
+      "dug": 22785,
+      "delivered": 22750,
+      "care": {
+        "stamp": "993540:47351:497:500:1000:206:1904:0:0:512:6520:0:0:93:0:3",
+        "limit": 64,
+        "nursery": 139.1875,
+        "nurses": 171,
+        "meals": 0,
+        "food": 606
+      },
+      "incidents": []
+    },
+    {
+      "time": 16678.99999984144,
+      "wallSeconds": 8978.1339709,
+      "ants": 512,
+      "brood": 0,
+      "stock": 606,
+      "crowded": 21,
+      "rooms": 32,
+      "capacity": {
+        "larvae": 144,
+        "food": 375
+      },
+      "dug": 23074,
+      "delivered": 23017,
+      "care": {
+        "stamp": "1000740:47958:497:500:1000:206:1904:0:0:512:6638:0:0:93:0:3",
+        "limit": 64,
+        "nursery": 144.875,
+        "nurses": 171,
+        "meals": 0,
+        "food": 606
+      },
+      "incidents": []
+    },
+    {
+      "time": 16798.999999839692,
+      "wallSeconds": 9367.7326223,
+      "ants": 512,
+      "brood": 0,
+      "stock": 606,
+      "crowded": 19,
+      "rooms": 32,
+      "capacity": {
+        "larvae": 149,
+        "food": 375
+      },
+      "dug": 23311,
+      "delivered": 23289,
+      "care": {
+        "stamp": "1007940:48463:497:500:1000:206:1904:0:0:512:6726:0:0:93:0:3",
+        "limit": 64,
+        "nursery": 149.625,
+        "nurses": 171,
+        "meals": 0,
+        "food": 606
+      },
+      "incidents": []
+    },
+    {
+      "time": 16918.999999837946,
+      "wallSeconds": 9734.8081821,
+      "ants": 512,
+      "brood": 0,
+      "stock": 610,
+      "crowded": 13,
+      "rooms": 33,
+      "capacity": {
+        "larvae": 155,
+        "food": 375
+      },
+      "dug": 23565,
+      "delivered": 23521,
+      "care": {
+        "stamp": "1015140:48988:497:500:1000:206:1908:0:0:512:6963:0:0:93:0:3",
+        "limit": 64,
+        "nursery": 155.9375,
+        "nurses": 171,
+        "meals": 0,
+        "food": 610
+      },
+      "incidents": []
+    },
+    {
+      "time": 17038.9999998362,
+      "wallSeconds": 10149.383602500002,
+      "ants": 512,
+      "brood": 0,
+      "stock": 610,
+      "crowded": 6,
+      "rooms": 33,
+      "capacity": {
+        "larvae": 161,
+        "food": 389
+      },
+      "dug": 23889,
+      "delivered": 23841,
+      "care": {
+        "stamp": "1022340:49642:497:500:1000:206:1908:0:0:512:7269:0:0:93:0:3",
+        "limit": 64,
+        "nursery": 161.25,
+        "nurses": 171,
+        "meals": 0,
+        "food": 610
+      },
+      "incidents": []
+    }
+  ],
+  "source": {
+    "core.js": "c7d73a8f8f662b4a20d6b17803e0040d816e1422edf2604d08b7f25706982582",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "game.js": "763c181eb8e8e8a3770178b8f72c3092043c101994a82959a3b210be69340644",
+    "diagnostics.js": "faf372b4fd39f287971c8bafa6f8682ebc10bcba68074a639ecef120170dcbf9",
+    "save-codec.js": "13417ccb76bd179ebe40ba3275e6d6a716039f0ba855c138e0328fd294f185dd",
+    "verify-512.cjs": "4e05d301aa154947ed8bdb484bbcd8b987915a4ea653cec7153fcd34662c0fd4"
+  },
+  "inputSha256": "524443b0e8436a73275aa0e723f359e72ef7ef56f6d8a9ef623a4a378f62a6de"
+}

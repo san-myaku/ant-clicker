@@ -1,0 +1,208 @@
+{
+  "source": {
+    "game.js": "66fe1b1573993e07fb2ee88eeb06b0fc0a1fad8b2e6057c4168463dff2218f3d",
+    "core.js": "6ef879b37b84e72a97066b8f9f0fb8064ff2b5d718e1c45158437356964105a8",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0"
+  },
+  "inputSha256": "a98d46be2d48368b9e2a2c61d362b2dfda09c5c3eb006d2bad37710a684bcb64",
+  "ants": 512,
+  "elapsedMs": 20593.6127,
+  "steps": 1200,
+  "msPerStep": 17.161343916666667,
+  "totalSamples": 13167,
+  "rows": [
+    {
+      "name": "receivingRoom",
+      "url": "game.js",
+      "line": 300,
+      "samples": 1228
+    },
+    {
+      "name": "storageDestination",
+      "url": "core.js",
+      "line": 796,
+      "samples": 965
+    },
+    {
+      "name": "storageDrop",
+      "url": "core.js",
+      "line": 777,
+      "samples": 758
+    },
+    {
+      "name": "tick",
+      "url": "core.js",
+      "line": 1523,
+      "samples": 560
+    },
+    {
+      "name": "",
+      "url": "core.js",
+      "line": 819,
+      "samples": 410
+    },
+    {
+      "name": "(garbage collector)",
+      "url": "",
+      "line": 0,
+      "samples": 301
+    },
+    {
+      "name": "cells",
+      "url": "core.js",
+      "line": 1366,
+      "samples": 269
+    },
+    {
+      "name": "foodBodies",
+      "url": "lifecycle.js",
+      "line": 44,
+      "samples": 250
+    },
+    {
+      "name": "",
+      "url": "core.js",
+      "line": 790,
+      "samples": 246
+    },
+    {
+      "name": "move",
+      "url": "core.js",
+      "line": 1451,
+      "samples": 239
+    },
+    {
+      "name": "tick",
+      "url": "lifecycle.js",
+      "line": 174,
+      "samples": 218
+    },
+    {
+      "name": "",
+      "url": "game.js",
+      "line": 311,
+      "samples": 190
+    },
+    {
+      "name": "poseClear",
+      "url": "core.js",
+      "line": 882,
+      "samples": 182
+    },
+    {
+      "name": "homeSpots",
+      "url": "game.js",
+      "line": 144,
+      "samples": 165
+    },
+    {
+      "name": "",
+      "url": "core.js",
+      "line": 1370,
+      "samples": 153
+    },
+    {
+      "name": "poseClear",
+      "url": "core.js",
+      "line": 882,
+      "samples": 150
+    },
+    {
+      "name": "frontier",
+      "url": "core.js",
+      "line": 1350,
+      "samples": 149
+    },
+    {
+      "name": "",
+      "url": "core.js",
+      "line": 1466,
+      "samples": 143
+    },
+    {
+      "name": "plan",
+      "url": "core.js",
+      "line": 1372,
+      "samples": 140
+    },
+    {
+      "name": "stepItemTask",
+      "url": "lifecycle.js",
+      "line": 127,
+      "samples": 135
+    },
+    {
+      "name": "sweptClear",
+      "url": "core.js",
+      "line": 929,
+      "samples": 135
+    },
+    {
+      "name": "roomKind",
+      "url": "core.js",
+      "line": 557,
+      "samples": 119
+    },
+    {
+      "name": "roomKind",
+      "url": "core.js",
+      "line": 557,
+      "samples": 117
+    },
+    {
+      "name": "",
+      "url": "game.js",
+      "line": 397,
+      "samples": 112
+    },
+    {
+      "name": "near",
+      "url": "core.js",
+      "line": 64,
+      "samples": 104
+    },
+    {
+      "name": "query",
+      "url": "core.js",
+      "line": 360,
+      "samples": 102
+    },
+    {
+      "name": "surfacePoint",
+      "url": "core.js",
+      "line": 662,
+      "samples": 98
+    },
+    {
+      "name": "stepItemTask",
+      "url": "core.js",
+      "line": 814,
+      "samples": 97
+    },
+    {
+      "name": "poseClear",
+      "url": "core.js",
+      "line": 882,
+      "samples": 95
+    },
+    {
+      "name": "updateCarriers",
+      "url": "core.js",
+      "line": 724,
+      "samples": 90
+    },
+    {
+      "name": "",
+      "url": "lifecycle.js",
+      "line": 44,
+      "samples": 89
+    },
+    {
+      "name": "",
+      "url": "core.js",
+      "line": 780,
+      "samples": 85
+    }
+  ],
+  "note": "自然512匹の居室完成待ちの状態で1200コマ。自然育成検証と同時実行した負荷診断であり、単独ベンチマークや性能合格ではない。"
+}

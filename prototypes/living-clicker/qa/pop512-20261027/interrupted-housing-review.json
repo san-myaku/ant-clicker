@@ -1,0 +1,38 @@
+{
+  "pass": false,
+  "kind": "housing-plan-review-interruption",
+  "source": {
+    "core.js": "6ef879b37b84e72a97066b8f9f0fb8064ff2b5d718e1c45158437356964105a8",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "game.js": "4734964bc21ddf7bad5a3557650ee606b5b466a593675860dc7159f7a69a9e4a",
+    "diagnostics.js": "faf372b4fd39f287971c8bafa6f8682ebc10bcba68074a639ecef120170dcbf9",
+    "save-codec.js": "13417ccb76bd179ebe40ba3275e6d6a716039f0ba855c138e0328fd294f185dd",
+    "verify-512.cjs": "4e05d301aa154947ed8bdb484bbcd8b987915a4ea653cec7153fcd34662c0fd4"
+  },
+  "inputSha256": "524443b0e8436a73275aa0e723f359e72ef7ef56f6d8a9ef623a4a378f62a6de",
+  "lastObserved": {
+    "time": 13198.999999892078,
+    "wallSeconds": 1995.7160165,
+    "ants": 489,
+    "brood": 19,
+    "stock": 580,
+    "crowded": 170,
+    "rooms": 22,
+    "capacity": {
+      "larvae": 110,
+      "food": 387
+    },
+    "dug": 14983,
+    "delivered": 14970,
+    "care": {
+      "stamp": "791940:30898:493:477:979:206:1834:0:19:489:2689:0:0:63:0:3",
+      "limit": 64,
+      "nursery": 110.25,
+      "nurses": 163,
+      "meals": 11,
+      "food": 580
+    },
+    "incidents": []
+  },
+  "note": "489匹/休む場所の共有170匹まで進行、診断0件。2室固定では居室の整備が人口増加に追いつかないため、512段階だけ実需要に応じて最大4室へ拡張し、元のbefore-512から再実行。中止した実行を合格とは数えない。"
+}

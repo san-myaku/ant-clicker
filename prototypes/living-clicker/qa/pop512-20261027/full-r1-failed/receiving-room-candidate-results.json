@@ -1,0 +1,53 @@
+{
+  "pass": true,
+  "source": {
+    "game.js": "66fe1b1573993e07fb2ee88eeb06b0fc0a1fad8b2e6057c4168463dff2218f3d",
+    "core.js": "6ef879b37b84e72a97066b8f9f0fb8064ff2b5d718e1c45158437356964105a8",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0"
+  },
+  "candidateGameSha256": "6ea399128e06a96d3fcf89a4ccf5720456dd23205821a026d6f69aa6fffa7562",
+  "results": [
+    {
+      "name": "world-256.json",
+      "pass": true,
+      "inputSha256": "ea79db5a2a5488c62871365f122f27b154ea186a8e09f9c7af93d2242fd0d23d",
+      "steps": 600,
+      "oldMsPerStep": 6.815164333333293,
+      "newMsPerStep": 6.5822283333333385
+    },
+    {
+      "name": "before-512.json",
+      "pass": true,
+      "inputSha256": "524443b0e8436a73275aa0e723f359e72ef7ef56f6d8a9ef623a4a378f62a6de",
+      "steps": 600,
+      "oldMsPerStep": 16.76336683333336,
+      "newMsPerStep": 16.762999166666802
+    },
+    {
+      "name": "housing-512-pressure.json",
+      "pass": true,
+      "inputSha256": "c12a0d8aedddcfe10355ae944227bf2195ba0c16381aca38e2e3949c58ad6cd3",
+      "steps": 600,
+      "oldMsPerStep": 19.435329333333623,
+      "newMsPerStep": 18.617641999999858
+    },
+    {
+      "name": "raid-stuck-loot.json",
+      "pass": true,
+      "inputSha256": "6997ce7ce6935b2e60cb45a5321a09a00ebd303b9268e9d4a15ab8ad76f7eb6e",
+      "steps": 600,
+      "oldMsPerStep": 2.0891006666671696,
+      "newMsPerStep": 2.038624999999762
+    },
+    {
+      "name": "active-512.json",
+      "pass": true,
+      "inputSha256": "a98d46be2d48368b9e2a2c61d362b2dfda09c5c3eb006d2bad37710a684bcb64",
+      "steps": 600,
+      "oldMsPerStep": 14.816923666666552,
+      "newMsPerStep": 13.671266333334158
+    }
+  ],
+  "helper": "    roomsOfKind(kind){\n      // Room identities and kinds are append-only during gameplay. A restored\n      // colony has a new array. Do not memoize transport or reservation results.\n      let cache=this._roomsByKind;if(cache?.rooms!==this.rooms||cache?.length!==this.rooms.length){\n        const kinds=new Map();for(const rid of this.roomIds()){const k=this.roomKind(rid);if(!kinds.has(k))kinds.set(k,[]);kinds.get(k).push(rid);}\n        for(const list of kinds.values())Object.freeze(list);cache=this._roomsByKind={rooms:this.rooms,length:this.rooms.length,kinds};\n      }return cache.kinds.get(kind)||[];\n    }\n",
+  "note": "隔離コピーの予備比較。自然512匹検証と同時実行。固定5入力/600コマの全保存一致のみ。未採用で、最終29本の対象ではない。"
+}

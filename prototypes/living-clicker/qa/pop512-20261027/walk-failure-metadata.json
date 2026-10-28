@@ -1,0 +1,37 @@
+{
+  "recordedAt": "2026-10-27T18:31:45.143Z",
+  "failureTime": 15921.116666519132,
+  "failureTick": 955267,
+  "source": {
+    "game.js": "66fe1b1573993e07fb2ee88eeb06b0fc0a1fad8b2e6057c4168463dff2218f3d",
+    "core.js": "d97f32a5e3adf902bdd0b7561a1c505b723c01488628263e1f5e11fe8a9b7cac",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "build-surface.cjs": "233834f7c281f7aa54ffd2df5e5c76f966b5861f775a11a7184b7ac43d40bee1",
+    "diagnostics.js": "faf372b4fd39f287971c8bafa6f8682ebc10bcba68074a639ecef120170dcbf9",
+    "save-codec.js": "13417ccb76bd179ebe40ba3275e6d6a716039f0ba855c138e0328fd294f185dd",
+    "qa/verify-late-surface.cjs": "e028ef181e934a40cc7fcb6fd21827a30b38c661099ff71643526ce621cdd2e5"
+  },
+  "inputSha256": "1ae702622054caa770bfb976380d33368e8832f8a45c9406a9bd92d510ffebe5",
+  "failureSha256": "8896d846f75d0b4d8c5af7917c491b15570c64eefc9ebb1db002dcebdcc6c8aa",
+  "beforeSha256": "286a7b50eead37f8a4b21940f3d03cf0c6ebeca47b9250f4f8de430e84cf8f2c",
+  "collision": {
+    "id": 229,
+    "from": {
+      "x": 62.29753308282073,
+      "y": 1.1,
+      "angle": -0.6435011087932845
+    },
+    "proposed": {
+      "x": 62.43777343337692,
+      "y": 0.85,
+      "angle": -0.6206685783834232
+    },
+    "target": {
+      "x": 66.25,
+      "y": 2.6,
+      "angle": 0
+    },
+    "kind": "soil"
+  },
+  "error": "Error: 身体または荷物が土に触れる移動を停止しました"
+}

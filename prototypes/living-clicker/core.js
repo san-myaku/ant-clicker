@@ -659,12 +659,40 @@
     }
     // loose tracks pending capacity credit, not a second pile left on the floor.
     passable(i) { return i >= 0 && i < SIZE && this.terrain[i] === 0; }
+    // Follow the support without rotating the body or its load outside the
+    // physical space. Prefer the slope, then progressively flatten the tilt
+    // with the same facing. Every accepted leg keeps the normal sweep guard.
+    surfaceHeading(angle){return Math.abs(Math.sin(angle))<=Math.SQRT1_2+1e-12;}
+    surfacePose(ant,x,y,angle,kind=this.carriedKind(ant)){
+      const flat=Math.cos(angle)<0?Math.PI:0,turn=Math.atan2(Math.sin(flat-angle),Math.cos(flat-angle)),steps=Math.max(1,Math.ceil(Math.abs(turn)/(Math.PI/16)));
+      const same=(a,b)=>a.x===b.x&&a.y===b.y&&a.angle===b.angle,safe=(a,b)=>same(a,b)||this.sweptClear(a,b,kind,-1,.025);
+      for(let k=0;k<=steps;k++){
+        const pose={x,y,angle:angle+turn*k/steps};
+        if(same(ant,pose))return {pose,via:pose};
+        if(!this.poseClear(pose,kind,-1,.025))continue;
+        if(safe(ant,pose))return {pose,via:pose};
+        // Raising before rotating and rotating before raising are different
+        // physical paths near the top border or a loaded downward-facing head.
+        const rotated={x:ant.x,y:ant.y,angle:pose.angle};
+        if(safe(ant,rotated)&&safe(rotated,pose))return {pose,via:rotated};
+        const lifted={x,y,angle:ant.angle};
+        if(safe(ant,lifted)&&safe(lifted,pose))return {pose,via:lifted};
+      }
+      this.collision={id:ant.id,from:{x:ant.x,y:ant.y,angle:ant.angle},proposed:{x,y,angle},kind,surface:true};
+      throw new Error('地表で身体と荷物が収まる姿勢を選べませんでした');
+    }
     surfacePoint(x){
       if(!this.physics)return {x,y:SURFACE-.9};
       let top=SURFACE;
       const halfBody=ANT_SIZE*.5;
-      for(let gx=Math.floor((x-halfBody)*GRID);gx<=Math.floor((x+halfBody)*GRID);gx++)for(let gy=0;gy<SURFACE*GRID;gy++){
-        if(this.physics.soilCells.has(gy*FW+gx)){top=Math.min(top,gy/GRID);break;}
+      for(let gx=Math.floor((x-halfBody)*GRID);gx<=Math.floor((x+halfBody)*GRID);gx++){
+        let supported=true;
+        for(let gy=SURFACE*GRID-1;gy>=0;gy--){
+          const grain=this.physics.soilCells.get(gy*FW+gx);
+          if(!grain){supported=false;continue;}
+          supported=supported||grain.rest>=30;
+          if(supported)top=Math.min(top,gy/GRID);
+        }
       }
       return {x,y:top<SURFACE?Math.max(.8,top-.9):SURFACE-.9};
     }
@@ -925,7 +953,7 @@
       for(const [dx,dy] of samples){const x=p.x+dx,y=p.y+dy;if(x<.15||x>W-.15||y<.15||y>H-.15)return answer(false);const g=GRAIN.at(x,y);if(g!==ignore&&this.grains[g])return answer(false,g);}
       return answer(true);
     }
-    surfaceFlip(a,b){return Math.hypot(a.x-b.x,a.y-b.y)<1e-7&&a.y<SURFACE&&b.y<SURFACE&&Math.abs(a.x-this.entrance.x)>2&&this.soilAt(a.x,SURFACE+.01)&&Math.abs(Math.sin(a.angle))<.7&&Math.abs(Math.sin(b.angle))<.7&&Math.cos(a.angle)*Math.cos(b.angle)<0;}
+    surfaceFlip(a,b){return Math.hypot(a.x-b.x,a.y-b.y)<1e-7&&a.y<SURFACE&&b.y<SURFACE&&Math.abs(a.x-this.entrance.x)>2&&this.soilAt(a.x,SURFACE+.01)&&this.surfaceHeading(a.angle)&&this.surfaceHeading(b.angle)&&Math.cos(a.angle)*Math.cos(b.angle)<0;}
     sweptClear(a,b,kind=null,ignore=-1,margin=.045){
       let cache=null,key=null;if(ignore===-1&&margin===.045){cache=this._sweepChecks||(this._sweepChecks=new Map());key=[a.x,a.y,a.angle,b.x,b.y,b.angle,kind||'body'].join(':');const old=cache.get(key);if(old===1)return true;if(old===0){this._block=-2;return false;}if(old>=2&&this.grains[old-2]){this._block=old-2;return false;}if(old===-this.revision){this._block=undefined;return false;}}
       this._block=undefined;
@@ -1435,8 +1463,8 @@
       if(p.y<SURFACE||this.grainRoom[GRAIN.at(p.x,p.y)]>0)return false;
       // Room lips and turning/landing poses are not single-file tunnels just
       // because their centers fall outside the chamber's tagged floor.
-      for(const b of this.builds.slice(2)){if(!b)continue;let k=0;for(let n=1;n<b.history.length;n++)if(Math.hypot(b.history[n].x-p.x,b.history[n].y-p.y)<Math.hypot(b.history[k].x-p.x,b.history[k].y-p.y))k=n;
-        if(Math.hypot(b.history[k].x-p.x,b.history[k].y-p.y)<1.2&&!this.passingIndex(b,k))return true;
+      for(const b of this.builds.slice(2)){if(!b)continue;let k=-1,best=1.2;for(let n=0;n<b.history.length;n++){const q=b.history[n],dx=q.x-p.x,dy=q.y-p.y;if(Math.abs(dx)>=1.2||Math.abs(dy)>=1.2)continue;const d=Math.hypot(dx,dy);if(d<best){best=d;k=n;}}
+        if(k>=0&&!this.passingIndex(b,k))return true;
       }return false;
     }
     trafficPriority(a,b){
@@ -1454,22 +1482,25 @@
         // with the load or the work goes first, as in a head-on meeting.
         const mutual=other?.yieldHold===ant.id&&this.trafficPriority(ant,other)>0;
         if(other&&!mutual&&Math.hypot(other.x-ant.x,other.y-ant.y)<2.4&&this.grainRoom[GRAIN.at(ant.x,ant.y)]!==1&&other.path.length)return false;delete ant.yieldHold;}
-      const target=ant.path[ant.next],grounded=ant.y<SURFACE&&target.y<SURFACE&&Math.abs(Math.sin(ant.angle))<.7&&Math.abs(Math.sin(target.angle))<.7&&Math.abs(ant.x-this.entrance.x)>2&&Math.abs(target.x-this.entrance.x)>2&&this.soilAt(ant.x,SURFACE+.01)&&this.soilAt(target.x,SURFACE+.01);
+      const target=ant.path[ant.next],grounded=ant.y<SURFACE&&target.y<SURFACE&&this.surfaceHeading(ant.angle)&&this.surfaceHeading(target.angle)&&Math.abs(ant.x-this.entrance.x)>2&&Math.abs(target.x-this.entrance.x)>2&&this.soilAt(ant.x,SURFACE+.01)&&this.soilAt(target.x,SURFACE+.01);
       // Walking follows the heap, including its last stationary waypoint.
       // A raised pickup/turning pose must never be pushed down into the floor.
       const q=grounded?{...target,y:Math.min(target.y,this.surfacePoint(target.x).y)}:target,da=Math.atan2(Math.sin(q.angle-ant.angle),Math.cos(q.angle-ant.angle)),d=Math.hypot(q.x-ant.x,q.y-ant.y),duration=Math.max(d/(this.walkSpeed?.(ant)||WALK_SPEED),Math.abs(da)/5),fraction=duration?Math.min(1,dt/duration):1,step=d*fraction,flip=this.surfaceFlip(ant,q);
       if(flip){ant.turnWait=(ant.turnWait||0)+dt;if(ant.turnWait<.18)return false;ant.turnWait=0;}const rotation=flip?da:da*fraction;
       const p={x:ant.x+(d?((q.x-ant.x)/d*step):0),y:ant.y+(d?((q.y-ant.y)/d*step):0),angle:ant.angle+rotation};
-      if(grounded){const y=this.surfacePoint(p.x).y;p.y=Math.abs(target.x-ant.x)>1.2||target.y>=y?y:Math.min(p.y,y);}
+      let surfaceVia=null;
+      if(grounded){const y=this.surfacePoint(p.x).y;p.y=Math.abs(target.x-ant.x)>1.2||target.y>=y?y:Math.min(p.y,y);
+        const advance=this.surfacePose(ant,p.x,p.y,p.angle);Object.assign(p,advance.pose);surfaceVia=advance.via;
+      }
       // Ant traffic uses lateral lanes and longitudinal spacing; ants are not
       // rigid physics bodies. Terrain clearance still sweeps every body/load.
-      if(p.y>SURFACE-1){let following=false;const ownRoom=this.grainRoom[GRAIN.at(p.x,p.y)],kind=this.carriedKind(ant),flow=a=>{const z=a.path.slice(a.next).find(p=>Math.hypot(p.x-a.x,p.y-a.y)>.25);return z?Math.atan2(z.y-a.y,z.x-a.x):a.angle;},ownFlow=flow(ant),block=ant.enemy?undefined:this.trafficCandidates(p).find(b=>{
+      if(p.y>SURFACE-1){let following=false;const ownRoom=this.grainRoom[GRAIN.at(p.x,p.y)],kind=this.carriedKind(ant),flow=a=>{for(let i=a.next;i<a.path.length;i++){const z=a.path[i];if(Math.hypot(z.x-a.x,z.y-a.y)>.25)return Math.atan2(z.y-a.y,z.x-a.x);}return a.angle;},ownFlow=flow(ant),block=ant.enemy?undefined:this.trafficCandidates(p).find(b=>{
         if(b===ant||p.y<SURFACE&&b.y<SURFACE||Math.hypot(p.x-b.x,p.y-b.y)>2.6)return false;
+        const room=this.grainRoom[GRAIN.at(b.x,b.y)];if(ownRoom>0&&room===ownRoom)return false;
         // Two workers in one stream measure ahead/behind on the same axis, their
         // mean heading, so exactly one of them is ahead of the other.
         const otherFlow=flow(b),sameFlow=Math.cos(ownFlow-otherFlow)>.96,axis=sameFlow?Math.atan2(Math.sin(ownFlow)+Math.sin(otherFlow),Math.cos(ownFlow)+Math.cos(otherFlow)):ownFlow;
-        const dx=b.x-ant.x,dy=b.y-ant.y,along=dx*Math.cos(axis)+dy*Math.sin(axis),side=Math.abs(dx*Math.sin(axis)-dy*Math.cos(axis)),room=this.grainRoom[GRAIN.at(b.x,b.y)];
-        if(ownRoom>0&&room===ownRoom)return false;
+        const dx=b.x-ant.x,dy=b.y-ant.y,along=dx*Math.cos(axis)+dy*Math.sin(axis),side=Math.abs(dx*Math.sin(axis)-dy*Math.cos(axis));
         // Following limits translation toward the worker ahead. A stationary
         // turn, or a step opening the gap at a merge, must finish even when
         // nearby queue headings project each other as being in front.
@@ -1484,15 +1515,18 @@
         // The founding shaft has two swept lanes. Crossing its open apron or
         // a curved lane merge must not send a returning queue backwards into
         // its followers; spacing above handles workers in the same lane.
+        if(Math.hypot(p.x-b.x,p.y-b.y)>=.67)return false;
         const shaft=this._entryHistory||this.entranceHistory,nearShaft=q=>q.y<SURFACE+1.5||shaft.some(z=>Math.hypot(z.x-q.x,z.y-q.y)<1.15);
         if(nearShaft(p)&&nearShaft(b))return false;
-        if(Math.hypot(p.x-b.x,p.y-b.y)>=.67)return false;
         // At a verified two-way section, workers can merge across its open
         // width. A center-distance stop belongs to an actual single-file neck.
         if(!this.singleFileSection(p)||!this.singleFileSection(b))return false;
         return !(Math.hypot(ant.x-b.x,ant.y-b.y)<.67&&Math.hypot(p.x-b.x,p.y-b.y)>Math.hypot(ant.x-b.x,ant.y-b.y)+.0001);
       });
         if(block){ant.waitingFor=block.id;ant.blocked=(ant.blocked||0)+dt;this.stats.waitSeconds+=dt;this.makeSpace(block,ant);
+          if(!following&&ant.blocked>.25&&ant.yielding){
+            if(ant.yieldFor===block.id&&block.waitingFor===ant.id)this.retreat(ant,block);
+          }
           if(!following&&ant.blocked>.25&&!ant.yielding){const next=block.path[block.next];
             if(block.yielding){if(next&&(next.x-block.x)*(ant.x-block.x)+(next.y-block.y)*(ant.y-block.y)>0)this.retreat(ant,block);}
             else {const pair=this.trafficPriority(ant,block)<0?[ant,block]:[block,ant];for(const yielding of pair){if(yielding.task==='dig')continue;const passing=yielding===ant?block:ant;if(this.retreat(yielding,passing))break;}}
@@ -1502,12 +1536,12 @@
       ant.blocked=0;
       ant.detourTime=0;
       delete ant.waitingFor;
-      if(!this.sweptClear(ant,p,this.carriedKind(ant),-1,.025)){this.collision={id:ant.id,from:{x:ant.x,y:ant.y,angle:ant.angle},proposed:p,target:q,kind:this.carriedKind(ant)};throw new Error('身体または荷物が土に触れる移動を停止しました');}
+      if(!(surfaceVia?this.sweptClear(ant,surfaceVia,this.carriedKind(ant),-1,.025)&&this.sweptClear(surfaceVia,p,this.carriedKind(ant),-1,.025):this.sweptClear(ant,p,this.carriedKind(ant),-1,.025))){this.collision={id:ant.id,from:{x:ant.x,y:ant.y,angle:ant.angle},proposed:p,target:q,kind:this.carriedKind(ant)};throw new Error('身体または荷物が土に触れる移動を停止しました');}
       ant.x=p.x;ant.y=p.y;ant.angle=p.angle;this._trafficIndex?.update(ant);ant.cell=idx(Math.floor(p.x),Math.floor(p.y));ant.walked+=step;if(!ant.enemy)this.stats.distance+=step;
       if(!ant.enemy&&step&&Math.cos(Math.atan2(q.y-ant.y,q.x-ant.x)-ant.angle)<-.5)this.stats.backwardDistance+=step;
       if(!ant.yielding&&(!ant.trail?.length||Math.hypot(ant.x-ant.trail.at(-1).x,ant.y-ant.trail.at(-1).y)>.12||Math.abs(ant.angle-ant.trail.at(-1).angle)>.08)){if(!ant.trail)ant.trail=[];ant.trail.push({x:ant.x,y:ant.y,angle:ant.angle});if(ant.trail.length>100)ant.trail.shift();}
       if(!ant.enemy){this.traffic[ant.cell]+=step*.2;this._flowCells?.add(ant.cell);}
-      if(d<=step+1e-8&&Math.abs(da-rotation)<1e-7){ant.angle=q.angle;ant.next++;}
+      if(d<=step+1e-8&&Math.abs(da-rotation)<1e-7){if(!grounded)ant.angle=q.angle;ant.next++;}
       if(ant.next>=ant.path.length){ant.path=[];ant.next=0;
         if(ant.yielding){ant.yielding=false;ant.yieldHold=ant.yieldFor;delete ant.yieldFor;delete ant.yieldPriority;const target=ant.resume.path.at(-1);delete ant.resume;ant.path=target?(this.path(ant,target)||[]):[];ant.wait=.6;return false;}
         return true;
@@ -1580,11 +1614,11 @@
         const next=ant.path[ant.next];
         // Follow the current heap on both ascent and descent. Leaving this row
         // into the shaft remains ordinary walking, so the entrance stays usable.
-        const groundY=this.surfacePoint(ant.x).y,walking=next&&next.y<SURFACE&&Math.abs(next.x-ant.x)>.001&&(Math.abs(next.x-ant.x)>1.2||next.y>=groundY)&&Math.abs(Math.sin(ant.angle))<.7&&Math.abs(Math.sin(next.angle))<.7&&this.soilAt(next.x,SURFACE+.01);
-        if(!next&&Math.abs(Math.sin(ant.angle))<.7||walking||groundY<ant.y){
-          const oldY=ant.y,oldAngle=ant.angle;ant.y=walking||!next?groundY:Math.min(ant.y,groundY);
-          const dx=ant.x-previousX[k];
-          if(Math.abs(dx)>1e-8){const slope=clamp(this.surfacePoint(ant.x+.5).y-this.surfacePoint(ant.x-.5).y,-1,1),direction=Math.sign(Math.cos(oldAngle))||Math.sign(dx);ant.angle=Math.atan2(slope*direction,direction);}
+        const groundY=this.surfacePoint(ant.x).y,walking=next&&next.y<SURFACE&&Math.abs(next.x-ant.x)>.001&&(Math.abs(next.x-ant.x)>1.2||next.y>=groundY)&&this.surfaceHeading(ant.angle)&&this.surfaceHeading(next.angle)&&this.soilAt(next.x,SURFACE+.01);
+        if(!next&&this.surfaceHeading(ant.angle)||walking||groundY<ant.y){
+          const oldY=ant.y,oldAngle=ant.angle,y=walking||!next?groundY:Math.min(ant.y,groundY),dx=ant.x-previousX[k];let angle=oldAngle;
+          if(Math.abs(dx)>1e-8){const slope=clamp(this.surfacePoint(ant.x+.5).y-this.surfacePoint(ant.x-.5).y,-1,1),direction=Math.sign(Math.cos(oldAngle))||Math.sign(dx);angle=Math.atan2(slope*direction,direction);}
+          const stance=this.surfacePose(ant,ant.x,y,angle);ant.y=stance.pose.y;ant.angle=stance.pose.angle;
           if(oldY!==ant.y||oldAngle!==ant.angle){surfaceChanged=true;this._trafficIndex?.update(ant);}
         }
       }

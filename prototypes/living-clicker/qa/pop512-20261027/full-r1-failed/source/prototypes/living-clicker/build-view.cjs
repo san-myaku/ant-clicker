@@ -1,0 +1,107 @@
+const fs=require('node:fs'),path=require('node:path'),root=__dirname;
+let source=fs.readFileSync(path.resolve(root,'../colony-game/view.js'),'utf8').replace(/\r\n/g,'\n');
+function replace(from,to,label){const n=source.split(from).length-1;if(n!==1)throw Error(label+': expected one hook, got '+n);source=source.replace(from,to);}
+replace('  function antFrame(angle, step, queen = false, action = \'walk\') {',fs.readFileSync(path.join(root,'queen-art.js'),'utf8')+'\n  function antFrame(angle, step, queen = false, action = \'walk\') {','queen art at worker pixel density');
+replace("    const queen = screen(48, 24); antShape(ctx, queen.x, queen.y, cam.scale * 6.4, -.14, 0, true);\n    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;", "    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;\n    const queen = screen(48, 24); drawQueen(ctx,queen.x,queen.y,cam.scale,reduced);", 'render the dedicated queen');
+replace('  let cachedRevision = -1, selected = null,','  let visibleGrains=null;\n  let cachedRevision = -1, selected = null,','shared visible soil');
+replace('  function persist(announce = false) {',`  function checkpoint(){const bytes=invalidStored?localStorage.getItem(KEY):JSON.stringify(sim.dump());if(bytes)localStorage.setItem(KEY+'_recovery',bytes);}
+  function persist(announce = false) {
+    if(invalidStored){message('保存データを開けないため、上書きを止めています。');return false;}
+    sim.progress.speed=speed;`,'protect saved bytes and speed');
+replace('sim = new Simulation(seed); selected = null;', 'const candidate=new Simulation(seed);checkpoint();sim = candidate; selected = null;','checkpoint before reset');
+replace('sim = candidate; selected = null; cachedRevision = -1; accumulator = 0; lastSave = sim.time;\n    $(\'seed\').value = sim.seed;', 'checkpoint();sim = candidate; selected = null; cachedRevision = -1; accumulator = 0; lastSave = sim.time;\n    speed=sim.progress.speed;$(\'speed\').value=String(speed);\n    $(\'seed\').value = sim.seed;','atomic adoption');
+replace("  let invalidStored = paused;","  let invalidStored = paused;\n  speed=sim.progress.speed;$('speed').value=String(speed);",'restore speed');
+replace(`    cam.x = W / 2; cam.y = H / 2; cam.zoom = .95;
+    cam.scale = Math.min(cam.width / W, cam.height / H) * cam.zoom;`,`    const points=[...sim.ants,...sim.physics.bodies.filter(b=>b.kind!=='soil'||!b.carrier&&b.y<SURFACE)];
+    for(let g=0;g<sim.grains.length;g++)if(!sim.grains[g]&&sim.grainRoom[g])points.push(GRAIN.center(g));
+    const minX=Math.max(0,Math.min(...points.map(p=>p.x))-4),maxX=Math.min(W,Math.max(...points.map(p=>p.x),sim.entrance.x+9)+4),minY=0,maxY=Math.max(34,...points.map(p=>p.y))+4;
+    cam.x=(minX+maxX)/2;cam.scale=Math.min(cam.width/(maxX-minX),cam.height/(maxY-minY))*.92;cam.y=Math.max((minY+maxY)/2,cam.height/(2*cam.scale));cam.zoom=cam.scale/Math.min(cam.width/W,cam.height/H);`,'fit the living nest, not empty future world');
+replace(`    cam.x = W / 2; cam.y = 26; cam.zoom = cam.width < 600 ? 2.4 : 1.9;
+    cam.scale = Math.min(cam.width / W, cam.height / H) * cam.zoom;`,`    cam.x=46;cam.y=21.5;cam.scale=cam.width<600?Math.min(15,cam.width/25):Math.min(24,cam.height/31);cam.zoom=cam.scale/Math.min(cam.width/W,cam.height/H);`,'observation scale');
+replace('    floor.clearRect(0,0,FW,FH);',`    floor.clearRect(0,0,FW,FH);
+    const light=new Uint8Array(FW*FH),queue=new Int32Array(FW*FH);let start=0,end=0;
+    for(let g=SURFACE*GRID*FW;g<light.length;g++)if(!sim.grains[g]){light[g]=13;queue[end++]=g;}
+    while(start<end){const g=queue[start++],value=light[g]-1;if(value<=0)continue;for(const n of GRAIN.neighbors(g))if(light[n]<value){light[n]=value;queue[end++]=n;}}
+    visibleGrains=light;
+    // Hidden rock has precisely the surrounding layer's soil pixels.
+    for(let gy=SURFACE*GRID;gy<FH;gy++)for(let gx=0;gx<FW;gx++){
+      const g=gy*FW+gx;if(!sim.grains[g])continue;
+      if(!light[g]){const p=GRAIN.center(g),type=(sim.layerAt(p.x,p.y)-1)%2?2:1;c.fillStyle=soilColor(type,g);c.fillRect(gx,gy,1,1);}
+      c.fillStyle='rgba(21,20,17,'+(light[g]?(.6*(1-light[g]/13)):.68)+')';c.fillRect(gx,gy,1,1);
+    }`,'real-air lighting and hidden geology');
+replace("floor.fillStyle=rid===1?'#e2d1a9':rid===2?'#e5d7bc':rid===3?'#dcccab':'#d7c7ab';","floor.fillStyle=rid===1?'#e2d1a9':rid>=2?(sim.roomKind(rid)==='egg'?'#e5d7bc':'#dcccab'):'#d7c7ab';",'shared room purpose colors');
+replace("else{const g=selected.grain,t=sim.grains[g];line(t?['','土','硬い土','岩'][t]:names[sim.grainRoom[g]],true);line(t===3?'掘れない岩です':t?'まだ掘っていない土です':'アリが通れる空間です');}","else{const g=selected.grain,t=sim.grains[g],p=GRAIN.center(g),known=visibleGrains?.[g]>0;line(t?(known?['','土','硬い土','岩'][t]:'第'+sim.layerAt(p.x,p.y)+'層の土'):names[sim.grainRoom[g]],true);line(t?(known&&t===3?'掘れない岩です':sim.layerAt(p.x,p.y)>sim.depthAbility()?'深度研究で掘れるようになります。':'まだ掘っていない場所です。'):'アリが通れる空間です');}",'do not disclose buried rock by selection');
+// Spoil now rings the entrance on both sides; the mound itself shows where.
+replace("    if (above.y > 18) ctx.fillText('土捨て場', above.x, above.y);\n","",'no fixed dump label');
+replace("s.ants+sim.colony.brood.length>=ColonyGame.LIMIT?", "s.ants+sim.colony.brood.length>=sim.populationLimit()?",'live population cap');
+replace("s.food<2?'餌が届くのを待っています':!s.canLay?", "s.food<2||sim.expandedGrowth()&&sim.growthCare().food<sim.growthCare().meals+2?'餌が届くのを待っています':sim.expandedGrowth()&&!sim.growthCare().nurses?'育児係を増やしてください':sim.expandedGrowth()&&sim.colony.brood.length>=Math.floor(sim.growthCare().nursery)?'育児室が広がるのを待っています':!s.canLay?",'show actionable growth pauses');
+replace("Math.ceil((1-s.queen)*40)", "Math.ceil((1-s.queen)*40/sim.layRate())", 'remaining laying time follows the queen research');
+replace("if(s.ants===64)cause='64匹のコロニーに育ちました。この区画の目標達成です。';","if(s.ants+sim.colony.brood.length>=sim.populationLimit())cause='コロニーが育ちました。女王と地質の研究で、次の成長へ。';",'growth continues through research');
+replace("    if($('cause').textContent!==cause)","    if(s.births&&s.allocation.forage&&s.allocation.nurse&&s.allocation.build&&s.food>=2)cause=s.reached<sim.depthAbility()?'新しい地層へ、通路を掘り進めています。':s.ants<32?'働き手を育てて、巣を広げよう。':'研究と仕事の配分で、コロニーを育てよう。';\n    if(sim.colony.disease?.active)cause='育児室にゴミがたまり、病気が広がっています。掃除の手を増やそう。';\n    $('cookies').textContent=s.cookie;$('depth').textContent='第'+s.reached+'層';updateResearch();\n    if($('cause').textContent!==cause)",'show physical progression');
+replace("  $('lay').onclick=()=>{sim.tap();updateUI();};",`${fs.readFileSync(path.join(root,'view-research.js'),'utf8')}
+  let tapSave=null;
+  $('lay').onclick=()=>{if(sim.tap()){clearTimeout(tapSave);tapSave=setTimeout(()=>persist(),250);}updateUI();};`,'readable research and action save');
+replace("sim.colony.laying=!sim.colony.laying;updateUI();","sim.colony.laying=!sim.colony.laying;persist();updateUI();",'laying preference save');
+replace("sim.shiftRole(b.dataset.role,+b.dataset.delta);updateUI();","sim.shiftRole(b.dataset.role,+b.dataset.delta);persist();updateUI();",'allocation save');
+replace("$('speed').onchange = () => { speed = +$('speed').value; };","$('speed').onchange = () => { speed = +$('speed').value;persist(); };",'speed save');
+replace("$('save').onclick = () => { invalidStored = false; persist(true); };","$('save').onclick = () => { persist(true); };",'explicit save does not bypass corrupt protection');
+replace("$('zoom-in').onclick = () => zoom(1.25);","$('focus').onclick=focusView;\n  $('undo').onclick=()=>{try{const bytes=localStorage.getItem(KEY+'_recovery');if(!bytes){message('一つ前の巣はまだありません。');return;}const candidate=Simulation.restore(JSON.parse(bytes));adopt(candidate);invalidStored=false;persist();message('一つ前の巣に戻りました。');}catch{message('一つ前の巣を開けませんでした。いまの巣はそのままです。');}};\n  $('zoom-in').onclick = () => zoom(1.25);",'recovery action');
+replace('      selectionUI();','      selectionUI();if(selected)$(\'selection-detail\').open=true;','selection disclosure');
+replace('`ant-colony-1-${sim.seed}.json`','`living-clicker-2-${sim.seed}.json`','current file name');
+replace("adopt(next); invalidStored = false; persist(); message('保存データを開きました。');", "adopt(next); invalidStored = false; if(persist())message('保存データを開きました。');",'keep import write-failure warning');
+replace("catch (e) { message('有効な保存データではありません。いまの巣はそのままです。'); }", "catch (e) { message('保存データを開けませんでした。いまの巣はそのままです。'); }",'import validation and checkpoint errors');
+replace("reset(seed); invalidStored = false; persist(); message('この地形で最初から始めました。');", "try{reset(seed); invalidStored = false; if(persist())message('この地形で最初から始めました。');}catch{message('新しい巣を保存できませんでした。いまの巣を書き出して保管できます。');}",'atomic reset checkpoint failure');
+replace("$('new-seed').onclick = () => { reset(crypto.getRandomValues(new Uint32Array(1))[0] || 1); invalidStored = false; persist(); message('別の地形で始めました。'); };", "$('new-seed').onclick = () => {try{reset(crypto.getRandomValues(new Uint32Array(1))[0] || 1);invalidStored=false;if(persist())message('別の地形で始めました。');}catch{message('新しい巣を始められませんでした。いまの巣を書き出して保管できます。');}};",'new terrain checkpoint errors');
+replace('  window.colonyGame = {','  window.colonyGame = {','inspection api');
+// Waste pellets: small, dark and irregular, readable apart from food and soil.
+replace("const pattern=b.kind==='egg'?","const pattern=b.kind==='cookie'?['0110','1111','1111','0110']:b.kind==='waste'?['0110','1111','1110','0110']:b.kind==='egg'?",'waste pellet pixels');
+replace("ctx.fillStyle=b.kind==='egg'?(","ctx.fillStyle=b.kind==='cookie'?(y<1?'#f6d9a0':x>2?'#c98b43':'#e4ae63'):b.kind==='waste'?(y<1?'#5d5649':x>2?'#2c2924':'#433e35'):b.kind==='egg'?(",'waste pellet colors');
+replace("line(e?stageNames[e.stage]:b.kind==='soil'?'砂粒':'餌',true);","line(e?stageNames[e.stage]:b.kind==='soil'?'砂粒':b.kind==='waste'?'ゴミ':b.kind==='cookie'?'甘い粒':'餌',true);",'waste selection name');
+replace("line(b.carrier?'アリ '+b.carrier+' が運搬中':sim.colony.wild.includes(b.id)?","line(b.carrier?'アリ '+b.carrier+' が運搬中':b.kind==='waste'?(b.y<SURFACE?'地表で土に還っていく':'巣の中に残っている'):sim.colony.wild.includes(b.id)?",'waste selection place');
+replace("bodies[0].kind==='food'?'餌 1個':","bodies[0].kind==='food'?'餌 1個':bodies[0].kind==='waste'?'ゴミ 1個':bodies[0].kind==='cookie'?'甘い粒 1個':",'carried waste');
+// Room labels come from each room's purpose and its order among the same kind.
+replace("ctx.measureText(names[r.id])","ctx.measureText(sim.roomName(r.id))",'room label width');
+replace("ctx.fillText(names[r.id], p.x, p.y)","ctx.fillText(sim.roomName(r.id), p.x, p.y)",'room label');
+replace("):names[sim.grainRoom[g]],true)","):sim.roomName(sim.grainRoom[g]),true)",'selected air room name');
+replace("  function antFrame(angle, step, queen = false, action = 'walk') {","  function antFrame(angle, step, queen = false, action = 'walk', enemy = false) {",'raider palette');
+replace("const key = `${direction}:${step}:${+queen}:${action}`;","const key = `${direction}:${step}:${+queen}:${action}:${+enemy}`;",'raider frame key');
+replace("const legs = queen ? '#493325' : '#3a3025'","const legs = enemy ? '#3b1812' : queen ? '#493325' : '#3a3025'",'raider legs');
+replace("c.fillStyle=edge?'#251e19':abdomen?(queen?'#68452f':'#51402c'):waist?'#453326':queen?'#81583a':'#71543a';","c.fillStyle=edge?(enemy?'#2a120e':'#251e19'):abdomen?(queen?'#68452f':enemy?'#6b2a1d':'#51402c'):waist?(enemy?'#561f16':'#453326'):queen?'#81583a':enemy?'#8c3a25':'#71543a';",'raider body');
+replace("if(abdomen&&gy===-1&&gx>=-5&&gx<=-3)c.fillStyle=queen?'#a27a4c':'#8b714b';","if(abdomen&&gy===-1&&gx>=-5&&gx<=-3)c.fillStyle=queen?'#a27a4c':enemy?'#a8553b':'#8b714b';",'raider shine');
+replace("  function antShape(c, x, y, size, angle, phase, queen = false, action = 'walk') {","  function antShape(c, x, y, size, angle, phase, queen = false, action = 'walk', enemy = false) {",'raider shape');
+replace("frame = antFrame(angle, step, queen,action);","frame = antFrame(angle, step, queen,action,enemy);",'raider shape frame');
+replace("const key=`surface:${direction}:${step}:${action}:","const key=`surface:${direction}:${step}:${action}:${+!!ant.enemy}:",'raider surface key');
+replace("for(const l of legs){const color=l.far?'#665a48':'#322c25';","for(const l of legs){const color=ant.enemy?(l.far?'#6a3a2e':'#3b1812'):l.far?'#665a48':'#322c25';",'raider surface legs');
+replace("c.fillStyle=by>.22?'#251e19':bx<-.10?'#51402c':bx>.13?'#71543a':'#453326';if(bx<-.15&&by<.12)c.fillStyle='#8b714b';","c.fillStyle=ant.enemy?(by>.22?'#2a120e':bx<-.10?'#6b2a1d':bx>.13?'#8c3a25':'#561f16'):by>.22?'#251e19':bx<-.10?'#51402c':bx>.13?'#71543a':'#453326';if(bx<-.15&&by<.12)c.fillStyle=ant.enemy?'#a8553b':'#8b714b';",'raider surface body');
+replace("action=ant.task==='dig'?(job?.pickup?'gather':'dig')","action=ant.fight?'dig':ant.task==='dig'?(job?.pickup?'gather':'dig')",'grapple shows working jaws');
+replace("phase=reduced?0:action==='dig'?sim.digMotion(ant)","phase=reduced?0:ant.fight?sim.time*8:action==='dig'?sim.digMotion(ant)",'grapple motion');
+replace("if(antView(ant)==='nest'){antShape(ctx,p.x,p.y,size,ant.angle,phase,false,action);return;}","if(antView(ant)==='nest'){antShape(ctx,p.x,p.y,size,ant.angle,phase,false,action,!!ant.enemy);return;}",'raider in the nest');
+replace("    for(const b of sim.physics.bodies)if(b.carrier)drawBody(b);","    for(const e of sim.colony.raid?.enemies||[])drawWorker(e,reduced);\n    for(const b of sim.physics.bodies)if(b.carrier)drawBody(b);",'raiders drawn');
+replace("const roleNames={forage:'\u63a1\u96c6\u4fc2',nurse:'\u80b2\u5150\u4fc2',build:'\u6398\u524a\u4fc2'}","const roleNames={forage:'\u63a1\u96c6\u4fc2',nurse:'\u80b2\u5150\u4fc2',build:'\u6398\u524a\u4fc2',guard:'\u898b\u5f35\u308a'}",'guard name');
+replace("    if(sim.colony.disease?.active)cause='\u80b2\u5150\u5ba4\u306b\u30b4\u30df\u304c\u305f\u307e\u308a\u3001\u75c5\u6c17\u304c\u5e83\u304c\u3063\u3066\u3044\u307e\u3059\u3002\u6383\u9664\u306e\u624b\u3092\u5897\u3084\u305d\u3046\u3002';","    if(sim.colony.disease?.active)cause='\u80b2\u5150\u5ba4\u306b\u30b4\u30df\u304c\u305f\u307e\u308a\u3001\u75c5\u6c17\u304c\u5e83\u304c\u3063\u3066\u3044\u307e\u3059\u3002\u6383\u9664\u306e\u624b\u3092\u5897\u3084\u305d\u3046\u3002';\n    {const r=sim.colony.raid;if(r?.phase==='scout')cause=s.allocation.guard?'\u898b\u77e5\u3089\u306c\u30a2\u30ea\u304c\u5de3\u3092\u63a2\u3063\u3066\u3044\u307e\u3059\u3002\u898b\u5f35\u308a\u304c\u5165\u53e3\u3067\u5f85\u3061\u69cb\u3048\u307e\u3059\u3002':'\u898b\u77e5\u3089\u306c\u30a2\u30ea\u304c\u5de3\u3092\u63a2\u3063\u3066\u3044\u307e\u3059\u3002\u898b\u5f35\u308a\u3092\u7f6e\u304f\u3068\u5165\u53e3\u3067\u8ffd\u3044\u6255\u3048\u307e\u3059\u3002';else if(r?.phase==='coming'||r?.phase==='attack')cause=s.allocation.guard?'\u8972\u6483\u968a\u304c\u6765\u307e\u3059\u3002\u898b\u5f35\u308a\u304c\u5165\u53e3\u3067\u8fce\u3048\u6483\u3061\u307e\u3059\u3002':'\u8972\u6483\u968a\u304c\u6765\u307e\u3059\u3002\u898b\u5f35\u308a\u3092\u7f6e\u304f\u3068\u5165\u53e3\u3067\u9632\u3052\u307e\u3059\u3002';}",'raid warning');
+replace("      const object=sim.physics.hit(w.x,w.y,Math.max(.3,4/cam.scale));\n      if(object)selected={kind:'body',id:object.id};","      // A tap on an intruder releases alarm pheromone instead of selecting.\n      const raised=sim.alarmAt?.(w.x,w.y,Math.max(2,14/cam.scale)),object=raised?null:sim.physics.hit(w.x,w.y,Math.max(.3,4/cam.scale));\n      if(raised){alarmPuff={x:w.x,y:w.y,at:performance.now()};persist();}\n      else if(object)selected={kind:'body',id:object.id};",'alarm tap');
+replace("  let cachedRevision = -1, selected = null,","  let alarmPuff=null;\n  let cachedRevision = -1, selected = null,",'alarm puff state');
+replace("    for(const e of sim.colony.raid?.enemies||[])drawWorker(e,reduced);","    for(const e of sim.colony.raid?.enemies||[])drawWorker(e,reduced);\n    if(alarmPuff){const age=(performance.now()-alarmPuff.at)/900;if(age>=1)alarmPuff=null;else{const c=screen(alarmPuff.x,alarmPuff.y);ctx.strokeStyle=`rgba(236,196,120,${(1-age)*.9})`;ctx.lineWidth=2;ctx.beginPath();ctx.arc(c.x,c.y,cam.scale*(1+age*3),0,Math.PI*2);ctx.stroke();}}",'alarm puff');
+replace("else if(r?.phase==='coming'||r?.phase==='attack')cause=s.allocation.guard?'\u8972\u6483\u968a\u304c\u6765\u307e\u3059\u3002\u898b\u5f35\u308a\u304c\u5165\u53e3\u3067\u8fce\u3048\u6483\u3061\u307e\u3059\u3002':'\u8972\u6483\u968a\u304c\u6765\u307e\u3059\u3002\u898b\u5f35\u308a\u3092\u7f6e\u304f\u3068\u5165\u53e3\u3067\u9632\u3052\u307e\u3059\u3002';","else if(r?.phase==='coming')cause=s.allocation.guard?'\u8972\u6483\u968a\u304c\u6765\u307e\u3059\u3002\u898b\u5f35\u308a\u304c\u5165\u53e3\u3067\u8fce\u3048\u6483\u3061\u307e\u3059\u3002':'\u8972\u6483\u968a\u304c\u6765\u307e\u3059\u3002\u898b\u5f35\u308a\u3092\u7f6e\u304f\u3068\u5165\u53e3\u3067\u9632\u3052\u307e\u3059\u3002';else if(r?.phase==='attack')cause='\u8972\u6483\u4e2d\u3002\u4fb5\u5165\u8005\u3092\u30bf\u30c3\u30d7\u3059\u308b\u3068\u3001\u8fd1\u304f\u306e\u50cd\u304d\u30a2\u30ea\u304c\u99c6\u3051\u3064\u3051\u307e\u3059\u3002';",'alarm hint');
+replace("floor.fillStyle=rid===1?'#e2d1a9':rid>=2?(sim.roomKind(rid)==='egg'?'#e5d7bc':'#dcccab'):'#d7c7ab';","floor.fillStyle=rid===1?'#e2d1a9':rid>=2?(sim.roomKind(rid)==='egg'?'#e5d7bc':sim.roomKind(rid)==='rest'?'#e0d3b6':'#dcccab'):'#d7c7ab';",'rest floor');
+replace("    $('space-note').textContent='\u80b2\u5150\u5ba4 '+s.capacity.larvae+' / \u5fc5\u8981 '+sim.demands.larvae+'\u5339\u5206 \u00b7 \u98df\u6599\u5eab '+s.capacity.food+' / \u5fc5\u8981 '+sim.demands.food+'\u500b\u5206';","    {const crowded=sim.crowding?.().length||0;$('space-note').textContent='\u80b2\u5150\u5ba4 '+s.capacity.larvae+' / \u5fc5\u8981 '+sim.demands.larvae+'\u5339\u5206 \u00b7 \u98df\u6599\u5eab '+s.capacity.food+' / \u5fc5\u8981 '+sim.demands.food+'\u500b\u5206'+(crowded?' \u00b7 \u4f11\u3080\u5834\u6240\u306e\u306a\u3044\u50cd\u304d\u624b '+crowded+'\u5339':'');}",'housing note');
+replace("    const base=type===2?[115,94,72]:[141,122,99];","    const base=type===4?[164,158,144]:type===2?[115,94,72]:[141,122,99];",'pebble colour');
+replace("['','\u571f','\u786c\u3044\u571f','\u5ca9'][t]","['','\u571f','\u786c\u3044\u571f','\u5ca9','\u5c0f\u77f3'][t]",'pebble name');
+replace("b.kind==='soil'?'\u7802\u7c92':","b.kind==='soil'?(b.material===4?'\u5c0f\u77f3':'\u7802\u7c92'):",'carried pebble name');
+replace('  window.colonyGame = {',fs.readFileSync(path.join(root,'view-diagnostics.js'),'utf8')+'\n  window.colonyGame = {','opt-in diagnostics inspection API');
+replace('    reset, render, screen, dump:', '    startDiagnostics, stopDiagnostics, diagnostics:()=>diagnostics?.export()||lastDiagnostics, reset, render, screen, dump:', 'diagnostics exports');
+replace('const candidate=new Simulation(seed);checkpoint();sim = candidate;', 'const candidate=new Simulation(seed);checkpoint();stopDiagnostics();sim = candidate;', 'stop diagnostics across new nests');
+replace('checkpoint();sim = candidate; selected = null;', 'checkpoint();stopDiagnostics();sim = candidate; selected = null;', 'stop diagnostics across restored nests');
+replace('sim.colony.laying=!sim.colony.laying;', "diagnostics?.recordSetting('colony.laying',!sim.colony.laying);sim.colony.laying=!sim.colony.laying;", 'record laying input');
+replace("speed = +$('speed').value;persist();", "speed = +$('speed').value;diagnostics?.recordSetting('progress.speed',speed);persist();", 'record speed input');
+// Compress only browser storage. Export/import and the model retain the same
+// JSON contract; validation still runs on every decoded candidate.
+replace("JSON.stringify(sim.dump());if(bytes)localStorage.setItem(KEY+'_recovery',bytes);","LivingSaveCodec.encode(sim.dump());if(bytes)localStorage.setItem(KEY+'_recovery',bytes);",'compressed checkpoint');
+replace('localStorage.setItem(KEY, JSON.stringify(sim.dump()))','localStorage.setItem(KEY, LivingSaveCodec.encode(sim.dump()))','compressed current save');
+replace('Simulation.restore(JSON.parse(saved))','Simulation.restore(LivingSaveCodec.decode(saved))','decode stored startup');
+replace('Simulation.restore(JSON.parse(data))','Simulation.restore(LivingSaveCodec.decode(data))','decode explicit restore');
+replace('Simulation.restore(JSON.parse(bytes))','Simulation.restore(LivingSaveCodec.decode(bytes))','decode undo checkpoint');
+const zipRoot=path.dirname(require.resolve('fflate/package.json'));
+const license='/* fflate 0.8.3 — '+fs.readFileSync(path.join(zipRoot,'LICENSE'),'utf8')+' */\n';
+source=license+fs.readFileSync(path.join(zipRoot,'umd/index.js'),'utf8')+';\n'+fs.readFileSync(path.join(root,'save-codec.js'),'utf8')+'\n'+fs.readFileSync(path.join(root,'diagnostics.js'),'utf8')+'\n'+source;
+fs.writeFileSync(path.join(root,'view.js'),source);console.log('Observation view generated with checked hooks.');

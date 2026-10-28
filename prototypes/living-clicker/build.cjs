@@ -206,6 +206,7 @@ replace("const idle=this.ants.filter(a=>a.role==='build'&&a.desiredRole==='build
 // A worker backing over the ground keeps facing the way it faces; only
 // its tilt follows the slope.
 replace("if(Math.abs(dx)>1e-8){const slope=clamp(this.surfacePoint(ant.x+.5).y-this.surfacePoint(ant.x-.5).y,-1,1),direction=Math.sign(dx);ant.angle=Math.atan2(slope*direction,direction);}","if(Math.abs(dx)>1e-8){const slope=clamp(this.surfacePoint(ant.x+.5).y-this.surfacePoint(ant.x-.5).y,-1,1),direction=Math.sign(Math.cos(oldAngle))||Math.sign(dx);ant.angle=Math.atan2(slope*direction,direction);}",'backing on the surface keeps its facing');
+source=require('./build-surface.cjs')(source);
 replace("['grainRoom',13]","['grainRoom',254]",'saved grain room tags');
 replace("required.sort((a,b)=>(b.d/b.wanted*(","required.sort((a,b)=>(b.d/b.wanted*(b.weight??1)*(",'room need weight b');
 replace("-(a.d/a.wanted*(this.priority","-(a.d/a.wanted*(a.weight??1)*(this.priority",'room need weight a');
@@ -237,6 +238,13 @@ replace('const other=this.ants.find(a=>a.id===ant.yieldHold);','const other=this
 replace('ant.x=p.x;ant.y=p.y;ant.angle=p.angle;', 'ant.x=p.x;ant.y=p.y;ant.angle=p.angle;this._trafficIndex?.update(ant);','update index before next worker moves');
 replace('if(oldY!==ant.y||oldAngle!==ant.angle)surfaceChanged=true;', 'if(oldY!==ant.y||oldAngle!==ant.angle){surfaceChanged=true;this._trafficIndex?.update(ant);}','update index after surface settling');
 replace('this.time += dt; this.ticks++;', 'this.time += dt; this.ticks++;this._trafficIndex=null;','rebuild traffic snapshot each completed tick');
+// The same exclusion rules in a cheaper order. No traffic decision changes:
+// room peers and distant peers need no heading/shaft/neck investigation.
+replace('if(b===ant||p.y<SURFACE&&b.y<SURFACE||Math.hypot(p.x-b.x,p.y-b.y)>2.6)return false;', 'if(b===ant||p.y<SURFACE&&b.y<SURFACE||Math.hypot(p.x-b.x,p.y-b.y)>2.6)return false;\n        const room=this.grainRoom[GRAIN.at(b.x,b.y)];if(ownRoom>0&&room===ownRoom)return false;','room traffic exits before heading work');
+replace('side=Math.abs(dx*Math.sin(axis)-dy*Math.cos(axis)),room=this.grainRoom[GRAIN.at(b.x,b.y)];\n        if(ownRoom>0&&room===ownRoom)return false;', 'side=Math.abs(dx*Math.sin(axis)-dy*Math.cos(axis));','remove later room exclusion');
+replace('flow=a=>{const z=a.path.slice(a.next).find(p=>Math.hypot(p.x-a.x,p.y-a.y)>.25);return z?Math.atan2(z.y-a.y,z.x-a.x):a.angle;}', 'flow=a=>{for(let i=a.next;i<a.path.length;i++){const z=a.path[i];if(Math.hypot(z.x-a.x,z.y-a.y)>.25)return Math.atan2(z.y-a.y,z.x-a.x);}return a.angle;}','same first heading point without copying the route');
+replace('        const shaft=this._entryHistory||this.entranceHistory,nearShaft=q=>q.y<SURFACE+1.5||shaft.some(z=>Math.hypot(z.x-q.x,z.y-q.y)<1.15);\n        if(nearShaft(p)&&nearShaft(b))return false;\n        if(Math.hypot(p.x-b.x,p.y-b.y)>=.67)return false;', '        if(Math.hypot(p.x-b.x,p.y-b.y)>=.67)return false;\n        const shaft=this._entryHistory||this.entranceHistory,nearShaft=q=>q.y<SURFACE+1.5||shaft.some(z=>Math.hypot(z.x-q.x,z.y-q.y)<1.15);\n        if(nearShaft(p)&&nearShaft(b))return false;','distant peers exit before shaft history');
+replace('for(const b of this.builds.slice(2)){if(!b)continue;let k=0;for(let n=1;n<b.history.length;n++)if(Math.hypot(b.history[n].x-p.x,b.history[n].y-p.y)<Math.hypot(b.history[k].x-p.x,b.history[k].y-p.y))k=n;\n        if(Math.hypot(b.history[k].x-p.x,b.history[k].y-p.y)<1.2&&!this.passingIndex(b,k))return true;', 'for(const b of this.builds.slice(2)){if(!b)continue;let k=-1,best=1.2;for(let n=0;n<b.history.length;n++){const q=b.history[n],dx=q.x-p.x,dy=q.y-p.y;if(Math.abs(dx)>=1.2||Math.abs(dy)>=1.2)continue;const d=Math.hypot(dx,dy);if(d<best){best=d;k=n;}}\n        if(k>=0&&!this.passingIndex(b,k))return true;','same nearest neck point within the unchanged radius');
 replace('return { Simulation, Physics,', 'return { Simulation, AntTrafficIndex, Physics,','traffic index for verification');
 replace('  class Simulation {',fs.readFileSync(path.join(root,'route-network.js'),'utf8')+'\n  class Simulation {','shared route network source');
 replace('    path(from,to,kind=undefined,raw=false,depth=0){\n      const route=this.planPath(from,to,kind,raw,depth);',`    sharedNetworkPath(from,to,kind){
@@ -256,6 +264,10 @@ replace('      for(const angle of [heading,',`      if(networkRoom!==undefined)f
 replace('const safe=id=>{const z=decode(id);if(roomWander', 'const safe=id=>{const z=decode(id);if(networkRoom!==undefined&&!networkInside(z))return false;if(roomWander','local room search boundary');
 replace('return { Simulation, AntTrafficIndex, Physics,','return { Simulation, AntTrafficIndex, RouteNetwork, Physics,','network inspection for verification');
 source=require('./build-actors.cjs').core(source);
+// A trail can turn back into its own passer's newly advanced position. The
+// yielding worker must be able to plan another swept route for that mutual
+// block, while ordinary queue waits and unrelated yielders keep their rules.
+source=require('./build-retreat.cjs')(source);
 fs.writeFileSync(path.join(root,'core.js'),source);
 source=read('game.js');
 replace("FORMAT='ant-colony-1',KEY='antColonyGame_1',LIMIT=64","FORMAT='living-clicker-life-1',KEY='livingClicker_1',LIMIT=128",'independent lifecycle save');
@@ -291,6 +303,7 @@ replace("roleWeights:{forage:1,nurse:1,build:1}","roleWeights:{forage:1,nurse:1,
 replace("c.brood.length+stats.born!==stats.initialBrood+stats.laid","c.brood.length+stats.born+(c.raid?.stolenBrood||0)!==stats.initialBrood+stats.laid",'stolen brood ledger');
 replace("food.length+stats.eaten+stats.spent+(c.ferment?.used||0)!==stats.initialFood+stats.generated+(c.waste?.recycled||0)","food.length+stats.eaten+stats.spent+(c.ferment?.used||0)+(c.raid?.stolenFood||0)!==stats.initialFood+stats.generated+(c.waste?.recycled||0)+(c.raid?.prey||0)",'stolen food and prey ledger');
 replace("      const all=this._incoming,feeding=new Set(this.ants.filter(a=>a.itemTask?.purpose==='feed').map(a=>a.itemTask.target));","      // Only a worker about to take a task reads the incoming list: the core\n      // assigns tasks on every 30th step to a worker that is not walking.\n      if(!ant.itemTask&&(ant.path.length&&!ant.returning||this.ticks%30!==0))return false;\n      const all=this._incoming,feeding=new Set(this.ants.filter(a=>a.itemTask?.purpose==='feed').map(a=>a.itemTask.target));",'incoming list only for a worker taking a task');
+replace("      const all=this._incoming,feeding=new Set(this.ants.filter(a=>a.itemTask?.purpose==='feed').map(a=>a.itemTask.target));\n      const maximum=Math.max(10,Math.ceil(this.ants.length*1.2));\n      let stocked=null;\n      this._incoming=(all||[]).filter(b=>!feeding.has(b.id)&&(ant.role==='nurse'?b.kind==='egg':(b.kind==='food'&&(!this.colony.wild.includes(b.id)||(stocked??=this.foodBodies().length)<maximum)||b.kind==='cookie')));", "      const all=this._incoming;\n      // Carrying an assigned item never reads the candidate list in core.\n      if(!ant.itemTask){const feeding=new Set(this.ants.filter(a=>a.itemTask?.purpose==='feed').map(a=>a.itemTask.target)),maximum=Math.max(10,Math.ceil(this.ants.length*1.2));let stocked=null;\n        this._incoming=(all||[]).filter(b=>!feeding.has(b.id)&&(ant.role==='nurse'?b.kind==='egg':(b.kind==='food'&&(!this.colony.wild.includes(b.id)||(stocked??=this.foodBodies().length)<maximum)||b.kind==='cookie')));\n      }",'assigned carriers do not rebuild unused incoming candidates');
 source=require('./build-actors.cjs').life(source);
 replace('this.colony.nextFood=this.time+8;','this.colony.nextFood=this.time+(this.forageInterval?.()??8);','food supply follows population research');
 fs.writeFileSync(path.join(root,'lifecycle.js'),source);

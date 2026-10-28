@@ -1,0 +1,6 @@
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),G=require('./game.js'),Old=require('../colony-game/core.js');
+const pack=JSON.parse(fs.readFileSync(path.join(__dirname,'qa/approach-stall.json'))),s=G.Simulation.restore(pack),home={x:48.25,y:24.25,angle:0},g=51603,tip=s.builds[4].tip;
+const terrain=s.grains.slice(),old=Old.Simulation.prototype.digPoseFor.call(s,g,tip);assert(old?.escapeHome?.length);assert.equal(s.path(home,old,null),null);s._digPoses.clear();
+const candidate=s.construction(4)[0];assert(candidate);assert(s.path(home,candidate.pose,null)?.length);const before=s.stats.grainDelivered,length=s.builds[4].length;
+assert.deepEqual(s.grains,terrain);s.advance(180);assert(s.builds[4].length>length);assert(s.stats.grainDelivered>before);s.assertLedger();assert.deepEqual(G.Simulation.restore(s.dump()).dump(),s.dump());
+fs.writeFileSync(path.join(__dirname,'qa/approach-results.json'),JSON.stringify({pass:true,at:pack.world.time,oldHasReturnButNoApproach:true,newApproach:true,deliveredBefore:before,deliveredAfter:s.stats.grainDelivered,oldLength:length,newLength:s.builds[4].length},null,2));console.log('PASS actual inbound digging pose and real excavation/haul resume');

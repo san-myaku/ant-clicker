@@ -1,0 +1,138 @@
+// Embedded in the generated core factory. The graph is derived from real,
+// swept air; no planned chamber, center waypoint or terrain edit is a node.
+  class RouteNetwork{
+    constructor(sim){
+      this.sim=sim;this.profiles=new Map();this.roomVersions=new Map();
+      this.metrics={requests:0,routes:0,local:0,corridorBuilds:0,roomSearches:0,roomHits:0,fieldsBuilt:0,fieldHits:0,invalidations:0};
+    }
+    region(p){return p.y<SURFACE?-1:this.sim.grainRoom[GRAIN.at(p.x,p.y)]||0;}
+    pose(p){return Object.freeze({x:p.x,y:p.y,angle:p.angle??0});}
+    freeze(route){return Object.freeze(route.map(p=>this.pose(p)));}
+    cost(route){let result=0;for(let k=1;k<route.length;k++)result+=Math.hypot(route[k].x-route[k-1].x,route[k].y-route[k-1].y)+Math.abs(Math.atan2(Math.sin(route[k].angle-route[k-1].angle),Math.cos(route[k].angle-route[k-1].angle)))*.18/(Math.PI/8);return result;}
+    invalidate(cell){
+      this.metrics.invalidations++;const p=xy(cell),rooms=new Set();
+      for(let y=Math.max(0,p.y-1);y<=Math.min(H-1,p.y+1);y++)for(let x=Math.max(0,p.x-1);x<=Math.min(W-1,p.x+1);x++)for(const g of GRAIN.cells(idx(x,y)))if(this.sim.grainRoom[g])rooms.add(this.sim.grainRoom[g]);
+      for(const room of rooms)this.roomVersions.set(room,(this.roomVersions.get(room)||0)+1);
+      for(const profile of this.profiles.values()){
+        let affected=[...rooms].some(room=>profile.rooms.has(room));
+        for(const entry of profile.entries.values())if(p.x+1>=entry.bounds.minX&&p.x<=entry.bounds.maxX&&p.y+1>=entry.bounds.minY&&p.y<=entry.bounds.maxY){entry.dirty=true;affected=true;}
+        for(const [key,edge]of profile.connections)if(rooms.has(edge.room)){profile.connections.delete(key);affected=true;}
+        if(affected)profile.fields.clear();
+      }
+    }
+    sources(){
+      const sim=this.sim,out=[{key:'entry',history:sim._entryHistory||sim.entranceHistory}];
+      for(const rid of sim.roomIds()){const b=sim.builds[rid];if(b?.complete&&b.history.length>4)out.push({key:'b'+rid,history:b.history});}
+      return out;
+    }
+    itinerary(source,target,sources){
+      const edges=new Map();
+      for(const s of sources){
+        if(!s.history?.length)continue;const a=this.region(s.history[0]),b=this.region(s.history.at(-1));if(!a||!b||a===b)continue;
+        for(const [from,to,reverse]of [[a,b,false],[b,a,true]]){if(!edges.has(from))edges.set(from,[]);edges.get(from).push({...s,key:s.key+':'+(reverse?'r':'f'),from,to,reverse});}
+      }
+      // Topology is only a candidate itinerary. Every selected directional
+      // corridor is still verified for this body's full carried profile.
+      const queue=[source],previous=new Map([[source,null]]);
+      for(let k=0;k<queue.length&&!previous.has(target);k++)for(const edge of edges.get(queue[k])||[])if(!previous.has(edge.to)){previous.set(edge.to,edge);queue.push(edge.to);}
+      if(!previous.has(target))return null;const out=[];for(let room=target;room!==source;){const edge=previous.get(room);out.push(edge);room=edge.from;}return out.reverse();
+    }
+    sync(kind,required,sources){
+      const sim=this.sim,key=kind||'body';let profile=this.profiles.get(key);
+      if(!profile){profile={entries:new Map(),connections:new Map(),fields:new Map(),nodes:[],incoming:new Map(),rooms:new Map()};this.profiles.set(key,profile);}
+      const live=new Set(sources.flatMap(s=>[s.key+':f',s.key+':r']));let changed=false;
+      for(const id of profile.entries.keys())if(!live.has(id)){profile.entries.delete(id);changed=true;}
+      for(const source of required){
+        const history=source.history;if(!history?.length)continue;
+        let entry=profile.entries.get(source.key);
+        if(entry&&!entry.dirty&&entry.history===history&&entry.length===history.length&&entry.last===history.at(-1))continue;
+        const nodes=[],edges=[],bounds={minX:Infinity,minY:Infinity,maxX:-Infinity,maxY:-Infinity};
+        for(const p of history){bounds.minX=Math.min(bounds.minX,p.x-2);bounds.maxX=Math.max(bounds.maxX,p.x+2);bounds.minY=Math.min(bounds.minY,p.y-2);bounds.maxY=Math.max(bounds.maxY,p.y+2);}
+        for(const reverse of [source.reverse]){
+          this.metrics.corridorBuilds++;const spine=sim.laneSpine(history,reverse,kind);if(!spine?.length)continue;
+          const start=this.region(spine[0]),end=this.region(spine.at(-1));if(!start||!end||start===end)continue;
+          let lo=0,hi=spine.length-1;
+          if(start!==-1)while(lo+1<hi&&this.region(spine[lo+1])===start)lo++;
+          if(end!==-1)while(hi-1>lo&&this.region(spine[hi-1])===end)hi--;
+          const route=this.freeze(spine.slice(lo,hi+1)),prefix=source.key;
+          const from={id:prefix+':0',pose:route[0],room:start,branch:source.key,exit:true},to={id:prefix+':1',pose:route.at(-1),room:end,branch:source.key,exit:false};
+          nodes.push(from,to);edges.push(Object.freeze({from:from.id,to:to.id,route,cost:this.cost(route),type:'corridor'}));
+        }
+        profile.entries.set(source.key,{history,length:history.length,last:history.at(-1),dirty:false,bounds,nodes,edges});changed=true;
+        for(const [id,edge]of profile.connections)if(edge.from.startsWith(source.key+':')||edge.to.startsWith(source.key+':'))profile.connections.delete(id);
+      }
+      if(changed){
+        profile.nodes=[];profile.rooms=new Map();profile.incoming=new Map();profile.fields.clear();
+        for(const entry of profile.entries.values())for(const node of entry.nodes){node.rank=profile.nodes.length;profile.nodes.push(node);if(!profile.rooms.has(node.room))profile.rooms.set(node.room,[]);profile.rooms.get(node.room).push(node);profile.incoming.set(node.id,[]);}
+        for(const entry of profile.entries.values())for(const edge of entry.edges)profile.incoming.get(edge.to).push(edge);
+        profile.byId=new Map(profile.nodes.map(n=>[n.id,n]));
+      }
+      return profile;
+    }
+    local(from,to,kind,room){
+      if(room===-1)return this.sim.planPath(from,to,kind,true,0);
+      // Local search is constrained to this actual room. The body's swept
+      // silhouette and carried profile are still checked by planPath.
+      const route=this.sim.planPath({...from,_networkRoom:room},to,kind,true,0);if(!route)return null;
+      let previous=from;
+      for(const p of route){const n=Math.max(1,Math.ceil(Math.hypot(p.x-previous.x,p.y-previous.y)/.125));
+        for(let k=0;k<=n;k++)if(this.region({x:previous.x+(p.x-previous.x)*k/n,y:previous.y+(p.y-previous.y)*k/n})!==room)return null;
+        previous=p;
+      }
+      return route;
+    }
+    surfaceApproach(from,node,kind){
+      const first=node.pose,distance=Math.max(.8,(first.y-(SURFACE-1.3))/Math.max(.2,Math.sin(first.angle))),approach={x:first.x-Math.cos(first.angle)*distance,y:first.y-Math.sin(first.angle)*distance,angle:first.angle};
+      const prefix=this.sim.planPath(from,approach,kind,true,0);
+      return prefix&&this.sim.sweptClear(approach,first,kind)?[...prefix,first]:null;
+    }
+    connection(profile,from,to,kind){
+      const key=from.id+'>'+to.id,version=this.roomVersions.get(from.room)||0,old=profile.connections.get(key);
+      if(old?.version===version){this.metrics.roomHits++;return old.edge;}
+      this.metrics.roomSearches++;const local=this.local(from.pose,to.pose,kind,from.room),route=local&&this.freeze([from.pose,...local]);
+      const edge=route&&Object.freeze({from:from.id,to:to.id,route,cost:this.cost(route),type:'room'});
+      if(profile.connections.size>=2048)profile.connections.delete(profile.connections.keys().next().value);
+      profile.connections.set(key,{from:from.id,to:to.id,room:from.room,version,edge});return edge;
+    }
+    field(profile,target,kind,allowed,signature){
+      const key=signature+'>'+target.id,old=profile.fields.get(key);if(old){this.metrics.fieldHits++;return old;}
+      this.metrics.fieldsBuilt++;const distance=new Map([[target.id,0]]),next=new Map(),done=new Set();
+      for(;;){
+        let current=null,best=Infinity;
+        for(const node of profile.nodes){if(!allowed.has(node.branch))continue;const d=distance.get(node.id)??Infinity;if(!done.has(node.id)&&d<best){current=node;best=d;}}
+        if(!current)break;done.add(current.id);
+        const incoming=profile.incoming.get(current.id).filter(e=>allowed.has(profile.byId.get(e.from).branch));
+        // Surface approaches are recomputed for each worker: a moving spoil
+        // heap is not a cached room interior.
+        if(current.room>0&&current.exit)for(const node of profile.rooms.get(current.room))if(!node.exit&&allowed.has(node.branch)){const edge=this.connection(profile,node,current,kind);if(edge)incoming.push(edge);}
+        for(const edge of incoming){const d=best+edge.cost;if(d+1e-9<(distance.get(edge.from)??Infinity)){distance.set(edge.from,d);next.set(edge.from,edge);}}
+      }
+      const result={distance,next};if(profile.fields.size>=64)profile.fields.delete(profile.fields.keys().next().value);profile.fields.set(key,result);return result;
+    }
+    route(from,to,kind){
+      this.metrics.requests++;const sourceRoom=this.region(from),targetRoom=this.region(to);
+      if(!sourceRoom||!targetRoom||sourceRoom===targetRoom||Math.hypot(to.x-from.x,to.y-from.y)<6){this.metrics.local++;return null;}
+      const sources=this.sources(),required=this.itinerary(sourceRoom,targetRoom,sources);if(!required){this.metrics.local++;return null;}
+      const allowed=new Set(required.map(s=>s.key)),signature=[...allowed].join(','),profile=this.sync(kind,required,sources),starts=profile.rooms.get(sourceRoom)?.filter(n=>n.exit&&allowed.has(n.branch)),goals=profile.rooms.get(targetRoom)?.filter(n=>!n.exit&&allowed.has(n.branch));
+      if(!starts?.length||!goals?.length){this.metrics.local++;return null;}
+      const choices=[];
+      for(const target of goals){const field=this.field(profile,target,kind,allowed,signature);for(const source of starts){const cost=field.distance.get(source.id);if(cost!==undefined)choices.push({source,target,field,lower:cost+Math.hypot(source.pose.x-from.x,source.pose.y-from.y)+Math.hypot(target.pose.x-to.x,target.pose.y-to.y)});}}
+      choices.sort((a,b)=>a.lower-b.lower||a.source.rank-b.source.rank||a.target.rank-b.target.rank);
+      let best=null,cost=Infinity;const prefixes=new Map(),suffixes=new Map();
+      for(const choice of choices){
+        if(choice.lower>=cost-1e-9)break;
+        const {source,target,field}=choice;
+        if(!prefixes.has(source.id))prefixes.set(source.id,sourceRoom===-1?this.surfaceApproach(from,source,kind):this.local(from,source.pose,kind,sourceRoom));
+        if(!suffixes.has(target.id))suffixes.set(target.id,this.local(target.pose,to,kind,targetRoom));
+        const left=prefixes.get(source.id),right=suffixes.get(target.id);if(!left||!right)continue;
+        const score=this.cost([from,...left])+(field.distance.get(source.id)||0)+this.cost([target.pose,...right]);if(score>=cost-1e-9)continue;
+        const middle=[];let id=source.id,remaining=profile.nodes.length;
+        while(id!==target.id&&remaining--){const edge=field.next.get(id);if(!edge)break;middle.push(...edge.route.slice(1));id=edge.to;}
+        if(id!==target.id)throw Error('共有経路の網が循環しています');
+        best=[...left,...middle,...right];cost=score;
+      }
+      if(!best){this.metrics.local++;return null;}
+      this.metrics.routes++;return best.map(p=>({x:p.x,y:p.y,angle:p.angle}));
+    }
+    report(){return {metrics:{...this.metrics},profiles:[...this.profiles].map(([kind,p])=>({kind,nodes:p.nodes.length,corridors:[...p.entries.values()].reduce((n,e)=>n+e.edges.length,0),connections:p.connections.size,fields:p.fields.size}))};}
+  }

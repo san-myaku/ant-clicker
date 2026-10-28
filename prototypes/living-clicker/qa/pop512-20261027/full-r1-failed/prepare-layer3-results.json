@@ -1,0 +1,1351 @@
+{
+  "pass": true,
+  "source": {
+    "game.js": "c4b01a6b31b75813877ba6c763ce5375b281be86f8bc4115bbc8958b83f73a27",
+    "core.js": "c873a478cace730dd84ae13111832539229cfc1f3ef8b03119f287a980fea8f8",
+    "lifecycle.js": "c8c93dd72d17607a85ab9420edfc939e78803fd520d3333ee53a397939641301",
+    "diagnostics.js": "faf372b4fd39f287971c8bafa6f8682ebc10bcba68074a639ecef120170dcbf9"
+  },
+  "inputSha256": "ea79db5a2a5488c62871365f122f27b154ea186a8e09f9c7af93d2242fd0d23d",
+  "began": 9856.99999994071,
+  "finished": 10677.999999928763,
+  "samples": [
+    {
+      "time": 9857.999999940695,
+      "reached": 2,
+      "ants": 256,
+      "dug": 10517,
+      "delivered": 10506,
+      "crowded": 2,
+      "rooms": [
+        {
+          "id": 2,
+          "kind": "egg",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 39.73916135104379,
+            "y": 30.302034749102386,
+            "angle": 1.9634954084936207
+          }
+        },
+        {
+          "id": 3,
+          "kind": "food",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 57.219079408582246,
+            "y": 21.835786437626908,
+            "angle": -0.7853981633974483
+          }
+        },
+        {
+          "id": 4,
+          "kind": "egg",
+          "layer": 2,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 30.05170550344827,
+            "y": 39.80024419945645,
+            "angle": -4.71238898038469
+          }
+        },
+        {
+          "id": 5,
+          "kind": "food",
+          "layer": 2,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 62.856595826016424,
+            "y": 39.08199400001858,
+            "angle": 1.1780972450961724
+          }
+        },
+        {
+          "id": 6,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 48.72930851894819,
+            "y": 32.311700719240584,
+            "angle": 0.7853981633974483
+          }
+        },
+        {
+          "id": 7,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 56.8371317543828,
+            "y": 32.52952824204565,
+            "angle": 0.7853981633974483
+          }
+        },
+        {
+          "id": 8,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 43.43943325919888,
+            "y": 15.898237159052698,
+            "angle": -2.356194490192345
+          }
+        },
+        {
+          "id": 9,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 50.766805612464786,
+            "y": 14.175974851452363,
+            "angle": 0.7853981633974483
+          }
+        },
+        {
+          "id": 10,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 35.010627310639784,
+            "y": 11.767555614649972,
+            "angle": -2.356194490192345
+          }
+        },
+        {
+          "id": 11,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 61.983578363789526,
+            "y": 13.175974851452363,
+            "angle": 0
+          }
+        },
+        {
+          "id": 12,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 67.82432991784277,
+            "y": 16.324329917842743,
+            "angle": 0.7853981633974483
+          }
+        },
+        {
+          "id": 13,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 29.029223472750527,
+            "y": 15.97077652724947,
+            "angle": 1.9634954084936207
+          }
+        },
+        {
+          "id": 14,
+          "kind": "rest",
+          "layer": 1,
+          "complete": false,
+          "mode": "passage",
+          "tip": {
+            "x": 70.88098631369783,
+            "y": 17.839790213551638,
+            "angle": 0.7853981633974483
+          }
+        },
+        {
+          "id": 15,
+          "kind": "egg",
+          "layer": 3,
+          "complete": false,
+          "mode": "passage",
+          "tip": {
+            "x": 27.25,
+            "y": 41.25,
+            "angle": 1.9207963267948966
+          }
+        },
+        {
+          "id": 16,
+          "kind": "food",
+          "layer": 3,
+          "complete": false,
+          "mode": "passage",
+          "tip": {
+            "x": 68.25,
+            "y": 41.25,
+            "angle": 0
+          }
+        }
+      ],
+      "incidents": []
+    },
+    {
+      "time": 9977.99999993895,
+      "reached": 2,
+      "ants": 256,
+      "dug": 10640,
+      "delivered": 10633,
+      "crowded": 0,
+      "rooms": [
+        {
+          "id": 2,
+          "kind": "egg",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 39.73916135104379,
+            "y": 30.302034749102386,
+            "angle": 1.9634954084936207
+          }
+        },
+        {
+          "id": 3,
+          "kind": "food",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 57.219079408582246,
+            "y": 21.835786437626908,
+            "angle": -0.7853981633974483
+          }
+        },
+        {
+          "id": 4,
+          "kind": "egg",
+          "layer": 2,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 30.05170550344827,
+            "y": 39.80024419945645,
+            "angle": -4.71238898038469
+          }
+        },
+        {
+          "id": 5,
+          "kind": "food",
+          "layer": 2,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 62.856595826016424,
+            "y": 39.08199400001858,
+            "angle": 1.1780972450961724
+          }
+        },
+        {
+          "id": 6,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 48.72930851894819,
+            "y": 32.311700719240584,
+            "angle": 0.7853981633974483
+          }
+        },
+        {
+          "id": 7,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 56.8371317543828,
+            "y": 32.52952824204565,
+            "angle": 0.7853981633974483
+          }
+        },
+        {
+          "id": 8,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 43.43943325919888,
+            "y": 15.898237159052698,
+            "angle": -2.356194490192345
+          }
+        },
+        {
+          "id": 9,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 50.766805612464786,
+            "y": 14.175974851452363,
+            "angle": 0.7853981633974483
+          }
+        },
+        {
+          "id": 10,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 35.010627310639784,
+            "y": 11.767555614649972,
+            "angle": -2.356194490192345
+          }
+        },
+        {
+          "id": 11,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 61.983578363789526,
+            "y": 13.175974851452363,
+            "angle": 0
+          }
+        },
+        {
+          "id": 12,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 67.82432991784277,
+            "y": 16.324329917842743,
+            "angle": 0.7853981633974483
+          }
+        },
+        {
+          "id": 13,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 29.029223472750527,
+            "y": 15.97077652724947,
+            "angle": 1.9634954084936207
+          }
+        },
+        {
+          "id": 14,
+          "kind": "rest",
+          "layer": 1,
+          "complete": false,
+          "mode": "passage",
+          "tip": {
+            "x": 71.34292607995347,
+            "y": 18.031131929734183,
+            "angle": 0.39269908169872414
+          }
+        },
+        {
+          "id": 15,
+          "kind": "egg",
+          "layer": 3,
+          "complete": false,
+          "mode": "passage",
+          "tip": {
+            "x": 27.058658283817454,
+            "y": 41.71193976625565,
+            "angle": 1.9634954084936207
+          }
+        },
+        {
+          "id": 16,
+          "kind": "food",
+          "layer": 3,
+          "complete": false,
+          "mode": "passage",
+          "tip": {
+            "x": 69.06549315684892,
+            "y": 41.79489510677582,
+            "angle": 0.7853981633974483
+          }
+        }
+      ],
+      "incidents": []
+    },
+    {
+      "time": 10097.999999937203,
+      "reached": 2,
+      "ants": 256,
+      "dug": 10734,
+      "delivered": 10718,
+      "crowded": 0,
+      "rooms": [
+        {
+          "id": 2,
+          "kind": "egg",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 39.73916135104379,
+            "y": 30.302034749102386,
+            "angle": 1.9634954084936207
+          }
+        },
+        {
+          "id": 3,
+          "kind": "food",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 57.219079408582246,
+            "y": 21.835786437626908,
+            "angle": -0.7853981633974483
+          }
+        },
+        {
+          "id": 4,
+          "kind": "egg",
+          "layer": 2,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 30.05170550344827,
+            "y": 39.80024419945645,
+            "angle": -4.71238898038469
+          }
+        },
+        {
+          "id": 5,
+          "kind": "food",
+          "layer": 2,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 62.856595826016424,
+            "y": 39.08199400001858,
+            "angle": 1.1780972450961724
+          }
+        },
+        {
+          "id": 6,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 48.72930851894819,
+            "y": 32.311700719240584,
+            "angle": 0.7853981633974483
+          }
+        },
+        {
+          "id": 7,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 56.8371317543828,
+            "y": 32.52952824204565,
+            "angle": 0.7853981633974483
+          }
+        },
+        {
+          "id": 8,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 43.43943325919888,
+            "y": 15.898237159052698,
+            "angle": -2.356194490192345
+          }
+        },
+        {
+          "id": 9,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 50.766805612464786,
+            "y": 14.175974851452363,
+            "angle": 0.7853981633974483
+          }
+        },
+        {
+          "id": 10,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 35.010627310639784,
+            "y": 11.767555614649972,
+            "angle": -2.356194490192345
+          }
+        },
+        {
+          "id": 11,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 61.983578363789526,
+            "y": 13.175974851452363,
+            "angle": 0
+          }
+        },
+        {
+          "id": 12,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 67.82432991784277,
+            "y": 16.324329917842743,
+            "angle": 0.7853981633974483
+          }
+        },
+        {
+          "id": 13,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 29.029223472750527,
+            "y": 15.97077652724947,
+            "angle": 1.9634954084936207
+          }
+        },
+        {
+          "id": 14,
+          "kind": "rest",
+          "layer": 1,
+          "complete": false,
+          "mode": "passage",
+          "tip": {
+            "x": 71.84292607995347,
+            "y": 18.031131929734183,
+            "angle": 0
+          }
+        },
+        {
+          "id": 15,
+          "kind": "egg",
+          "layer": 3,
+          "complete": false,
+          "mode": "passage",
+          "tip": {
+            "x": 26.351551502630908,
+            "y": 42.4190465474422,
+            "angle": 2.356194490192345
+          }
+        },
+        {
+          "id": 16,
+          "kind": "food",
+          "layer": 3,
+          "complete": false,
+          "mode": "passage",
+          "tip": {
+            "x": 69.77259993803547,
+            "y": 42.50200188796237,
+            "angle": 0.7853981633974483
+          }
+        }
+      ],
+      "incidents": []
+    },
+    {
+      "time": 10217.999999935457,
+      "reached": 2,
+      "ants": 256,
+      "dug": 10843,
+      "delivered": 10821,
+      "crowded": 0,
+      "rooms": [
+        {
+          "id": 2,
+          "kind": "egg",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 39.73916135104379,
+            "y": 30.302034749102386,
+            "angle": 1.9634954084936207
+          }
+        },
+        {
+          "id": 3,
+          "kind": "food",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 57.219079408582246,
+            "y": 21.835786437626908,
+            "angle": -0.7853981633974483
+          }
+        },
+        {
+          "id": 4,
+          "kind": "egg",
+          "layer": 2,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 30.05170550344827,
+            "y": 39.80024419945645,
+            "angle": -4.71238898038469
+          }
+        },
+        {
+          "id": 5,
+          "kind": "food",
+          "layer": 2,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 62.856595826016424,
+            "y": 39.08199400001858,
+            "angle": 1.1780972450961724
+          }
+        },
+        {
+          "id": 6,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 48.72930851894819,
+            "y": 32.311700719240584,
+            "angle": 0.7853981633974483
+          }
+        },
+        {
+          "id": 7,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 56.8371317543828,
+            "y": 32.52952824204565,
+            "angle": 0.7853981633974483
+          }
+        },
+        {
+          "id": 8,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 43.43943325919888,
+            "y": 15.898237159052698,
+            "angle": -2.356194490192345
+          }
+        },
+        {
+          "id": 9,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 50.766805612464786,
+            "y": 14.175974851452363,
+            "angle": 0.7853981633974483
+          }
+        },
+        {
+          "id": 10,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 35.010627310639784,
+            "y": 11.767555614649972,
+            "angle": -2.356194490192345
+          }
+        },
+        {
+          "id": 11,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 61.983578363789526,
+            "y": 13.175974851452363,
+            "angle": 0
+          }
+        },
+        {
+          "id": 12,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 67.82432991784277,
+            "y": 16.324329917842743,
+            "angle": 0.7853981633974483
+          }
+        },
+        {
+          "id": 13,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 29.029223472750527,
+            "y": 15.97077652724947,
+            "angle": 1.9634954084936207
+          }
+        },
+        {
+          "id": 14,
+          "kind": "rest",
+          "layer": 1,
+          "complete": false,
+          "mode": "passage",
+          "tip": {
+            "x": 72.30486584620911,
+            "y": 17.839790213551638,
+            "angle": -0.39269908169872414
+          }
+        },
+        {
+          "id": 15,
+          "kind": "egg",
+          "layer": 3,
+          "complete": false,
+          "mode": "passage",
+          "tip": {
+            "x": 26.160209786448362,
+            "y": 42.880986313697846,
+            "angle": 1.9634954084936207
+          }
+        },
+        {
+          "id": 16,
+          "kind": "food",
+          "layer": 3,
+          "complete": false,
+          "mode": "passage",
+          "tip": {
+            "x": 70.15528337040057,
+            "y": 43.425881420473665,
+            "angle": 1.1780972450961724
+          }
+        }
+      ],
+      "incidents": []
+    },
+    {
+      "time": 10337.99999993371,
+      "reached": 2,
+      "ants": 256,
+      "dug": 10963,
+      "delivered": 10954,
+      "crowded": 0,
+      "rooms": [
+        {
+          "id": 2,
+          "kind": "egg",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 39.73916135104379,
+            "y": 30.302034749102386,
+            "angle": 1.9634954084936207
+          }
+        },
+        {
+          "id": 3,
+          "kind": "food",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 57.219079408582246,
+            "y": 21.835786437626908,
+            "angle": -0.7853981633974483
+          }
+        },
+        {
+          "id": 4,
+          "kind": "egg",
+          "layer": 2,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 30.05170550344827,
+            "y": 39.80024419945645,
+            "angle": -4.71238898038469
+          }
+        },
+        {
+          "id": 5,
+          "kind": "food",
+          "layer": 2,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 62.856595826016424,
+            "y": 39.08199400001858,
+            "angle": 1.1780972450961724
+          }
+        },
+        {
+          "id": 6,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 48.72930851894819,
+            "y": 32.311700719240584,
+            "angle": 0.7853981633974483
+          }
+        },
+        {
+          "id": 7,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 56.8371317543828,
+            "y": 32.52952824204565,
+            "angle": 0.7853981633974483
+          }
+        },
+        {
+          "id": 8,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 43.43943325919888,
+            "y": 15.898237159052698,
+            "angle": -2.356194490192345
+          }
+        },
+        {
+          "id": 9,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 50.766805612464786,
+            "y": 14.175974851452363,
+            "angle": 0.7853981633974483
+          }
+        },
+        {
+          "id": 10,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 35.010627310639784,
+            "y": 11.767555614649972,
+            "angle": -2.356194490192345
+          }
+        },
+        {
+          "id": 11,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 61.983578363789526,
+            "y": 13.175974851452363,
+            "angle": 0
+          }
+        },
+        {
+          "id": 12,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 67.82432991784277,
+            "y": 16.324329917842743,
+            "angle": 0.7853981633974483
+          }
+        },
+        {
+          "id": 13,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 29.029223472750527,
+            "y": 15.97077652724947,
+            "angle": 1.9634954084936207
+          }
+        },
+        {
+          "id": 14,
+          "kind": "rest",
+          "layer": 1,
+          "complete": false,
+          "mode": "passage",
+          "tip": {
+            "x": 72.76680561246475,
+            "y": 17.648448497369092,
+            "angle": -0.39269908169872414
+          }
+        },
+        {
+          "id": 15,
+          "kind": "egg",
+          "layer": 3,
+          "complete": false,
+          "mode": "passage",
+          "tip": {
+            "x": 25.80665639585509,
+            "y": 43.23453970429112,
+            "angle": 2.356194490192345
+          }
+        },
+        {
+          "id": 16,
+          "kind": "food",
+          "layer": 3,
+          "complete": false,
+          "mode": "passage",
+          "tip": {
+            "x": 70.34662508658312,
+            "y": 43.88782118672931,
+            "angle": 1.1780972450961724
+          }
+        }
+      ],
+      "incidents": []
+    },
+    {
+      "time": 10457.999999931964,
+      "reached": 2,
+      "ants": 256,
+      "dug": 11065,
+      "delivered": 11049,
+      "crowded": 0,
+      "rooms": [
+        {
+          "id": 2,
+          "kind": "egg",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 39.73916135104379,
+            "y": 30.302034749102386,
+            "angle": 1.9634954084936207
+          }
+        },
+        {
+          "id": 3,
+          "kind": "food",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 57.219079408582246,
+            "y": 21.835786437626908,
+            "angle": -0.7853981633974483
+          }
+        },
+        {
+          "id": 4,
+          "kind": "egg",
+          "layer": 2,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 30.05170550344827,
+            "y": 39.80024419945645,
+            "angle": -4.71238898038469
+          }
+        },
+        {
+          "id": 5,
+          "kind": "food",
+          "layer": 2,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 62.856595826016424,
+            "y": 39.08199400001858,
+            "angle": 1.1780972450961724
+          }
+        },
+        {
+          "id": 6,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 48.72930851894819,
+            "y": 32.311700719240584,
+            "angle": 0.7853981633974483
+          }
+        },
+        {
+          "id": 7,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 56.8371317543828,
+            "y": 32.52952824204565,
+            "angle": 0.7853981633974483
+          }
+        },
+        {
+          "id": 8,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 43.43943325919888,
+            "y": 15.898237159052698,
+            "angle": -2.356194490192345
+          }
+        },
+        {
+          "id": 9,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 50.766805612464786,
+            "y": 14.175974851452363,
+            "angle": 0.7853981633974483
+          }
+        },
+        {
+          "id": 10,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 35.010627310639784,
+            "y": 11.767555614649972,
+            "angle": -2.356194490192345
+          }
+        },
+        {
+          "id": 11,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 61.983578363789526,
+            "y": 13.175974851452363,
+            "angle": 0
+          }
+        },
+        {
+          "id": 12,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 67.82432991784277,
+            "y": 16.324329917842743,
+            "angle": 0.7853981633974483
+          }
+        },
+        {
+          "id": 13,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 29.029223472750527,
+            "y": 15.97077652724947,
+            "angle": 1.9634954084936207
+          }
+        },
+        {
+          "id": 14,
+          "kind": "rest",
+          "layer": 1,
+          "complete": false,
+          "mode": "passage",
+          "tip": {
+            "x": 73.26680561246475,
+            "y": 17.648448497369092,
+            "angle": 0
+          }
+        },
+        {
+          "id": 15,
+          "kind": "egg",
+          "layer": 3,
+          "complete": false,
+          "mode": "passage",
+          "tip": {
+            "x": 25.453103005261816,
+            "y": 43.5880930948844,
+            "angle": 2.356194490192345
+          }
+        },
+        {
+          "id": 16,
+          "kind": "food",
+          "layer": 3,
+          "complete": false,
+          "mode": "passage",
+          "tip": {
+            "x": 70.7001784771764,
+            "y": 44.24137457732259,
+            "angle": 0.7853981633974483
+          }
+        }
+      ],
+      "incidents": []
+    },
+    {
+      "time": 10577.999999930218,
+      "reached": 2,
+      "ants": 256,
+      "dug": 11138,
+      "delivered": 11130,
+      "crowded": 0,
+      "rooms": [
+        {
+          "id": 2,
+          "kind": "egg",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 39.73916135104379,
+            "y": 30.302034749102386,
+            "angle": 1.9634954084936207
+          }
+        },
+        {
+          "id": 3,
+          "kind": "food",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 57.219079408582246,
+            "y": 21.835786437626908,
+            "angle": -0.7853981633974483
+          }
+        },
+        {
+          "id": 4,
+          "kind": "egg",
+          "layer": 2,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 30.05170550344827,
+            "y": 39.80024419945645,
+            "angle": -4.71238898038469
+          }
+        },
+        {
+          "id": 5,
+          "kind": "food",
+          "layer": 2,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 62.856595826016424,
+            "y": 39.08199400001858,
+            "angle": 1.1780972450961724
+          }
+        },
+        {
+          "id": 6,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 48.72930851894819,
+            "y": 32.311700719240584,
+            "angle": 0.7853981633974483
+          }
+        },
+        {
+          "id": 7,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 56.8371317543828,
+            "y": 32.52952824204565,
+            "angle": 0.7853981633974483
+          }
+        },
+        {
+          "id": 8,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 43.43943325919888,
+            "y": 15.898237159052698,
+            "angle": -2.356194490192345
+          }
+        },
+        {
+          "id": 9,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 50.766805612464786,
+            "y": 14.175974851452363,
+            "angle": 0.7853981633974483
+          }
+        },
+        {
+          "id": 10,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 35.010627310639784,
+            "y": 11.767555614649972,
+            "angle": -2.356194490192345
+          }
+        },
+        {
+          "id": 11,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 61.983578363789526,
+            "y": 13.175974851452363,
+            "angle": 0
+          }
+        },
+        {
+          "id": 12,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 67.82432991784277,
+            "y": 16.324329917842743,
+            "angle": 0.7853981633974483
+          }
+        },
+        {
+          "id": 13,
+          "kind": "rest",
+          "layer": 1,
+          "complete": true,
+          "mode": "chamber",
+          "tip": {
+            "x": 29.029223472750527,
+            "y": 15.97077652724947,
+            "angle": 1.9634954084936207
+          }
+        },
+        {
+          "id": 14,
+          "kind": "rest",
+          "layer": 1,
+          "complete": false,
+          "mode": "passage",
+          "tip": {
+            "x": 73.72874537872039,
+            "y": 17.839790213551638,
+            "angle": 0.39269908169872414
+          }
+        },
+        {
+          "id": 15,
+          "kind": "egg",
+          "layer": 3,
+          "complete": false,
+          "mode": "passage",
+          "tip": {
+            "x": 25.099549614668543,
+            "y": 43.941646485477676,
+            "angle": 2.356194490192345
+          }
+        },
+        {
+          "id": 16,
+          "kind": "food",
+          "layer": 3,
+          "complete": false,
+          "mode": "passage",
+          "tip": {
+            "x": 70.7001784771764,
+            "y": 44.24137457732259,
+            "angle": 0.7853981633974483
+          }
+        }
+      ],
+      "incidents": []
+    }
+  ]
+}

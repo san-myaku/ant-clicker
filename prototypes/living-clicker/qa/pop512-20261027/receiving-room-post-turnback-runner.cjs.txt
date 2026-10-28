@@ -1,0 +1,26 @@
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto');
+const here=path.resolve(__dirname,'../../prototypes/living-clicker'),copy=path.join(__dirname,'receiving-room-post-turnback'),sha=b=>crypto.createHash('sha256').update(b).digest('hex');fs.mkdirSync(copy,{recursive:true});
+const source=Object.fromEntries(['game.js','core.js','lifecycle.js'].map(n=>[n,sha(fs.readFileSync(path.join(here,n)))]));for(const n of Object.keys(source))fs.copyFileSync(path.join(here,n),path.join(copy,n));
+let code=fs.readFileSync(path.join(copy,'game.js'),'utf8');
+const helper=`    roomsOfKind(kind){
+      // Room identities and kinds are append-only during gameplay. A restored
+      // colony has a new array. Do not memoize transport or reservation results.
+      let cache=this._roomsByKind;if(cache?.rooms!==this.rooms||cache?.length!==this.rooms.length){
+        const kinds=new Map();for(const rid of this.roomIds()){const k=this.roomKind(rid);if(!kinds.has(k))kinds.set(k,[]);kinds.get(k).push(rid);}
+        for(const list of kinds.values())Object.freeze(list);cache=this._roomsByKind={rooms:this.rooms,length:this.rooms.length,kinds};
+      }return cache.kinds.get(kind)||[];
+    }
+`;
+assert(code.includes('    receivingRoom(body){'));code=code.replace('    receivingRoom(body){',helper+'    receivingRoom(body){');
+const destination='this.roomIds().filter(r=>this.roomKind(r)===kind&&this.transportReady(r))';assert(code.includes(destination));code=code.replace(destination,'this.roomsOfKind(kind).filter(r=>this.transportReady(r))');
+const allocation='for(const rid of this.roomIds().filter(r=>this.roomKind(r)===body.kind&&this.transportReady(r))){';assert(code.includes(allocation));code=code.replace(allocation,'for(const rid of this.roomsOfKind(body.kind)){\n        if(!this.transportReady(rid))continue;');fs.writeFileSync(path.join(copy,'game.js'),code);
+function compare(a,b,name){const left=JSON.stringify(a.dump()),right=JSON.stringify(b.dump());if(left!==right){const prefix='receiving-post-turnback-failed';fs.writeFileSync(path.join(__dirname,prefix+'-old.json'),left);fs.writeFileSync(path.join(__dirname,prefix+'-candidate.json'),right);throw Error('全保存不一致: '+name+' t='+a.time+' '+sha(Buffer.from(left))+' / '+sha(Buffer.from(right)));}}
+const Old=require(path.join(here,'game.js')),G=require(path.join(copy,'game.js')),results=[];
+for(const name of ['world-900.json','world-256.json','before-512.json','housing-512-pressure.json','raid-stuck-loot.json','retreat-turnback-64.json','world-512.json','pop512-20261027/active512-post-turnback-input.json']){
+ const file=name==='active-512.json'?path.join(__dirname,name):path.join(here,'qa',name),bytes=fs.readFileSync(file),pack=JSON.parse(bytes),a=Old.Simulation.restore(pack.state||pack),b=G.Simulation.restore(pack.state||pack);if(name==='before-512.json'){assert(a.buyResearch('queen_embrace'));assert(b.buyResearch('queen_embrace'));}
+ for(let k=0;k<120;k++){a.step(Old.STEP);b.step(G.STEP);}compare(a,b,name);let oldMs=0,newMs=0;
+ for(let k=0;k<600;k++){let t=performance.now();a.step(Old.STEP);oldMs+=performance.now()-t;t=performance.now();b.step(G.STEP);newMs+=performance.now()-t;if(k%60===0)compare(a,b,name);}compare(a,b,name);
+ const row={name,pass:true,inputSha256:sha(bytes),steps:600,oldMsPerStep:oldMs/600,newMsPerStep:newMs/600};results.push(row);console.log(JSON.stringify(row));
+}
+for(const [n,h]of Object.entries(source))assert.equal(sha(fs.readFileSync(path.join(here,n))),h);
+const result={pass:true,source,candidateGameSha256:sha(Buffer.from(code)),results,helper,note:'退避/地表修正後の隔離コピー。自然512匹検証と並走した参考比較。固定8入力、各準備120コマ+600コマの全保存バイト一致。部屋の分類だけを共有し、通行可否/空き/予約は都度評価。未採用で最終30本の実装ではない。'};fs.copyFileSync(__filename,path.join(__dirname,'receiving-room-post-turnback-runner.cjs.txt'));fs.writeFileSync(path.join(__dirname,'receiving-room-post-turnback-results.json'),JSON.stringify(result,null,2)+'\n');console.log('PASS isolated receiving-room candidate');

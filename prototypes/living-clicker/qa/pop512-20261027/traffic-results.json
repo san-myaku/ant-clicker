@@ -1,0 +1,83 @@
+{
+  "results": [
+    {
+      "name": "radius-boundaries-corners-order-and-same-step-updates",
+      "pass": true
+    },
+    {
+      "name": "randomized-moving-workers-never-lose-or-reorder-a-neighbor",
+      "pass": true,
+      "queries": 2000,
+      "linearCandidates": 2000000,
+      "gridCandidates": 14995
+    },
+    {
+      "name": "birth-death-and-array-replacement-refresh-id-map",
+      "pass": true
+    },
+    {
+      "name": "same-state-as-full-scan-world-900.json",
+      "pass": true,
+      "ants": 33,
+      "comparedSteps": 1200,
+      "fullSavesEveryStep": 30
+    },
+    {
+      "name": "same-state-as-full-scan-world-scale.json",
+      "pass": true,
+      "ants": 128,
+      "comparedSteps": 1200,
+      "fullSavesEveryStep": 30
+    },
+    {
+      "name": "same-state-as-full-scan-head-on-retreat.json",
+      "pass": true,
+      "ants": 64,
+      "comparedSteps": 1200,
+      "fullSavesEveryStep": 30
+    },
+    {
+      "name": "same-state-as-full-scan-room-reservation.json",
+      "pass": true,
+      "ants": 41,
+      "comparedSteps": 1200,
+      "fullSavesEveryStep": 30
+    },
+    {
+      "name": "same-state-as-full-scan-raid-stuck-loot.json",
+      "pass": true,
+      "ants": 128,
+      "comparedSteps": 1200,
+      "fullSavesEveryStep": 30
+    },
+    {
+      "name": "same-state-as-full-scan-heap-ceiling.json",
+      "pass": true,
+      "ants": 107,
+      "comparedSteps": 1200,
+      "fullSavesEveryStep": 30
+    },
+    {
+      "name": "real-traffic-candidate-count-is-reduced",
+      "pass": true,
+      "linear": 5533909,
+      "grid": 656565,
+      "queries": 63418
+    }
+  ],
+  "hashes": {
+    "core.js": "c7d73a8f8f662b4a20d6b17803e0040d816e1422edf2604d08b7f25706982582",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "game.js": "763c181eb8e8e8a3770178b8f72c3092043c101994a82959a3b210be69340644",
+    "build.cjs": "e68c1736f03f0ccd588ea22d11fb5c6d6e49be362c78eec5eee5f462820a82d8",
+    "traffic-index.js": "bb887e2073fb338399d5591038fa1b487a624bf7214e87c0547381ce58e09648"
+  },
+  "inputs": {
+    "world-900.json": "bfb9fbafee2e76b4a6f4e4aec8b97def004a8e9c8ed12a07ebed1c2a000860da",
+    "world-scale.json": "15d03b034f3619e0dbdc04846fae7173c546823a413acd74456fa8f781676f91",
+    "head-on-retreat.json": "f7b76e9316a23fdef8315b2bb3ee3f622cf5048c58505f51aded32fdbe5e0c81",
+    "room-reservation.json": "f36ba44a40233deeb28b60ea2cb7086fb21f69fcc42e4f677f2303cfcdc786a6",
+    "raid-stuck-loot.json": "6997ce7ce6935b2e60cb45a5321a09a00ebd303b9268e9d4a15ab8ad76f7eb6e",
+    "heap-ceiling.json": "0043346a5f6df877c3025744eb24c783147920104a59430526d1f5852f9c52b2"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "pass": true,
+  "source": {
+    "game.js": "66fe1b1573993e07fb2ee88eeb06b0fc0a1fad8b2e6057c4168463dff2218f3d",
+    "core.js": "6ef879b37b84e72a97066b8f9f0fb8064ff2b5d718e1c45158437356964105a8",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "build.cjs": "c37d481d3f9a27f4be6bb791ca353f658c43971f511a43f41f79b81fd5960294"
+  },
+  "results": [
+    {
+      "name": "before-512.json",
+      "steps": 1800,
+      "oldMsPerStep": 21.587233333333234,
+      "newMsPerStep": 16.44590561111105,
+      "same": true
+    }
+  ]
+}

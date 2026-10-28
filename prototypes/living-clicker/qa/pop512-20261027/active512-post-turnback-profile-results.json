@@ -1,0 +1,181 @@
+{
+  "pass": true,
+  "completedAt": "2026-10-27T23:49:59.992Z",
+  "source": {
+    "game.js": "763c181eb8e8e8a3770178b8f72c3092043c101994a82959a3b210be69340644",
+    "core.js": "c7d73a8f8f662b4a20d6b17803e0040d816e1422edf2604d08b7f25706982582",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "build.cjs": "e68c1736f03f0ccd588ea22d11fb5c6d6e49be362c78eec5eee5f462820a82d8",
+    "build-surface.cjs": "8022e37dcfe2de04574367711fe7d35e961ad13581f41545987311790ca048d3",
+    "build-retreat.cjs": "abb4332ca97e608ae4870e1844495ea5851441c180c71ae42cb5c1fd40c5f8bd"
+  },
+  "inputSha256": "02b55685ce47e5bbd6eee41dbb423ac316a5753f8581f2909660e9d9186016c6",
+  "inputTime": 14878.99999986763,
+  "inputCrowded": 113,
+  "ants": 512,
+  "began": 14883.999999867558,
+  "finished": 14903.999999867267,
+  "delivered": 24,
+  "elapsedMs": 20617.5883,
+  "steps": 1200,
+  "msPerStep": 17.181323583333334,
+  "retreat": {
+    "includesWarmup": true,
+    "calls": 0,
+    "active": 0,
+    "activePlans": 0
+  },
+  "host": {
+    "cpu": "AMD Ryzen 7 5800H with Radeon Graphics         ",
+    "node": "v24.22.1",
+    "platform": "win32"
+  },
+  "totalSamples": 13213,
+  "rows": [
+    {
+      "name": "receivingRoom",
+      "url": "game.js",
+      "line": 300,
+      "samples": 1406
+    },
+    {
+      "name": "storageDestination",
+      "url": "core.js",
+      "line": 824,
+      "samples": 1234
+    },
+    {
+      "name": "storageDrop",
+      "url": "core.js",
+      "line": 805,
+      "samples": 988
+    },
+    {
+      "name": "tick",
+      "url": "core.js",
+      "line": 1557,
+      "samples": 417
+    },
+    {
+      "name": "",
+      "url": "core.js",
+      "line": 847,
+      "samples": 410
+    },
+    {
+      "name": "foodBodies",
+      "url": "lifecycle.js",
+      "line": 44,
+      "samples": 357
+    },
+    {
+      "name": "",
+      "url": "game.js",
+      "line": 311,
+      "samples": 307
+    },
+    {
+      "name": "rehome",
+      "url": "game.js",
+      "line": 185,
+      "samples": 288
+    },
+    {
+      "name": "tick",
+      "url": "lifecycle.js",
+      "line": 174,
+      "samples": 284
+    },
+    {
+      "name": "(garbage collector)",
+      "url": "",
+      "line": 0,
+      "samples": 271
+    },
+    {
+      "name": "poseClear",
+      "url": "core.js",
+      "line": 910,
+      "samples": 241
+    },
+    {
+      "name": "",
+      "url": "core.js",
+      "line": 818,
+      "samples": 239
+    },
+    {
+      "name": "frontier",
+      "url": "core.js",
+      "line": 1378,
+      "samples": 209
+    },
+    {
+      "name": "roomKind",
+      "url": "core.js",
+      "line": 557,
+      "samples": 184
+    },
+    {
+      "name": "",
+      "url": "game.js",
+      "line": 397,
+      "samples": 177
+    },
+    {
+      "name": "plan",
+      "url": "core.js",
+      "line": 1400,
+      "samples": 163
+    },
+    {
+      "name": "poseClear",
+      "url": "core.js",
+      "line": 910,
+      "samples": 148
+    },
+    {
+      "name": "roomKind",
+      "url": "core.js",
+      "line": 557,
+      "samples": 145
+    },
+    {
+      "name": "cells",
+      "url": "core.js",
+      "line": 1394,
+      "samples": 144
+    },
+    {
+      "name": "move",
+      "url": "core.js",
+      "line": 1479,
+      "samples": 117
+    },
+    {
+      "name": "",
+      "url": "core.js",
+      "line": 1398,
+      "samples": 114
+    },
+    {
+      "name": "poseClear",
+      "url": "core.js",
+      "line": 910,
+      "samples": 113
+    },
+    {
+      "name": "homeSpots",
+      "url": "game.js",
+      "line": 144,
+      "samples": 112
+    },
+    {
+      "name": "sweptClear",
+      "url": "core.js",
+      "line": 957,
+      "samples": 110
+    }
+  ],
+  "note": "修正後の自然512匹・居室拡張中の無編集状態を複製し、準備300コマ後に1200コマを診断。自然育成と並走し、退避の呼出数も計装した参考値。単独ベンチマーク/性能合格/最終保存の代わりにしない。"
+}

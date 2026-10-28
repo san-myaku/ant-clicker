@@ -1,0 +1,21 @@
+{
+  "pass": true,
+  "source": {
+    "game.js": "66fe1b1573993e07fb2ee88eeb06b0fc0a1fad8b2e6057c4168463dff2218f3d",
+    "core.js": "d97f32a5e3adf902bdd0b7561a1c505b723c01488628263e1f5e11fe8a9b7cac",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "build.cjs": "177cc1baa7a8a84e50d48bdaaea0c9397237ce9dab82720467a9a840ea44bb6e",
+    "build-surface.cjs": "233834f7c281f7aa54ffd2df5e5c76f966b5861f775a11a7184b7ac43d40bee1",
+    "qa/surface-reference.cjs": "e268e54b66dd80f7653bbaf4148fd5ffbafd06287942ee84452fbbf5c8b1990e"
+  },
+  "results": [
+    {
+      "name": "before-512.json",
+      "inputSha256": "524443b0e8436a73275aa0e723f359e72ef7ef56f6d8a9ef623a4a378f62a6de",
+      "steps": 1800,
+      "oldMsPerStep": 22.36790666666671,
+      "newMsPerStep": 17.02818150000001,
+      "same": true
+    }
+  ]
+}

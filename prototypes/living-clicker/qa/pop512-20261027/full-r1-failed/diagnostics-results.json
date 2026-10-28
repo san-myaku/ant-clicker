@@ -1,0 +1,85 @@
+{
+  "results": [
+    {
+      "name": "mixed-wait-graph-detects-components-without-recursion",
+      "pass": true
+    },
+    {
+      "name": "persistent-waitingFor-and-yieldHold-cycle-is-recorded",
+      "pass": true,
+      "detectedAt": 20.500000000000117,
+      "edges": [
+        {
+          "from": 1,
+          "to": 2,
+          "reason": "waitingFor"
+        },
+        {
+          "from": 2,
+          "to": 3,
+          "reason": "yieldHold"
+        },
+        {
+          "from": 3,
+          "to": 1,
+          "reason": "waitingFor"
+        }
+      ]
+    },
+    {
+      "name": "transient-cycle-and-moving-queue-are-not-stalls",
+      "pass": true
+    },
+    {
+      "name": "rest-laying-off-feed-interval-and-fighting-are-expected",
+      "pass": true
+    },
+    {
+      "name": "one-stalled-assignment-is-visible-while-others-move",
+      "pass": true
+    },
+    {
+      "name": "global-assigned-work-without-progress-is-recorded",
+      "pass": true
+    },
+    {
+      "name": "lost-target-carrier-and-physics-index-remain-unrepaired",
+      "pass": true
+    },
+    {
+      "name": "removed-workers-do-not-leave-observer-timers",
+      "pass": true
+    },
+    {
+      "name": "buffers-are-bounded-and-detach-restores-methods",
+      "pass": true
+    },
+    {
+      "name": "simulation-exceptions-are-reported-and-rethrown",
+      "pass": true
+    },
+    {
+      "name": "actual-game-is-identical-and-actions-replay-exactly",
+      "pass": true,
+      "comparedEveryStep": 180,
+      "replayedOperations": 6
+    },
+    {
+      "name": "128-workers-preserve-state-with-monitor-enabled",
+      "pass": true,
+      "ants": 128
+    },
+    {
+      "name": "natural-work-over-five-minutes-has-no-false-stall",
+      "pass": true,
+      "ants": 39,
+      "samples": 120
+    }
+  ],
+  "hashes": {
+    "diagnostics.js": "faf372b4fd39f287971c8bafa6f8682ebc10bcba68074a639ecef120170dcbf9",
+    "game.js": "66fe1b1573993e07fb2ee88eeb06b0fc0a1fad8b2e6057c4168463dff2218f3d",
+    "core.js": "9b779fd0f25deed86efd9cdce0f965604d999495bfebe2c7265d227424b38c45",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0"
+  }
+}

@@ -1,0 +1,24 @@
+/* Candidate only: run after both long simulations, before the full suite.
+   Main source stays unchanged. Timing measures the model, not browser FPS. */
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto'),os=require('node:os'),here=path.resolve(__dirname,'../../prototypes/living-clicker'),out=path.join(here,'qa/pop512-20261027'),copy=path.join(__dirname,'receiving-room-post-turnback'),sha=b=>crypto.createHash('sha256').update(b).digest('hex'),prior=JSON.parse(fs.readFileSync(path.join(__dirname,'receiving-room-post-turnback-results.json'),'utf8')),target=path.join(out,'receiving-room-independent-results.json');
+assert(!fs.existsSync(target));assert(prior.pass);for(const[n,h]of Object.entries(prior.source)){assert.equal(sha(fs.readFileSync(path.join(here,n))),h);assert.equal(sha(fs.readFileSync(path.join(copy,n))),n==='game.js'?prior.candidateGameSha256:h);}
+const G=require(path.join(here,'game.js')),Candidate=require(path.join(copy,'game.js')),source=Object.fromEntries(['game.js','core.js','lifecycle.js','build.cjs','build-surface.cjs','build-retreat.cjs'].map(n=>[n,sha(fs.readFileSync(path.join(here,n)))])),inputs={},results=[],began=new Date().toISOString();
+function same(a,b,label){const left=JSON.stringify(a.dump()),right=JSON.stringify(b.dump());if(left!==right){fs.writeFileSync(path.join(__dirname,'independent-mismatch-old.json'),left);fs.writeFileSync(path.join(__dirname,'independent-mismatch-candidate.json'),right);throw Error('全保存不一致 '+label+' '+a.time+' '+sha(Buffer.from(left))+' / '+sha(Buffer.from(right)));}}
+try{
+ for(const item of [{name:'active-512',file:'qa/pop512-20261027/active512-post-turnback-input.json',research:false},{name:'final-512-new-demand',file:'qa/world-512.json',research:true}]){
+  const bytes=fs.readFileSync(path.join(here,item.file)),p=JSON.parse(bytes),a=G.Simulation.restore(p),b=Candidate.Simulation.restore(p);assert.equal(a.ants.length,512);assert.deepEqual(a.dump(),p);inputs[item.file]=sha(bytes);same(a,b,item.name);
+  if(item.research){const natural=JSON.parse(fs.readFileSync(path.join(here,'qa/growth-512-results.json'),'utf8'));assert(natural.pass);assert.equal(a.time,natural.finished);assert.equal(a.researchStatus('geo_depth_4'),'ready');assert(a.buyResearch('geo_depth_4'));assert(b.buyResearch('geo_depth_4'));same(a,b,'実研究の支払後');}
+  for(let k=0;k<300;k++){a.step(G.STEP);b.step(G.STEP);}same(a,b,'準備後');
+  const before={delivered:a.stats.grainDelivered,dug:a.stats.grainDug,distance:a.stats.distance},steps=1800;let oldMs=0,newMs=0;
+  for(let k=0;k<steps;k++){
+   if(k%2===0){let t=performance.now();a.step(G.STEP);oldMs+=performance.now()-t;t=performance.now();b.step(G.STEP);newMs+=performance.now()-t;}
+   else {let t=performance.now();b.step(G.STEP);newMs+=performance.now()-t;t=performance.now();a.step(G.STEP);oldMs+=performance.now()-t;}
+   if(k%60===0)same(a,b,item.name);
+  }
+  same(a,b,'最終');a.assertLedger();a.assertProgress();b.assertLedger();b.assertProgress();assert.deepEqual(Candidate.Simulation.restore(b.dump()).dump(),b.dump());
+  const delta={delivered:a.stats.grainDelivered-before.delivered,dug:a.stats.grainDug-before.dug,distance:a.stats.distance-before.distance};assert(delta.delivered>0&&delta.dug>0&&delta.distance>0,'実作業が進んだ比較にする');
+  const row={name:item.name,inputFile:item.file,inputSha256:sha(bytes),actualResearch:item.research?'geo_depth_4':null,warmupSteps:300,steps,oldMsPerStep:oldMs/steps,newMsPerStep:newMs/steps,same:true,delta};results.push(row);console.log('CANDIDATE_ONLY '+JSON.stringify(row));
+ }
+ for(const[n,h]of Object.entries(source))assert.equal(sha(fs.readFileSync(path.join(here,n))),h);for(const[n,h]of Object.entries(inputs))assert.equal(sha(fs.readFileSync(path.join(here,n))),h);
+ fs.copyFileSync(__filename,path.join(out,'receiving-room-independent-runner.cjs.txt'));fs.writeFileSync(target,JSON.stringify({pass:true,adopted:false,began,finishedAt:new Date().toISOString(),source,candidateGameSha256:prior.candidateGameSha256,host:{node:process.version,cpu:os.cpus()[0].model,logicalCores:os.cpus().length},inputs,results,note:'自然育成/晩期/最終全検証と競合しない位置で実施。2入力を各300コマ準備後1800コマ、順序を交互に測定。研究で新しい需要を作った比較を含み、実掘削/搬出/歩行をassert。単独のモデル比較であり、ブラウザの実効速度/実機/1000匹の保証ではない。候補は本体未採用。'},null,2)+'\n');
+}catch(e){fs.writeFileSync(target,JSON.stringify({pass:false,adopted:false,began,finishedAt:new Date().toISOString(),source,inputs,results,error:String(e)},null,2)+'\n');console.error('CANDIDATE_ONLY_FAILED '+String(e));process.exitCode=1;}

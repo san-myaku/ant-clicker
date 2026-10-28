@@ -64,7 +64,7 @@
     {id:'queen_vitality',name:'女王の活力',branch:'女王',desc:'次の卵を産むまでの速さ +25%',food:16,cookie:4,max:1},
     {id:'queen_fertile',name:'多産の系譜',branch:'女王',desc:'次の卵を産むまでの速さ +15%',food:10,cookie:2,max:3},
     {id:'queen_double_lay',name:'重ね産み',branch:'女王',desc:'「産卵を助ける」1回の後押し +100%',food:12,cookie:4,max:3,growth:2.2,prereq:'queen_vitality'},
-    {id:'queen_embrace',name:'女王の包容力',branch:'女王',desc:'コロニーを128匹まで育てられる',food:20,cookie:6,max:2,minAnts:24},
+    {id:'queen_embrace',name:'女王の包容力',branch:'女王',desc:'コロニーを128匹まで育てられる',food:20,cookie:6,max:3,minAnts:24},
     {id:'queen_majesty',name:'女王の威厳',branch:'女王',desc:'季節による自動産卵の落ち込みを無効化する（どの季節でも産卵速度は最低でも等倍）。',planned:true},
     {id:'queen_pheromone',name:'女王フェロモン',branch:'女王',desc:'採集係の歩く速さ +20%',food:30,cookie:12,max:1,prereq:'queen_embrace'},
     {id:'exped_party',name:'遠征編成',branch:'遠征',desc:'遠征に送り出す規模を自分で決められるようになる。多めに送るほど成功率が上がる。',planned:true},
@@ -114,9 +114,9 @@
       this.events=[];this.log('女王室から、巣づくりを始めます。');
     }
     level(id){return this.progress?.research[id]||0;}
-    populationLimit(){return [64,128,256][this.level('queen_embrace')]??64;}
+    populationLimit(){return [64,128,256,512][this.level('queen_embrace')]??64;}
     expandedGrowth(){return this.level('queen_embrace')>=2;}
-    forageInterval(){return this.expandedGrowth()?3:8;}
+    forageInterval(){return this.level('queen_embrace')>=3?1.5:this.expandedGrowth()?3:8;}
     growthCare(){
       const c=this.colony,stamp=[this.ticks,this.revision,c.stats.laid,c.stats.born,c.stats.eaten,c.stats.spent,c.stats.generated,c.stats.died,c.brood.length,this.ants.length,this.physics.bodies.length,this.physics.drag?.id??0,c.waste?.recycled,c.raid?.stolenFood,c.raid?.prey,this.level('queen_embrace')].join(':');
       if(this._growthCare?.stamp===stamp)return this._growthCare;
@@ -124,7 +124,7 @@
       const promised=new Map();let nurses=0;
       for(const a of this.ants){if(a.role==='nurse')nurses++;if(a.itemTask?.purpose==='feed')promised.set(a.itemTask.target,(promised.get(a.itemTask.target)||0)+1);}
       let meals=0;for(const e of c.brood)meals+=e.stage==='egg'?2:e.stage==='larva'?Math.max(0,2-e.feeds-(promised.get(e.id)||0)):0;
-      return this._growthCare={stamp,limit:Math.min(32,Math.floor(nursery),nurses*2),nursery,nurses,meals,food:this.availableFood().length};
+      return this._growthCare={stamp,limit:Math.min(this.level('queen_embrace')>=3?64:32,Math.floor(nursery),nurses*2),nursery,nurses,meals,food:this.availableFood().length};
     }
     canLay(){
       if(!this.expandedGrowth())return super.canLay()&&this.ants.length+this.colony.brood.length<this.populationLimit();
@@ -132,13 +132,13 @@
       const care=this.growthCare();return c.brood.length<care.limit&&care.food>=care.meals+2;
     }
     setRoles(counts){const result=super.setRoles(counts);this._growthCare=null;return result;}
-    researchRequirements(id){const d=BY_ID[id];return id==='queen_embrace'&&this.level(id)>=1?{minAnts:100,reached:2}:{prereq:d?.prereq,minAnts:d?.minAnts,reached:d?.reached};}
-    researchDescription(id){return id==='queen_embrace'&&this.level(id)>=1?'コロニーを256匹まで育てられる。自動産卵の速さ2倍、採集場所の餌が増える':BY_ID[id]?.desc;}
+    researchRequirements(id){const d=BY_ID[id];return id==='queen_embrace'&&this.level(id)>=2?{minAnts:200,reached:3}:id==='queen_embrace'&&this.level(id)>=1?{minAnts:100,reached:2}:{prereq:d?.prereq,minAnts:d?.minAnts,reached:d?.reached};}
+    researchDescription(id){return id==='queen_embrace'&&this.level(id)>=2?'コロニーを512匹まで育てられる。自動産卵の速さ4倍、採集場所の餌がさらに増える':id==='queen_embrace'&&this.level(id)>=1?'コロニーを256匹まで育てられる。自動産卵の速さ2倍、採集場所の餌が増える':BY_ID[id]?.desc;}
     carriesPebble(ant){const job=ant?.job!=null&&this.jobs.find(j=>j.id===ant.job);return !!job&&job.cursor>0&&job.materials[0]===Base.PEBBLE;}
     walkSpeed(ant){return Base.WALK_SPEED*(this.carriesPebble(ant)?PEBBLE_PACE:1)*(1+(ant?.role==='forage'?this.level('gather_1')*.15+this.level('gather_2')*.15+this.level('gather_inf')*.05+this.level('queen_pheromone')*.2+(this.level('hygiene_clean_bonus')&&!this.nurseryWaste()?.2:0):0))*(ant?.itemTask?.purpose==='clean'?1+this.level('hygiene_2')*.2:1);}
     broodRate(){return 1+this.level('brood_1')*.2;}
     stageRate(stage){return stage==='egg'?1+this.level('brood_egg_inf')*.04:stage==='larva'?1+this.level('brood_2')*.15+this.level('brood_larva_inf')*.03:1;}
-    layRate(){return (1+this.level('queen_fertile')*.15)*(1+this.level('queen_vitality')*.25)*(this.expandedGrowth()?2:1);}
+    layRate(){return (1+this.level('queen_fertile')*.15)*(1+this.level('queen_vitality')*.25)*(this.level('queen_embrace')>=3?4:this.expandedGrowth()?2:1);}
     tapPower(){return 1+this.level('queen_double_lay');}
     digRate(){return 1+this.level('dig_speed')*.25;}
     homeSpots(ant){
@@ -229,14 +229,15 @@
         if(open)return origin;}
       return null;
     }
+    restParallel(){return this.level('queen_embrace')>=3?4:REST_PARALLEL;}
     ensureRestRoom(){
       const rest=this.roomIds().filter(r=>this.roomKind(r)==='rest');
       for(const r of rest)if(this.builds[r]?.complete&&this.rooms[r].doneAt===undefined)this.rooms[r].doneAt=this.time;
       // A chamber still grows until it is full or has stopped growing for a
       // while (rock or neighbours around it). One more at a time for every
-      // REST_PER_ROOM workers without a place, up to REST_PARALLEL at once.
+      // REST_PER_ROOM workers without a place, capped by the growth stage.
       const crowded=this.crowding().length,growing=rest.filter(r=>!this.builds[r]?.complete||this.roomCapacity(r)<REST_ROOM_AREA*.9&&this.time-this.rooms[r].doneAt<REST_SETTLE).length;
-      if(crowded<REST_TRIGGER||growing>=Math.min(REST_PARALLEL,1+Math.floor(crowded/REST_PER_ROOM))||this.rooms.length>=ROOM_LIMIT)return;
+      if(crowded<REST_TRIGGER||growing>=Math.min(this.restParallel(),1+Math.floor(crowded/REST_PER_ROOM))||this.rooms.length>=ROOM_LIMIT)return;
       const site=this.restRoomSite();
       if(!site){if(this._restBlocked!==this.depthAbility()){this._restBlocked=this.depthAbility();this.log('住む場所が足りません。深い層を解放すると居室を広げられます。');}return;}
       const {layer,target,origin}=site,rid=this.rooms.length,b=layerBoundaries(this.seed,target.x);
@@ -482,7 +483,7 @@
     }
     // Cost of the given level: repeatable studies grow geometrically, the
     // others by their level. Paid from real stored food and earned cookies.
-    researchCost(id,level=this.level(id)){if(id==='queen_embrace'&&level===1)return {food:48,cookie:18};const d=BY_ID[id];if(!d||d.planned)return null;if(d.growth)return {food:Math.ceil(d.food*d.growth**level),cookie:Math.ceil(d.cookie*d.growth**level)};const n=level+1;return {food:d.food*n,cookie:d.cookie*n};}
+    researchCost(id,level=this.level(id)){if(id==='queen_embrace'&&level===2)return {food:96,cookie:42};if(id==='queen_embrace'&&level===1)return {food:48,cookie:18};const d=BY_ID[id];if(!d||d.planned)return null;if(d.growth)return {food:Math.ceil(d.food*d.growth**level),cookie:Math.ceil(d.cookie*d.growth**level)};const n=level+1;return {food:d.food*n,cookie:d.cookie*n};}
     researchSpent(key){let total=0;for(const d of ACTIVE)for(let k=0;k<this.level(d.id);k++)total+=this.researchCost(d.id,k)[key];return total;}
     availableFood(){const claimed=new Set(this.ants.filter(a=>a.itemTask).map(a=>a.itemTask.body));return this.foodBodies(true).filter(b=>!claimed.has(b.id));}
     researchStatus(id){
@@ -585,7 +586,10 @@
     // the same rule: the route never comes closer to the other worker.
     retreat(ant,other=null){
       if(super.retreat(ant,other))return true;
-      if(!other||ant.yielding||(ant.blocked||0)<3)return false;
+      // A passer may advance while a worker reverses a trail containing a
+      // turn-back. If that same pair now blocks each other, plan an actual
+      // route out from the current pose and preserve the original work route.
+      if(!other||(ant.blocked||0)<3||ant.yielding&&(ant.yieldFor!==other.id||other.waitingFor!==ant.id))return false;
       if(!this._retreatTried)this._retreatTried=new Map();if(this.time-(this._retreatTried.get(ant.id)??-Infinity)<2)return false;this._retreatTried.set(ant.id,this.time);
       const kind=this.carriedKind(ant),limit=Math.min(.67,Math.hypot(other.x-ant.x,other.y-ant.y)),open=[];
       for(const rid of [1,...this.roomIds()])for(const cell of this.cells(rid)){const p=this.walkPoint(cell);if(p.valid&&p.clearance>.87&&Math.hypot(p.x-other.x,p.y-other.y)>2.6)open.push(p);}
@@ -594,7 +598,7 @@
         const route=this.path(ant,p,kind);if(!route||route.length<2)continue;let previous=ant,clear=true,distance=0;
         for(const q of route){const dx=q.x-previous.x,dy=q.y-previous.y,t=Math.max(0,Math.min(1,((other.x-previous.x)*dx+(other.y-previous.y)*dy)/(dx*dx+dy*dy||1)));if(Math.hypot(other.x-previous.x-dx*t,other.y-previous.y-dy*t)<limit-1e-6){clear=false;break;}distance+=Math.hypot(dx,dy);previous=q;}
         if(!clear||distance<.8)continue;
-        ant.resume={path:ant.path.slice(ant.next)};ant.path=route;ant.next=0;ant.yielding=true;ant.yieldFor=other.id;ant.trail=[];ant.detourTime=0;this.stats.yields++;return true;
+        if(!ant.yielding)ant.resume={path:ant.path.slice(ant.next)};ant.path=route;ant.next=0;ant.yielding=true;ant.yieldFor=other.id;ant.trail=[];ant.detourTime=0;this.stats.yields++;return true;
       }return false;
     }
     stepItemTask(ant,dt,occupancy){
@@ -855,7 +859,7 @@
       for(const [key,id]of Object.entries(UPGRADE_IDS))if(this.colony.upgrades[key]!==this.level(id))fail();
       const earned=p.haulAwards+p.claims.filter(v=>v>1).reduce((n,v)=>n+v*3,0)+(this.colony.ferment?.credited||0),cookieSpent=this.researchSpent('cookie'),foodSpent=this.researchSpent('food');
       if(p.earned!==earned||p.spentCookie!==cookieSpent||this.colony.stats.spent!==foodSpent||p.reached>this.depthAbility()||Math.max(...p.claims)!==p.reached)fail();
-      if(this.expandedGrowth()&&p.reached<2)fail();if(this.ants.length+this.colony.brood.length>this.populationLimit())fail();this.assertActors();this.checkRaid();return true;
+      if(this.expandedGrowth()&&p.reached<(this.level('queen_embrace')>=3?3:2))fail();if(this.ants.length+this.colony.brood.length>this.populationLimit())fail();this.assertActors();this.checkRaid();return true;
     }
     static restore(pack){
       if(pack?.format!==FORMAT||!pack.progress)throw Error('この巣の保存データではありません');

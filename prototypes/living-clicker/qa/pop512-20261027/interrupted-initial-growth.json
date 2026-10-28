@@ -1,0 +1,13 @@
+{
+  "stoppedProcess": 33080,
+  "reason": "512匹の育成検証を、挙動を維持した性能改善のため中止。合格とは扱わない。",
+  "pass": false,
+  "kind": "performance-review-interruption",
+  "lastObserved": {
+    "time": 11278.999999920017,
+    "ants": 297,
+    "brood": 19,
+    "incidents": []
+  },
+  "note": "最後に出力された観測。終了時点の状態とはみなさない。"
+}

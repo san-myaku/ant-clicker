@@ -1,0 +1,94 @@
+chain copy: C:\Users\yuhim\AppData\Local\Temp\living-chain-Cor3IT
+START chain
+START waste
+START raid
+START ferment
+START housing
+START pebble
+START disease
+START approach
+START rock
+START research
+START cargo-turn
+START storage
+START reservation
+START headon
+START turn
+START diagnostics
+PASS turn            2 s
+START surface
+PASS reservation    33 s
+START traffic
+PASS storage        37 s
+START traffic-work
+PASS headon         43 s
+START network
+PASS cargo-turn     46 s
+START actors
+PASS research       67 s
+START growth
+PASS actors         21 s
+START growth-512
+PASS disease        69 s
+START save-codec
+PASS approach       72 s
+FAIL growth         15 s
+      haulAwards: 0,
+      reached: 1,
+      claims: [ 1 ],
+      speed: 1
+    }
+  },
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.22.1
+
+PASS rock           82 s
+PASS network        68 s
+PASS diagnostics   119 s
+PASS pebble        149 s
+PASS housing       199 s
+PASS growth-512    152 s
+PASS ferment       254 s
+PASS traffic-work  239 s
+FAIL save-codec    228 s
+C:\Users\yuhim\.codex\worktrees\ant-1000-handoff\ありクリッカー\prototypes\living-clicker\game.js:862
+      if(pack?.format!==FORMAT||!pack.progress)throw Error('この巣の保存データではありません');
+                                               ^
+
+Error: この巣の保存データではありません
+
+Node.js v24.22.1
+
+PASS raid          300 s
+PASS traffic       269 s
+PASS waste         396 s
+FAIL chain         514 s
+{"t":4901.000000012828,"reached":2,"delivered":3091,"rooms":[{"mode":"passage","complete":false,"length":2.000000000000004,"tip":{"x":42.132683432365084,"y":34.17387953251129,"angle":1.5707963267948966}},{"mode":"chamber","complete":true,"length":21.500000000000036,"tip":{"x":63.376795675815686,"y":38.787005462264055,"angle":1.5707963267948966}},{"mode":"chamber","complete":true,"length":6.000000000000004,"tip":{"x":52.33609120692203,"y":31.372056121725294,"angle":0.39269908169872414}},{"mode":"chamber","complete":true,"length":6.499999999999994,"tip":{"x":42.77752635408328,"y":15.271254621279596,"angle":-1.9634954084936207}}]}
+{"t":5001.000000011373,"reached":2,"delivered":3091,"rooms":[{"mode":"passage","complete":false,"length":2.000000000000004,"tip":{"x":42.132683432365084,"y":34.17387953251129,"angle":1.5707963267948966}},{"mode":"chamber","complete":true,"length":21.500000000000036,"tip":{"x":63.376795675815686,"y":38.787005462264055,"angle":1.5707963267948966}},{"mode":"chamber","complete":true,"length":6.000000000000004,"tip":{"x":52.33609120692203,"y":31.372056121725294,"angle":0.39269908169872414}},{"mode":"chamber","complete":true,"length":6.499999999999994,"tip":{"x":42.77752635408328,"y":15.271254621279596,"angle":-1.9634954084936207}}]}
+{"t":5101.000000009918,"reached":2,"delivered":3091,"rooms":[{"mode":"passage","complete":false,"length":2.000000000000004,"tip":{"x":42.132683432365084,"y":34.17387953251129,"angle":1.5707963267948966}},{"mode":"chamber","complete":true,"length":21.500000000000036,"tip":{"x":63.376795675815686,"y":38.787005462264055,"angle":1.5707963267948966}},{"mode":"chamber","complete":true,"length":6.000000000000004,"tip":{"x":52.33609120692203,"y":31.372056121725294,"angle":0.39269908169872414}},{"mode":"chamber","complete":true,"length":6.499999999999994,"tip":{"x":42.77752635408328,"y":15.271254621279596,"angle":-1.9634954084936207}}]}
+AssertionError [ERR_ASSERTION]: deep nursery was not opened
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+PASS surface       653 s
+START smoke (exclusive)
+PASS smoke           2 s
+START touch (exclusive)
+PASS touch          14 s
+START browser (exclusive)
+PASS browser        39 s
+START browser256 (exclusive)
+PASS browser256     31 s
+START save-browser (exclusive)
+PASS save-browser   19 s
+START browser512 (exclusive)
+PASS browser512     89 s
+FAILED growth, save-codec, chain in 851 s on 16 cores

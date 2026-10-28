@@ -10,7 +10,7 @@ test('real-purchase-pays-for-the-stage-without-opening-air-or-adding-life',()=>{
  const s=load(),before=s.dump(),food=s.availableFood().length,cookie=s.progress.cookie,rate=s.layRate();assert(s.buyResearch('queen_embrace'));
  assert.equal(s.populationLimit(),256);assert.equal(s.layRate(),rate*2);assert.equal(s.forageInterval(),3);assert.equal(s.availableFood().length,food-48);assert.equal(s.progress.cookie,cookie-18);
  const after=s.dump();assert.deepEqual(after.world.grains,before.world.grains);assert.deepEqual(after.world.grainPending,before.world.grainPending);assert.deepEqual(after.world.ants,before.world.ants);assert.deepEqual(after.colony.brood,before.colony.brood);
- assert.deepEqual(G.Simulation.restore(after).dump(),after);assert.equal(s.researchStatus('queen_embrace'),'done');assert(!s.buyResearch('queen_embrace'));assert(s.researchDescription('queen_embrace').includes('256'));
+ assert.deepEqual(G.Simulation.restore(after).dump(),after);assert.equal(s.researchStatus('queen_embrace'),'locked');assert(!s.buyResearch('queen_embrace'));assert.deepEqual(s.researchRequirements('queen_embrace'),{minAnts:200,reached:3});assert(s.researchDescription('queen_embrace').includes('512'));
  return {cap:s.populationLimit(),price:{food:48,cookie:18}};
 });
 function careHost(){return {ticks:1,revision:1,colony:{stats:{laid:0,born:0,eaten:0,spent:0,generated:0,died:0},brood:[],waste:{recycled:0},raid:{stolenFood:0,prey:0}},ants:Array.from({length:20},()=>({role:'nurse'})),physics:{bodies:[]},roomIds:()=>[2,3,4],roomKind:r=>r===3?'food':'egg',transportReady:()=>true,roomCapacity:r=>r===2?18.75:27,level:()=>2,availableFood:()=>Array(20).fill({}),growthCare:G.Simulation.prototype.growthCare};}
@@ -38,10 +38,10 @@ test('public-allocation-and-purchase-refresh-the-shared-care-budget',()=>{
  const beforeBuy=s.growthCare();assert(s.buyResearch('hygiene_1'));assert.notEqual(s.growthCare(),beforeBuy);
  const bad=s.dump();bad.progress.reached=1;bad.progress.claims=[1];assert.throws(()=>G.Simulation.restore(bad));
 });
-test('earlier-stages-stay-byte-identical-to-the-recorded-source',()=>{
+test('earlier-growth-rules-stay-byte-identical-with-the-same-surface-physics',()=>{
  const root=path.resolve(__dirname,'../..'),temp=fs.mkdtempSync(path.join(os.tmpdir(),'living-growth-before-'));
  for(const n of ['core.js','lifecycle.js','game.js'])fs.writeFileSync(path.join(temp,n),cp.execFileSync('git',['show','5c1bb7f:prototypes/living-clicker/'+n],{cwd:root,maxBuffer:8e6}));
- const Old=require(path.join(temp,'game.js')),counts=[];
+ const Old=require('./qa/surface-reference.cjs')(temp),counts=[];
  for(const name of [null,'world-900.json','before-256.json']){
   const p=name?JSON.parse(fs.readFileSync(path.join(qa,name))):new Old.Simulation().dump(),old=Old.Simulation.restore(p),fresh=G.Simulation.restore(p);
   assert.equal(fresh.forageInterval(),8);assert.equal(fresh.layRate(),old.layRate());

@@ -1,0 +1,59 @@
+{
+  "pass": true,
+  "adopted": false,
+  "began": "2026-10-28T01:20:07.845Z",
+  "finishedAt": "2026-10-28T01:24:09.278Z",
+  "source": {
+    "game.js": "763c181eb8e8e8a3770178b8f72c3092043c101994a82959a3b210be69340644",
+    "core.js": "c7d73a8f8f662b4a20d6b17803e0040d816e1422edf2604d08b7f25706982582",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "build.cjs": "e68c1736f03f0ccd588ea22d11fb5c6d6e49be362c78eec5eee5f462820a82d8",
+    "build-surface.cjs": "8022e37dcfe2de04574367711fe7d35e961ad13581f41545987311790ca048d3",
+    "build-retreat.cjs": "abb4332ca97e608ae4870e1844495ea5851441c180c71ae42cb5c1fd40c5f8bd"
+  },
+  "candidateGameSha256": "cbe6b561df6ccf97cbdbd3b9bb26803462738928abe33140c202e30da268d84d",
+  "host": {
+    "node": "v24.22.1",
+    "cpu": "AMD Ryzen 7 5800H with Radeon Graphics         ",
+    "logicalCores": 16
+  },
+  "inputs": {
+    "qa/pop512-20261027/active512-post-turnback-input.json": "02b55685ce47e5bbd6eee41dbb423ac316a5753f8581f2909660e9d9186016c6",
+    "qa/world-512.json": "2b43a65e181bd53635770d12888a93415febd059755e23a001b90f657b6fb1d0"
+  },
+  "results": [
+    {
+      "name": "active-512",
+      "inputFile": "qa/pop512-20261027/active512-post-turnback-input.json",
+      "inputSha256": "02b55685ce47e5bbd6eee41dbb423ac316a5753f8581f2909660e9d9186016c6",
+      "actualResearch": null,
+      "warmupSteps": 300,
+      "steps": 1800,
+      "oldMsPerStep": 16.018158888888998,
+      "newMsPerStep": 13.350289166666743,
+      "same": true,
+      "delta": {
+        "delivered": 37,
+        "dug": 43,
+        "distance": 4036.9876411850564
+      }
+    },
+    {
+      "name": "final-512-new-demand",
+      "inputFile": "qa/world-512.json",
+      "inputSha256": "2b43a65e181bd53635770d12888a93415febd059755e23a001b90f657b6fb1d0",
+      "actualResearch": "geo_depth_4",
+      "warmupSteps": 300,
+      "steps": 1800,
+      "oldMsPerStep": 24.57522500000029,
+      "newMsPerStep": 23.97644844444412,
+      "same": true,
+      "delta": {
+        "delivered": 76,
+        "dug": 64,
+        "distance": 11196.507872228976
+      }
+    }
+  ],
+  "note": "自然育成/晩期/最終全検証と競合しない位置で実施。2入力を各300コマ準備後1800コマ、順序を交互に測定。研究で新しい需要を作った比較を含み、実掘削/搬出/歩行をassert。単独のモデル比較であり、ブラウザの実効速度/実機/1000匹の保証ではない。候補は本体未採用。"
+}

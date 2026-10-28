@@ -1,0 +1,124 @@
+{
+  "pass": true,
+  "source": {
+    "game.js": "66fe1b1573993e07fb2ee88eeb06b0fc0a1fad8b2e6057c4168463dff2218f3d",
+    "core.js": "9b779fd0f25deed86efd9cdce0f965604d999495bfebe2c7265d227424b38c45",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "build.cjs": "177cc1baa7a8a84e50d48bdaaea0c9397237ce9dab82720467a9a840ea44bb6e",
+    "build-surface.cjs": "8022e37dcfe2de04574367711fe7d35e961ad13581f41545987311790ca048d3",
+    "verify-surface.cjs": "4103b52e4e88c940eb803cd829ffd0c712efa575acc43c38c318bd687a2807a4"
+  },
+  "inputs": {
+    "surface-airborne-512.json": "4e3b1dd2dada07f1df529964e55aab6a32042c96b307eb06bac2f56c818ba2be",
+    "surface-stance-512.json": "1ae702622054caa770bfb976380d33368e8832f8a45c9406a9bd92d510ffebe5",
+    "surface-walk-512.json": "04e2fae63d4ff2a9c7868198c6b12c6da466a26cbc9e82ea49d23c84dd54745d"
+  },
+  "componentCases": 7,
+  "results": [
+    {
+      "file": "surface-airborne-512.json",
+      "pass": true,
+      "previousFailure": {
+        "error": "Error: 身体または荷物が土に触れる移動を停止しました",
+        "time": 15278.233333195154,
+        "collision": {
+          "id": 488,
+          "from": {
+            "x": 59.10214928438153,
+            "y": 0.8,
+            "angle": 2.356194490192345
+          },
+          "proposed": {
+            "x": 58.955329706272394,
+            "y": 0.830724769874738,
+            "angle": 2.3602845203330953
+          },
+          "target": {
+            "x": 30.90875631917923,
+            "y": 6.7,
+            "angle": 3.141592653589793
+          },
+          "kind": null
+        }
+      },
+      "naturalContinuation": {
+        "began": 15252.999999862188,
+        "finished": 15353.0166665274,
+        "ants": 512,
+        "delivered": 250,
+        "distance": 26284.276457429864,
+        "saveExact": true
+      }
+    },
+    {
+      "file": "surface-stance-512.json",
+      "pass": true,
+      "previousFailure": {
+        "error": "Error: 身体または荷物が土に触れる移動を停止しました",
+        "time": 15562.04999985769,
+        "collision": {
+          "id": 503,
+          "from": {
+            "x": 53.56740086944748,
+            "y": 0.85,
+            "angle": 0.6435011087932845
+          },
+          "proposed": {
+            "x": 53.71582365065926,
+            "y": 1.35,
+            "angle": 0.6365206934958214
+          },
+          "target": {
+            "x": 67.25,
+            "y": 2.85,
+            "angle": 0
+          },
+          "kind": "soil"
+        }
+      },
+      "naturalContinuation": {
+        "began": 15557.99999985775,
+        "finished": 15658.01666652296,
+        "ants": 512,
+        "delivered": 180,
+        "distance": 21870.700013653375,
+        "saveExact": true
+      }
+    },
+    {
+      "file": "surface-walk-512.json",
+      "pass": true,
+      "previousFailure": {
+        "error": "Error: 身体または荷物が土に触れる移動を停止しました",
+        "time": 15921.116666519132,
+        "collision": {
+          "id": 229,
+          "from": {
+            "x": 62.29753308282073,
+            "y": 1.1,
+            "angle": -0.6435011087932845
+          },
+          "proposed": {
+            "x": 62.43777343337692,
+            "y": 0.85,
+            "angle": -0.6206685783834232
+          },
+          "target": {
+            "x": 66.25,
+            "y": 2.6,
+            "angle": 0
+          },
+          "kind": "soil"
+        }
+      },
+      "naturalContinuation": {
+        "began": 15893.499999852867,
+        "finished": 15993.516666518079,
+        "ants": 512,
+        "delivered": 173,
+        "distance": 20166.8851756542,
+        "saveExact": true
+      }
+    }
+  ]
+}

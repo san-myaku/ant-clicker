@@ -1,0 +1,61 @@
+{
+  "pass": true,
+  "source": {
+    "index.html": "1a377628c194d695ae92af706daf539686b262f3e0183633f225241b96181d46",
+    "core.js": "c7d73a8f8f662b4a20d6b17803e0040d816e1422edf2604d08b7f25706982582",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "game.js": "763c181eb8e8e8a3770178b8f72c3092043c101994a82959a3b210be69340644",
+    "view.js": "4bb44a8cf17b7af1a6ab6b2c09e18a56433e2b006a062b7a3a99eb9ec896fb8e",
+    "save-codec.js": "13417ccb76bd179ebe40ba3275e6d6a716039f0ba855c138e0328fd294f185dd",
+    "verify-512-browser.cjs": "fe71d997d513e7b57b8239af613f7ff34ed4208a299aee81ad8dd9d13e74dcc2"
+  },
+  "inputFile": "C:\\Users\\yuhim\\.codex\\worktrees\\ant-1000-handoff\\ありクリッカー\\prototypes\\living-clicker\\qa\\world-512.json",
+  "inputs": {
+    "world512": "2b43a65e181bd53635770d12888a93415febd059755e23a001b90f657b6fb1d0",
+    "before512": "524443b0e8436a73275aa0e723f359e72ef7ef56f6d8a9ef623a4a378f62a6de",
+    "earlierKey": "08590edc2d19eb1bb7fa935fe3b6ddc7f2eab922b9c9cf2692828c45c1f7659f"
+  },
+  "results": [
+    {
+      "name": "final-surface",
+      "pass": true,
+      "workersChecked": 11
+    },
+    {
+      "width": 1440,
+      "pass": true,
+      "realResearch": true,
+      "oldKeyUnchanged": true,
+      "saveResetUndoReload": true,
+      "exportSha256": "2b43a65e181bd53635770d12888a93415febd059755e23a001b90f657b6fb1d0",
+      "saveCharacters": 1324295
+    },
+    {
+      "width": 393,
+      "pass": true,
+      "realResearch": true,
+      "oldKeyUnchanged": true,
+      "saveResetUndoReload": true,
+      "exportSha256": "2b43a65e181bd53635770d12888a93415febd059755e23a001b90f657b6fb1d0",
+      "saveCharacters": 1324295
+    },
+    {
+      "width": 320,
+      "pass": true,
+      "realResearch": true,
+      "oldKeyUnchanged": true,
+      "saveResetUndoReload": true,
+      "exportSha256": "2b43a65e181bd53635770d12888a93415febd059755e23a001b90f657b6fb1d0",
+      "saveCharacters": 1324295
+    },
+    {
+      "name": "live-512",
+      "pass": true,
+      "workload": "512匹で実深度IV研究を購入して新しい掘削需要を発生。個体/空洞の注入なし。",
+      "gameSeconds": 3.9999999999417923,
+      "wallSeconds": 6.605600000023842,
+      "surfaceClear": true,
+      "errors": []
+    }
+  ]
+}

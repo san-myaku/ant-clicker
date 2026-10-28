@@ -1,0 +1,158 @@
+{
+  "elapsedMs": 25752.631700000005,
+  "steps": 1200,
+  "msPerStep": 21.46052641666667,
+  "totalSamples": 16167,
+  "rows": [
+    {
+      "name": "",
+      "url": "core.js",
+      "line": 1466,
+      "samples": 1083
+    },
+    {
+      "name": "singleFileSection",
+      "url": "core.js",
+      "line": 1434,
+      "samples": 692
+    },
+    {
+      "name": "",
+      "url": "lifecycle.js",
+      "line": 140,
+      "samples": 685
+    },
+    {
+      "name": "",
+      "url": "core.js",
+      "line": 1487,
+      "samples": 513
+    },
+    {
+      "name": "foodBodies",
+      "url": "game.js",
+      "line": 424,
+      "samples": 436
+    },
+    {
+      "name": "move",
+      "url": "core.js",
+      "line": 1451,
+      "samples": 434
+    },
+    {
+      "name": "(garbage collector)",
+      "url": "",
+      "line": 0,
+      "samples": 393
+    },
+    {
+      "name": "tick",
+      "url": "core.js",
+      "line": 1523,
+      "samples": 382
+    },
+    {
+      "name": "nearShaft",
+      "url": "core.js",
+      "line": 1487,
+      "samples": 372
+    },
+    {
+      "name": "foodBodies",
+      "url": "lifecycle.js",
+      "line": 44,
+      "samples": 352
+    },
+    {
+      "name": "storageDestination",
+      "url": "core.js",
+      "line": 796,
+      "samples": 350
+    },
+    {
+      "name": "stepItemTask",
+      "url": "lifecycle.js",
+      "line": 127,
+      "samples": 341
+    },
+    {
+      "name": "storageDrop",
+      "url": "core.js",
+      "line": 777,
+      "samples": 322
+    },
+    {
+      "name": "storageDrop",
+      "url": "core.js",
+      "line": 777,
+      "samples": 279
+    },
+    {
+      "name": "storageDestination",
+      "url": "core.js",
+      "line": 796,
+      "samples": 275
+    },
+    {
+      "name": "query",
+      "url": "core.js",
+      "line": 360,
+      "samples": 249
+    },
+    {
+      "name": "",
+      "url": "lifecycle.js",
+      "line": 137,
+      "samples": 244
+    },
+    {
+      "name": "poseClear",
+      "url": "core.js",
+      "line": 882,
+      "samples": 236
+    },
+    {
+      "name": "tick",
+      "url": "lifecycle.js",
+      "line": 173,
+      "samples": 213
+    },
+    {
+      "name": "stepItemTask",
+      "url": "game.js",
+      "line": 600,
+      "samples": 200
+    },
+    {
+      "name": "poseClear",
+      "url": "core.js",
+      "line": 882,
+      "samples": 193
+    },
+    {
+      "name": "poseClear",
+      "url": "core.js",
+      "line": 882,
+      "samples": 163
+    },
+    {
+      "name": "flow",
+      "url": "core.js",
+      "line": 1466,
+      "samples": 154
+    },
+    {
+      "name": "",
+      "url": "lifecycle.js",
+      "line": 44,
+      "samples": 149
+    }
+  ],
+  "runtimeSourceSha256": {
+    "game.js": "4734964bc21ddf7bad5a3557650ee606b5b466a593675860dc7159f7a69a9e4a",
+    "core.js": "c873a478cace730dd84ae13111832539229cfc1f3ef8b03119f287a980fea8f8",
+    "lifecycle.js": "c8c93dd72d17607a85ab9420edfc939e78803fd520d3333ee53a397939641301"
+  },
+  "conditions": "初回の自然育成と並走した診断用CPUプロファイル。単独の速度改善ベンチとして扱わない。ソースはこの実行中は不変で、保存したbefore-optimizationの参照と同一。"
+}

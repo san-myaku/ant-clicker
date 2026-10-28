@@ -1,0 +1,28 @@
+{
+  "pass": true,
+  "completedAt": "2026-10-28T01:22:54.808Z",
+  "beforeSource": {
+    "core.js": "9b779fd0f25deed86efd9cdce0f965604d999495bfebe2c7265d227424b38c45",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "game.js": "66fe1b1573993e07fb2ee88eeb06b0fc0a1fad8b2e6057c4168463dff2218f3d",
+    "diagnostics.js": "faf372b4fd39f287971c8bafa6f8682ebc10bcba68074a639ecef120170dcbf9",
+    "save-codec.js": "13417ccb76bd179ebe40ba3275e6d6a716039f0ba855c138e0328fd294f185dd",
+    "verify-512.cjs": "4e05d301aa154947ed8bdb484bbcd8b987915a4ea653cec7153fcd34662c0fd4"
+  },
+  "afterSource": {
+    "core.js": "c7d73a8f8f662b4a20d6b17803e0040d816e1422edf2604d08b7f25706982582",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "game.js": "763c181eb8e8e8a3770178b8f72c3092043c101994a82959a3b210be69340644",
+    "diagnostics.js": "faf372b4fd39f287971c8bafa6f8682ebc10bcba68074a639ecef120170dcbf9",
+    "save-codec.js": "13417ccb76bd179ebe40ba3275e6d6a716039f0ba855c138e0328fd294f185dd",
+    "verify-512.cjs": "4e05d301aa154947ed8bdb484bbcd8b987915a4ea653cec7153fcd34662c0fd4"
+  },
+  "inputSha256": "524443b0e8436a73275aa0e723f359e72ef7ef56f6d8a9ef623a4a378f62a6de",
+  "beforeWorldSha256": "2b43a65e181bd53635770d12888a93415febd059755e23a001b90f657b6fb1d0",
+  "afterWorldSha256": "2b43a65e181bd53635770d12888a93415febd059755e23a001b90f657b6fb1d0",
+  "fullSaveIdentical": true,
+  "reached": 13428.99999988873,
+  "finished": 17062.99999983585,
+  "crowded": 4,
+  "note": "退避停止の修正後に元256匹の入力から自然512匹/居室不足6未満まで全行程を再実行し、前回の最終保存ともバイト一致。単一の固定入力の比較で、全seed/1000匹の保証ではない。前回の合格を今回のソースへ付け替えた意味ではない。最終30本は別に確認する。"
+}

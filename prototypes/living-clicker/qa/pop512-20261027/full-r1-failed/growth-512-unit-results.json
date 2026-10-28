@@ -1,0 +1,65 @@
+{
+  "pass": true,
+  "results": [
+    {
+      "name": "third-stage-needs-actual-layer3-and-two-hundred-living-workers",
+      "pass": true
+    },
+    {
+      "name": "third-stage-pays-real-price-and-keeps-air-and-lives-unchanged",
+      "pass": true,
+      "cap": 512,
+      "food": 96,
+      "cookie": 42
+    },
+    {
+      "name": "room-demand-can-use-four-real-sites-only-in-stage3",
+      "pass": true,
+      "realAnts": 489,
+      "crowded": 170,
+      "newPlans": 2,
+      "noAirOpened": true
+    },
+    {
+      "name": "third-stage-care-is-bounded-by-finished-floor-actual-nurses-and-food",
+      "pass": true
+    },
+    {
+      "name": "save-refuses-stage3-without-layer3-and-research-overflow",
+      "pass": true
+    },
+    {
+      "name": "existing-growth-stages-keep-the-same-full-state-with-corrected-surface",
+      "pass": true,
+      "counts": [
+        {
+          "input": "new",
+          "steps": 600,
+          "ants": 12
+        },
+        {
+          "input": "before-256.json",
+          "steps": 600,
+          "ants": 128
+        },
+        {
+          "input": "world-256.json",
+          "steps": 600,
+          "ants": 256
+        },
+        {
+          "input": "before-512.json",
+          "steps": 600,
+          "ants": 256
+        }
+      ]
+    }
+  ],
+  "source": {
+    "game.js": "66fe1b1573993e07fb2ee88eeb06b0fc0a1fad8b2e6057c4168463dff2218f3d",
+    "core.js": "9b779fd0f25deed86efd9cdce0f965604d999495bfebe2c7265d227424b38c45",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "verify-growth-512.cjs": "b83f3bd6a890d96150e9a40a3e642b67ded7c0a27c8ea083e2274f8d4133601f"
+  },
+  "inputSha256": "524443b0e8436a73275aa0e723f359e72ef7ef56f6d8a9ef623a4a378f62a6de"
+}

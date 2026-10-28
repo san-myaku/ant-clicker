@@ -1,0 +1,12 @@
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto'),G=require('../../prototypes/living-clicker/game.js'),Old=require('./slow-reference/game.js');
+const qa=path.join(__dirname,'../../prototypes/living-clicker/qa'),results=[],sha=b=>crypto.createHash('sha256').update(b).digest('hex');
+Old.Simulation.prototype.restParallel=G.Simulation.prototype.restParallel;
+Old.Simulation.prototype.ensureRestRoom=G.Simulation.prototype.ensureRestRoom;
+Old.Simulation.prototype.surfacePoint=G.Simulation.prototype.surfacePoint;
+for(const name of process.argv.includes('--initial-only')?['before-512.json']:['world-900.json','before-512.json','head-on-retreat.json','raid-stuck-loot.json']){
+ const file=path.join(qa,name);if(!fs.existsSync(file))continue;const data=JSON.parse(fs.readFileSync(file)),p=data.state||data,a=Old.Simulation.restore(p),b=G.Simulation.restore(p);if(name==='before-512.json'){assert(a.buyResearch('queen_embrace'));assert(b.buyResearch('queen_embrace'));}
+ let oldMs=0,newMs=0;const steps=name==='before-512.json'?1800:600;
+ for(let k=0;k<steps;k++){let t=performance.now();a.step(G.STEP);oldMs+=performance.now()-t;t=performance.now();b.step(G.STEP);newMs+=performance.now()-t;if(k<10||k%60===0)assert.deepEqual(a.dump(),b.dump());}
+ assert.deepEqual(a.dump(),b.dump());results.push({name,steps,oldMsPerStep:oldMs/steps,newMsPerStep:newMs/steps,same:true});console.log(JSON.stringify(results.at(-1)));
+}
+const source=Object.fromEntries(['game.js','core.js','lifecycle.js','build.cjs'].map(n=>[n,sha(fs.readFileSync(path.join(qa,'..',n)))]));fs.writeFileSync(path.join(__dirname,process.env.LIVING_COMPARE_REPORT||'comparison-results.json'),JSON.stringify({pass:true,source,results},null,2)+'\n');

@@ -1,0 +1,1 @@
+const cp=require('node:child_process'),path=require('node:path');const cwd=path.resolve(__dirname,'..');for(const script of ['prototypes/living-clicker/build.cjs','prototypes/living-clicker/build-view.cjs'])cp.execFileSync(process.execPath,[script],{cwd,stdio:'inherit'});
