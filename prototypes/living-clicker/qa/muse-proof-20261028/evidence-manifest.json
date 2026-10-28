@@ -1,0 +1,70 @@
+{
+  "recordedAt": "2026-10-28T14:49:53+09:00",
+  "productionCommit": "373ce86fd30e38e0ecccd538f65c5df63c211694",
+  "baseBranchTip": "dbf67bd51ed5b90d804c08118ec2ee331df84f88",
+  "productionChanged": false,
+  "source": {
+    "game.js": "763c181eb8e8e8a3770178b8f72c3092043c101994a82959a3b210be69340644",
+    "core.js": "c7d73a8f8f662b4a20d6b17803e0040d816e1422edf2604d08b7f25706982582",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "build.cjs": "e68c1736f03f0ccd588ea22d11fb5c6d6e49be362c78eec5eee5f462820a82d8",
+    "build-surface.cjs": "8022e37dcfe2de04574367711fe7d35e961ad13581f41545987311790ca048d3",
+    "build-retreat.cjs": "abb4332ca97e608ae4870e1844495ea5851441c180c71ae42cb5c1fd40c5f8bd"
+  },
+  "inputs": {
+    "pop512-20261027/active512-post-turnback-input.json": "02b55685ce47e5bbd6eee41dbb423ac316a5753f8581f2909660e9d9186016c6",
+    "world-512.json": "2b43a65e181bd53635770d12888a93415febd059755e23a001b90f657b6fb1d0"
+  },
+  "files": [
+    {
+      "file": "bodies-runner.cjs.txt",
+      "bytes": 1632,
+      "sha256": "d8fa7a0924e0e48c8391147d9b558be7df19050d2dba06b83524b679df8be2a5"
+    },
+    {
+      "file": "body-inventory.json",
+      "bytes": 2221,
+      "sha256": "c1cf4933c03abcc9b1cca20c1a37f7faf10e899cc1e6215dd0e6e01cec44e888"
+    },
+    {
+      "file": "call-breakdown.json",
+      "bytes": 7418,
+      "sha256": "e7aa946a5888ada126968129cd37a71f756f4756bb07c4e57ea60bd9480c19ce"
+    },
+    {
+      "file": "measure-runner.cjs.txt",
+      "bytes": 5628,
+      "sha256": "6c874031eed919ee0454dab21eb38be7bfe0e7ca550c0a9f27aa68cf3870967f"
+    },
+    {
+      "file": "profile-0.cpuprofile",
+      "bytes": 249938,
+      "sha256": "6cebd8e490d7b7b0f08ef51617a4a7773069d7cf91d64cf87aa94be411f6115c"
+    },
+    {
+      "file": "profile-1.cpuprofile",
+      "bytes": 385037,
+      "sha256": "91531ee1733b4ba37010c64c1c6988c32c62fabbda3883c0d999db149b90fcfc"
+    },
+    {
+      "file": "profile-results.json",
+      "bytes": 11399,
+      "sha256": "17d282b1631775608878f10a0d0a3d81b35fd6ea79eef533c3a6dfb0a2e48de3"
+    },
+    {
+      "file": "profile-runner.cjs.txt",
+      "bytes": 4420,
+      "sha256": "d23b98e316373f1cf29e31347ac1222ebece0d79d6b79d2acc72259e7320a86b"
+    },
+    {
+      "file": "support-results.json",
+      "bytes": 832,
+      "sha256": "5f7c624593fc9986b1885e8080e9c8d0d1806b9fd7ad43bc6e410398c9593b65"
+    },
+    {
+      "file": "support-runner.cjs.txt",
+      "bytes": 1460,
+      "sha256": "ffda1abf097cbbcfef5651ebaf2305b30c56c4892b56c8430b117f1970685010"
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto'),os=require('node:os');
+const root=path.resolve(__dirname,'../..'),here=path.join(root,'prototypes/living-clicker'),out=path.join(here,'qa/muse-proof-20261028');fs.mkdirSync(out,{recursive:true});
+const sha=b=>crypto.createHash('sha256').update(b).digest('hex'),G=require(path.join(here,'game.js')),source=Object.fromEntries(['game.js','core.js','lifecycle.js','build.cjs','build-surface.cjs','build-retreat.cjs'].map(n=>[n,sha(fs.readFileSync(path.join(here,n)))])),inputs={},rows=[];
+// Sampling-profile context can be inspected without changing the game.
+const profileFile=path.join(here,'qa/pop512-20261027/active512-post-turnback.cpuprofile'),profileBytes=fs.readFileSync(profileFile),profile=JSON.parse(profileBytes),nodes=new Map(profile.nodes.map(n=>[n.id,n])),parent=new Map();
+for(const n of profile.nodes)for(const id of n.children||[])parent.set(id,n.id);
+const samples=new Map();for(const id of profile.samples)samples.set(id,(samples.get(id)||0)+1);
+const grouped=new Map();for(const n of profile.nodes)if(['poseClear','sweptClear'].includes(n.callFrame.functionName)){
+ const chain=[];let k=parent.get(n.id);while(k!==undefined){const p=nodes.get(k);chain.push(p.callFrame.functionName);k=parent.get(k);}
+ const scope=chain.find(name=>['surfacePose','retreat','move','planPath','storageDrop','storageDestination','nextTip','transportFootprint','homeSpots'].includes(name))||chain[0]||'root';
+ const key=n.callFrame.functionName+' <- '+scope;grouped.set(key,(grouped.get(key)||0)+(samples.get(n.id)||0));
+}
+function instrument(s){
+ const scopes=[],pose={},sweep={},movement={calls:0,translated:0,totalDistance:0,maxDistance:0,distances:{zero:0,under025:0,under075:0,under125:0,under175:0,other:0}};
+ for(const name of ['move','retreat','surfacePose','path','planPath','storageDrop','storageDestination','plan','homeSpots']){
+  const fn=s[name];if(!fn)continue;s[name]=function(...args){scopes.push(name);const old=name==='move'?{x:args[0].x,y:args[0].y}:null;
+   try{return fn.apply(this,args);}finally{if(old){const d=Math.hypot(args[0].x-old.x,args[0].y-old.y);movement.calls++;if(d>0){movement.translated++;movement.totalDistance+=d;movement.maxDistance=Math.max(movement.maxDistance,d);}movement.distances[d===0?'zero':d<.025?'under025':d<.075?'under075':d<.125?'under125':d<.175?'under175':'other']++;}scopes.pop();}};
+ }
+ const p=s.poseClear;s.poseClear=function(point,kind=null,ignore=-1,margin=.045){const key=(scopes.at(-1)||'other')+' / '+margin;pose[key]=(pose[key]||0)+1;return p.call(this,point,kind,ignore,margin);};
+ const w=s.sweptClear;s.sweptClear=function(a,b,kind=null,ignore=-1,margin=.045){const key=(scopes.at(-1)||'other')+' / '+margin;sweep[key]=(sweep[key]||0)+1;return w.call(this,a,b,kind,ignore,margin);};
+ return {pose,sweep,movement};
+}
+try{
+ for(const item of [{file:'pop512-20261027/active512-post-turnback-input.json'},{file:'world-512.json',buy:'geo_depth_4'}]){
+  const bytes=fs.readFileSync(path.join(here,'qa',item.file)),pack=JSON.parse(bytes),a=G.Simulation.restore(pack),b=G.Simulation.restore(pack);inputs[item.file]=sha(bytes);
+  if(item.buy){assert(a.buyResearch(item.buy));assert(b.buyResearch(item.buy));}
+  for(let k=0;k<300;k++){a.step(G.STEP);b.step(G.STEP);}assert.deepEqual(a.dump(),b.dump());
+  const counters=instrument(b),before={dug:a.stats.grainDug,delivered:a.stats.grainDelivered,distance:a.stats.distance};
+  for(let k=0;k<600;k++){a.step(G.STEP);b.step(G.STEP);if(k%60===0)assert.equal(JSON.stringify(a.dump()),JSON.stringify(b.dump()));}
+  const state=JSON.stringify(b.dump());assert.equal(JSON.stringify(a.dump()),state);a.assertLedger();b.assertLedger();assert.deepEqual(G.Simulation.restore(b.dump()).dump(),b.dump());
+  const row={file:item.file,bodies:a.physics.bodies.length,ants:a.ants.length,research:item.buy||null,steps:600,warmup:300,counters,delta:{dug:a.stats.grainDug-before.dug,delivered:a.stats.grainDelivered-before.delivered,distance:a.stats.distance-before.distance},stateSha256:sha(state)};assert(row.delta.dug>0&&row.delta.delivered>0&&row.delta.distance>0);rows.push(row);
+  console.log(JSON.stringify({file:row.file,bodies:row.bodies,pose:counters.pose,sweep:counters.sweep,movement:counters.movement,delta:row.delta}));
+ }
+ for(const[n,h]of Object.entries(source))assert.equal(sha(fs.readFileSync(path.join(here,n))),h);for(const[n,h]of Object.entries(inputs))assert.equal(sha(fs.readFileSync(path.join(here,'qa',n))),h);
+ const contexts=[...grouped].map(([scope,count])=>({scope,count,percentOfAllSamples:count/profile.samples.length*100})).sort((a,b)=>b.count-a.count);
+ fs.writeFileSync(path.join(out,'call-breakdown.json'),JSON.stringify({pass:true,finishedAt:new Date().toISOString(),source,inputs,rows,priorProfile:{file:path.relative(here,profileFile),sha256:sha(profileBytes),samples:profile.samples.length,contexts,note:'既存の計装/並走プロファイルからの自己サンプル内訳。今回の絶対時間や速度達成とは区別する。'},host:{node:process.version,cpu:os.cpus()[0].model},note:'呼出数計装の有無で同じ2実保存を300準備+600コマ進め全保存一致。計装結果から絶対速度を推定しない。'},null,2)+'\n');fs.copyFileSync(__filename,path.join(out,'measure-runner.cjs.txt'));
+ console.log(JSON.stringify({pass:true,contexts:contexts.slice(0,12)}));
+}catch(e){fs.writeFileSync(path.join(out,'call-breakdown-failure.json'),JSON.stringify({pass:false,source,inputs,rows,error:String(e)},null,2)+'\n');console.error(e);process.exitCode=1;}

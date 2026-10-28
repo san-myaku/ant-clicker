@@ -1,0 +1,416 @@
+{
+  "pass": true,
+  "finishedAt": "2026-10-28T05:46:06.764Z",
+  "source": {
+    "game.js": "763c181eb8e8e8a3770178b8f72c3092043c101994a82959a3b210be69340644",
+    "core.js": "c7d73a8f8f662b4a20d6b17803e0040d816e1422edf2604d08b7f25706982582",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "build.cjs": "e68c1736f03f0ccd588ea22d11fb5c6d6e49be362c78eec5eee5f462820a82d8",
+    "build-surface.cjs": "8022e37dcfe2de04574367711fe7d35e961ad13581f41545987311790ca048d3",
+    "build-retreat.cjs": "abb4332ca97e608ae4870e1844495ea5851441c180c71ae42cb5c1fd40c5f8bd"
+  },
+  "rows": [
+    {
+      "input": "pop512-20261027/active512-post-turnback-input.json",
+      "inputSha256": "02b55685ce47e5bbd6eee41dbb423ac316a5753f8581f2909660e9d9186016c6",
+      "research": null,
+      "warmup": 300,
+      "steps": 600,
+      "elapsedMs": 9226.9506,
+      "profileFile": "profile-0.cpuprofile",
+      "profileSha256": "6cebd8e490d7b7b0f08ef51617a4a7773069d7cf91d64cf87aa94be411f6115c",
+      "stateSha256": "aff366d85e724a570ebb56ad60556621985be19e9727700859e620a615a2cbcb",
+      "samples": 5865,
+      "geometrySamples": 1049,
+      "movementSamples": 69,
+      "geometryPercent": 17.885763000852513,
+      "movementPercent": 1.1764705882352942,
+      "movementFractionOfGeometry": 0.0657769304099142,
+      "detail": [
+        {
+          "scope": "poseClear <- laneSpine",
+          "samples": 385,
+          "percent": 6.564364876385337
+        },
+        {
+          "scope": "poseClear <- planPath",
+          "samples": 255,
+          "percent": 4.3478260869565215
+        },
+        {
+          "scope": "poseClear <- path",
+          "samples": 124,
+          "percent": 2.114236999147485
+        },
+        {
+          "scope": "sweptClear <- planPath",
+          "samples": 59,
+          "percent": 1.0059676044330774
+        },
+        {
+          "scope": "sweptClear <- laneSpine",
+          "samples": 53,
+          "percent": 0.9036658141517476
+        },
+        {
+          "scope": "poseClear <- move",
+          "samples": 47,
+          "percent": 0.8013640238704177
+        },
+        {
+          "scope": "sweptClear <- storageDestination",
+          "samples": 37,
+          "percent": 0.6308610400682012
+        },
+        {
+          "scope": "sweptClear <- path",
+          "samples": 33,
+          "percent": 0.5626598465473146
+        },
+        {
+          "scope": "poseClear <- plan",
+          "samples": 17,
+          "percent": 0.2898550724637681
+        },
+        {
+          "scope": "sweptClear <- move",
+          "samples": 14,
+          "percent": 0.23870417732310317
+        },
+        {
+          "scope": "poseClear <- storageDestination",
+          "samples": 9,
+          "percent": 0.1534526854219949
+        },
+        {
+          "scope": "poseClear <- surfacePose",
+          "samples": 6,
+          "percent": 0.10230179028132991
+        },
+        {
+          "scope": "sweptClear <- surfacePose",
+          "samples": 2,
+          "percent": 0.03410059676044331
+        },
+        {
+          "scope": "poseClear <- sharedNetworkPath",
+          "samples": 2,
+          "percent": 0.03410059676044331
+        },
+        {
+          "scope": "sweptClear <- plan",
+          "samples": 2,
+          "percent": 0.03410059676044331
+        },
+        {
+          "scope": "poseClear <- homeSpots",
+          "samples": 2,
+          "percent": 0.03410059676044331
+        },
+        {
+          "scope": "sweptClear <- sharedNetworkPath",
+          "samples": 1,
+          "percent": 0.017050298380221655
+        },
+        {
+          "scope": "poseClear <- other",
+          "samples": 1,
+          "percent": 0.017050298380221655
+        }
+      ],
+      "top": [
+        {
+          "name": "",
+          "samples": 893,
+          "percent": 15.225916453537938
+        },
+        {
+          "name": "poseClear",
+          "samples": 848,
+          "percent": 14.458653026427962
+        },
+        {
+          "name": "receivingRoom",
+          "samples": 579,
+          "percent": 9.872122762148337
+        },
+        {
+          "name": "storageDrop",
+          "samples": 472,
+          "percent": 8.04774083546462
+        },
+        {
+          "name": "storageDestination",
+          "samples": 468,
+          "percent": 7.979539641943734
+        },
+        {
+          "name": "tick",
+          "samples": 360,
+          "percent": 6.138107416879795
+        },
+        {
+          "name": "sweptClear",
+          "samples": 201,
+          "percent": 3.4271099744245523
+        },
+        {
+          "name": "(garbage collector)",
+          "samples": 172,
+          "percent": 2.9326513213981245
+        },
+        {
+          "name": "foodBodies",
+          "samples": 160,
+          "percent": 2.7280477408354646
+        },
+        {
+          "name": "cells",
+          "samples": 149,
+          "percent": 2.5404944586530265
+        },
+        {
+          "name": "near",
+          "samples": 124,
+          "percent": 2.114236999147485
+        },
+        {
+          "name": "stepItemTask",
+          "samples": 124,
+          "percent": 2.114236999147485
+        },
+        {
+          "name": "roomKind",
+          "samples": 114,
+          "percent": 1.9437340153452685
+        },
+        {
+          "name": "frontier",
+          "samples": 77,
+          "percent": 1.3128729752770674
+        },
+        {
+          "name": "plan",
+          "samples": 73,
+          "percent": 1.2446717817561808
+        },
+        {
+          "name": "transportReady",
+          "samples": 59,
+          "percent": 1.0059676044330774
+        },
+        {
+          "name": "move",
+          "samples": 58,
+          "percent": 0.9889173060528559
+        },
+        {
+          "name": "sweptCargoCells",
+          "samples": 57,
+          "percent": 0.9718670076726342
+        }
+      ]
+    },
+    {
+      "input": "world-512.json",
+      "inputSha256": "2b43a65e181bd53635770d12888a93415febd059755e23a001b90f657b6fb1d0",
+      "research": "geo_depth_4",
+      "warmup": 300,
+      "steps": 600,
+      "elapsedMs": 16111.6826,
+      "profileFile": "profile-1.cpuprofile",
+      "profileSha256": "91531ee1733b4ba37010c64c1c6988c32c62fabbda3883c0d999db149b90fcfc",
+      "stateSha256": "2e01ca79ed9898ac7ea0cc8694db7148b01b90e4411c46016850072f9cb956c7",
+      "samples": 10179,
+      "geometrySamples": 2369,
+      "movementSamples": 250,
+      "geometryPercent": 23.27340603202672,
+      "movementPercent": 2.456036938795559,
+      "movementFractionOfGeometry": 0.10552975939214859,
+      "detail": [
+        {
+          "scope": "poseClear <- planPath",
+          "samples": 864,
+          "percent": 8.488063660477453
+        },
+        {
+          "scope": "poseClear <- laneSpine",
+          "samples": 688,
+          "percent": 6.759013655565379
+        },
+        {
+          "scope": "sweptClear <- planPath",
+          "samples": 189,
+          "percent": 1.8567639257294428
+        },
+        {
+          "scope": "poseClear <- move",
+          "samples": 176,
+          "percent": 1.7290500049120738
+        },
+        {
+          "scope": "sweptClear <- laneSpine",
+          "samples": 138,
+          "percent": 1.3557323902151488
+        },
+        {
+          "scope": "sweptClear <- storageDestination",
+          "samples": 74,
+          "percent": 0.7269869338834856
+        },
+        {
+          "scope": "sweptClear <- move",
+          "samples": 67,
+          "percent": 0.6582178995972099
+        },
+        {
+          "scope": "poseClear <- plan",
+          "samples": 66,
+          "percent": 0.6483937518420276
+        },
+        {
+          "scope": "poseClear <- storageDestination",
+          "samples": 52,
+          "percent": 0.5108556832694764
+        },
+        {
+          "scope": "poseClear <- other",
+          "samples": 23,
+          "percent": 0.22595539836919148
+        },
+        {
+          "scope": "poseClear <- path",
+          "samples": 14,
+          "percent": 0.13753806857255133
+        },
+        {
+          "scope": "poseClear <- surfacePose",
+          "samples": 5,
+          "percent": 0.049120738775911194
+        },
+        {
+          "scope": "sweptClear <- plan",
+          "samples": 4,
+          "percent": 0.03929659102072895
+        },
+        {
+          "scope": "poseClear <- storageDrop",
+          "samples": 3,
+          "percent": 0.02947244326554671
+        },
+        {
+          "scope": "sweptClear <- storageDrop",
+          "samples": 2,
+          "percent": 0.019648295510364476
+        },
+        {
+          "scope": "sweptClear <- surfacePose",
+          "samples": 2,
+          "percent": 0.019648295510364476
+        },
+        {
+          "scope": "sweptClear <- path",
+          "samples": 2,
+          "percent": 0.019648295510364476
+        }
+      ],
+      "top": [
+        {
+          "name": "poseClear",
+          "samples": 1891,
+          "percent": 18.577463405049613
+        },
+        {
+          "name": "storageDestination",
+          "samples": 1270,
+          "percent": 12.476667649081442
+        },
+        {
+          "name": "",
+          "samples": 1165,
+          "percent": 11.445132134787308
+        },
+        {
+          "name": "storageDrop",
+          "samples": 846,
+          "percent": 8.311229000884174
+        },
+        {
+          "name": "tick",
+          "samples": 652,
+          "percent": 6.405344336378819
+        },
+        {
+          "name": "sweptClear",
+          "samples": 478,
+          "percent": 4.69594262697711
+        },
+        {
+          "name": "receivingRoom",
+          "samples": 476,
+          "percent": 4.676294331466745
+        },
+        {
+          "name": "(garbage collector)",
+          "samples": 330,
+          "percent": 3.2419687592101383
+        },
+        {
+          "name": "foodBodies",
+          "samples": 326,
+          "percent": 3.2026721681894097
+        },
+        {
+          "name": "move",
+          "samples": 207,
+          "percent": 2.033598585322723
+        },
+        {
+          "name": "stepItemTask",
+          "samples": 183,
+          "percent": 1.7978190391983495
+        },
+        {
+          "name": "near",
+          "samples": 155,
+          "percent": 1.5227429020532468
+        },
+        {
+          "name": "supportsStock",
+          "samples": 147,
+          "percent": 1.444149720011789
+        },
+        {
+          "name": "frontier",
+          "samples": 138,
+          "percent": 1.3557323902151488
+        },
+        {
+          "name": "sweptCargoCells",
+          "samples": 137,
+          "percent": 1.3459082424599664
+        },
+        {
+          "name": "plan",
+          "samples": 126,
+          "percent": 1.237842617152962
+        },
+        {
+          "name": "itemAccess",
+          "samples": 114,
+          "percent": 1.1199528440907751
+        },
+        {
+          "name": "planPath",
+          "samples": 109,
+          "percent": 1.070832105314864
+        }
+      ]
+    }
+  ],
+  "host": {
+    "node": "v24.22.1",
+    "cpu": "AMD Ryzen 7 5800H with Radeon Graphics         "
+  },
+  "note": "呼出数の計装なし。同じ2入力を各300準備+600コマ、ほかの当方負荷検証と並走せずCPUサンプリング。最終全保存hashを計装の有無の一致検証へ照合。これはプロファイルであり通常ブラウザの絶対速度/1000匹の保証ではない。"
+}

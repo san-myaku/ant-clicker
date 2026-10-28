@@ -1,0 +1,23 @@
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto'),inspector=require('node:inspector'),os=require('node:os');
+const root=path.resolve(__dirname,'../..'),here=path.join(root,'prototypes/living-clicker'),out=path.join(here,'qa/muse-proof-20261028'),G=require(path.join(here,'game.js')),sha=b=>crypto.createHash('sha256').update(b).digest('hex'),reference=JSON.parse(fs.readFileSync(path.join(out,'call-breakdown.json'),'utf8')),rows=[];
+function attribution(p){const nodes=new Map(p.nodes.map(n=>[n.id,n])),parents=new Map(),counts=new Map(),groups=new Map(),functions=new Map();for(const n of p.nodes)for(const id of n.children||[])parents.set(id,n.id);for(const id of p.samples)counts.set(id,(counts.get(id)||0)+1);
+ for(const n of p.nodes){const fn=n.callFrame.functionName,c=counts.get(n.id)||0;functions.set(fn,(functions.get(fn)||0)+c);if(!['poseClear','sweptClear'].includes(fn)||!c)continue;
+  const chain=[];let id=parents.get(n.id);while(id!==undefined){chain.push(nodes.get(id).callFrame.functionName);id=parents.get(id);}
+  const origin=chain.find(k=>['move','surfacePose','retreat','planPath','path','sharedNetworkPath','laneSpine','plan','storageDrop','storageDestination','nextTip','transportFootprint','homeSpots'].includes(k))||'other';
+  const key=fn+' <- '+origin;groups.set(key,(groups.get(key)||0)+c);
+ }
+ const detail=[...groups].map(([scope,samples])=>({scope,samples,percent:samples/p.samples.length*100})).sort((a,b)=>b.samples-a.samples),geometry=[...functions].filter(([n])=>['poseClear','sweptClear'].includes(n)).reduce((a,[n,c])=>a+c,0),movement=detail.filter(r=>/ <- (move|surfacePose)$/.test(r.scope)).reduce((a,r)=>a+r.samples,0);
+ return {samples:p.samples.length,geometrySamples:geometry,movementSamples:movement,geometryPercent:geometry/p.samples.length*100,movementPercent:movement/p.samples.length*100,movementFractionOfGeometry:movement/geometry,detail,top:[...functions].map(([name,samples])=>({name,samples,percent:samples/p.samples.length*100})).sort((a,b)=>b.samples-a.samples).slice(0,18)};
+}
+(async()=>{
+ for(const [i,item]of [{file:'pop512-20261027/active512-post-turnback-input.json'},{file:'world-512.json',buy:'geo_depth_4'}].entries()){
+  const bytes=fs.readFileSync(path.join(here,'qa',item.file)),s=G.Simulation.restore(JSON.parse(bytes));assert.equal(sha(bytes),reference.inputs[item.file]);if(item.buy)assert(s.buyResearch(item.buy));for(let k=0;k<300;k++)s.step(G.STEP);
+  const session=new inspector.Session();session.connect();const post=(name,args={})=>new Promise((resolve,reject)=>session.post(name,args,(e,v)=>e?reject(e):resolve(v)));
+  await post('Profiler.enable');await post('Profiler.start');const begin=performance.now();for(let k=0;k<600;k++)s.step(G.STEP);const elapsedMs=performance.now()-begin,{profile}=await post('Profiler.stop');session.disconnect();
+  const stateSha256=sha(JSON.stringify(s.dump()));assert.equal(stateSha256,reference.rows[i].stateSha256);s.assertLedger();s.assertProgress();
+  const file='profile-'+i+'.cpuprofile',raw=JSON.stringify(profile);fs.writeFileSync(path.join(out,file),raw);
+  const row={input:item.file,inputSha256:sha(bytes),research:item.buy||null,warmup:300,steps:600,elapsedMs,profileFile:file,profileSha256:sha(raw),stateSha256,...attribution(profile)};rows.push(row);console.log(JSON.stringify({input:item.file,geometryPercent:row.geometryPercent,movementPercent:row.movementPercent,movementFractionOfGeometry:row.movementFractionOfGeometry,top:row.top.slice(0,8)}));
+ }
+ for(const[n,h]of Object.entries(reference.source))assert.equal(sha(fs.readFileSync(path.join(here,n))),h);
+ fs.copyFileSync(__filename,path.join(out,'profile-runner.cjs.txt'));fs.writeFileSync(path.join(out,'profile-results.json'),JSON.stringify({pass:true,finishedAt:new Date().toISOString(),source:reference.source,rows,host:{node:process.version,cpu:os.cpus()[0].model},note:'呼出数の計装なし。同じ2入力を各300準備+600コマ、ほかの当方負荷検証と並走せずCPUサンプリング。最終全保存hashを計装の有無の一致検証へ照合。これはプロファイルであり通常ブラウザの絶対速度/1000匹の保証ではない。'},null,2)+'\n');
+})().catch(e=>{fs.writeFileSync(path.join(out,'profile-failure.json'),JSON.stringify({pass:false,rows,error:String(e)},null,2)+'\n');console.error(e);process.exitCode=1;});

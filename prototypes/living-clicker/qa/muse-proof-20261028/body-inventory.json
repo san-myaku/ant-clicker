@@ -1,0 +1,79 @@
+{
+  "pass": true,
+  "finishedAt": "2026-10-28T05:42:37.811Z",
+  "source": {
+    "game.js": "763c181eb8e8e8a3770178b8f72c3092043c101994a82959a3b210be69340644",
+    "core.js": "c7d73a8f8f662b4a20d6b17803e0040d816e1422edf2604d08b7f25706982582",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0"
+  },
+  "rows": [
+    {
+      "file": "world-256.json",
+      "inputSha256": "ea79db5a2a5488c62871365f122f27b154ea186a8e09f9c7af93d2242fd0d23d",
+      "ants": 256,
+      "time": 9856.99999994071,
+      "encodedCount": 1560,
+      "bodies": 1560,
+      "kinds": {
+        "soil": 1245,
+        "food": 315
+      },
+      "states": {
+        "soil/delivered": 1233,
+        "food/stored": 53,
+        "food/incoming": 262,
+        "soil/cargo/carried": 12
+      },
+      "wildIds": 5,
+      "dug": 10516,
+      "delivered": 10504,
+      "settled": 9271
+    },
+    {
+      "file": "pop512-20261027/active512-post-turnback-input.json",
+      "inputSha256": "02b55685ce47e5bbd6eee41dbb423ac316a5753f8581f2909660e9d9186016c6",
+      "ants": 512,
+      "time": 14878.99999986763,
+      "encodedCount": 4274,
+      "bodies": 4274,
+      "kinds": {
+        "soil": 3652,
+        "food": 622
+      },
+      "states": {
+        "soil/delivered": 3624,
+        "food/stored": 377,
+        "food/incoming": 245,
+        "soil/cargo/carried": 27,
+        "soil/pickup/carried": 1
+      },
+      "wildIds": 5,
+      "dug": 19113,
+      "delivered": 19085,
+      "settled": 15461
+    },
+    {
+      "file": "world-512.json",
+      "inputSha256": "2b43a65e181bd53635770d12888a93415febd059755e23a001b90f657b6fb1d0",
+      "ants": 512,
+      "time": 17062.99999983585,
+      "encodedCount": 7303,
+      "bodies": 7303,
+      "kinds": {
+        "soil": 6688,
+        "food": 615
+      },
+      "states": {
+        "soil/delivered": 6633,
+        "food/stored": 377,
+        "food/incoming": 238,
+        "soil/cargo/carried": 55
+      },
+      "wildIds": 5,
+      "dug": 23960,
+      "delivered": 23905,
+      "settled": 17272
+    }
+  ],
+  "note": "元保存を編集せず復元し、土の台帳と実物体の内訳を確認。3時点の差を時間に対する無条件の増加保証とは扱わない。"
+}

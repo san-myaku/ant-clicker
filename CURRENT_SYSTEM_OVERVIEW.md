@@ -11,6 +11,12 @@ Target: `prototypes/living-clicker/`（root index.htmlは旧公開本編）
 
 This document is the current implementation overview for the single-file ant clicker game. When gameplay, UI, save data, AI behavior, or public deployment assumptions change, update this file together with `DEVELOPMENT_LOG.md`.
 
+## 2026-10-28 Muse追加メモの入口測定と支持変化の検証
+
+handoff/MUSE_PROOF_REVIEW_20261028.mdに記録。活動512匹と実深度IV購入後512匹を各300準備＋600コマ、呼出数計装あり/なしで全保存一致。続いて未計装・単独のCPUサンプリングを行い、最終保存hashも一致した。poseClear+sweptClearの自己サンプルは全体の17.89%/23.27%、移動/地表姿勢補正由来は全体の1.18%/2.46%にとどまった。計画側が中心のため、「証明を持ち運ぶ移動」は本体未実装で優先度を下げる。区間の離散検査が任意の部分区間を包含する保証も未検証。
+
+物体数1560/4274/7303を元保存へ照合し、最終512匹の土6688/餌615と土の台帳を確認。全走査削減/処理区間内のID表は有用な候補。ただし静止再確認を掘削点だけへ局所化する案は不十分で、掘削なしの支持物の除去/拾得/移動で上の物体を起こす3ケースを確認した。次は部屋分類共有→物体/置き場所の反復探索→姿勢幾何の順を維持する。ゲーム本体/生成器/保存/配信は373ce86のまま。dbf67bdまでのpushは前の指示で済み、今回追加のpush/main/Pages/PRはなし。検証補助/結果/hashはqa/muse-proof-20261028/。前回全30本の再実行ではない。
+
 ## 2026-10-28 別AIの軽量化6案を現コードと隔離候補で検討
 
 詳細はhandoff/OPTIMIZATION_PROPOSALS_REVIEW_20261028.md。8実保存の完成通路接続は循環0/最大次数5で、木の接続順を使う着眼は妥当。ただし部屋内の実空洞/荷姿/地表/未完成区間の探索まで消えない。選択した通路列の一意性を確認して共有距離表を直列に作る候補を編集元から生成し、8保存の各600/1200コマで全保存一致、実荷の経路/掃引と循環/複数候補/不通も照合した。活動512匹で15.139→15.065ms/コマ（0.49%差）、実深度IV購入後512匹で24.357→24.137（0.90%差）。安定した大幅改善とは扱わず本体採用を見送り、候補/測定結果をqa/proposals-20261028/へ保持した。

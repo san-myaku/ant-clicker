@@ -1,0 +1,9 @@
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto'),root=path.resolve(__dirname,'../..'),here=path.join(root,'prototypes/living-clicker'),out=path.join(here,'qa/muse-proof-20261028'),G=require(path.join(here,'game.js')),rows=[];
+for(const mode of ['remove','pickup','move']){
+ const world=new G.Physics.World((x,y)=>y>=20,96,90,.25),lower=world.spawn('food',48,19.8125),upper=world.spawn('food',48,19.4375);
+ lower.rest=upper.rest=30;world.index(lower);world.index(upper);assert(world.supported(upper));const oldY=upper.y;
+ if(mode==='remove')world.remove(lower);else if(mode==='pickup'){lower.carrier=1;world.index(lower);}else{lower.x+=2;world.index(lower);}
+ assert(!world.supported(upper));world.clock=11;world.substep(1/60);assert(upper.rest<30&&upper.y>oldY);
+ rows.push({mode,pass:true,terrainChanged:false,oldY,newY:upper.y,rest:upper.rest});
+}
+fs.copyFileSync(__filename,path.join(out,'support-runner.cjs.txt'));fs.writeFileSync(path.join(out,'support-results.json'),JSON.stringify({pass:true,completedAt:new Date().toISOString(),coreSha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(here,'core.js'))).digest('hex'),rows,note:'ゲーム本体は変更せず、物理APIの小さな支持物ケースを検証。掘削なしでも拾得/移動/除去で上の静止物体を起こす必要がある。'},null,2)+'\n');console.log(JSON.stringify({pass:true,rows}));

@@ -1,0 +1,7 @@
+const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),assert=require('node:assert/strict'),root=path.resolve(__dirname,'../..'),here=path.join(root,'prototypes/living-clicker'),out=path.join(here,'qa/muse-proof-20261028'),G=require(path.join(here,'game.js')),sha=b=>crypto.createHash('sha256').update(b).digest('hex'),rows=[];
+for(const file of ['world-256.json','pop512-20261027/active512-post-turnback-input.json','world-512.json']){
+ const bytes=fs.readFileSync(path.join(here,'qa',file)),p=JSON.parse(bytes),s=G.Simulation.restore(p),kinds={},states={};for(const b of s.physics.bodies){kinds[b.kind]=(kinds[b.kind]||0)+1;const key=b.kind+'/'+b.state+(b.carrier?'/carried':'');states[key]=(states[key]||0)+1;}
+ const row={file,inputSha256:sha(bytes),ants:s.ants.length,time:s.time,encodedCount:p.world.physics.count,bodies:s.physics.bodies.length,kinds,states,wildIds:s.colony.wild.length,dug:s.stats.grainDug,delivered:s.stats.grainDelivered,settled:s.stats.grainSettled};
+ assert.equal(s.stats.grainDug,(kinds.soil||0)+s.stats.grainSettled);s.assertLedger();rows.push(row);console.log(JSON.stringify(row));
+}
+fs.copyFileSync(__filename,path.join(out,'bodies-runner.cjs.txt'));fs.writeFileSync(path.join(out,'body-inventory.json'),JSON.stringify({pass:true,finishedAt:new Date().toISOString(),source:Object.fromEntries(['game.js','core.js','lifecycle.js'].map(n=>[n,sha(fs.readFileSync(path.join(here,n)))])),rows,note:'元保存を編集せず復元し、土の台帳と実物体の内訳を確認。3時点の差を時間に対する無条件の増加保証とは扱わない。'},null,2)+'\n');

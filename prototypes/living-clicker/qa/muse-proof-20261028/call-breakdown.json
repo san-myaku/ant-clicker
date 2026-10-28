@@ -1,0 +1,247 @@
+{
+  "pass": true,
+  "finishedAt": "2026-10-28T05:39:42.807Z",
+  "source": {
+    "game.js": "763c181eb8e8e8a3770178b8f72c3092043c101994a82959a3b210be69340644",
+    "core.js": "c7d73a8f8f662b4a20d6b17803e0040d816e1422edf2604d08b7f25706982582",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "build.cjs": "e68c1736f03f0ccd588ea22d11fb5c6d6e49be362c78eec5eee5f462820a82d8",
+    "build-surface.cjs": "8022e37dcfe2de04574367711fe7d35e961ad13581f41545987311790ca048d3",
+    "build-retreat.cjs": "abb4332ca97e608ae4870e1844495ea5851441c180c71ae42cb5c1fd40c5f8bd"
+  },
+  "inputs": {
+    "pop512-20261027/active512-post-turnback-input.json": "02b55685ce47e5bbd6eee41dbb423ac316a5753f8581f2909660e9d9186016c6",
+    "world-512.json": "2b43a65e181bd53635770d12888a93415febd059755e23a001b90f657b6fb1d0"
+  },
+  "rows": [
+    {
+      "file": "pop512-20261027/active512-post-turnback-input.json",
+      "bodies": 4267,
+      "ants": 512,
+      "research": null,
+      "steps": 600,
+      "warmup": 300,
+      "counters": {
+        "pose": {
+          "move / 0.025": 54574,
+          "move / 0.045": 6636,
+          "surfacePose / 0.025": 5402,
+          "plan / 0.045": 16398,
+          "path / 0.045": 104732,
+          "planPath / 0.045": 525746,
+          "homeSpots / 0.045": 1220,
+          "plan / 0.09": 51,
+          "storageDestination / 0.045": 51415
+        },
+        "sweep": {
+          "move / 0.025": 14100,
+          "surfacePose / 0.025": 1234,
+          "path / 0.045": 7548,
+          "planPath / 0.045": 47966,
+          "plan / 0.045": 627,
+          "storageDestination / 0.045": 37856
+        },
+        "movement": {
+          "calls": 13637,
+          "translated": 10085,
+          "totalDistance": 1217.3381087003208,
+          "maxDistance": 0.29154759474226427,
+          "distances": {
+            "zero": 3552,
+            "under025": 455,
+            "under075": 2061,
+            "under125": 744,
+            "under175": 6755,
+            "other": 70
+          }
+        }
+      },
+      "delta": {
+        "dug": 9,
+        "delivered": 15,
+        "distance": 1209.3703097165562
+      },
+      "stateSha256": "aff366d85e724a570ebb56ad60556621985be19e9727700859e620a615a2cbcb"
+    },
+    {
+      "file": "world-512.json",
+      "bodies": 7273,
+      "ants": 512,
+      "research": "geo_depth_4",
+      "steps": 600,
+      "warmup": 300,
+      "counters": {
+        "pose": {
+          "move / 0.025": 192485,
+          "move / 0.045": 28579,
+          "surfacePose / 0.025": 8618,
+          "path / 0.045": 160479,
+          "planPath / 0.045": 1063564,
+          "plan / 0.045": 54135,
+          "storageDrop / 0.045": 9485,
+          "storageDestination / 0.045": 140445,
+          "other / 0.045": 20736,
+          "retreat / 0.025": 461
+        },
+        "sweep": {
+          "move / 0.025": 47732,
+          "surfacePose / 0.025": 1692,
+          "path / 0.045": 9862,
+          "planPath / 0.045": 97306,
+          "storageDestination / 0.045": 52992,
+          "plan / 0.045": 2795,
+          "storageDrop / 0.045": 512,
+          "retreat / 0.025": 100
+        },
+        "movement": {
+          "calls": 55360,
+          "translated": 36426,
+          "totalDistance": 4537.472230509785,
+          "maxDistance": 0.5106346578366688,
+          "distances": {
+            "zero": 18934,
+            "under025": 681,
+            "under075": 7424,
+            "under125": 2533,
+            "under175": 25718,
+            "other": 70
+          }
+        }
+      },
+      "delta": {
+        "dug": 22,
+        "delivered": 18,
+        "distance": 4528.6184985293075
+      },
+      "stateSha256": "2e01ca79ed9898ac7ea0cc8694db7148b01b90e4411c46016850072f9cb956c7"
+    }
+  ],
+  "priorProfile": {
+    "file": "qa\\pop512-20261027\\active512-post-turnback.cpuprofile",
+    "sha256": "19592d5361b382e1f8e89e66cba9c501aad228397c06d6d1168ff1d9f19e7e47",
+    "samples": 13213,
+    "contexts": [
+      {
+        "scope": "poseClear <- planPath",
+        "count": 1277,
+        "percentOfAllSamples": 9.664724135321274
+      },
+      {
+        "scope": "poseClear <- sweptClear",
+        "count": 379,
+        "percentOfAllSamples": 2.868387194429728
+      },
+      {
+        "scope": "sweptClear <- planPath",
+        "count": 244,
+        "percentOfAllSamples": 1.8466661621130704
+      },
+      {
+        "scope": "poseClear <- move",
+        "count": 119,
+        "percentOfAllSamples": 0.9006281692272762
+      },
+      {
+        "scope": "sweptClear <- storageDestination",
+        "count": 110,
+        "percentOfAllSamples": 0.832513433739499
+      },
+      {
+        "scope": "sweptClear <- laneSpine",
+        "count": 52,
+        "percentOfAllSamples": 0.3935518050404904
+      },
+      {
+        "scope": "sweptClear <- move",
+        "count": 37,
+        "percentOfAllSamples": 0.28002724589419514
+      },
+      {
+        "scope": "poseClear <- storageDestination",
+        "count": 37,
+        "percentOfAllSamples": 0.28002724589419514
+      },
+      {
+        "scope": "poseClear <- digPoseFor",
+        "count": 31,
+        "percentOfAllSamples": 0.23461742223567697
+      },
+      {
+        "scope": "poseClear <- transportFootprint",
+        "count": 20,
+        "percentOfAllSamples": 0.1513660788617271
+      },
+      {
+        "scope": "sweptClear <- digPoseFor",
+        "count": 8,
+        "percentOfAllSamples": 0.06054643154469084
+      },
+      {
+        "scope": "sweptClear <- surfacePose",
+        "count": 6,
+        "percentOfAllSamples": 0.045409823658518124
+      },
+      {
+        "scope": "poseClear <- homeSpots",
+        "count": 5,
+        "percentOfAllSamples": 0.03784151971543177
+      },
+      {
+        "scope": "poseClear <- nextTip",
+        "count": 4,
+        "percentOfAllSamples": 0.03027321577234542
+      },
+      {
+        "scope": "poseClear <- surfacePose",
+        "count": 4,
+        "percentOfAllSamples": 0.03027321577234542
+      },
+      {
+        "scope": "poseClear <- laneSpine",
+        "count": 4,
+        "percentOfAllSamples": 0.03027321577234542
+      },
+      {
+        "scope": "poseClear <- rehome",
+        "count": 4,
+        "percentOfAllSamples": 0.03027321577234542
+      },
+      {
+        "scope": "poseClear <- passingIndex",
+        "count": 3,
+        "percentOfAllSamples": 0.022704911829259062
+      },
+      {
+        "scope": "sweptClear <- shortenQueenCrossing",
+        "count": 1,
+        "percentOfAllSamples": 0.007568303943086355
+      },
+      {
+        "scope": "sweptClear <- edge",
+        "count": 1,
+        "percentOfAllSamples": 0.007568303943086355
+      },
+      {
+        "scope": "poseClear <- safe",
+        "count": 1,
+        "percentOfAllSamples": 0.007568303943086355
+      },
+      {
+        "scope": "sweptClear <- surfaceApproach",
+        "count": 1,
+        "percentOfAllSamples": 0.007568303943086355
+      },
+      {
+        "scope": "sweptClear <- construction",
+        "count": 0,
+        "percentOfAllSamples": 0
+      }
+    ],
+    "note": "既存の計装/並走プロファイルからの自己サンプル内訳。今回の絶対時間や速度達成とは区別する。"
+  },
+  "host": {
+    "node": "v24.22.1",
+    "cpu": "AMD Ryzen 7 5800H with Radeon Graphics         "
+  },
+  "note": "呼出数計装の有無で同じ2実保存を300準備+600コマ進め全保存一致。計装結果から絶対速度を推定しない。"
+}

@@ -1,0 +1,32 @@
+{
+  "pass": true,
+  "completedAt": "2026-10-28T05:44:54.243Z",
+  "coreSha256": "c7d73a8f8f662b4a20d6b17803e0040d816e1422edf2604d08b7f25706982582",
+  "rows": [
+    {
+      "mode": "remove",
+      "pass": true,
+      "terrainChanged": false,
+      "oldY": 19.4375,
+      "newY": 19.440833333333334,
+      "rest": 0
+    },
+    {
+      "mode": "pickup",
+      "pass": true,
+      "terrainChanged": false,
+      "oldY": 19.4375,
+      "newY": 19.440833333333334,
+      "rest": 0
+    },
+    {
+      "mode": "move",
+      "pass": true,
+      "terrainChanged": false,
+      "oldY": 19.4375,
+      "newY": 19.440833333333334,
+      "rest": 0
+    }
+  ],
+  "note": "ゲーム本体は変更せず、物理APIの小さな支持物ケースを検証。掘削なしでも拾得/移動/除去で上の静止物体を起こす必要がある。"
+}
