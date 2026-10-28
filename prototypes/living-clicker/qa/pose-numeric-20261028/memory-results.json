@@ -1,0 +1,36 @@
+{
+  "pass": true,
+  "finishedAt": "2026-10-28T09:34:48.704Z",
+  "inputSha256": "2b43a65e181bd53635770d12888a93415febd059755e23a001b90f657b6fb1d0",
+  "rows": [
+    {
+      "name": "baseline",
+      "stateSha256": "0581cdd23771aa1dc78cfe951175f6f5a256bf275c17d1a5d227ac59af9cdc93",
+      "cacheSize": 29728,
+      "payloadBytes": null,
+      "ants": 512,
+      "delivered": 23948,
+      "heap": {
+        "usedSize": 24858824,
+        "totalSize": 28897280,
+        "embedderHeapUsedSize": 300136,
+        "backingStorageSize": 22308603
+      }
+    },
+    {
+      "name": "candidate",
+      "stateSha256": "0581cdd23771aa1dc78cfe951175f6f5a256bf275c17d1a5d227ac59af9cdc93",
+      "cacheSize": 131072,
+      "payloadBytes": 3145728,
+      "ants": 512,
+      "delivered": 23948,
+      "heap": {
+        "usedSize": 22917540,
+        "totalSize": 26337280,
+        "embedderHeapUsedSize": 299992,
+        "backingStorageSize": 25455346
+      }
+    }
+  ],
+  "note": "Headless Chromiumで同じ512匹保存から実研究を払い720コマ。GC後のCDP Runtime.getHeapUsage。モデルのみで描画は含まず、OS全体RSS/実機iPhoneのメモリではない。backingStorageSizeが無い環境では0とみなさない。両版の全保存hash一致。"
+}

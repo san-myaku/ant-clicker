@@ -1,0 +1,20 @@
+{
+  "pass": true,
+  "results": [
+    {
+      "name": "append-and-replacement-refresh-only-the-classification",
+      "pass": true,
+      "appended": true,
+      "replaced": true
+    },
+    {
+      "name": "passage-capacity-and-reservations-stay-live",
+      "pass": true,
+      "readiness": true,
+      "reserved": true,
+      "availability": true,
+      "stored": true
+    }
+  ],
+  "gameSha256": "a38fabdaf9c8b49fdef59094a03037c70c49b805a6053dd3f211d7b66174cd16"
+}

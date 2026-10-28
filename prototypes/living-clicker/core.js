@@ -509,6 +509,14 @@
     report(){return {metrics:{...this.metrics},profiles:[...this.profiles].map(([kind,p])=>({kind,nodes:p.nodes.length,corridors:[...p.entries.values()].reduce((n,e)=>n+e.edges.length,0),connections:p.connections.size,fields:p.fields.size}))};}
   }
 
+  class PoseAnswerCache{
+    constructor(){this.mask=(1<<17)-1;const length=this.mask+1;this.x=new Float64Array(length);this.y=new Float64Array(length);this.tags=new Uint32Array(length);this.answers=new Int32Array(length);this.kinds=new Map();this.size=0;}
+    tag(h,kind){const key=String(kind||'body');let base=this.kinds.get(key);if(base===undefined){base=(this.kinds.size+1)*16;this.kinds.set(key,base);}return base+h;}
+    slot(x,y,tag){let h=Math.imul(Math.floor(x*1e6),0x9e3779b1)^Math.imul(Math.floor(y*1e6),0x85ebca6b)^Math.imul(tag,0xc2b2ae35);h^=h>>>16;h=Math.imul(h,0x85ebca6b);h^=h>>>13;return h&this.mask;}
+    get(x,y,tag){const i=this.slot(x,y,tag);return this.tags[i]===tag&&this.x[i]===x&&this.y[i]===y?this.answers[i]:undefined;}
+    set(x,y,tag,value){const i=this.slot(x,y,tag);if(!this.tags[i])this.size++;this.x[i]=x;this.y[i]=y;this.tags[i]=tag;this.answers[i]=value;}
+    clear(){this.tags.fill(0);this.size=0;}
+  }
   class Simulation {
     constructor(seed = 24014) {
       this.seed = seed >>> 0;
@@ -932,10 +940,10 @@
       // cannot change either answer. Cache booleans, never a chosen route.
       let cache=null,key=null;
       if(ignore===-1&&margin===.045){
-        cache=this._poseChecks||(this._poseChecks=new Map());key=[p.x,p.y,h,kind||'body'].join(':');const old=cache.get(key);
+        cache=this._poseChecks||(this._poseChecks=new PoseAnswerCache());key=cache.tag(h,kind);const old=cache.get(p.x,p.y,key);
         if(old===-1)return true;if(old===-2||old>=0&&this.grains[old]){this._block=old;return false;}
       }
-      const answer=(ok,block=-2)=>{if(!ok)this._block=block;if(cache){if(cache.size>100000)cache.clear();cache.set(key,ok?-1:block);}return ok;};
+      const answer=(ok,block=-2)=>{if(!ok)this._block=block;if(cache){cache.set(p.x,p.y,key,ok?-1:block);}return ok;};
       if(kind){const shape=carryShape(kind),a=h*Math.PI/8,x=p.x+Math.cos(a)*ANT_SIZE*.55,y=p.y+Math.sin(a)*ANT_SIZE*.55;
         for(let gy=Math.floor((y-shape.hy+1e-7)*GRID);gy<=Math.floor((y+shape.hy-1e-7)*GRID);gy++)for(let gx=Math.floor((x-shape.hx+1e-7)*GRID);gx<=Math.floor((x+shape.hx-1e-7)*GRID);gx++){const g=gy*FW+gx;if(g!==ignore&&(gx<0||gx>=FW||gy<0||gy>=FH||this.grains[g]))return answer(false,gx<0||gx>=FW||gy<0||gy>=FH?-2:g);}
       }
@@ -1719,7 +1727,7 @@
       return s;
     }
   }
-  return { Simulation, AntTrafficIndex, RouteNetwork, ACTOR_MAX, MAX_ACTORS, Physics, W, H, SIZE, SURFACE, PEBBLE, KEY, STEP, PICKUP_SECONDS, SAVE_FORMAT, WALK_SPEED, MAX_LOAD, LANE_OFFSET, LOAD_OFFSETS, carryShape, GRAIN, GRID, FW, FH, FINE_SIZE, GRAIN_AREA, ANT_SIZE, ANT_BODY, DUMP_CELL, renderAngle, names, xy, idx, neighbors, hash, encodeGrains, decodeGrains, layerBoundaries, grainCost, workCost, soilResistance };
+  return { Simulation, AntTrafficIndex, RouteNetwork, ACTOR_MAX, MAX_ACTORS, PoseAnswerCache, Physics, W, H, SIZE, SURFACE, PEBBLE, KEY, STEP, PICKUP_SECONDS, SAVE_FORMAT, WALK_SPEED, MAX_LOAD, LANE_OFFSET, LOAD_OFFSETS, carryShape, GRAIN, GRID, FW, FH, FINE_SIZE, GRAIN_AREA, ANT_SIZE, ANT_BODY, DUMP_CELL, renderAngle, names, xy, idx, neighbors, hash, encodeGrains, decodeGrains, layerBoundaries, grainCost, workCost, soilResistance };
 });
 
 

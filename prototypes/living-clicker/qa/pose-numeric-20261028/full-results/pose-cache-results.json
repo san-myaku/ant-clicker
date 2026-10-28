@@ -1,0 +1,27 @@
+{
+  "pass": true,
+  "results": [
+    {
+      "name": "hash-collisions-never-alias-float64-coordinates",
+      "pass": true,
+      "slots": 131072,
+      "payloadBytes": 3145728
+    },
+    {
+      "name": "poses-loads-heading-boundaries-and-bypasses-match-reference",
+      "pass": true,
+      "checked": 77184,
+      "inputSha256": "2b43a65e181bd53635770d12888a93415febd059755e23a001b90f657b6fb1d0"
+    },
+    {
+      "name": "blocked-grains-retry-after-excavation-and-caches-are-not-saved",
+      "pass": true,
+      "opened": 31
+    }
+  ],
+  "source": {
+    "core.js": "c444427f4493d71fbff56f4f523a6720a3bea81cae4ffacb3ef0df608380f3ab",
+    "game.js": "a38fabdaf9c8b49fdef59094a03037c70c49b805a6053dd3f211d7b66174cd16",
+    "build-pose-cache.cjs": "cc310b73c45093049b094e09fb926b76f596ef042bbb48876ad1b4087d7565f8"
+  }
+}

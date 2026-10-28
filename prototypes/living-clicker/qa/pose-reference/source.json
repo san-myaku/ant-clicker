@@ -1,0 +1,8 @@
+{
+  "baseCommit": "82cb191",
+  "source": {
+    "core.js": "d45203a932744cd8ab1fd17d94ab458f268b028c3de12262777e030d242f4b24",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "game.js": "a38fabdaf9c8b49fdef59094a03037c70c49b805a6053dd3f211d7b66174cd16"
+  }
+}

@@ -1,0 +1,299 @@
+{
+  "pass": true,
+  "finishedAt": "2026-10-28T09:57:55.020Z",
+  "source": {
+    "index.html": "1a377628c194d695ae92af706daf539686b262f3e0183633f225241b96181d46",
+    "core.js": "c444427f4493d71fbff56f4f523a6720a3bea81cae4ffacb3ef0df608380f3ab",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "game.js": "a38fabdaf9c8b49fdef59094a03037c70c49b805a6053dd3f211d7b66174cd16",
+    "view.js": "4bb44a8cf17b7af1a6ab6b2c09e18a56433e2b006a062b7a3a99eb9ec896fb8e"
+  },
+  "inputSha256": "2b43a65e181bd53635770d12888a93415febd059755e23a001b90f657b6fb1d0",
+  "profileSha256": "4b3dcb61e09c31ef2ae1308ac3b2badd69bc2ecd956e640838e83cfd88a01844",
+  "before": {
+    "time": 17067.933333169112,
+    "wall": 32277.40000000596,
+    "dug": 23974
+  },
+  "after": {
+    "time": 17071.39999983573,
+    "wall": 41529.80000001192,
+    "dug": 23983
+  },
+  "totalSampleUs": 8733977,
+  "top": [
+    {
+      "name": "fillRect",
+      "url": "",
+      "line": 0,
+      "selfUs": 1591300,
+      "inclusiveUs": 1591300,
+      "selfPercent": 18.219649536516986,
+      "inclusivePercent": 18.219649536516986
+    },
+    {
+      "name": "cells",
+      "url": "http://127.0.0.1:53449/clicker/core.js",
+      "line": 1420,
+      "selfUs": 1236657,
+      "inclusiveUs": 1236657,
+      "selfPercent": 14.15915109462734,
+      "inclusivePercent": 14.15915109462734
+    },
+    {
+      "name": "rebuildGround",
+      "url": "http://127.0.0.1:53449/clicker/view.js",
+      "line": 300,
+      "selfUs": 1127886,
+      "inclusiveUs": 3272021,
+      "selfPercent": 12.913773416165398,
+      "inclusivePercent": 37.46312819463573
+    },
+    {
+      "name": "(program)",
+      "url": "",
+      "line": 0,
+      "selfUs": 753798,
+      "inclusiveUs": 753798,
+      "selfPercent": 8.63063871132246,
+      "inclusivePercent": 8.63063871132246
+    },
+    {
+      "name": "poseClear",
+      "url": "http://127.0.0.1:53449/clicker/core.js",
+      "line": 936,
+      "selfUs": 553552,
+      "inclusiveUs": 553552,
+      "selfPercent": 6.337914560571891,
+      "inclusivePercent": 6.337914560571891
+    },
+    {
+      "name": "render",
+      "url": "http://127.0.0.1:53449/clicker/view.js",
+      "line": 514,
+      "selfUs": 369445,
+      "inclusiveUs": 5050593,
+      "selfPercent": 4.229974500734316,
+      "inclusivePercent": 57.82695557819765
+    },
+    {
+      "name": "(anonymous)",
+      "url": "http://127.0.0.1:53449/clicker/core.js",
+      "line": 305,
+      "selfUs": 302036,
+      "inclusiveUs": 311698,
+      "selfPercent": 3.4581726056755127,
+      "inclusivePercent": 3.5687980401139137
+    },
+    {
+      "name": "sweptClear",
+      "url": "http://127.0.0.1:53449/clicker/core.js",
+      "line": 983,
+      "selfUs": 273915,
+      "inclusiveUs": 860070,
+      "selfPercent": 3.1362001525765413,
+      "inclusivePercent": 9.847403994766646
+    },
+    {
+      "name": "(anonymous)",
+      "url": "http://127.0.0.1:53449/clicker/core.js",
+      "line": 844,
+      "selfUs": 110877,
+      "inclusiveUs": 110877,
+      "selfPercent": 1.269490405115562,
+      "inclusivePercent": 1.269490405115562
+    },
+    {
+      "name": "updateCarriers",
+      "url": "http://127.0.0.1:53449/clicker/core.js",
+      "line": 760,
+      "selfUs": 100947,
+      "inclusiveUs": 105967,
+      "selfPercent": 1.1557964945408032,
+      "inclusivePercent": 1.213273174408405
+    },
+    {
+      "name": "tick",
+      "url": "http://127.0.0.1:53449/clicker/core.js",
+      "line": 1583,
+      "selfUs": 98765,
+      "inclusiveUs": 2603654,
+      "selfPercent": 1.1308136030126938,
+      "inclusivePercent": 29.81063494900433
+    },
+    {
+      "name": "layerAt",
+      "url": "http://127.0.0.1:53449/clicker/game.js",
+      "line": 249,
+      "selfUs": 93725,
+      "inclusiveUs": 511166,
+      "selfPercent": 1.0731079323886472,
+      "inclusivePercent": 5.852614450438787
+    },
+    {
+      "name": "move",
+      "url": "http://127.0.0.1:53449/clicker/core.js",
+      "line": 1505,
+      "selfUs": 90235,
+      "inclusiveUs": 408874,
+      "selfPercent": 1.0331490453890593,
+      "inclusivePercent": 4.681418327527082
+    },
+    {
+      "name": "(garbage collector)",
+      "url": "",
+      "line": 0,
+      "selfUs": 76108,
+      "inclusiveUs": 76108,
+      "selfPercent": 0.8714014245743948,
+      "inclusivePercent": 0.8714014245743948
+    },
+    {
+      "name": "layerBoundaries",
+      "url": "http://127.0.0.1:53449/clicker/core.js",
+      "line": 303,
+      "selfUs": 72413,
+      "inclusiveUs": 384111,
+      "selfPercent": 0.8290953823212495,
+      "inclusivePercent": 4.397893422435163
+    },
+    {
+      "name": "receivingRoom",
+      "url": "http://127.0.0.1:53449/clicker/game.js",
+      "line": 308,
+      "selfUs": 72047,
+      "inclusiveUs": 161895,
+      "selfPercent": 0.8249048514783128,
+      "inclusivePercent": 1.8536229257301684
+    },
+    {
+      "name": "drawImage",
+      "url": "",
+      "line": 0,
+      "selfUs": 67953,
+      "inclusiveUs": 67953,
+      "selfPercent": 0.778030443634097,
+      "inclusivePercent": 0.778030443634097
+    },
+    {
+      "name": "stepItemTask",
+      "url": "http://127.0.0.1:53449/clicker/lifecycle.js",
+      "line": 127,
+      "selfUs": 66495,
+      "inclusiveUs": 947410,
+      "selfPercent": 0.7613370174892835,
+      "inclusivePercent": 10.847406628160345
+    }
+  ],
+  "selected": [
+    {
+      "name": "rebuildGround",
+      "url": "http://127.0.0.1:53449/clicker/view.js",
+      "line": 300,
+      "selfUs": 1127886,
+      "inclusiveUs": 3272021,
+      "selfPercent": 12.913773416165398,
+      "inclusivePercent": 37.46312819463573
+    },
+    {
+      "name": "poseClear",
+      "url": "http://127.0.0.1:53449/clicker/core.js",
+      "line": 936,
+      "selfUs": 553552,
+      "inclusiveUs": 553552,
+      "selfPercent": 6.337914560571891,
+      "inclusivePercent": 6.337914560571891
+    },
+    {
+      "name": "render",
+      "url": "http://127.0.0.1:53449/clicker/view.js",
+      "line": 514,
+      "selfUs": 369445,
+      "inclusiveUs": 5050593,
+      "selfPercent": 4.229974500734316,
+      "inclusivePercent": 57.82695557819765
+    },
+    {
+      "name": "tick",
+      "url": "http://127.0.0.1:53449/clicker/core.js",
+      "line": 1583,
+      "selfUs": 98765,
+      "inclusiveUs": 2603654,
+      "selfPercent": 1.1308136030126938,
+      "inclusivePercent": 29.81063494900433
+    },
+    {
+      "name": "drawBody",
+      "url": "http://127.0.0.1:53449/clicker/view.js",
+      "line": 327,
+      "selfUs": 59297,
+      "inclusiveUs": 109289,
+      "selfPercent": 0.6789232442448612,
+      "inclusivePercent": 1.2513085390538583
+    },
+    {
+      "name": "tick",
+      "url": "http://127.0.0.1:53449/clicker/lifecycle.js",
+      "line": 174,
+      "selfUs": 28517,
+      "inclusiveUs": 2633552,
+      "selfPercent": 0.32650647007657563,
+      "inclusivePercent": 30.152953230813406
+    },
+    {
+      "name": "step",
+      "url": "http://127.0.0.1:53449/clicker/core.js",
+      "line": 210,
+      "selfUs": 9929,
+      "inclusiveUs": 97525,
+      "selfPercent": 0.11368246103693655,
+      "inclusivePercent": 1.116616176113127
+    },
+    {
+      "name": "drawWorker",
+      "url": "http://127.0.0.1:53449/clicker/view.js",
+      "line": 508,
+      "selfUs": 9543,
+      "inclusiveUs": 80792,
+      "selfPercent": 0.10926293943755519,
+      "inclusivePercent": 0.9250310597337272
+    },
+    {
+      "name": "tick",
+      "url": "http://127.0.0.1:53449/clicker/game.js",
+      "line": 851,
+      "selfUs": 5111,
+      "inclusiveUs": 2649247,
+      "selfPercent": 0.05851858780942519,
+      "inclusivePercent": 30.332653726933334
+    },
+    {
+      "name": "updateUI",
+      "url": "http://127.0.0.1:53449/clicker/view.js",
+      "line": 581,
+      "selfUs": 3346,
+      "inclusiveUs": 184278,
+      "selfPercent": 0.03831015355318659,
+      "inclusivePercent": 2.109897930805176
+    },
+    {
+      "name": "frame",
+      "url": "http://127.0.0.1:53449/clicker/view.js",
+      "line": 725,
+      "selfUs": 3158,
+      "inclusiveUs": 7892844,
+      "selfPercent": 0.036157640442607074,
+      "inclusivePercent": 90.36941590297295
+    },
+    {
+      "name": "step",
+      "url": "http://127.0.0.1:53449/clicker/core.js",
+      "line": 1577,
+      "selfUs": 0,
+      "inclusiveUs": 2649247,
+      "selfPercent": 0,
+      "inclusivePercent": 30.332653726933334
+    }
+  ],
+  "note": "採用後のHeadless Chromium/393px/512匹/実深度IV研究/1x/8秒のサンプリング。通常速度の描画込み停滞の原因分類用。割合はidle/native込みの採取時間、包含割合は重複するので加算しない。実機Safariや全機種の性能保証ではない。"
+}

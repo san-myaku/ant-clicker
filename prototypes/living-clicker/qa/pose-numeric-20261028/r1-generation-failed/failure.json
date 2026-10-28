@@ -1,0 +1,8 @@
+{
+  "stage": "generation",
+  "error": "pose cache hook: cache inspection for verification",
+  "reason": "新しいフックの前にbuild-actorsがACTOR_MAX/MAX_ACTORSを追加済みだった",
+  "secondary": "core.jsが未生成のため続く比較も開始できなかった",
+  "productionChanged": false,
+  "repair": "actor拡張後の実際のexportへ一致させ、必ず1箇所の検査は維持"
+}

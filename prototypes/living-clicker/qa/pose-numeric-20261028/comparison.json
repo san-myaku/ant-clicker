@@ -1,0 +1,203 @@
+{
+  "pass": true,
+  "adopted": false,
+  "beganAt": "2026-10-28T09:26:38.725Z",
+  "finishedAt": "2026-10-28T09:31:00.546Z",
+  "source": {
+    "core.js": "d45203a932744cd8ab1fd17d94ab458f268b028c3de12262777e030d242f4b24",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "game.js": "a38fabdaf9c8b49fdef59094a03037c70c49b805a6053dd3f211d7b66174cd16",
+    "build.cjs": "c3203dbdaf7811a99061e5d237f9dd1034312511e25f937e68ba83000c5d26c9"
+  },
+  "candidate": {
+    "core.js": "c444427f4493d71fbff56f4f523a6720a3bea81cae4ffacb3ef0df608380f3ab",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "game.js": "a38fabdaf9c8b49fdef59094a03037c70c49b805a6053dd3f211d7b66174cd16",
+    "build.cjs": "3dafbba8611498f2071616d0b72fc7217b0e6ef8cda846045c3691646e3583f2"
+  },
+  "inputs": {
+    "world-900.json": "bfb9fbafee2e76b4a6f4e4aec8b97def004a8e9c8ed12a07ebed1c2a000860da",
+    "world-256.json": "ea79db5a2a5488c62871365f122f27b154ea186a8e09f9c7af93d2242fd0d23d",
+    "before-512.json": "524443b0e8436a73275aa0e723f359e72ef7ef56f6d8a9ef623a4a378f62a6de",
+    "housing-512-pressure.json": "c12a0d8aedddcfe10355ae944227bf2195ba0c16381aca38e2e3949c58ad6cd3",
+    "raid-stuck-loot.json": "6997ce7ce6935b2e60cb45a5321a09a00ebd303b9268e9d4a15ab8ad76f7eb6e",
+    "retreat-turnback-64.json": "54d0a3ac4d32f5227d2ef5d1718438c64f62a907c35eb9f33cfbdaab52575b92",
+    "pop512-20261027/active512-post-turnback-input.json": "02b55685ce47e5bbd6eee41dbb423ac316a5753f8581f2909660e9d9186016c6",
+    "world-512.json": "2b43a65e181bd53635770d12888a93415febd059755e23a001b90f657b6fb1d0"
+  },
+  "rows": [
+    {
+      "file": "world-900.json",
+      "ants": 33,
+      "research": null,
+      "warmup": 120,
+      "steps": 600,
+      "oldMsPerStep": 1.3392201666666719,
+      "newMsPerStep": 1.114061666666675,
+      "stateSha256": "81a79a4d950a980f0abc62abb6786f21222e59c91415511ce8d4f2609e22edf4",
+      "delta": {
+        "dug": 3,
+        "delivered": 10,
+        "distance": 401.32274452890124
+      },
+      "cache": {
+        "slots": 131072,
+        "occupied": 119590,
+        "kinds": 7,
+        "payloadBytes": 3145728
+      }
+    },
+    {
+      "file": "world-256.json",
+      "ants": 256,
+      "research": null,
+      "warmup": 120,
+      "steps": 600,
+      "oldMsPerStep": 5.799747833333319,
+      "newMsPerStep": 5.168857500000013,
+      "stateSha256": "7d0da1ca94e7dd7c76617524f21e9e9afdbe4a1aec4abaabbc1f81e2986f25f7",
+      "delta": {
+        "dug": 9,
+        "delivered": 5,
+        "distance": 1223.1812702901661
+      },
+      "cache": {
+        "slots": 131072,
+        "occupied": 131002,
+        "kinds": 6,
+        "payloadBytes": 3145728
+      }
+    },
+    {
+      "file": "before-512.json",
+      "ants": 256,
+      "research": "queen_embrace",
+      "warmup": 120,
+      "steps": 600,
+      "oldMsPerStep": 13.76501900000009,
+      "newMsPerStep": 11.033184166666688,
+      "stateSha256": "d1cf78a4ec2b74542b8029701670c68b79080d55918127a2ebd5b32517ac409a",
+      "delta": {
+        "dug": 10,
+        "delivered": 5,
+        "distance": 4077.924130378291
+      },
+      "cache": {
+        "slots": 131072,
+        "occupied": 131072,
+        "kinds": 6,
+        "payloadBytes": 3145728
+      }
+    },
+    {
+      "file": "housing-512-pressure.json",
+      "ants": 491,
+      "research": null,
+      "warmup": 120,
+      "steps": 600,
+      "oldMsPerStep": 14.36555533333354,
+      "newMsPerStep": 12.563631666666625,
+      "stateSha256": "7078c6b7056e639d2fd2774f08d231ec2b61031adf28044946842fe201015753",
+      "delta": {
+        "dug": 24,
+        "delivered": 12,
+        "distance": 2008.9758085838985
+      },
+      "cache": {
+        "slots": 131072,
+        "occupied": 131072,
+        "kinds": 7,
+        "payloadBytes": 3145728
+      }
+    },
+    {
+      "file": "raid-stuck-loot.json",
+      "ants": 128,
+      "research": null,
+      "warmup": 120,
+      "steps": 600,
+      "oldMsPerStep": 1.7956779999997283,
+      "newMsPerStep": 1.6146630000003885,
+      "stateSha256": "86d3bffcfd58180aeca99dd03f7a2ad083f482b2d935c1df2d2aeb1dfc97bd76",
+      "delta": {
+        "dug": 12,
+        "delivered": 4,
+        "distance": 541.3838725356327
+      },
+      "cache": {
+        "slots": 131072,
+        "occupied": 128944,
+        "kinds": 6,
+        "payloadBytes": 3145728
+      }
+    },
+    {
+      "file": "retreat-turnback-64.json",
+      "ants": 64,
+      "research": null,
+      "warmup": 120,
+      "steps": 600,
+      "oldMsPerStep": 4.852274666666587,
+      "newMsPerStep": 4.030309500000149,
+      "stateSha256": "2413bba54d20117155231c094a62af3fa350fa9387546968f417131917140770",
+      "delta": {
+        "dug": 0,
+        "delivered": 4,
+        "distance": 323.61194269842235
+      },
+      "cache": {
+        "slots": 131072,
+        "occupied": 129803,
+        "kinds": 7,
+        "payloadBytes": 3145728
+      }
+    },
+    {
+      "file": "pop512-20261027/active512-post-turnback-input.json",
+      "ants": 512,
+      "research": null,
+      "warmup": 120,
+      "steps": 1200,
+      "oldMsPerStep": 10.7350996666666,
+      "newMsPerStep": 9.994581583333348,
+      "stateSha256": "4d4369efb79307d8c1bcff9820ec85b28955f24ce46a3baa38da02f406716fc5",
+      "delta": {
+        "dug": 26,
+        "delivered": 28,
+        "distance": 2562.090191137977
+      },
+      "cache": {
+        "slots": 131072,
+        "occupied": 131070,
+        "kinds": 6,
+        "payloadBytes": 3145728
+      }
+    },
+    {
+      "file": "world-512.json",
+      "ants": 512,
+      "research": "geo_depth_4",
+      "warmup": 120,
+      "steps": 1200,
+      "oldMsPerStep": 17.919430666667104,
+      "newMsPerStep": 14.83437041666628,
+      "stateSha256": "34be06d5f25f96a37b97cfc43a54c87d2322ef191e0600e289453a6d3e6022a7",
+      "delta": {
+        "dug": 52,
+        "delivered": 62,
+        "distance": 8573.5451406613
+      },
+      "cache": {
+        "slots": 131072,
+        "occupied": 131072,
+        "kinds": 6,
+        "payloadBytes": 3145728
+      }
+    }
+  ],
+  "host": {
+    "node": "v24.22.1",
+    "cpu": "AMD Ryzen 7 5800H with Radeon Graphics         "
+  },
+  "note": "現行82cb191からの隔離比較。8保存、順序交互、他の当方負荷試験と並走せず、準備後/60コマごと/最終の全保存バイト一致。ハッシュは衝突しても座標/種類/向きが一致する時だけ利用。座標値の丸め/量子化はしない。typed arrayの3MiBは固定のペイロードでブラウザ全体メモリではない。"
+}
