@@ -1,0 +1,61 @@
+{
+  "pass": true,
+  "finishedAt": "2026-10-28T03:43:06.148Z",
+  "source": {
+    "baselineCore": "c7d73a8f8f662b4a20d6b17803e0040d816e1422edf2604d08b7f25706982582",
+    "candidateCore": "cc1581256a4459d2959d836d5a1857499965f9464aee438ed8595511150d9826"
+  },
+  "inputSha256": "028da2642b574b6490d71bc13daa5df55f2cc99f71aeeb39f8b217d3ca554d79",
+  "rows": [
+    {
+      "first": "baseline",
+      "calls": 240,
+      "successful": 239,
+      "oldColdMs": 5462.9130000000005,
+      "newColdMs": 5770.701900000016,
+      "oldWarmMs": 368.2573000000084,
+      "newWarmMs": 386.21229999997377
+    },
+    {
+      "first": "candidate",
+      "calls": 240,
+      "successful": 239,
+      "oldColdMs": 5711.214400000012,
+      "newColdMs": 5665.188699999982,
+      "oldWarmMs": 385.6698000000106,
+      "newWarmMs": 354.41049999997995
+    },
+    {
+      "first": "baseline",
+      "calls": 240,
+      "successful": 239,
+      "oldColdMs": 5520.577099999999,
+      "newColdMs": 5556.180799999969,
+      "oldWarmMs": 380.08110000005036,
+      "newWarmMs": 376.89810000002035
+    }
+  ],
+  "checks": [
+    {
+      "mode": "chain",
+      "pass": true
+    },
+    {
+      "mode": "fork",
+      "pass": true
+    },
+    {
+      "mode": "cycle",
+      "pass": true
+    },
+    {
+      "mode": "blocked-room",
+      "pass": true
+    }
+  ],
+  "counts": {
+    "chain": 1322,
+    "general": 2
+  },
+  "note": "実空洞/実荷の共有経路を逐点掃引で検査し、冷/再利用の全経路一致。複数入辺/循環/不通は従来の汎用探索と照合。全体速度は別の継続比較を参照。"
+}

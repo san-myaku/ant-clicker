@@ -1,0 +1,1617 @@
+{
+  "pass": true,
+  "adopted": false,
+  "start": "2026-10-28T03:36:43.440Z",
+  "finished": "2026-10-28T03:42:11.204Z",
+  "source": {
+    "core.js": "c7d73a8f8f662b4a20d6b17803e0040d816e1422edf2604d08b7f25706982582",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "game.js": "763c181eb8e8e8a3770178b8f72c3092043c101994a82959a3b210be69340644",
+    "route-network.js": "79761469633dcf40083b6a68f802846c97e123aab7180ced6402fe1c81b883e3",
+    "build.cjs": "e68c1736f03f0ccd588ea22d11fb5c6d6e49be362c78eec5eee5f462820a82d8",
+    "traffic-index.js": "bb887e2073fb338399d5591038fa1b487a624bf7214e87c0547381ce58e09648"
+  },
+  "candidate": {
+    "core.js": "cc1581256a4459d2959d836d5a1857499965f9464aee438ed8595511150d9826",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "game.js": "763c181eb8e8e8a3770178b8f72c3092043c101994a82959a3b210be69340644",
+    "route-network.js": "ee27471b35aa81326824b556ec6b2631ab8c9b81126c8405f8b996c778fa8260",
+    "build.cjs": "e68c1736f03f0ccd588ea22d11fb5c6d6e49be362c78eec5eee5f462820a82d8",
+    "traffic-index.js": "bb887e2073fb338399d5591038fa1b487a624bf7214e87c0547381ce58e09648"
+  },
+  "inputs": {
+    "world-900.json": "bfb9fbafee2e76b4a6f4e4aec8b97def004a8e9c8ed12a07ebed1c2a000860da",
+    "world-256.json": "ea79db5a2a5488c62871365f122f27b154ea186a8e09f9c7af93d2242fd0d23d",
+    "before-512.json": "524443b0e8436a73275aa0e723f359e72ef7ef56f6d8a9ef623a4a378f62a6de",
+    "housing-512-pressure.json": "c12a0d8aedddcfe10355ae944227bf2195ba0c16381aca38e2e3949c58ad6cd3",
+    "raid-stuck-loot.json": "6997ce7ce6935b2e60cb45a5321a09a00ebd303b9268e9d4a15ab8ad76f7eb6e",
+    "retreat-turnback-64.json": "54d0a3ac4d32f5227d2ef5d1718438c64f62a907c35eb9f33cfbdaab52575b92",
+    "pop512-20261027/active512-post-turnback-input.json": "02b55685ce47e5bbd6eee41dbb423ac316a5753f8581f2909660e9d9186016c6",
+    "world-512.json": "2b43a65e181bd53635770d12888a93415febd059755e23a001b90f657b6fb1d0"
+  },
+  "results": [
+    {
+      "file": "world-900.json",
+      "ants": 33,
+      "research": null,
+      "steps": 600,
+      "warmup": 120,
+      "topology": {
+        "nodes": 4,
+        "edges": 3,
+        "components": 1,
+        "independentCycles": 0,
+        "maxDegree": 3,
+        "links": [
+          {
+            "key": "entry",
+            "a": 1,
+            "b": -1
+          },
+          {
+            "key": "b2",
+            "a": 1,
+            "b": 2
+          },
+          {
+            "key": "b3",
+            "a": 1,
+            "b": 3
+          }
+        ]
+      },
+      "stateSha256": "81a79a4d950a980f0abc62abb6786f21222e59c91415511ce8d4f2609e22edf4",
+      "oldMsPerStep": 1.4764993333333358,
+      "newMsPerStep": 1.4658508333333224,
+      "delta": {
+        "delivered": 10,
+        "dug": 3,
+        "distance": 401.32274452890124
+      },
+      "oldNetwork": {
+        "metrics": {
+          "requests": 63,
+          "routes": 44,
+          "local": 19,
+          "corridorBuilds": 24,
+          "roomSearches": 9,
+          "roomHits": 0,
+          "fieldsBuilt": 31,
+          "fieldHits": 22,
+          "invalidations": 6
+        },
+        "profiles": [
+          {
+            "kind": "soil1",
+            "nodes": 4,
+            "corridors": 2,
+            "connections": 1,
+            "fields": 2
+          },
+          {
+            "kind": "body",
+            "nodes": 10,
+            "corridors": 5,
+            "connections": 1,
+            "fields": 2
+          },
+          {
+            "kind": "soil2",
+            "nodes": 4,
+            "corridors": 2,
+            "connections": 1,
+            "fields": 1
+          },
+          {
+            "kind": "waste",
+            "nodes": 4,
+            "corridors": 2,
+            "connections": 1,
+            "fields": 1
+          },
+          {
+            "kind": "food",
+            "nodes": 4,
+            "corridors": 2,
+            "connections": 0,
+            "fields": 0
+          },
+          {
+            "kind": "soil",
+            "nodes": 4,
+            "corridors": 2,
+            "connections": 1,
+            "fields": 1
+          }
+        ]
+      },
+      "newNetwork": {
+        "metrics": {
+          "requests": 63,
+          "routes": 44,
+          "local": 19,
+          "corridorBuilds": 24,
+          "roomSearches": 9,
+          "roomHits": 0,
+          "fieldsBuilt": 31,
+          "fieldHits": 22,
+          "invalidations": 6
+        },
+        "profiles": [
+          {
+            "kind": "soil1",
+            "nodes": 4,
+            "corridors": 2,
+            "connections": 1,
+            "fields": 2
+          },
+          {
+            "kind": "body",
+            "nodes": 10,
+            "corridors": 5,
+            "connections": 1,
+            "fields": 2
+          },
+          {
+            "kind": "soil2",
+            "nodes": 4,
+            "corridors": 2,
+            "connections": 1,
+            "fields": 1
+          },
+          {
+            "kind": "waste",
+            "nodes": 4,
+            "corridors": 2,
+            "connections": 1,
+            "fields": 1
+          },
+          {
+            "kind": "food",
+            "nodes": 4,
+            "corridors": 2,
+            "connections": 0,
+            "fields": 0
+          },
+          {
+            "kind": "soil",
+            "nodes": 4,
+            "corridors": 2,
+            "connections": 1,
+            "fields": 1
+          }
+        ]
+      }
+    },
+    {
+      "file": "world-256.json",
+      "ants": 256,
+      "research": null,
+      "steps": 600,
+      "warmup": 120,
+      "topology": {
+        "nodes": 14,
+        "edges": 13,
+        "components": 1,
+        "independentCycles": 0,
+        "maxDegree": 5,
+        "links": [
+          {
+            "key": "entry",
+            "a": 1,
+            "b": -1
+          },
+          {
+            "key": "b2",
+            "a": 1,
+            "b": 2
+          },
+          {
+            "key": "b3",
+            "a": 1,
+            "b": 3
+          },
+          {
+            "key": "b4",
+            "a": 2,
+            "b": 4
+          },
+          {
+            "key": "b5",
+            "a": 3,
+            "b": 5
+          },
+          {
+            "key": "b6",
+            "a": 1,
+            "b": 6
+          },
+          {
+            "key": "b7",
+            "a": 6,
+            "b": 7
+          },
+          {
+            "key": "b8",
+            "a": 1,
+            "b": 8
+          },
+          {
+            "key": "b9",
+            "a": 8,
+            "b": 9
+          },
+          {
+            "key": "b10",
+            "a": 8,
+            "b": 10
+          },
+          {
+            "key": "b11",
+            "a": 9,
+            "b": 11
+          },
+          {
+            "key": "b12",
+            "a": 11,
+            "b": 12
+          },
+          {
+            "key": "b13",
+            "a": 10,
+            "b": 13
+          }
+        ]
+      },
+      "stateSha256": "7d0da1ca94e7dd7c76617524f21e9e9afdbe4a1aec4abaabbc1f81e2986f25f7",
+      "oldMsPerStep": 6.785217333333209,
+      "newMsPerStep": 6.737535333333356,
+      "delta": {
+        "delivered": 5,
+        "dug": 9,
+        "distance": 1223.1812702901661
+      },
+      "oldNetwork": {
+        "metrics": {
+          "requests": 68,
+          "routes": 31,
+          "local": 37,
+          "corridorBuilds": 25,
+          "roomSearches": 14,
+          "roomHits": 31,
+          "fieldsBuilt": 27,
+          "fieldHits": 14,
+          "invalidations": 9
+        },
+        "profiles": [
+          {
+            "kind": "food",
+            "nodes": 4,
+            "corridors": 2,
+            "connections": 1,
+            "fields": 1
+          },
+          {
+            "kind": "soil1",
+            "nodes": 18,
+            "corridors": 9,
+            "connections": 7,
+            "fields": 2
+          },
+          {
+            "kind": "body",
+            "nodes": 18,
+            "corridors": 9,
+            "connections": 3,
+            "fields": 2
+          },
+          {
+            "kind": "soil",
+            "nodes": 8,
+            "corridors": 4,
+            "connections": 3,
+            "fields": 0
+          }
+        ]
+      },
+      "newNetwork": {
+        "metrics": {
+          "requests": 68,
+          "routes": 31,
+          "local": 37,
+          "corridorBuilds": 25,
+          "roomSearches": 14,
+          "roomHits": 31,
+          "fieldsBuilt": 27,
+          "fieldHits": 14,
+          "invalidations": 9
+        },
+        "profiles": [
+          {
+            "kind": "food",
+            "nodes": 4,
+            "corridors": 2,
+            "connections": 1,
+            "fields": 1
+          },
+          {
+            "kind": "soil1",
+            "nodes": 18,
+            "corridors": 9,
+            "connections": 7,
+            "fields": 2
+          },
+          {
+            "kind": "body",
+            "nodes": 18,
+            "corridors": 9,
+            "connections": 3,
+            "fields": 2
+          },
+          {
+            "kind": "soil",
+            "nodes": 8,
+            "corridors": 4,
+            "connections": 3,
+            "fields": 0
+          }
+        ]
+      }
+    },
+    {
+      "file": "before-512.json",
+      "ants": 256,
+      "research": "queen_embrace",
+      "steps": 600,
+      "warmup": 120,
+      "topology": {
+        "nodes": 14,
+        "edges": 13,
+        "components": 1,
+        "independentCycles": 0,
+        "maxDegree": 5,
+        "links": [
+          {
+            "key": "entry",
+            "a": 1,
+            "b": -1
+          },
+          {
+            "key": "b2",
+            "a": 1,
+            "b": 2
+          },
+          {
+            "key": "b3",
+            "a": 1,
+            "b": 3
+          },
+          {
+            "key": "b4",
+            "a": 2,
+            "b": 4
+          },
+          {
+            "key": "b5",
+            "a": 3,
+            "b": 5
+          },
+          {
+            "key": "b6",
+            "a": 1,
+            "b": 6
+          },
+          {
+            "key": "b7",
+            "a": 6,
+            "b": 7
+          },
+          {
+            "key": "b8",
+            "a": 1,
+            "b": 8
+          },
+          {
+            "key": "b9",
+            "a": 8,
+            "b": 9
+          },
+          {
+            "key": "b10",
+            "a": 8,
+            "b": 10
+          },
+          {
+            "key": "b11",
+            "a": 9,
+            "b": 11
+          },
+          {
+            "key": "b12",
+            "a": 11,
+            "b": 12
+          },
+          {
+            "key": "b13",
+            "a": 10,
+            "b": 13
+          }
+        ]
+      },
+      "stateSha256": "d1cf78a4ec2b74542b8029701670c68b79080d55918127a2ebd5b32517ac409a",
+      "oldMsPerStep": 15.986228833333358,
+      "newMsPerStep": 15.399595500000153,
+      "delta": {
+        "delivered": 5,
+        "dug": 10,
+        "distance": 4077.924130378291
+      },
+      "oldNetwork": {
+        "metrics": {
+          "requests": 450,
+          "routes": 283,
+          "local": 167,
+          "corridorBuilds": 61,
+          "roomSearches": 41,
+          "roomHits": 49,
+          "fieldsBuilt": 95,
+          "fieldHits": 220,
+          "invalidations": 12
+        },
+        "profiles": [
+          {
+            "kind": "food",
+            "nodes": 8,
+            "corridors": 4,
+            "connections": 1,
+            "fields": 3
+          },
+          {
+            "kind": "soil1",
+            "nodes": 14,
+            "corridors": 7,
+            "connections": 5,
+            "fields": 0
+          },
+          {
+            "kind": "body",
+            "nodes": 50,
+            "corridors": 25,
+            "connections": 16,
+            "fields": 2
+          },
+          {
+            "kind": "soil",
+            "nodes": 10,
+            "corridors": 5,
+            "connections": 4,
+            "fields": 0
+          },
+          {
+            "kind": "egg",
+            "nodes": 4,
+            "corridors": 2,
+            "connections": 1,
+            "fields": 2
+          }
+        ]
+      },
+      "newNetwork": {
+        "metrics": {
+          "requests": 450,
+          "routes": 283,
+          "local": 167,
+          "corridorBuilds": 61,
+          "roomSearches": 41,
+          "roomHits": 49,
+          "fieldsBuilt": 95,
+          "fieldHits": 220,
+          "invalidations": 12
+        },
+        "profiles": [
+          {
+            "kind": "food",
+            "nodes": 8,
+            "corridors": 4,
+            "connections": 1,
+            "fields": 3
+          },
+          {
+            "kind": "soil1",
+            "nodes": 14,
+            "corridors": 7,
+            "connections": 5,
+            "fields": 0
+          },
+          {
+            "kind": "body",
+            "nodes": 50,
+            "corridors": 25,
+            "connections": 16,
+            "fields": 2
+          },
+          {
+            "kind": "soil",
+            "nodes": 10,
+            "corridors": 5,
+            "connections": 4,
+            "fields": 0
+          },
+          {
+            "kind": "egg",
+            "nodes": 4,
+            "corridors": 2,
+            "connections": 1,
+            "fields": 2
+          }
+        ]
+      }
+    },
+    {
+      "file": "housing-512-pressure.json",
+      "ants": 491,
+      "research": null,
+      "steps": 600,
+      "warmup": 120,
+      "topology": {
+        "nodes": 20,
+        "edges": 19,
+        "components": 1,
+        "independentCycles": 0,
+        "maxDegree": 5,
+        "links": [
+          {
+            "key": "entry",
+            "a": 1,
+            "b": -1
+          },
+          {
+            "key": "b2",
+            "a": 1,
+            "b": 2
+          },
+          {
+            "key": "b3",
+            "a": 1,
+            "b": 3
+          },
+          {
+            "key": "b4",
+            "a": 2,
+            "b": 4
+          },
+          {
+            "key": "b5",
+            "a": 3,
+            "b": 5
+          },
+          {
+            "key": "b6",
+            "a": 1,
+            "b": 6
+          },
+          {
+            "key": "b7",
+            "a": 6,
+            "b": 7
+          },
+          {
+            "key": "b8",
+            "a": 1,
+            "b": 8
+          },
+          {
+            "key": "b9",
+            "a": 8,
+            "b": 9
+          },
+          {
+            "key": "b10",
+            "a": 8,
+            "b": 10
+          },
+          {
+            "key": "b11",
+            "a": 9,
+            "b": 11
+          },
+          {
+            "key": "b12",
+            "a": 11,
+            "b": 12
+          },
+          {
+            "key": "b13",
+            "a": 10,
+            "b": 13
+          },
+          {
+            "key": "b14",
+            "a": 12,
+            "b": 14
+          },
+          {
+            "key": "b15",
+            "a": 4,
+            "b": 15
+          },
+          {
+            "key": "b16",
+            "a": 5,
+            "b": 16
+          },
+          {
+            "key": "b17",
+            "a": 14,
+            "b": 17
+          },
+          {
+            "key": "b18",
+            "a": 12,
+            "b": 18
+          },
+          {
+            "key": "b22",
+            "a": 13,
+            "b": 22
+          }
+        ]
+      },
+      "stateSha256": "7078c6b7056e639d2fd2774f08d231ec2b61031adf28044946842fe201015753",
+      "oldMsPerStep": 18.048420166666983,
+      "newMsPerStep": 17.871332333333218,
+      "delta": {
+        "delivered": 12,
+        "dug": 24,
+        "distance": 2008.9758085838985
+      },
+      "oldNetwork": {
+        "metrics": {
+          "requests": 181,
+          "routes": 59,
+          "local": 122,
+          "corridorBuilds": 56,
+          "roomSearches": 43,
+          "roomHits": 51,
+          "fieldsBuilt": 52,
+          "fieldHits": 15,
+          "invalidations": 24
+        },
+        "profiles": [
+          {
+            "kind": "egg",
+            "nodes": 6,
+            "corridors": 3,
+            "connections": 2,
+            "fields": 2
+          },
+          {
+            "kind": "food",
+            "nodes": 8,
+            "corridors": 4,
+            "connections": 2,
+            "fields": 1
+          },
+          {
+            "kind": "soil1",
+            "nodes": 20,
+            "corridors": 10,
+            "connections": 8,
+            "fields": 0
+          },
+          {
+            "kind": "body",
+            "nodes": 40,
+            "corridors": 20,
+            "connections": 14,
+            "fields": 1
+          },
+          {
+            "kind": "soil",
+            "nodes": 14,
+            "corridors": 7,
+            "connections": 6,
+            "fields": 0
+          },
+          {
+            "kind": "soil2",
+            "nodes": 8,
+            "corridors": 4,
+            "connections": 3,
+            "fields": 0
+          },
+          {
+            "kind": "waste",
+            "nodes": 4,
+            "corridors": 2,
+            "connections": 1,
+            "fields": 1
+          }
+        ]
+      },
+      "newNetwork": {
+        "metrics": {
+          "requests": 181,
+          "routes": 59,
+          "local": 122,
+          "corridorBuilds": 56,
+          "roomSearches": 43,
+          "roomHits": 51,
+          "fieldsBuilt": 52,
+          "fieldHits": 15,
+          "invalidations": 24
+        },
+        "profiles": [
+          {
+            "kind": "egg",
+            "nodes": 6,
+            "corridors": 3,
+            "connections": 2,
+            "fields": 2
+          },
+          {
+            "kind": "food",
+            "nodes": 8,
+            "corridors": 4,
+            "connections": 2,
+            "fields": 1
+          },
+          {
+            "kind": "soil1",
+            "nodes": 20,
+            "corridors": 10,
+            "connections": 8,
+            "fields": 0
+          },
+          {
+            "kind": "body",
+            "nodes": 40,
+            "corridors": 20,
+            "connections": 14,
+            "fields": 1
+          },
+          {
+            "kind": "soil",
+            "nodes": 14,
+            "corridors": 7,
+            "connections": 6,
+            "fields": 0
+          },
+          {
+            "kind": "soil2",
+            "nodes": 8,
+            "corridors": 4,
+            "connections": 3,
+            "fields": 0
+          },
+          {
+            "kind": "waste",
+            "nodes": 4,
+            "corridors": 2,
+            "connections": 1,
+            "fields": 1
+          }
+        ]
+      }
+    },
+    {
+      "file": "raid-stuck-loot.json",
+      "ants": 128,
+      "research": null,
+      "steps": 600,
+      "warmup": 120,
+      "topology": {
+        "nodes": 6,
+        "edges": 5,
+        "components": 1,
+        "independentCycles": 0,
+        "maxDegree": 3,
+        "links": [
+          {
+            "key": "entry",
+            "a": 1,
+            "b": -1
+          },
+          {
+            "key": "b2",
+            "a": 1,
+            "b": 2
+          },
+          {
+            "key": "b3",
+            "a": 1,
+            "b": 3
+          },
+          {
+            "key": "b4",
+            "a": 2,
+            "b": 4
+          },
+          {
+            "key": "b5",
+            "a": 3,
+            "b": 5
+          }
+        ]
+      },
+      "stateSha256": "86d3bffcfd58180aeca99dd03f7a2ad083f482b2d935c1df2d2aeb1dfc97bd76",
+      "oldMsPerStep": 2.076538333332719,
+      "newMsPerStep": 2.11051883333319,
+      "delta": {
+        "delivered": 4,
+        "dug": 12,
+        "distance": 541.3838725356327
+      },
+      "oldNetwork": {
+        "metrics": {
+          "requests": 73,
+          "routes": 54,
+          "local": 19,
+          "corridorBuilds": 32,
+          "roomSearches": 21,
+          "roomHits": 3,
+          "fieldsBuilt": 31,
+          "fieldHits": 25,
+          "invalidations": 12
+        },
+        "profiles": [
+          {
+            "kind": "food",
+            "nodes": 6,
+            "corridors": 3,
+            "connections": 1,
+            "fields": 0
+          },
+          {
+            "kind": "soil1",
+            "nodes": 6,
+            "corridors": 3,
+            "connections": 1,
+            "fields": 0
+          },
+          {
+            "kind": "body",
+            "nodes": 10,
+            "corridors": 5,
+            "connections": 1,
+            "fields": 0
+          },
+          {
+            "kind": "egg",
+            "nodes": 8,
+            "corridors": 4,
+            "connections": 1,
+            "fields": 0
+          },
+          {
+            "kind": "soil",
+            "nodes": 6,
+            "corridors": 3,
+            "connections": 1,
+            "fields": 0
+          }
+        ]
+      },
+      "newNetwork": {
+        "metrics": {
+          "requests": 73,
+          "routes": 54,
+          "local": 19,
+          "corridorBuilds": 32,
+          "roomSearches": 21,
+          "roomHits": 3,
+          "fieldsBuilt": 31,
+          "fieldHits": 25,
+          "invalidations": 12
+        },
+        "profiles": [
+          {
+            "kind": "food",
+            "nodes": 6,
+            "corridors": 3,
+            "connections": 1,
+            "fields": 0
+          },
+          {
+            "kind": "soil1",
+            "nodes": 6,
+            "corridors": 3,
+            "connections": 1,
+            "fields": 0
+          },
+          {
+            "kind": "body",
+            "nodes": 10,
+            "corridors": 5,
+            "connections": 1,
+            "fields": 0
+          },
+          {
+            "kind": "egg",
+            "nodes": 8,
+            "corridors": 4,
+            "connections": 1,
+            "fields": 0
+          },
+          {
+            "kind": "soil",
+            "nodes": 6,
+            "corridors": 3,
+            "connections": 1,
+            "fields": 0
+          }
+        ]
+      }
+    },
+    {
+      "file": "retreat-turnback-64.json",
+      "ants": 64,
+      "research": null,
+      "steps": 600,
+      "warmup": 120,
+      "topology": {
+        "nodes": 7,
+        "edges": 6,
+        "components": 1,
+        "independentCycles": 0,
+        "maxDegree": 5,
+        "links": [
+          {
+            "key": "entry",
+            "a": 1,
+            "b": -1
+          },
+          {
+            "key": "b2",
+            "a": 1,
+            "b": 2
+          },
+          {
+            "key": "b3",
+            "a": 1,
+            "b": 3
+          },
+          {
+            "key": "b5",
+            "a": 3,
+            "b": 5
+          },
+          {
+            "key": "b6",
+            "a": 1,
+            "b": 6
+          },
+          {
+            "key": "b7",
+            "a": 1,
+            "b": 7
+          }
+        ]
+      },
+      "stateSha256": "2413bba54d20117155231c094a62af3fa350fa9387546968f417131917140770",
+      "oldMsPerStep": 5.344088833333614,
+      "newMsPerStep": 5.125964666666889,
+      "delta": {
+        "delivered": 4,
+        "dug": 0,
+        "distance": 323.61194269842235
+      },
+      "oldNetwork": {
+        "metrics": {
+          "requests": 104,
+          "routes": 26,
+          "local": 78,
+          "corridorBuilds": 11,
+          "roomSearches": 4,
+          "roomHits": 0,
+          "fieldsBuilt": 9,
+          "fieldHits": 17,
+          "invalidations": 0
+        },
+        "profiles": [
+          {
+            "kind": "food",
+            "nodes": 4,
+            "corridors": 2,
+            "connections": 1,
+            "fields": 1
+          },
+          {
+            "kind": "soil1",
+            "nodes": 6,
+            "corridors": 3,
+            "connections": 1,
+            "fields": 1
+          },
+          {
+            "kind": "body",
+            "nodes": 12,
+            "corridors": 6,
+            "connections": 2,
+            "fields": 1
+          }
+        ]
+      },
+      "newNetwork": {
+        "metrics": {
+          "requests": 104,
+          "routes": 26,
+          "local": 78,
+          "corridorBuilds": 11,
+          "roomSearches": 4,
+          "roomHits": 0,
+          "fieldsBuilt": 9,
+          "fieldHits": 17,
+          "invalidations": 0
+        },
+        "profiles": [
+          {
+            "kind": "food",
+            "nodes": 4,
+            "corridors": 2,
+            "connections": 1,
+            "fields": 1
+          },
+          {
+            "kind": "soil1",
+            "nodes": 6,
+            "corridors": 3,
+            "connections": 1,
+            "fields": 1
+          },
+          {
+            "kind": "body",
+            "nodes": 12,
+            "corridors": 6,
+            "connections": 2,
+            "fields": 1
+          }
+        ]
+      }
+    },
+    {
+      "file": "pop512-20261027/active512-post-turnback-input.json",
+      "ants": 512,
+      "research": null,
+      "steps": 1200,
+      "warmup": 120,
+      "topology": {
+        "nodes": 26,
+        "edges": 25,
+        "components": 1,
+        "independentCycles": 0,
+        "maxDegree": 5,
+        "links": [
+          {
+            "key": "entry",
+            "a": 1,
+            "b": -1
+          },
+          {
+            "key": "b2",
+            "a": 1,
+            "b": 2
+          },
+          {
+            "key": "b3",
+            "a": 1,
+            "b": 3
+          },
+          {
+            "key": "b4",
+            "a": 2,
+            "b": 4
+          },
+          {
+            "key": "b5",
+            "a": 3,
+            "b": 5
+          },
+          {
+            "key": "b6",
+            "a": 1,
+            "b": 6
+          },
+          {
+            "key": "b7",
+            "a": 6,
+            "b": 7
+          },
+          {
+            "key": "b8",
+            "a": 1,
+            "b": 8
+          },
+          {
+            "key": "b9",
+            "a": 8,
+            "b": 9
+          },
+          {
+            "key": "b10",
+            "a": 8,
+            "b": 10
+          },
+          {
+            "key": "b11",
+            "a": 9,
+            "b": 11
+          },
+          {
+            "key": "b12",
+            "a": 11,
+            "b": 12
+          },
+          {
+            "key": "b13",
+            "a": 10,
+            "b": 13
+          },
+          {
+            "key": "b14",
+            "a": 12,
+            "b": 14
+          },
+          {
+            "key": "b15",
+            "a": 4,
+            "b": 15
+          },
+          {
+            "key": "b16",
+            "a": 5,
+            "b": 16
+          },
+          {
+            "key": "b17",
+            "a": 14,
+            "b": 17
+          },
+          {
+            "key": "b18",
+            "a": 12,
+            "b": 18
+          },
+          {
+            "key": "b19",
+            "a": 14,
+            "b": 19
+          },
+          {
+            "key": "b20",
+            "a": 13,
+            "b": 20
+          },
+          {
+            "key": "b23",
+            "a": 17,
+            "b": 23
+          },
+          {
+            "key": "b24",
+            "a": 13,
+            "b": 24
+          },
+          {
+            "key": "b25",
+            "a": 20,
+            "b": 25
+          },
+          {
+            "key": "b26",
+            "a": 6,
+            "b": 26
+          },
+          {
+            "key": "b27",
+            "a": 16,
+            "b": 27
+          }
+        ]
+      },
+      "stateSha256": "4d4369efb79307d8c1bcff9820ec85b28955f24ce46a3baa38da02f406716fc5",
+      "oldMsPerStep": 15.138568666666567,
+      "newMsPerStep": 15.064985583333401,
+      "delta": {
+        "delivered": 28,
+        "dug": 26,
+        "distance": 2562.090191137977
+      },
+      "oldNetwork": {
+        "metrics": {
+          "requests": 133,
+          "routes": 54,
+          "local": 79,
+          "corridorBuilds": 82,
+          "roomSearches": 42,
+          "roomHits": 52,
+          "fieldsBuilt": 41,
+          "fieldHits": 21,
+          "invalidations": 27
+        },
+        "profiles": [
+          {
+            "kind": "food",
+            "nodes": 6,
+            "corridors": 3,
+            "connections": 2,
+            "fields": 0
+          },
+          {
+            "kind": "soil1",
+            "nodes": 22,
+            "corridors": 11,
+            "connections": 5,
+            "fields": 0
+          },
+          {
+            "kind": "body",
+            "nodes": 34,
+            "corridors": 17,
+            "connections": 12,
+            "fields": 1
+          },
+          {
+            "kind": "soil",
+            "nodes": 18,
+            "corridors": 9,
+            "connections": 5,
+            "fields": 0
+          },
+          {
+            "kind": "soil2",
+            "nodes": 8,
+            "corridors": 4,
+            "connections": 0,
+            "fields": 0
+          }
+        ]
+      },
+      "newNetwork": {
+        "metrics": {
+          "requests": 133,
+          "routes": 54,
+          "local": 79,
+          "corridorBuilds": 82,
+          "roomSearches": 42,
+          "roomHits": 52,
+          "fieldsBuilt": 41,
+          "fieldHits": 21,
+          "invalidations": 27
+        },
+        "profiles": [
+          {
+            "kind": "food",
+            "nodes": 6,
+            "corridors": 3,
+            "connections": 2,
+            "fields": 0
+          },
+          {
+            "kind": "soil1",
+            "nodes": 22,
+            "corridors": 11,
+            "connections": 5,
+            "fields": 0
+          },
+          {
+            "kind": "body",
+            "nodes": 34,
+            "corridors": 17,
+            "connections": 12,
+            "fields": 1
+          },
+          {
+            "kind": "soil",
+            "nodes": 18,
+            "corridors": 9,
+            "connections": 5,
+            "fields": 0
+          },
+          {
+            "kind": "soil2",
+            "nodes": 8,
+            "corridors": 4,
+            "connections": 0,
+            "fields": 0
+          }
+        ]
+      }
+    },
+    {
+      "file": "world-512.json",
+      "ants": 512,
+      "research": "geo_depth_4",
+      "steps": 1200,
+      "warmup": 120,
+      "topology": {
+        "nodes": 34,
+        "edges": 33,
+        "components": 1,
+        "independentCycles": 0,
+        "maxDegree": 5,
+        "links": [
+          {
+            "key": "entry",
+            "a": 1,
+            "b": -1
+          },
+          {
+            "key": "b2",
+            "a": 1,
+            "b": 2
+          },
+          {
+            "key": "b3",
+            "a": 1,
+            "b": 3
+          },
+          {
+            "key": "b4",
+            "a": 2,
+            "b": 4
+          },
+          {
+            "key": "b5",
+            "a": 3,
+            "b": 5
+          },
+          {
+            "key": "b6",
+            "a": 1,
+            "b": 6
+          },
+          {
+            "key": "b7",
+            "a": 6,
+            "b": 7
+          },
+          {
+            "key": "b8",
+            "a": 1,
+            "b": 8
+          },
+          {
+            "key": "b9",
+            "a": 8,
+            "b": 9
+          },
+          {
+            "key": "b10",
+            "a": 8,
+            "b": 10
+          },
+          {
+            "key": "b11",
+            "a": 9,
+            "b": 11
+          },
+          {
+            "key": "b12",
+            "a": 11,
+            "b": 12
+          },
+          {
+            "key": "b13",
+            "a": 10,
+            "b": 13
+          },
+          {
+            "key": "b14",
+            "a": 12,
+            "b": 14
+          },
+          {
+            "key": "b15",
+            "a": 4,
+            "b": 15
+          },
+          {
+            "key": "b16",
+            "a": 5,
+            "b": 16
+          },
+          {
+            "key": "b17",
+            "a": 14,
+            "b": 17
+          },
+          {
+            "key": "b18",
+            "a": 12,
+            "b": 18
+          },
+          {
+            "key": "b19",
+            "a": 14,
+            "b": 19
+          },
+          {
+            "key": "b20",
+            "a": 13,
+            "b": 20
+          },
+          {
+            "key": "b21",
+            "a": 15,
+            "b": 21
+          },
+          {
+            "key": "b22",
+            "a": 16,
+            "b": 22
+          },
+          {
+            "key": "b23",
+            "a": 17,
+            "b": 23
+          },
+          {
+            "key": "b24",
+            "a": 13,
+            "b": 24
+          },
+          {
+            "key": "b25",
+            "a": 20,
+            "b": 25
+          },
+          {
+            "key": "b26",
+            "a": 6,
+            "b": 26
+          },
+          {
+            "key": "b27",
+            "a": 16,
+            "b": 27
+          },
+          {
+            "key": "b28",
+            "a": 15,
+            "b": 28
+          },
+          {
+            "key": "b29",
+            "a": 24,
+            "b": 29
+          },
+          {
+            "key": "b30",
+            "a": 24,
+            "b": 30
+          },
+          {
+            "key": "b31",
+            "a": 27,
+            "b": 31
+          },
+          {
+            "key": "b32",
+            "a": 30,
+            "b": 32
+          },
+          {
+            "key": "b33",
+            "a": 26,
+            "b": 33
+          }
+        ]
+      },
+      "stateSha256": "34be06d5f25f96a37b97cfc43a54c87d2322ef191e0600e289453a6d3e6022a7",
+      "oldMsPerStep": 24.357473833333934,
+      "newMsPerStep": 24.1372495833341,
+      "delta": {
+        "delivered": 62,
+        "dug": 52,
+        "distance": 8573.5451406613
+      },
+      "oldNetwork": {
+        "metrics": {
+          "requests": 469,
+          "routes": 265,
+          "local": 204,
+          "corridorBuilds": 121,
+          "roomSearches": 90,
+          "roomHits": 318,
+          "fieldsBuilt": 188,
+          "fieldHits": 153,
+          "invalidations": 62
+        },
+        "profiles": [
+          {
+            "kind": "food",
+            "nodes": 10,
+            "corridors": 5,
+            "connections": 2,
+            "fields": 4
+          },
+          {
+            "kind": "soil1",
+            "nodes": 34,
+            "corridors": 17,
+            "connections": 14,
+            "fields": 2
+          },
+          {
+            "kind": "body",
+            "nodes": 82,
+            "corridors": 41,
+            "connections": 40,
+            "fields": 5
+          },
+          {
+            "kind": "soil2",
+            "nodes": 22,
+            "corridors": 11,
+            "connections": 7,
+            "fields": 0
+          },
+          {
+            "kind": "soil",
+            "nodes": 18,
+            "corridors": 9,
+            "connections": 4,
+            "fields": 0
+          }
+        ]
+      },
+      "newNetwork": {
+        "metrics": {
+          "requests": 469,
+          "routes": 265,
+          "local": 204,
+          "corridorBuilds": 121,
+          "roomSearches": 90,
+          "roomHits": 318,
+          "fieldsBuilt": 188,
+          "fieldHits": 153,
+          "invalidations": 62
+        },
+        "profiles": [
+          {
+            "kind": "food",
+            "nodes": 10,
+            "corridors": 5,
+            "connections": 2,
+            "fields": 4
+          },
+          {
+            "kind": "soil1",
+            "nodes": 34,
+            "corridors": 17,
+            "connections": 14,
+            "fields": 2
+          },
+          {
+            "kind": "body",
+            "nodes": 82,
+            "corridors": 41,
+            "connections": 40,
+            "fields": 5
+          },
+          {
+            "kind": "soil2",
+            "nodes": 22,
+            "corridors": 11,
+            "connections": 7,
+            "fields": 0
+          },
+          {
+            "kind": "soil",
+            "nodes": 18,
+            "corridors": 9,
+            "connections": 4,
+            "fields": 0
+          }
+        ]
+      }
+    }
+  ],
+  "host": {
+    "node": "v24.22.1",
+    "cpu": "AMD Ryzen 7 5800H with Radeon Graphics         ",
+    "logicalCores": 16
+  },
+  "note": "他の負荷試験と並走しない交互測定。8実保存の全保存一致。通路履歴の接続グラフを数えたもので、物理空洞全体が木という証明ではない。"
+}

@@ -1,0 +1,34 @@
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),cp=require('node:child_process');
+const root=path.resolve(__dirname,'../..'),live=path.join(root,'prototypes/living-clicker'),copy=path.join(__dirname,'candidate/living-clicker'),base=path.join(__dirname,'candidate/colony-game');
+fs.mkdirSync(copy,{recursive:true});fs.mkdirSync(base,{recursive:true});
+for(const name of ['core.js','game.js'])fs.copyFileSync(path.join(root,'prototypes/colony-game',name),path.join(base,name));
+for(const name of ['game.js','build.cjs','build-actors.cjs','build-surface.cjs','build-retreat.cjs','route-network.js','traffic-index.js'])fs.copyFileSync(path.join(live,name),path.join(copy,name));
+const file=path.join(copy,'route-network.js');let code=fs.readFileSync(file,'utf8');
+const marker='    field(profile,target,kind,allowed,signature){';assert.equal(code.split(marker).length,2);
+const helper=`    chainField(profile,target,kind,allowed){
+      // The selected itinerary can be a chain even when the whole nest is not
+      // a tree. Prove unique predecessors before taking the linear shortcut.
+      // Body/load-specific corridor and room sweeps remain mandatory.
+      const chain=[],seen=new Set();let current=target;
+      while(current){
+        if(seen.has(current.id))return null;seen.add(current.id);
+        const incoming=profile.incoming.get(current.id).filter(e=>allowed.has(profile.byId.get(e.from).branch));
+        const rooms=current.room>0&&current.exit?profile.rooms.get(current.room).filter(n=>!n.exit&&allowed.has(n.branch)):[];
+        if(incoming.length+rooms.length>1)return null;
+        if(!incoming.length&&!rooms.length)break;
+        const edge=incoming[0]||{from:rooms[0].id,to:current.id,roomFrom:rooms[0],roomTo:current};chain.push(edge);current=profile.byId.get(edge.from);
+      }
+      const distance=new Map([[target.id,0]]),next=new Map();
+      for(const item of chain){const edge=item.roomFrom?this.connection(profile,item.roomFrom,item.roomTo,kind):item;if(!edge)break;
+        distance.set(edge.from,distance.get(edge.to)+edge.cost);next.set(edge.from,edge);
+      }
+      return {distance,next};
+    }
+`;
+code=code.replace(marker,helper+marker);
+const hook='      this.metrics.fieldsBuilt++;const distance=new Map([[target.id,0]]),next=new Map(),done=new Set();';assert.equal(code.split(hook).length,2);
+code=code.replace(hook,`      this.metrics.fieldsBuilt++;const chain=this.chainField(profile,target,kind,allowed);
+      if(chain){if(profile.fields.size>=64)profile.fields.delete(profile.fields.keys().next().value);profile.fields.set(key,chain);return chain;}
+      const distance=new Map([[target.id,0]]),next=new Map(),done=new Set();`);
+fs.writeFileSync(file,code);cp.execFileSync(process.execPath,[path.join(copy,'build.cjs')],{stdio:'inherit'});
+console.log('隔離候補を編集元から生成しました。本体は未変更。');

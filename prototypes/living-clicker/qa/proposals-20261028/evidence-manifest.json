@@ -1,0 +1,55 @@
+{
+  "recordedAt": "2026-10-28T12:46:00+09:00",
+  "productionCommit": "373ce86fd30e38e0ecccd538f65c5df63c211694",
+  "productionChanged": false,
+  "source": {
+    "core.js": "c7d73a8f8f662b4a20d6b17803e0040d816e1422edf2604d08b7f25706982582",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "game.js": "763c181eb8e8e8a3770178b8f72c3092043c101994a82959a3b210be69340644",
+    "route-network.js": "79761469633dcf40083b6a68f802846c97e123aab7180ced6402fe1c81b883e3",
+    "build.cjs": "e68c1736f03f0ccd588ea22d11fb5c6d6e49be362c78eec5eee5f462820a82d8",
+    "traffic-index.js": "bb887e2073fb338399d5591038fa1b487a624bf7214e87c0547381ce58e09648"
+  },
+  "inputs": {
+    "world-900.json": "bfb9fbafee2e76b4a6f4e4aec8b97def004a8e9c8ed12a07ebed1c2a000860da",
+    "world-256.json": "ea79db5a2a5488c62871365f122f27b154ea186a8e09f9c7af93d2242fd0d23d",
+    "before-512.json": "524443b0e8436a73275aa0e723f359e72ef7ef56f6d8a9ef623a4a378f62a6de",
+    "housing-512-pressure.json": "c12a0d8aedddcfe10355ae944227bf2195ba0c16381aca38e2e3949c58ad6cd3",
+    "raid-stuck-loot.json": "6997ce7ce6935b2e60cb45a5321a09a00ebd303b9268e9d4a15ab8ad76f7eb6e",
+    "retreat-turnback-64.json": "54d0a3ac4d32f5227d2ef5d1718438c64f62a907c35eb9f33cfbdaab52575b92",
+    "pop512-20261027/active512-post-turnback-input.json": "02b55685ce47e5bbd6eee41dbb423ac316a5753f8581f2909660e9d9186016c6",
+    "world-512.json": "2b43a65e181bd53635770d12888a93415febd059755e23a001b90f657b6fb1d0"
+  },
+  "files": [
+    {
+      "file": "candidate-results.json",
+      "bytes": 36007,
+      "sha256": "301b1f7a2463173b8b769feffab41a79c25b383eeb966b429b30b6634c8ab5aa"
+    },
+    {
+      "file": "candidate-route-network.js.txt",
+      "bytes": 13085,
+      "sha256": "ee27471b35aa81326824b556ec6b2631ab8c9b81126c8405f8b996c778fa8260"
+    },
+    {
+      "file": "compare-runner.cjs.txt",
+      "bytes": 5087,
+      "sha256": "c19643f56294ccb3ccf780951e10667500bf150a7f33b1d36e139951412d3f85"
+    },
+    {
+      "file": "prepare-runner.cjs.txt",
+      "bytes": 2919,
+      "sha256": "e437b049d27f0a444992efa6d81de280df988ff14f808d7c95d2793fdf35c112"
+    },
+    {
+      "file": "queries-runner.cjs.txt",
+      "bytes": 4010,
+      "sha256": "8c1a10635b9373629bb16cab43af7556fbaaacc18fc3eeb7335c1ea2aaf43237"
+    },
+    {
+      "file": "query-results.json",
+      "bytes": 1588,
+      "sha256": "df0bd17627e021e1a60c15cfba7ffa152ef83c403834b6f010d45b5d8e81a750"
+    }
+  ]
+}

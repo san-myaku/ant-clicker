@@ -1,0 +1,22 @@
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto');
+const root=path.resolve(__dirname,'../..'),live=path.join(root,'prototypes/living-clicker'),copy=path.join(__dirname,'candidate/living-clicker'),out=path.join(live,'qa/proposals-20261028'),sha=b=>crypto.createHash('sha256').update(b).digest('hex');
+const A=require(path.join(live,'game.js')),B=require(path.join(copy,'game.js')),bytes=fs.readFileSync(path.join(live,'qa/world-final.json')),pack=JSON.parse(bytes),source={baselineCore:sha(fs.readFileSync(path.join(live,'core.js'))),candidateCore:sha(fs.readFileSync(path.join(copy,'core.js')))},rows=[];
+const original=B.RouteNetwork.prototype.chainField,counts={chain:0,general:0};B.RouteNetwork.prototype.chainField=function(...args){const value=original.apply(this,args);counts[value?'chain':'general']++;return value;};
+function pose(s,rid){return s.cells(rid).map(c=>s.walkPoint(c)).filter(p=>p.valid&&p.clearance>.8&&s.grainRoom[A.GRAIN.at(p.x,p.y)]===rid).at(-1);}
+function routes(G){const s=G.Simulation.restore(pack),poses=[1,2,3,4,5,7].map(r=>pose(s,r)).filter(Boolean),calls=[];for(const kind of [null,'egg','food','soil1','soil2','soil','waste','cookie'])for(const from of poses)for(const to of poses)if(from!==to&&s.poseClear(from,kind)&&s.poseClear(to,kind))calls.push({from,to,kind});
+ const all=[];let coldMs=0,warmMs=0,successful=0;
+ for(let round=0;round<2;round++){let ms=0;const values=[];for(const q of calls){const t=performance.now(),r=s.sharedNetworkPath(q.from,q.to,q.kind);ms+=performance.now()-t;values.push(r);if(r){let prev=q.from;for(const p of r){assert(s.sweptClear(prev,p,q.kind));prev=p;}if(!round)successful++;}}
+  if(round)warmMs=ms;else coldMs=ms;all.push(values);}
+ assert.deepEqual(all[0],all[1]);assert.deepEqual(s.dump(),pack);return {calls:calls.length,successful,coldMs,warmMs,paths:all[0],network:s._routeNetwork.report()};}
+for(const order of [0,1,0]){let a,b;if(order){b=routes(B);a=routes(A);}else{a=routes(A);b=routes(B);}assert.deepEqual(a.paths,b.paths);rows.push({first:order?'candidate':'baseline',calls:a.calls,successful:a.successful,oldColdMs:a.coldMs,newColdMs:b.coldMs,oldWarmMs:a.warmMs,newWarmMs:b.warmMs});console.log(JSON.stringify(rows.at(-1)));}
+// A cycle or multiple predecessor choices must use the general graph solver.
+const checks=[];for(const mode of ['chain','fork','cycle','blocked-room']){
+ const run=G=>{const n=new G.RouteNetwork({}),nodes=[0,1,2].map(i=>({id:String(i),branch:'b'+i,room:0,exit:false})),incoming=new Map(nodes.map(v=>[v.id,[]]));
+  incoming.get('2').push({from:'1',to:'2',cost:2});incoming.get('1').push({from:'0',to:'1',cost:1});
+  if(mode==='fork')incoming.get('2').push({from:'0',to:'2',cost:4});if(mode==='cycle')incoming.get('0').push({from:'2',to:'0',cost:1});
+  if(mode==='blocked-room'){nodes[1].room=1;nodes[1].exit=true;nodes[0].room=1;incoming.set('1',[]);n.connection=()=>null;}
+  const profile={nodes,incoming,byId:new Map(nodes.map(v=>[v.id,v])),rooms:new Map([[1,[nodes[0],nodes[1]]]]),fields:new Map()};const field=n.field(profile,nodes[2],null,new Set(nodes.map(v=>v.branch)),mode);
+  return {distance:[...field.distance],next:[...field.next].map(([k,v])=>[k,{from:v.from,to:v.to,cost:v.cost}])};};
+ assert.deepEqual(run(A),run(B));checks.push({mode,pass:true});}
+assert.equal(sha(fs.readFileSync(path.join(live,'core.js'))),source.baselineCore);assert.equal(sha(fs.readFileSync(path.join(copy,'core.js'))),source.candidateCore);
+assert(counts.chain>0&&counts.general>0);fs.copyFileSync(__filename,path.join(out,'queries-runner.cjs.txt'));fs.writeFileSync(path.join(out,'query-results.json'),JSON.stringify({pass:true,finishedAt:new Date().toISOString(),source,inputSha256:sha(bytes),rows,checks,counts,note:'実空洞/実荷の共有経路を逐点掃引で検査し、冷/再利用の全経路一致。複数入辺/循環/不通は従来の汎用探索と照合。全体速度は別の継続比較を参照。'},null,2)+'\n');

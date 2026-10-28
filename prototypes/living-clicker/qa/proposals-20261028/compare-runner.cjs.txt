@@ -1,0 +1,32 @@
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto'),os=require('node:os');
+const root=path.resolve(__dirname,'../..'),live=path.join(root,'prototypes/living-clicker'),copy=path.join(__dirname,'candidate/living-clicker'),out=path.join(live,'qa/proposals-20261028');fs.mkdirSync(out,{recursive:true});
+const sha=b=>crypto.createHash('sha256').update(b).digest('hex'),files=['core.js','lifecycle.js','game.js','route-network.js','build.cjs','traffic-index.js'],hashes=dir=>Object.fromEntries(files.map(n=>[n,sha(fs.readFileSync(path.join(dir,n)))]));
+const A=require(path.join(live,'game.js')),B=require(path.join(copy,'game.js')),source=hashes(live),candidate=hashes(copy),results=[],inputs={},start=new Date().toISOString();
+const same=(a,b,label)=>{const x=JSON.stringify(a.dump()),y=JSON.stringify(b.dump());if(x!==y){fs.writeFileSync(path.join(out,'difference-baseline.json'),x);fs.writeFileSync(path.join(out,'difference-candidate.json'),y);throw Error('全保存不一致 '+label);}return sha(x);};
+const graph=s=>{
+ const n=new A.RouteNetwork(s),sources=n.sources(),adj=new Map(),edges=[];
+ for(const src of sources){if(!src.history?.length)continue;const a=n.region(src.history[0]),b=n.region(src.history.at(-1));if(!a||!b||a===b)continue;edges.push({key:src.key,a,b});for(const [x,y]of [[a,b],[b,a]]){if(!adj.has(x))adj.set(x,[]);adj.get(x).push(y);}}
+ const seen=new Set();let components=0;for(const v of adj.keys())if(!seen.has(v)){components++;const q=[v];seen.add(v);for(let k=0;k<q.length;k++)for(const w of adj.get(q[k]))if(!seen.has(w)){seen.add(w);q.push(w);}}
+ return {nodes:adj.size,edges:edges.length,components,independentCycles:edges.length-adj.size+components,maxDegree:Math.max(0,...[...adj.values()].map(v=>v.length)),links:edges};
+};
+try{
+ for(const item of [
+  {file:'world-900.json'},{file:'world-256.json'},{file:'before-512.json',buy:'queen_embrace'},
+  {file:'housing-512-pressure.json'},{file:'raid-stuck-loot.json'},{file:'retreat-turnback-64.json'},
+  {file:'pop512-20261027/active512-post-turnback-input.json',steps:1200},
+  {file:'world-512.json',buy:'geo_depth_4',steps:1200}
+ ]){
+  const bytes=fs.readFileSync(path.join(live,'qa',item.file)),pack=JSON.parse(bytes),a=A.Simulation.restore(pack.state||pack),b=B.Simulation.restore(pack.state||pack);inputs[item.file]=sha(bytes);const topology=graph(a);same(a,b,'復元');
+  if(item.buy){assert(a.buyResearch(item.buy));assert(b.buyResearch(item.buy));same(a,b,'実研究');}
+  for(let k=0;k<120;k++){a.step(A.STEP);b.step(B.STEP);}same(a,b,'準備後');
+  const steps=item.steps||600,before={delivered:a.stats.grainDelivered,dug:a.stats.grainDug,distance:a.stats.distance};let oldMs=0,newMs=0;
+  for(let k=0;k<steps;k++){if(k%2){let t=performance.now();b.step(B.STEP);newMs+=performance.now()-t;t=performance.now();a.step(A.STEP);oldMs+=performance.now()-t;}else{let t=performance.now();a.step(A.STEP);oldMs+=performance.now()-t;t=performance.now();b.step(B.STEP);newMs+=performance.now()-t;}if(k%60===0)same(a,b,item.file+' '+k);}
+  const stateSha256=same(a,b,'最終');a.assertLedger();a.assertProgress();b.assertLedger();b.assertProgress();assert.deepEqual(B.Simulation.restore(b.dump()).dump(),b.dump());
+  const delta={delivered:a.stats.grainDelivered-before.delivered,dug:a.stats.grainDug-before.dug,distance:a.stats.distance-before.distance};
+  if(item.steps)assert(delta.delivered>0&&delta.dug>0&&delta.distance>0);
+  const row={file:item.file,ants:a.ants.length,research:item.buy||null,steps,warmup:120,topology,stateSha256,oldMsPerStep:oldMs/steps,newMsPerStep:newMs/steps,delta,oldNetwork:a._routeNetwork?.report(),newNetwork:b._routeNetwork?.report()};results.push(row);console.log(JSON.stringify({file:row.file,ants:row.ants,steps,cycles:topology.independentCycles,maxDegree:topology.maxDegree,oldMs:row.oldMsPerStep,newMs:row.newMsPerStep,delta,same:true}));
+ }
+ assert.deepEqual(hashes(live),source);assert.deepEqual(hashes(copy),candidate);for(const[n,h]of Object.entries(inputs))assert.equal(sha(fs.readFileSync(path.join(live,'qa',n))),h);
+ fs.copyFileSync(__filename,path.join(out,'compare-runner.cjs.txt'));fs.copyFileSync(path.join(__dirname,'prepare.cjs'),path.join(out,'prepare-runner.cjs.txt'));fs.copyFileSync(path.join(copy,'route-network.js'),path.join(out,'candidate-route-network.js.txt'));
+ fs.writeFileSync(path.join(out,'candidate-results.json'),JSON.stringify({pass:true,adopted:false,start,finished:new Date().toISOString(),source,candidate,inputs,results,host:{node:process.version,cpu:os.cpus()[0].model,logicalCores:os.cpus().length},note:'他の負荷試験と並走しない交互測定。8実保存の全保存一致。通路履歴の接続グラフを数えたもので、物理空洞全体が木という証明ではない。'},null,2)+'\n');
+}catch(e){fs.writeFileSync(path.join(out,'candidate-results.json'),JSON.stringify({pass:false,adopted:false,start,finished:new Date().toISOString(),source,candidate,inputs,results,error:String(e)},null,2)+'\n');console.error(e);process.exitCode=1;}
