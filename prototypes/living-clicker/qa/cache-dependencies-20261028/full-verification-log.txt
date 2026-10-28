@@ -1,0 +1,64 @@
+chain copy: C:\Users\yuhim\AppData\Local\Temp\living-chain-Ndi0D6
+START chain
+START storage-inputs
+START waste
+START raid
+START ferment
+START housing
+START pebble
+START disease
+START approach
+START rock
+START research
+START cargo-turn
+START storage
+START reservation
+START headon
+START turn
+PASS turn            3 s
+START diagnostics
+PASS storage-inputs   10 s
+START surface
+PASS reservation    31 s
+START traffic
+PASS storage        37 s
+START traffic-work
+PASS cargo-turn     44 s
+START network
+PASS research       67 s
+START actors
+PASS approach       67 s
+START growth
+PASS disease        69 s
+START growth-512
+PASS rock           74 s
+START save-codec
+PASS actors         23 s
+PASS network        70 s
+PASS diagnostics   117 s
+PASS growth         72 s
+PASS headon        150 s
+PASS pebble        157 s
+PASS housing       205 s
+PASS growth-512    161 s
+PASS ferment       263 s
+PASS traffic-work  265 s
+PASS raid          309 s
+PASS traffic       279 s
+PASS waste         409 s
+PASS save-codec    431 s
+PASS surface       642 s
+PASS chain         729 s
+START smoke (exclusive)
+PASS smoke           2 s
+START touch (exclusive)
+PASS touch          14 s
+START browser (exclusive)
+PASS browser        39 s
+START browser256 (exclusive)
+PASS browser256     32 s
+START save-browser (exclusive)
+PASS save-browser   19 s
+START browser512 (exclusive)
+PASS browser512     86 s
+ALL PASS in 921 s on 16 cores

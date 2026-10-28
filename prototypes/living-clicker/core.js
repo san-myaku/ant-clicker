@@ -802,10 +802,28 @@
       }
       return out;
     }
-    storageDrop(rid,point,kind,reach=this.storageReachOut(point,kind)) {
-      const {hx,hy}=Physics.SHAPES[kind],stock=this.physics.bodies.filter(b=>b.kind===kind&&!b.carrier),choices=[];
+    storageDropInputs(rid,kind){
+      const bodies=this.physics.bodies,stock=[],columns=new Map(),pad=ANT_SIZE*.55+1;let minY=Infinity;
+      // Every mouth starts within its walkPoint's coarse cell plus this pad.
+      // Bodies above all mouths can neither overlap a load nor support it.
+      // Keep all lower supports, even beyond the room floor or room tags.
+      for(const i of this.cells(rid))minY=Math.min(minY,xy(i).y-pad);
+      let widest=0;for(const shape of Object.values(Physics.SHAPES))widest=Math.max(widest,shape.hx);
+      for(let k=0;k<bodies.length;k++){const b=bodies[k];if(b.carrier)continue;
+        if(b.kind===kind)stock.push(b); // Global density retains original order.
+        if(b.y<minY)continue;const x=Math.floor(b.x);if(!columns.has(x))columns.set(x,[]);columns.get(x).push(k);
+      }
+      const memo=new Map(),radius=Physics.SHAPES[kind].hx+widest+ANT_SIZE*.55+.01;
+      return {stock,under:x=>{let out=memo.get(x);if(out)return out;const indices=[];
+        for(let c=Math.floor(x-radius);c<=Math.floor(x+radius);c++)if(columns.has(c))indices.push(...columns.get(c));
+        indices.sort((a,b)=>a-b);out=[];for(const k of indices){const b=bodies[k];if(Math.abs(x-b.x)<Physics.SHAPES[kind].hx+Physics.SHAPES[b.kind].hx+ANT_SIZE*.55+.01)out.push(b);}
+        memo.set(x,out);return out;
+      }};
+    }
+    storageDrop(rid,point,kind,reach=this.storageReachOut(point,kind),inputs=null) {
+      const {hx,hy}=Physics.SHAPES[kind],stock=inputs?inputs.stock:this.physics.bodies.filter(b=>b.kind===kind&&!b.carrier),choices=[];
       // Only objects in the columns under the mouth can raise the landing.
-      const under=this.physics.bodies.filter(b=>!b.carrier&&Math.abs(point.x-b.x)<hx+Physics.SHAPES[b.kind].hx+ANT_SIZE*.55+.01);
+      const under=inputs?inputs.under(point.x):this.physics.bodies.filter(b=>!b.carrier&&Math.abs(point.x-b.x)<hx+Physics.SHAPES[b.kind].hx+ANT_SIZE*.55+.01);
       for(const {angle,x,y,floor} of reach){
         if(this.physics.penetration({kind,x,y})>1e-7||floor<0)continue;
         let landing=floor*GRAIN.size-hy;
@@ -823,8 +841,8 @@
     }
     storageDestination(rid,ant,kind) {
       // Other carriers' destinations are read once per search, not per cell.
-      const memo=this.dropMemo(),others=[],storing=new Map();for(const a of this.ants)if(a.itemTask?.phase==='store'){const d=a.itemTask.destination;storing.set(d,(storing.get(d)||0)+1);if(a.id!==ant.id)others.push(this.walkPoint(d));}
-      const cells=[];for(const i of this.cells(rid)){if(!this.walkable(i))continue;const p=this.walkPoint(i);if(others.some(q=>Math.hypot(p.x-q.x,p.y-q.y)<.9))continue;const key=(i*256+rid)*8+DROP_KINDS[kind];let drop=memo.get(key);if(drop===undefined)memo.set(key,drop=this.storageDrop(rid,p,kind,this.reachOutAt(i,p,kind)));if(drop)cells.push({i,drop,score:drop.score+(storing.get(i)||0)*2+distance(ant.cell,i)*.015+this.traffic[i]*.015});}
+      const memo=this.dropMemo(),others=[],storing=new Map();let inputs=null;for(const a of this.ants)if(a.itemTask?.phase==='store'){const d=a.itemTask.destination;storing.set(d,(storing.get(d)||0)+1);if(a.id!==ant.id)others.push(this.walkPoint(d));}
+      const cells=[];for(const i of this.cells(rid)){if(!this.walkable(i))continue;const p=this.walkPoint(i);if(others.some(q=>Math.hypot(p.x-q.x,p.y-q.y)<.9))continue;const key=(i*256+rid)*8+DROP_KINDS[kind];let drop=memo.get(key);if(drop===undefined){if(!inputs)inputs=this.storageDropInputs(rid,kind);memo.set(key,drop=this.storageDrop(rid,p,kind,this.reachOutAt(i,p,kind),inputs));}if(drop)cells.push({i,drop,score:drop.score+(storing.get(i)||0)*2+distance(ant.cell,i)*.015+this.traffic[i]*.015});}
       const score=c=>c.score;
       if(!this._storageReach)this._storageReach=new Map();
       for(const c of cells.sort((a,b)=>score(a)-score(b)||a.i-b.i)){

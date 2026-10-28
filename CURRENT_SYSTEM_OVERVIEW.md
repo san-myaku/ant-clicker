@@ -11,6 +11,12 @@ Target: `prototypes/living-clicker/`（root index.htmlは旧公開本編）
 
 This document is the current implementation overview for the single-file ant clicker game. When gameplay, UI, save data, AI behavior, or public deployment assumptions change, update this file together with `DEVELOPMENT_LOG.md`.
 
+## 2026-10-28 配置失効の診断と、収納先照会内の物体索引
+
+詳細はhandoff/CACHE_DEPENDENCY_RESULTS_20261028.md。2活動512匹保存でdropMemoを診断し全保存一致。失効31回中18回は遠方土のみ、別の新需要保存では54回中32回が地形不変の同種変化だった。候補値の再利用は両方0で、Gaussian項約1188万/1214万回。影比較は64/64不変、別保存は56/64不変・score6/位置2が変化。原因が異なるため全体の変更イベント基盤は導入せず、1収納先照会の内側だけ同種一覧とx列索引を共有する生成器を採用した。全同種の密度/加算順、元物体順、下方支持/実姿勢/占有/予約/到達を維持し、次の照会は拾得/投下を反映して作り直す。
+
+8保存の全保存一致。活動512匹14.874→12.096ms（18.67%減）、新需要512匹24.350→19.528ms（19.80%減）。モデル単体の交互測定。400配置/逆順/遠方同種/下方支持/同tick拾得を追加し、別コピーの全31本が922.301秒で合格。採用後も生成元からbuildし、全101ソースが検証済みコピーと一致。ソースmanifest 494d993ac460615033cdc7fafe6bc817555db4702d0b85b4fb635c0c420d9183。保存/人口上限512/本人運搬/交通/旧公開index/配信境界は不変。1000匹/実機/実効10倍は未完、main/Pages/PR/追加pushなし。次は部屋分類共有と採用後の負荷診断。
+
 ## 2026-10-28 Muse追加メモの入口測定と支持変化の検証
 
 handoff/MUSE_PROOF_REVIEW_20261028.mdに記録。活動512匹と実深度IV購入後512匹を各300準備＋600コマ、呼出数計装あり/なしで全保存一致。続いて未計装・単独のCPUサンプリングを行い、最終保存hashも一致した。poseClear+sweptClearの自己サンプルは全体の17.89%/23.27%、移動/地表姿勢補正由来は全体の1.18%/2.46%にとどまった。計画側が中心のため、「証明を持ち運ぶ移動」は本体未実装で優先度を下げる。区間の離散検査が任意の部分区間を包含する保証も未検証。

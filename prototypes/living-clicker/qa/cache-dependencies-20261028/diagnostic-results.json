@@ -1,0 +1,3651 @@
+{
+  "pass": true,
+  "beganAt": "2026-10-28T07:44:04.172Z",
+  "finishedAt": "2026-10-28T07:46:28.264Z",
+  "source": {
+    "game.js": "763c181eb8e8e8a3770178b8f72c3092043c101994a82959a3b210be69340644",
+    "core.js": "c7d73a8f8f662b4a20d6b17803e0040d816e1422edf2604d08b7f25706982582",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "build.cjs": "e68c1736f03f0ccd588ea22d11fb5c6d6e49be362c78eec5eee5f462820a82d8",
+    "build-surface.cjs": "8022e37dcfe2de04574367711fe7d35e961ad13581f41545987311790ca048d3",
+    "build-retreat.cjs": "abb4332ca97e608ae4870e1844495ea5851441c180c71ae42cb5c1fd40c5f8bd",
+    "route-network.js": "79761469633dcf40083b6a68f802846c97e123aab7180ced6402fe1c81b883e3"
+  },
+  "inputs": {
+    "pop512-20261027/active512-post-turnback-input.json": "02b55685ce47e5bbd6eee41dbb423ac316a5753f8581f2909660e9d9186016c6",
+    "world-512.json": "2b43a65e181bd53635770d12888a93415febd059755e23a001b90f657b6fb1d0"
+  },
+  "rows": [
+    {
+      "file": "pop512-20261027/active512-post-turnback-input.json",
+      "research": null,
+      "warmup": 300,
+      "steps": 600,
+      "stateSha256": "aff366d85e724a570ebb56ad60556621985be19e9727700859e620a615a2cbcb",
+      "delta": {
+        "delivered": 15,
+        "dug": 9,
+        "distance": 1209.3703097165562
+      },
+      "stats": {
+        "memoCalls": 93,
+        "memoHits": 62,
+        "memoInvalidations": 31,
+        "comparisonBodyVisits": 338868,
+        "comparisonFreeVisits": 337594,
+        "snapshotBodyVisits": 132251,
+        "discardedCandidates": 5642,
+        "dropValueLookups": 5642,
+        "dropValueHits": 0,
+        "dropValueMisses": 5642,
+        "storageDropCalls": 5642,
+        "stockFilterBodyVisits": 24069682,
+        "underFilterBodyVisits": 24069682,
+        "underSupportComparisons": 4543453,
+        "occupancyCalls": 83638,
+        "occupancyNeighborVisits": 788093,
+        "gaussianTerms": 11877712,
+        "reachOutCalls": 2350,
+        "reasons": {
+          "only-far-soil": 18,
+          "revision-grid-unchanged": 6,
+          "revision-grid-changed": 7
+        },
+        "flags": {
+          "terrainRevision": 13,
+          "gridActuallyChanged": 7,
+          "revisionWithoutGridChange": 6,
+          "sameKindChanged": 0,
+          "possibleLocalBodies": 0,
+          "onlyFarSoil": 31,
+          "orderingOnly": 0
+        },
+        "changedKinds": {
+          "soil": 108
+        },
+        "events": [
+          {
+            "tick": 893058,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 4,
+            "gridChanges": 0,
+            "discarded": 182,
+            "reason": "only-far-soil",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": false,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": true,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 893077,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 4,
+            "gridChanges": 0,
+            "discarded": 182,
+            "reason": "only-far-soil",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": false,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": true,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 893096,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 1,
+            "gridChanges": 0,
+            "discarded": 182,
+            "reason": "only-far-soil",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": false,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": true,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 893115,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 4,
+            "gridChanges": 0,
+            "discarded": 182,
+            "reason": "only-far-soil",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": false,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": true,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 893134,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 2,
+            "gridChanges": 0,
+            "discarded": 182,
+            "reason": "only-far-soil",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": false,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": true,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 893153,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 2,
+            "gridChanges": 0,
+            "discarded": 182,
+            "reason": "only-far-soil",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": false,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": true,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 893172,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 5,
+            "gridChanges": 0,
+            "discarded": 182,
+            "reason": "revision-grid-unchanged",
+            "flags": {
+              "terrainRevision": true,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": true,
+              "sameKindChanged": false,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": true,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 893191,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 6,
+            "gridChanges": 0,
+            "discarded": 182,
+            "reason": "only-far-soil",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": false,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": true,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 893210,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 3,
+            "gridChanges": 0,
+            "discarded": 182,
+            "reason": "only-far-soil",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": false,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": true,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 893229,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 2,
+            "gridChanges": 0,
+            "discarded": 182,
+            "reason": "only-far-soil",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": false,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": true,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 893248,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 4,
+            "gridChanges": 1,
+            "discarded": 182,
+            "reason": "revision-grid-changed",
+            "flags": {
+              "terrainRevision": true,
+              "gridActuallyChanged": true,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": false,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": true,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 893267,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 2,
+            "gridChanges": 1,
+            "discarded": 182,
+            "reason": "revision-grid-changed",
+            "flags": {
+              "terrainRevision": true,
+              "gridActuallyChanged": true,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": false,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": true,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 893286,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 3,
+            "gridChanges": 0,
+            "discarded": 182,
+            "reason": "revision-grid-unchanged",
+            "flags": {
+              "terrainRevision": true,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": true,
+              "sameKindChanged": false,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": true,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 893305,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 5,
+            "gridChanges": 0,
+            "discarded": 182,
+            "reason": "revision-grid-unchanged",
+            "flags": {
+              "terrainRevision": true,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": true,
+              "sameKindChanged": false,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": true,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 893324,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 2,
+            "gridChanges": 0,
+            "discarded": 182,
+            "reason": "only-far-soil",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": false,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": true,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 893343,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 4,
+            "gridChanges": 0,
+            "discarded": 182,
+            "reason": "only-far-soil",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": false,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": true,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 893362,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 3,
+            "gridChanges": 0,
+            "discarded": 182,
+            "reason": "only-far-soil",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": false,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": true,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 893381,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 4,
+            "gridChanges": 0,
+            "discarded": 182,
+            "reason": "only-far-soil",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": false,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": true,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 893400,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 2,
+            "gridChanges": 0,
+            "discarded": 182,
+            "reason": "only-far-soil",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": false,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": true,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 893419,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 9,
+            "gridChanges": 0,
+            "discarded": 182,
+            "reason": "revision-grid-unchanged",
+            "flags": {
+              "terrainRevision": true,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": true,
+              "sameKindChanged": false,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": true,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 893438,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 7,
+            "gridChanges": 0,
+            "discarded": 182,
+            "reason": "only-far-soil",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": false,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": true,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 893457,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 4,
+            "gridChanges": 1,
+            "discarded": 182,
+            "reason": "revision-grid-changed",
+            "flags": {
+              "terrainRevision": true,
+              "gridActuallyChanged": true,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": false,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": true,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 893476,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 4,
+            "gridChanges": 0,
+            "discarded": 182,
+            "reason": "revision-grid-unchanged",
+            "flags": {
+              "terrainRevision": true,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": true,
+              "sameKindChanged": false,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": true,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 893495,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 2,
+            "gridChanges": 1,
+            "discarded": 182,
+            "reason": "revision-grid-changed",
+            "flags": {
+              "terrainRevision": true,
+              "gridActuallyChanged": true,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": false,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": true,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 893514,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 3,
+            "gridChanges": 0,
+            "discarded": 182,
+            "reason": "only-far-soil",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": false,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": true,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 893533,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 4,
+            "gridChanges": 0,
+            "discarded": 182,
+            "reason": "only-far-soil",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": false,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": true,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 893552,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 2,
+            "gridChanges": 0,
+            "discarded": 182,
+            "reason": "only-far-soil",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": false,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": true,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 893571,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 2,
+            "gridChanges": 1,
+            "discarded": 182,
+            "reason": "revision-grid-changed",
+            "flags": {
+              "terrainRevision": true,
+              "gridActuallyChanged": true,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": false,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": true,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 893590,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 2,
+            "gridChanges": 1,
+            "discarded": 182,
+            "reason": "revision-grid-changed",
+            "flags": {
+              "terrainRevision": true,
+              "gridActuallyChanged": true,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": false,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": true,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 893609,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 3,
+            "gridChanges": 1,
+            "discarded": 182,
+            "reason": "revision-grid-changed",
+            "flags": {
+              "terrainRevision": true,
+              "gridActuallyChanged": true,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": false,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": true,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 893628,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 4,
+            "gridChanges": 0,
+            "discarded": 182,
+            "reason": "revision-grid-unchanged",
+            "flags": {
+              "terrainRevision": true,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": true,
+              "sameKindChanged": false,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": true,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          }
+        ],
+        "shadowStates": 4,
+        "shadowCases": [
+          {
+            "tick": 893058,
+            "rid": 3,
+            "kind": "food",
+            "cell": 1882,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893058,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3419,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893058,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3611,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893058,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3708,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893058,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3805,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893058,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3903,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893058,
+            "rid": 5,
+            "kind": "food",
+            "cell": 4089,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893058,
+            "rid": 16,
+            "kind": "food",
+            "cell": 4394,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893058,
+            "rid": 3,
+            "kind": "food",
+            "cell": 1881,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893058,
+            "rid": 3,
+            "kind": "food",
+            "cell": 2168,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893058,
+            "rid": 3,
+            "kind": "food",
+            "cell": 2267,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893058,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3412,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893058,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3892,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893058,
+            "rid": 5,
+            "kind": "food",
+            "cell": 4004,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893058,
+            "rid": 5,
+            "kind": "food",
+            "cell": 4190,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893058,
+            "rid": 16,
+            "kind": "food",
+            "cell": 4581,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893191,
+            "rid": 3,
+            "kind": "food",
+            "cell": 1882,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893191,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3419,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893191,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3611,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893191,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3708,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893191,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3805,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893191,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3903,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893191,
+            "rid": 5,
+            "kind": "food",
+            "cell": 4089,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893191,
+            "rid": 16,
+            "kind": "food",
+            "cell": 4394,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893191,
+            "rid": 3,
+            "kind": "food",
+            "cell": 1881,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893191,
+            "rid": 3,
+            "kind": "food",
+            "cell": 2168,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893191,
+            "rid": 3,
+            "kind": "food",
+            "cell": 2267,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893191,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3412,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893191,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3892,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893191,
+            "rid": 5,
+            "kind": "food",
+            "cell": 4004,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893191,
+            "rid": 5,
+            "kind": "food",
+            "cell": 4190,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893191,
+            "rid": 16,
+            "kind": "food",
+            "cell": 4581,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893324,
+            "rid": 3,
+            "kind": "food",
+            "cell": 1882,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893324,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3419,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893324,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3611,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893324,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3708,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893324,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3805,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893324,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3903,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893324,
+            "rid": 5,
+            "kind": "food",
+            "cell": 4089,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893324,
+            "rid": 16,
+            "kind": "food",
+            "cell": 4394,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893324,
+            "rid": 3,
+            "kind": "food",
+            "cell": 1881,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893324,
+            "rid": 3,
+            "kind": "food",
+            "cell": 2168,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893324,
+            "rid": 3,
+            "kind": "food",
+            "cell": 2267,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893324,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3412,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893324,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3892,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893324,
+            "rid": 5,
+            "kind": "food",
+            "cell": 4004,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893324,
+            "rid": 5,
+            "kind": "food",
+            "cell": 4190,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893324,
+            "rid": 16,
+            "kind": "food",
+            "cell": 4581,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 893457,
+            "rid": 3,
+            "kind": "food",
+            "cell": 1882,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          },
+          {
+            "tick": 893457,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3419,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          },
+          {
+            "tick": 893457,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3611,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          },
+          {
+            "tick": 893457,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3708,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          },
+          {
+            "tick": 893457,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3805,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          },
+          {
+            "tick": 893457,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3903,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          },
+          {
+            "tick": 893457,
+            "rid": 5,
+            "kind": "food",
+            "cell": 4089,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          },
+          {
+            "tick": 893457,
+            "rid": 16,
+            "kind": "food",
+            "cell": 4394,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          },
+          {
+            "tick": 893457,
+            "rid": 3,
+            "kind": "food",
+            "cell": 1881,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          },
+          {
+            "tick": 893457,
+            "rid": 3,
+            "kind": "food",
+            "cell": 2168,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          },
+          {
+            "tick": 893457,
+            "rid": 3,
+            "kind": "food",
+            "cell": 2267,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          },
+          {
+            "tick": 893457,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3412,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          },
+          {
+            "tick": 893457,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3892,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          },
+          {
+            "tick": 893457,
+            "rid": 5,
+            "kind": "food",
+            "cell": 4004,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          },
+          {
+            "tick": 893457,
+            "rid": 5,
+            "kind": "food",
+            "cell": 4190,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          },
+          {
+            "tick": 893457,
+            "rid": 16,
+            "kind": "food",
+            "cell": 4581,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": false,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          }
+        ],
+        "destinations": 93,
+        "destinationWalkPointCalls": 12617,
+        "destinationWalkPointCallsMax": 273
+      }
+    },
+    {
+      "file": "world-512.json",
+      "research": "geo_depth_4",
+      "warmup": 300,
+      "steps": 600,
+      "stateSha256": "2e01ca79ed9898ac7ea0cc8694db7148b01b90e4411c46016850072f9cb956c7",
+      "delta": {
+        "delivered": 18,
+        "dug": 22,
+        "distance": 4528.6184985293075
+      },
+      "stats": {
+        "memoCalls": 118,
+        "memoHits": 64,
+        "memoInvalidations": 54,
+        "comparisonBodyVisits": 514868,
+        "comparisonFreeVisits": 510660,
+        "snapshotBodyVisits": 392643,
+        "discardedCandidates": 5917,
+        "dropValueLookups": 6070,
+        "dropValueHits": 0,
+        "dropValueMisses": 6070,
+        "storageDropCalls": 6102,
+        "stockFilterBodyVisits": 44368678,
+        "underFilterBodyVisits": 44368678,
+        "underSupportComparisons": 7878637,
+        "occupancyCalls": 92540,
+        "occupancyNeighborVisits": 902342,
+        "gaussianTerms": 12144582,
+        "reachOutCalls": 3328,
+        "reasons": {
+          "revision-grid-unknown": 1,
+          "same-kind": 32,
+          "revision-grid-changed": 17,
+          "revision-grid-unchanged": 4
+        },
+        "flags": {
+          "terrainRevision": 22,
+          "gridActuallyChanged": 17,
+          "revisionWithoutGridChange": 4,
+          "sameKindChanged": 54,
+          "possibleLocalBodies": 40,
+          "onlyFarSoil": 0,
+          "orderingOnly": 0
+        },
+        "changedKinds": {
+          "food": 458,
+          "soil": 310
+        },
+        "events": [
+          {
+            "tick": 1024085,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 26,
+            "gridChanges": null,
+            "discarded": 7,
+            "reason": "revision-grid-unknown",
+            "flags": {
+              "terrainRevision": true,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": true,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024086,
+            "context": {
+              "rid": 5,
+              "kind": "food"
+            },
+            "changes": 10,
+            "gridChanges": 0,
+            "discarded": 143,
+            "reason": "same-kind",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 44.01,
+              "maxX": 71.99,
+              "minY": 33.01,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024097,
+            "context": {
+              "rid": 5,
+              "kind": "food"
+            },
+            "changes": 22,
+            "gridChanges": 1,
+            "discarded": 106,
+            "reason": "revision-grid-changed",
+            "flags": {
+              "terrainRevision": true,
+              "gridActuallyChanged": true,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 44.01,
+              "maxX": 71.99,
+              "minY": 33.01,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024104,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 8,
+            "gridChanges": 0,
+            "discarded": 105,
+            "reason": "same-kind",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": true,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024105,
+            "context": {
+              "rid": 5,
+              "kind": "food"
+            },
+            "changes": 16,
+            "gridChanges": 0,
+            "discarded": 144,
+            "reason": "same-kind",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 44.01,
+              "maxX": 71.99,
+              "minY": 33.01,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024107,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 11,
+            "gridChanges": 0,
+            "discarded": 104,
+            "reason": "revision-grid-unchanged",
+            "flags": {
+              "terrainRevision": true,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": true,
+              "sameKindChanged": true,
+              "possibleLocalBodies": true,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024111,
+            "context": {
+              "rid": 5,
+              "kind": "food"
+            },
+            "changes": 9,
+            "gridChanges": 0,
+            "discarded": 8,
+            "reason": "same-kind",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 44.01,
+              "maxX": 71.99,
+              "minY": 33.01,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024123,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 24,
+            "gridChanges": 0,
+            "discarded": 102,
+            "reason": "same-kind",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": true,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024142,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 47,
+            "gridChanges": 1,
+            "discarded": 142,
+            "reason": "revision-grid-changed",
+            "flags": {
+              "terrainRevision": true,
+              "gridActuallyChanged": true,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": true,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024154,
+            "context": {
+              "rid": 5,
+              "kind": "food"
+            },
+            "changes": 37,
+            "gridChanges": 1,
+            "discarded": 142,
+            "reason": "revision-grid-changed",
+            "flags": {
+              "terrainRevision": true,
+              "gridActuallyChanged": true,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 44.01,
+              "maxX": 71.99,
+              "minY": 33.01,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024161,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 17,
+            "gridChanges": 0,
+            "discarded": 100,
+            "reason": "same-kind",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": true,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024180,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 32,
+            "gridChanges": 2,
+            "discarded": 142,
+            "reason": "revision-grid-changed",
+            "flags": {
+              "terrainRevision": true,
+              "gridActuallyChanged": true,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": true,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024199,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 15,
+            "gridChanges": 1,
+            "discarded": 145,
+            "reason": "revision-grid-changed",
+            "flags": {
+              "terrainRevision": true,
+              "gridActuallyChanged": true,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": true,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024215,
+            "context": {
+              "rid": 5,
+              "kind": "food"
+            },
+            "changes": 26,
+            "gridChanges": 2,
+            "discarded": 145,
+            "reason": "revision-grid-changed",
+            "flags": {
+              "terrainRevision": true,
+              "gridActuallyChanged": true,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 44.01,
+              "maxX": 71.99,
+              "minY": 33.01,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024218,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 5,
+            "gridChanges": 0,
+            "discarded": 98,
+            "reason": "same-kind",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": true,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024237,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 29,
+            "gridChanges": 1,
+            "discarded": 146,
+            "reason": "revision-grid-changed",
+            "flags": {
+              "terrainRevision": true,
+              "gridActuallyChanged": true,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": true,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024256,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 23,
+            "gridChanges": 0,
+            "discarded": 147,
+            "reason": "same-kind",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": true,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024268,
+            "context": {
+              "rid": 1,
+              "kind": "food"
+            },
+            "changes": 22,
+            "gridChanges": 0,
+            "discarded": 147,
+            "reason": "same-kind",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": true,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 40.01,
+              "maxX": 55.99,
+              "minY": 18.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024271,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 8,
+            "gridChanges": 0,
+            "discarded": 75,
+            "reason": "same-kind",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": true,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024273,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 17,
+            "gridChanges": 0,
+            "discarded": 19,
+            "reason": "same-kind",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": true,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024275,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 10,
+            "gridChanges": 0,
+            "discarded": 18,
+            "reason": "same-kind",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": true,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024294,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 15,
+            "gridChanges": 0,
+            "discarded": 147,
+            "reason": "same-kind",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": true,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024306,
+            "context": {
+              "rid": 5,
+              "kind": "food"
+            },
+            "changes": 12,
+            "gridChanges": 0,
+            "discarded": 149,
+            "reason": "same-kind",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": true,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 44.01,
+              "maxX": 71.99,
+              "minY": 33.01,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024313,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 9,
+            "gridChanges": 1,
+            "discarded": 100,
+            "reason": "revision-grid-changed",
+            "flags": {
+              "terrainRevision": true,
+              "gridActuallyChanged": true,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": true,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024321,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 13,
+            "gridChanges": 0,
+            "discarded": 149,
+            "reason": "revision-grid-unchanged",
+            "flags": {
+              "terrainRevision": true,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": true,
+              "sameKindChanged": true,
+              "possibleLocalBodies": true,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024332,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 8,
+            "gridChanges": 1,
+            "discarded": 19,
+            "reason": "revision-grid-changed",
+            "flags": {
+              "terrainRevision": true,
+              "gridActuallyChanged": true,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": true,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024351,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 25,
+            "gridChanges": 0,
+            "discarded": 147,
+            "reason": "same-kind",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": true,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024370,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 22,
+            "gridChanges": 1,
+            "discarded": 147,
+            "reason": "revision-grid-changed",
+            "flags": {
+              "terrainRevision": true,
+              "gridActuallyChanged": true,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024372,
+            "context": {
+              "rid": 1,
+              "kind": "food"
+            },
+            "changes": 6,
+            "gridChanges": 0,
+            "discarded": 147,
+            "reason": "same-kind",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": true,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 40.01,
+              "maxX": 55.99,
+              "minY": 18.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024389,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 11,
+            "gridChanges": 3,
+            "discarded": 72,
+            "reason": "revision-grid-changed",
+            "flags": {
+              "terrainRevision": true,
+              "gridActuallyChanged": true,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024408,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 18,
+            "gridChanges": 1,
+            "discarded": 147,
+            "reason": "revision-grid-changed",
+            "flags": {
+              "terrainRevision": true,
+              "gridActuallyChanged": true,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024427,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 14,
+            "gridChanges": 2,
+            "discarded": 147,
+            "reason": "revision-grid-changed",
+            "flags": {
+              "terrainRevision": true,
+              "gridActuallyChanged": true,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024446,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 15,
+            "gridChanges": 1,
+            "discarded": 147,
+            "reason": "revision-grid-changed",
+            "flags": {
+              "terrainRevision": true,
+              "gridActuallyChanged": true,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024449,
+            "context": {
+              "rid": 1,
+              "kind": "food"
+            },
+            "changes": 4,
+            "gridChanges": 0,
+            "discarded": 147,
+            "reason": "same-kind",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": true,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 40.01,
+              "maxX": 55.99,
+              "minY": 18.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024465,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 13,
+            "gridChanges": 0,
+            "discarded": 73,
+            "reason": "same-kind",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": true,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024467,
+            "context": {
+              "rid": 1,
+              "kind": "food"
+            },
+            "changes": 4,
+            "gridChanges": 0,
+            "discarded": 151,
+            "reason": "same-kind",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": false,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 40.01,
+              "maxX": 55.99,
+              "minY": 18.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024484,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 11,
+            "gridChanges": 1,
+            "discarded": 72,
+            "reason": "revision-grid-changed",
+            "flags": {
+              "terrainRevision": true,
+              "gridActuallyChanged": true,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": true,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024500,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 9,
+            "gridChanges": 0,
+            "discarded": 155,
+            "reason": "same-kind",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": true,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024503,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 8,
+            "gridChanges": 0,
+            "discarded": 21,
+            "reason": "same-kind",
+            "flags": {
+              "terrainRevision": false,
+              "gridActuallyChanged": false,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": true,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          },
+          {
+            "tick": 1024522,
+            "context": {
+              "rid": 3,
+              "kind": "food"
+            },
+            "changes": 10,
+            "gridChanges": 1,
+            "discarded": 155,
+            "reason": "revision-grid-changed",
+            "flags": {
+              "terrainRevision": true,
+              "gridActuallyChanged": true,
+              "revisionWithoutGridChange": false,
+              "sameKindChanged": true,
+              "possibleLocalBodies": true,
+              "onlyFarSoil": false,
+              "orderingOnly": false
+            },
+            "bounds": {
+              "minX": 53.01,
+              "maxX": 63.99,
+              "minY": 17.009999999999998,
+              "maxY": 90
+            }
+          }
+        ],
+        "shadowStates": 4,
+        "shadowCases": [
+          {
+            "tick": 1024086,
+            "rid": 3,
+            "kind": "food",
+            "cell": 2071,
+            "eligible": true,
+            "same": false,
+            "category": "pose-or-landing",
+            "sameKindChanges": true,
+            "possibleLocalBodies": true,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 1024086,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3605,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 1024086,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3708,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 1024086,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3806,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 1024086,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3900,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 1024086,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3996,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 1024086,
+            "rid": 5,
+            "kind": "food",
+            "cell": 4096,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 1024086,
+            "rid": 16,
+            "kind": "food",
+            "cell": 4397,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 1024086,
+            "rid": 3,
+            "kind": "food",
+            "cell": 2263,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": true,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 1024086,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3411,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 1024086,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3620,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 1024086,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3909,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 1024086,
+            "rid": 5,
+            "kind": "food",
+            "cell": 4098,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 1024086,
+            "rid": 5,
+            "kind": "food",
+            "cell": 4190,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 1024086,
+            "rid": 16,
+            "kind": "food",
+            "cell": 4495,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 1024086,
+            "rid": 16,
+            "kind": "food",
+            "cell": 4585,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 1024215,
+            "rid": 3,
+            "kind": "food",
+            "cell": 1881,
+            "eligible": true,
+            "same": false,
+            "category": "score-only",
+            "sameKindChanges": true,
+            "possibleLocalBodies": true,
+            "possibleLocalGrid": true,
+            "revisionChanged": true
+          },
+          {
+            "tick": 1024215,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3407,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": true,
+            "revisionChanged": true
+          },
+          {
+            "tick": 1024215,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3701,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": true,
+            "revisionChanged": true
+          },
+          {
+            "tick": 1024215,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3804,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": true,
+            "revisionChanged": true
+          },
+          {
+            "tick": 1024215,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3899,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": true,
+            "revisionChanged": true
+          },
+          {
+            "tick": 1024215,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3995,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": true,
+            "revisionChanged": true
+          },
+          {
+            "tick": 1024215,
+            "rid": 5,
+            "kind": "food",
+            "cell": 4095,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": true,
+            "revisionChanged": true
+          },
+          {
+            "tick": 1024215,
+            "rid": 16,
+            "kind": "food",
+            "cell": 4397,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          },
+          {
+            "tick": 1024215,
+            "rid": 3,
+            "kind": "food",
+            "cell": 2263,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": true,
+            "possibleLocalGrid": true,
+            "revisionChanged": true
+          },
+          {
+            "tick": 1024215,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3411,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": true,
+            "revisionChanged": true
+          },
+          {
+            "tick": 1024215,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3620,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": true,
+            "revisionChanged": true
+          },
+          {
+            "tick": 1024215,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3990,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": true,
+            "revisionChanged": true
+          },
+          {
+            "tick": 1024215,
+            "rid": 5,
+            "kind": "food",
+            "cell": 4098,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": true,
+            "revisionChanged": true
+          },
+          {
+            "tick": 1024215,
+            "rid": 5,
+            "kind": "food",
+            "cell": 4190,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": true,
+            "revisionChanged": true
+          },
+          {
+            "tick": 1024215,
+            "rid": 16,
+            "kind": "food",
+            "cell": 4495,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          },
+          {
+            "tick": 1024215,
+            "rid": 16,
+            "kind": "food",
+            "cell": 4585,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          },
+          {
+            "tick": 1024351,
+            "rid": 3,
+            "kind": "food",
+            "cell": 1976,
+            "eligible": true,
+            "same": false,
+            "category": "pose-or-landing",
+            "sameKindChanges": true,
+            "possibleLocalBodies": true,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 1024351,
+            "rid": 3,
+            "kind": "food",
+            "cell": 2267,
+            "eligible": true,
+            "same": false,
+            "category": "score-only",
+            "sameKindChanges": true,
+            "possibleLocalBodies": true,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 1024351,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3703,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 1024351,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3804,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 1024351,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3899,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 1024351,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3995,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 1024351,
+            "rid": 5,
+            "kind": "food",
+            "cell": 4095,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 1024351,
+            "rid": 16,
+            "kind": "food",
+            "cell": 4397,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 1024351,
+            "rid": 3,
+            "kind": "food",
+            "cell": 2168,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": true,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 1024351,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3409,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 1024351,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3503,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 1024351,
+            "rid": 5,
+            "kind": "food",
+            "cell": 3892,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 1024351,
+            "rid": 5,
+            "kind": "food",
+            "cell": 4005,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 1024351,
+            "rid": 5,
+            "kind": "food",
+            "cell": 4190,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 1024351,
+            "rid": 16,
+            "kind": "food",
+            "cell": 4487,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 1024351,
+            "rid": 16,
+            "kind": "food",
+            "cell": 4585,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": false,
+            "possibleLocalGrid": false,
+            "revisionChanged": false
+          },
+          {
+            "tick": 1024484,
+            "rid": 1,
+            "kind": "food",
+            "cell": 1964,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": true,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          },
+          {
+            "tick": 1024484,
+            "rid": 1,
+            "kind": "food",
+            "cell": 2059,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": true,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          },
+          {
+            "tick": 1024484,
+            "rid": 1,
+            "kind": "food",
+            "cell": 2066,
+            "eligible": true,
+            "same": false,
+            "category": "score-only",
+            "sameKindChanges": true,
+            "possibleLocalBodies": true,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          },
+          {
+            "tick": 1024484,
+            "rid": 1,
+            "kind": "food",
+            "cell": 2159,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": true,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          },
+          {
+            "tick": 1024484,
+            "rid": 1,
+            "kind": "food",
+            "cell": 2251,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": true,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          },
+          {
+            "tick": 1024484,
+            "rid": 1,
+            "kind": "food",
+            "cell": 2259,
+            "eligible": true,
+            "same": false,
+            "category": "score-only",
+            "sameKindChanges": true,
+            "possibleLocalBodies": true,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          },
+          {
+            "tick": 1024484,
+            "rid": 1,
+            "kind": "food",
+            "cell": 2355,
+            "eligible": true,
+            "same": false,
+            "category": "score-only",
+            "sameKindChanges": true,
+            "possibleLocalBodies": true,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          },
+          {
+            "tick": 1024484,
+            "rid": 1,
+            "kind": "food",
+            "cell": 2451,
+            "eligible": true,
+            "same": false,
+            "category": "score-only",
+            "sameKindChanges": true,
+            "possibleLocalBodies": true,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          },
+          {
+            "tick": 1024484,
+            "rid": 1,
+            "kind": "food",
+            "cell": 2154,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": true,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          },
+          {
+            "tick": 1024484,
+            "rid": 1,
+            "kind": "food",
+            "cell": 2252,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": true,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          },
+          {
+            "tick": 1024484,
+            "rid": 1,
+            "kind": "food",
+            "cell": 2346,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": true,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          },
+          {
+            "tick": 1024484,
+            "rid": 1,
+            "kind": "food",
+            "cell": 2350,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": true,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          },
+          {
+            "tick": 1024484,
+            "rid": 1,
+            "kind": "food",
+            "cell": 2443,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": true,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          },
+          {
+            "tick": 1024484,
+            "rid": 1,
+            "kind": "food",
+            "cell": 2449,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": true,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          },
+          {
+            "tick": 1024484,
+            "rid": 1,
+            "kind": "food",
+            "cell": 2541,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": true,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          },
+          {
+            "tick": 1024484,
+            "rid": 1,
+            "kind": "food",
+            "cell": 2547,
+            "eligible": true,
+            "same": true,
+            "category": "unchanged",
+            "sameKindChanges": true,
+            "possibleLocalBodies": true,
+            "possibleLocalGrid": false,
+            "revisionChanged": true
+          }
+        ],
+        "destinations": 118,
+        "destinationWalkPointCalls": 18747,
+        "destinationWalkPointCallsMax": 300
+      }
+    }
+  ],
+  "host": {
+    "node": "v24.22.1",
+    "cpu": "AMD Ryzen 7 5800H with Radeon Graphics         "
+  },
+  "note": "隔離コピーを呼出数/失効理由/候補の影比較で計装。元モデルと同じ2実保存を各300準備+600コマ、60コマごとと最終の全保存一致。計装の処理時間を速度の根拠にしない。局所性の分類は収納室の幅と口/物体の余白から世界下端までの保守的な縦列領域を使う。影比較は各入力4時点、時刻固定間隔・null/非null層別各最大8候補であり全件の因果証明ではない。"
+}

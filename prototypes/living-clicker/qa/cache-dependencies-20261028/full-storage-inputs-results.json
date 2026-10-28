@@ -1,0 +1,25 @@
+{
+  "pass": true,
+  "finishedAt": "2026-10-28T07:59:36.331Z",
+  "inputSha256": "2b43a65e181bd53635770d12888a93415febd059755e23a001b90f657b6fb1d0",
+  "candidateCoreSha256": "d45203a932744cd8ab1fd17d94ab458f268b028c3de12262777e030d242f4b24",
+  "results": [
+    {
+      "name": "all-kinds-and-reversed-body-order-keep-exact-placement",
+      "pass": true,
+      "checked": 400,
+      "orders": 2
+    },
+    {
+      "name": "global-density-includes-far-same-kind-and-lower-supports",
+      "pass": true,
+      "rid": 3
+    },
+    {
+      "name": "a-mid-tick-pickup-is-seen-by-the-next-query",
+      "pass": true,
+      "created": 2
+    }
+  ],
+  "note": "全5種/元配列と逆順/遠方の同種/深い支持物/同tickの直接carrier代入を確認。生成・carrier代入はこの検証内の独立ケースであり自然育成へ注入しない。"
+}

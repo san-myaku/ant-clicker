@@ -1,0 +1,80 @@
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto'),os=require('node:os');
+const root=path.resolve(__dirname,'../..'),here=path.join(root,'prototypes/living-clicker'),out=path.join(here,'qa/cache-dependencies-20261028'),copy=path.join(__dirname,'isolated');fs.mkdirSync(out,{recursive:true});fs.mkdirSync(copy,{recursive:true});
+const sha=b=>crypto.createHash('sha256').update(b).digest('hex'),source=Object.fromEntries(['game.js','core.js','lifecycle.js','build.cjs','build-surface.cjs','build-retreat.cjs','route-network.js'].map(n=>[n,sha(fs.readFileSync(path.join(here,n)))]));
+for(const n of ['game.js','core.js','lifecycle.js'])fs.copyFileSync(path.join(here,n),path.join(copy,n));
+const Base=require(path.join(here,'game.js')),Observed=require(path.join(copy,'game.js')),inputs={},rows=[],beganAt=new Date().toISOString();
+function observer(s){
+ const stats={memoCalls:0,memoHits:0,memoInvalidations:0,comparisonBodyVisits:0,comparisonFreeVisits:0,snapshotBodyVisits:0,discardedCandidates:0,dropValueLookups:0,dropValueHits:0,dropValueMisses:0,storageDropCalls:0,stockFilterBodyVisits:0,underFilterBodyVisits:0,underSupportComparisons:0,occupancyCalls:0,occupancyNeighborVisits:0,gaussianTerms:0,reachOutCalls:0,reasons:{},flags:{terrainRevision:0,gridActuallyChanged:0,revisionWithoutGridChange:0,sameKindChanged:0,possibleLocalBodies:0,onlyFarSoil:0,orderingOnly:0},changedKinds:{},events:[],shadowWorlds:0,shadowCases:[],destinations:0,destinationCandidates:0,destinationCandidatesMax:0};
+ const contexts=[],meta=new WeakMap(),seen=new WeakSet(),kinds=['soil','egg','food','waste','cookie'];let revisionBuffer=null,lastShadowTick=-Infinity,insideDrop=0,insidePenetration=0,shadowing=false,candidateCalls=0;
+ const rawCells=s.cells,rawWalkPoint=s.walkPoint,rawDrop=s.storageDrop;
+ function terrain(){if(revisionBuffer?.revision!==s.revision)revisionBuffer={revision:s.revision,grains:s.grains.slice(),room:s.grainRoom.slice()};return revisionBuffer;}
+ if(s._dropMemo?.revision===s.revision)meta.set(s._dropMemo,terrain());
+ function bounds(rid){const cells=rawCells.call(s,rid);if(!cells.length)return null;const pad=Base.ANT_SIZE*.55+1;let minX=Infinity,maxX=-Infinity,minY=Infinity;for(const i of cells){minX=Math.min(minX,i%Base.W-pad);maxX=Math.max(maxX,i%Base.W+1+pad);minY=Math.min(minY,Math.floor(i/Base.W)-pad);}return {minX,maxX,minY,maxY:Base.H};}
+ const touches=(box,p)=>box&&p&&p.x>=box.minX&&p.x<=box.maxX&&p.y>=box.minY&&p.y<=box.maxY;
+ function differences(old){
+  const prev=new Map();for(let k=0;k<old.snap.length;k+=5)prev.set(old.snap[k],{id:old.snap[k],x:old.snap[k+1],y:old.snap[k+2],bin:old.snap[k+3],kind:old.snap[k+4]});
+  const changes=[];for(const b of s.physics.bodies)if(!b.carrier){const a=prev.get(b.id);if(!a||a.x!==b.x||a.y!==b.y||a.bin!==b.bin||a.kind!==b.kind)changes.push({before:a||null,after:{id:b.id,x:b.x,y:b.y,bin:b.bin,kind:b.kind}});prev.delete(b.id);}for(const a of prev.values())changes.push({before:a,after:null});return changes;
+ }
+ function gridChanges(old){const m=meta.get(old);if(!m)return null;if(old.revision===s.revision)return [];const changed=[];for(let g=0;g<s.grains.length;g++)if(m.grains[g]!==s.grains[g]||m.room[g]!==s.grainRoom[g])changed.push(Base.GRAIN.center(g));return changed;}
+ function classify(old,changes,grid,context){
+  const box=context&&bounds(context.rid),revision=old.revision!==s.revision,sameKind=!!context&&changes.some(c=>c.before?.kind===context.kind||c.after?.kind===context.kind),local=changes.some(c=>touches(box,c.before)||touches(box,c.after));
+  const onlySoil=changes.length>0&&changes.every(c=>(!c.before||c.before.kind==='soil')&&(!c.after||c.after.kind==='soil')),far=onlySoil&&!local&&!sameKind;
+  const flags={terrainRevision:revision,gridActuallyChanged:!!grid?.length,revisionWithoutGridChange:revision&&grid?.length===0,sameKindChanged:sameKind,possibleLocalBodies:local,onlyFarSoil:far,orderingOnly:!revision&&changes.length===0};
+  for(const[k,v]of Object.entries(flags))if(v)stats.flags[k]++;
+  let reason=revision?(grid===null?'revision-grid-unknown':grid.length?'revision-grid-changed':'revision-grid-unchanged'):sameKind?'same-kind':local?'possible-local-body':far?'only-far-soil':changes.length?'other-body':'ordering-only';
+  stats.reasons[reason]=(stats.reasons[reason]||0)+1;
+  for(const c of changes){const types=new Set([c.before?.kind,c.after?.kind].filter(Boolean));for(const k of types)stats.changedKinds[k]=(stats.changedKinds[k]||0)+1;}
+  return {reason,flags,bounds:box};
+ }
+ function shadow(old,changes,grid){
+  if(stats.shadowWorlds>=4||s.ticks-lastShadowTick<120||!old.drops.size||!meta.has(old))return;
+  lastShadowTick=s.ticks;stats.shadowWorlds++;shadowing=true;
+  try{
+   const frozen=Base.Simulation.restore(s.dump()),entries=[...old.drops],selected=[];
+   for(const nonnull of [true,false]){const group=entries.filter(([,v])=>(v!==null)===nonnull);for(let k=0;k<Math.min(8,group.length);k++)selected.push(group[Math.floor(k*group.length/Math.min(8,group.length))]);}
+   for(const[key,previous]of selected){const type=key%8,tag=(key-type)/8,rid=tag%256,i=(tag-rid)/256,kind=kinds[type];assert(kind);
+    if(!frozen.walkable(i)){stats.shadowCases.push({tick:s.ticks,rid,kind,cell:i,eligible:false});continue;}
+    const point=frozen.walkPoint(i),current=frozen.storageDrop(rid,point,kind,frozen.reachOutAt(i,point,kind)),same=JSON.stringify(previous)===JSON.stringify(current),box=bounds(rid),sameKind=changes.some(c=>c.before?.kind===kind||c.after?.kind===kind),local=changes.some(c=>touches(box,c.before)||touches(box,c.after)),localGrid=grid===null?null:grid.some(p=>touches(box,p));
+    const category=same?'unchanged':previous&&current&&['angle','x','y','landing'].every(k=>previous[k]===current[k])?'score-only':previous===null||current===null?'null-transition':'pose-or-landing';
+    stats.shadowCases.push({tick:s.ticks,rid,kind,cell:i,eligible:true,same,category,sameKindChanges:sameKind,possibleLocalBodies:local,possibleLocalGrid:localGrid,revisionChanged:old.revision!==s.revision});
+   }
+  }finally{shadowing=false;}
+ }
+ const memo=s.dropMemo;s.dropMemo=function(){
+  stats.memoCalls++;const old=this._dropMemo;let same=old?.revision===this.revision;
+  if(same){let k=0;for(const b of this.physics.bodies){stats.comparisonBodyVisits++;if(!b.carrier){stats.comparisonFreeVisits++;if(old.snap[k]!==b.id||old.snap[k+1]!==b.x||old.snap[k+2]!==b.y||old.snap[k+3]!==b.bin||old.snap[k+4]!==b.kind){same=false;break;}k+=5;}}if(same&&k!==old.snap.length)same=false;}
+  if(same)stats.memoHits++;else{
+   stats.memoInvalidations++;stats.snapshotBodyVisits+=this.physics.bodies.length;stats.discardedCandidates+=old?.drops.size||0;
+   if(old){const changes=differences(old),grid=gridChanges(old),context=contexts.at(-1),classification=classify(old,changes,grid,context);if(stats.events.length<40)stats.events.push({tick:this.ticks,context,changes:changes.length,gridChanges:grid?.length??null,discarded:old.drops.size,...classification});shadow(old,changes,grid);}else stats.reasons.initial=(stats.reasons.initial||0)+1;
+  }
+  const drops=memo.call(this);assert.equal(drops===old?.drops,!!same);if(!same)meta.set(this._dropMemo,terrain());
+  if(!seen.has(drops)){seen.add(drops);drops.get=function(key){const v=Map.prototype.get.call(this,key);if(!shadowing){stats.dropValueLookups++;if(v===undefined)stats.dropValueMisses++;else stats.dropValueHits++;}return v;};}
+  return drops;
+ };
+ const dest=s.storageDestination;s.storageDestination=function(rid,ant,kind){contexts.push({rid,kind});stats.destinations++;const prior=candidateCalls;try{return dest.call(this,rid,ant,kind);}finally{const n=candidateCalls-prior;stats.destinationCandidates+=n;stats.destinationCandidatesMax=Math.max(stats.destinationCandidatesMax,n);contexts.pop();}};
+ const wp=s.walkPoint;s.walkPoint=function(...args){if(contexts.length&&!insideDrop)candidateCalls++;return wp.apply(this,args);};
+ const pen=s.physics.penetration;s.physics.penetration=function(...args){if(insideDrop)stats.occupancyCalls++;insidePenetration++;try{return pen.apply(this,args);}finally{insidePenetration--;}};
+ const near=s.physics.near;s.physics.near=function(...args){const result=near.apply(this,args);if(insideDrop&&insidePenetration)stats.occupancyNeighborVisits+=result.length;return result;};
+ const reach=s.storageReachOut;s.storageReachOut=function(...args){stats.reachOutCalls++;return reach.apply(this,args);};
+ s.storageDrop=function(rid,point,kind,reach){
+  const actualReach=reach===undefined?this.storageReachOut(point,kind):reach,hx=Base.Physics.SHAPES[kind].hx,under=this.physics.bodies.filter(b=>!b.carrier&&Math.abs(point.x-b.x)<hx+Base.Physics.SHAPES[b.kind].hx+Base.ANT_SIZE*.55+.01);
+  stats.storageDropCalls++;stats.stockFilterBodyVisits+=this.physics.bodies.length;stats.underFilterBodyVisits+=this.physics.bodies.length;
+  for(const q of actualReach)if(pen.call(this.physics,{kind,x:q.x,y:q.y})<=1e-7&&q.floor>=0)stats.underSupportComparisons+=under.length;
+  const exp=Math.exp;Math.exp=function(x){stats.gaussianTerms++;return exp(x);};insideDrop++;
+  try{return rawDrop.call(this,rid,point,kind,actualReach);}finally{insideDrop--;Math.exp=exp;}
+ };
+ return stats;
+}
+function same(a,b,label){const x=JSON.stringify(a.dump()),y=JSON.stringify(b.dump());if(x!==y){fs.writeFileSync(path.join(out,'difference-baseline.json'),x);fs.writeFileSync(path.join(out,'difference-observed.json'),y);throw Error('全保存不一致 '+label);}return sha(x);}
+try{
+ for(const item of [{file:'pop512-20261027/active512-post-turnback-input.json'},{file:'world-512.json',buy:'geo_depth_4'}]){
+  const bytes=fs.readFileSync(path.join(here,'qa',item.file)),pack=JSON.parse(bytes),a=Base.Simulation.restore(pack),s=Observed.Simulation.restore(pack);inputs[item.file]=sha(bytes);
+  if(item.buy){assert(a.buyResearch(item.buy));assert(s.buyResearch(item.buy));}for(let k=0;k<300;k++){a.step(Base.STEP);s.step(Observed.STEP);}same(a,s,'準備後');
+  const stats=observer(s),start={delivered:s.stats.grainDelivered,dug:s.stats.grainDug,distance:s.stats.distance};
+  for(let k=0;k<600;k++){a.step(Base.STEP);s.step(Observed.STEP);if(k%60===0)same(a,s,item.file+' '+k);if(k%120===119)console.log(JSON.stringify({file:item.file,steps:k+1,memoCalls:stats.memoCalls,invalidations:stats.memoInvalidations,reasons:stats.reasons,shadowCases:stats.shadowCases.length}));}
+  const stateSha256=same(a,s,'最終');s.assertLedger();s.assertProgress();assert.deepEqual(Observed.Simulation.restore(s.dump()).dump(),s.dump());const delta={delivered:s.stats.grainDelivered-start.delivered,dug:s.stats.grainDug-start.dug,distance:s.stats.distance-start.distance};assert(delta.delivered>0&&delta.dug>0&&delta.distance>0);
+  const row={file:item.file,research:item.buy||null,warmup:300,steps:600,stateSha256,delta,stats};rows.push(row);console.log(JSON.stringify({file:item.file,pass:true,memoCalls:stats.memoCalls,invalidations:stats.memoInvalidations,comparisonBodyVisits:stats.comparisonBodyVisits,dropValueHits:stats.dropValueHits,dropValueMisses:stats.dropValueMisses,gaussianTerms:stats.gaussianTerms,reasons:stats.reasons,flags:stats.flags}));
+ }
+ for(const[n,h]of Object.entries(source))assert.equal(sha(fs.readFileSync(path.join(here,n))),h);for(const[n,h]of Object.entries(inputs))assert.equal(sha(fs.readFileSync(path.join(here,'qa',n))),h);
+ fs.copyFileSync(__filename,path.join(out,'measure-runner.cjs.txt'));fs.writeFileSync(path.join(out,'diagnostic-results.json'),JSON.stringify({pass:true,beganAt,finishedAt:new Date().toISOString(),source,inputs,rows,host:{node:process.version,cpu:os.cpus()[0].model},note:'隔離コピーを呼出数/失効理由/候補の影比較で計装。元モデルと同じ2実保存を各300準備+600コマ、60コマごとと最終の全保存一致。計装の処理時間を速度の根拠にしない。局所性の分類は収納室の幅と口/物体の余白から世界下端までの保守的な縦列領域を使う。影比較は各入力4時点、時刻固定間隔・null/非null層別各最大8候補であり全件の因果証明ではない。'},null,2)+'\n');
+}catch(e){fs.writeFileSync(path.join(out,'diagnostic-failure.json'),JSON.stringify({pass:false,beganAt,finishedAt:new Date().toISOString(),source,inputs,rows,error:String(e),stack:e.stack},null,2)+'\n');console.error(e);process.exitCode=1;}

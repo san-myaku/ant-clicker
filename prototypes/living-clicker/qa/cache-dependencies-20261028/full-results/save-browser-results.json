@@ -1,0 +1,53 @@
+{
+  "pass": true,
+  "source": {
+    "index.html": "1a377628c194d695ae92af706daf539686b262f3e0183633f225241b96181d46",
+    "core.js": "d45203a932744cd8ab1fd17d94ab458f268b028c3de12262777e030d242f4b24",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "game.js": "763c181eb8e8e8a3770178b8f72c3092043c101994a82959a3b210be69340644",
+    "view.js": "4bb44a8cf17b7af1a6ab6b2c09e18a56433e2b006a062b7a3a99eb9ec896fb8e",
+    "save-codec.js": "13417ccb76bd179ebe40ba3275e6d6a716039f0ba855c138e0328fd294f185dd",
+    "build-view.cjs": "ee4d6d53a978893aca3b7458c2f7f0d2666b30ed18d1015361503673a97eb078",
+    "verify-save-browser.cjs": "134a692ec0a7ea941ebe64dee5ee0b048b0a25468e0e241db7ca5b0c3ce7a1f7"
+  },
+  "inputs": {
+    "world256": "ea79db5a2a5488c62871365f122f27b154ea186a8e09f9c7af93d2242fd0d23d",
+    "before256": "08590edc2d19eb1bb7fa935fe3b6ddc7f2eab922b9c9cf2692828c45c1f7659f"
+  },
+  "results": [
+    {
+      "name": "persisted-256-with-earlier-key",
+      "width": 1440,
+      "pass": true,
+      "rawCharacters": 2186320,
+      "storedCharacters": 542925,
+      "saveWallMs": 236.29419999999982,
+      "resetUndoReload": true,
+      "restoreImportExport": true,
+      "oldBytesUnchanged": true,
+      "exportSha256": "ea79db5a2a5488c62871365f122f27b154ea186a8e09f9c7af93d2242fd0d23d"
+    },
+    {
+      "name": "persisted-256-with-earlier-key",
+      "width": 393,
+      "pass": true,
+      "rawCharacters": 2186320,
+      "storedCharacters": 542925,
+      "saveWallMs": 240.3101999999999,
+      "resetUndoReload": true,
+      "restoreImportExport": true,
+      "oldBytesUnchanged": true,
+      "exportSha256": "ea79db5a2a5488c62871365f122f27b154ea186a8e09f9c7af93d2242fd0d23d"
+    },
+    {
+      "name": "compressed-corruption-protected-and-manually-recovered",
+      "pass": true
+    },
+    {
+      "name": "actual-quota-refusal-keeps-current-recovery-and-earlier-keys",
+      "pass": true,
+      "fillerCharacters": 3597889,
+      "exportSha256": "ea79db5a2a5488c62871365f122f27b154ea186a8e09f9c7af93d2242fd0d23d"
+    }
+  ]
+}

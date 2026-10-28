@@ -1,0 +1,21 @@
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto'),root=path.resolve(__dirname,'../..'),here=path.join(root,'prototypes/living-clicker'),copy=path.join(__dirname,'inputs-candidate/living-clicker'),out=path.join(here,'qa/cache-dependencies-20261028'),G=require(path.join(copy,'game.js')),sha=b=>crypto.createHash('sha256').update(b).digest('hex'),results=[];
+const bytes=fs.readFileSync(path.join(here,'qa/world-512.json')),pack=JSON.parse(bytes);
+function test(name,fn){const detail=fn();results.push({name,pass:true,...detail});console.log('PASS '+name+' '+JSON.stringify(detail));}
+test('all-kinds-and-reversed-body-order-keep-exact-placement',()=>{
+ let checked=0;for(const reverse of [false,true]){const s=G.Simulation.restore(pack);if(reverse)s.physics.bodies.reverse();const before=JSON.stringify(s.dump());
+  for(const rid of [2,3,4,5])for(const kind of ['soil','egg','food','waste','cookie']){const inputs=s.storageDropInputs(rid,kind);assert.deepEqual(inputs.stock,s.physics.bodies.filter(b=>!b.carrier&&b.kind===kind));
+   const cells=s.cells(rid).filter(i=>s.walkable(i));for(const i of cells.filter((i,k)=>k%Math.max(1,Math.floor(cells.length/10))===0).slice(0,10)){const p=s.walkPoint(i),reach=s.reachOutAt(i,p,kind),baseline=s.storageDrop(rid,p,kind,reach),indexed=s.storageDrop(rid,p,kind,reach,inputs);assert.deepEqual(indexed,baseline);checked++;}
+  }assert.equal(JSON.stringify(s.dump()),before);
+ }assert(checked>=200);return {checked,orders:2};
+});
+test('global-density-includes-far-same-kind-and-lower-supports',()=>{
+ const s=G.Simulation.restore(pack),rid=s.roomIds().find(r=>s.roomKind(r)==='food'&&s.transportReady(r));assert(rid);const p=s.walkPoint(s.cells(rid).find(i=>s.walkable(i))),far=s.physics.spawn('food',5,2),lower=s.physics.spawn('soil',p.x,G.H-1,{state:'delivered'}),upper=s.physics.spawn('soil',p.x,1,{state:'delivered'}),inputs=s.storageDropInputs(rid,'food');
+ assert(inputs.stock.includes(far),'global same-kind density cannot be localized');assert(inputs.under(p.x).includes(lower),'support columns extend down to the world bottom');assert(!inputs.under(p.x).includes(upper),'soil above every mouth cannot support a drop');const reach=s.reachOutAt(G.idx(Math.floor(p.x),Math.floor(p.y)),p,'food');assert.deepEqual(s.storageDrop(rid,p,'food',reach,inputs),s.storageDrop(rid,p,'food',reach));return {rid};
+});
+test('a-mid-tick-pickup-is-seen-by-the-next-query',()=>{
+ const s=G.Simulation.restore(pack),rid=s.roomIds().find(r=>s.roomKind(r)==='food'&&s.transportReady(r)),ant=s.ants[0],body=s.physics.bodies.find(b=>b.kind==='food'&&!b.carrier);assert(rid&&body);const build=s.storageDropInputs;let created=0,last;
+ s.storageDropInputs=function(...args){created++;return last=build.apply(this,args);};s.storageDestination(rid,ant,'food');assert(last.stock.includes(body));const previous=created;
+ body.carrier=ant.id; // The actual pickup assigns carrier before its destination.
+ s.storageDestination(rid,ant,'food');assert(created>previous);assert(!last.stock.includes(body));assert(!last.under(body.x).includes(body));return {created};
+});
+assert.equal(sha(fs.readFileSync(path.join(here,'qa/world-512.json'))),sha(bytes));fs.copyFileSync(__filename,path.join(out,'direct-inputs-runner.cjs.txt'));fs.writeFileSync(path.join(out,'direct-inputs-results.json'),JSON.stringify({pass:true,finishedAt:new Date().toISOString(),inputSha256:sha(bytes),candidateCoreSha256:sha(fs.readFileSync(path.join(copy,'core.js'))),results,note:'全5種/元配列と逆順/遠方の同種/深い支持物/同tickの直接carrier代入を確認。生成・carrier代入はこの検証内の独立ケースであり自然育成へ注入しない。'},null,2)+'\n');

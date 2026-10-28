@@ -1,0 +1,46 @@
+{
+  "results": [
+    {
+      "name": "save-from-before-fermentation-starts-empty",
+      "pass": true
+    },
+    {
+      "name": "fermentation-studies-from-real-stock",
+      "pass": true
+    },
+    {
+      "name": "chamber-is-dug-and-fed-with-real-food",
+      "pass": true,
+      "readyAt": 4311.5,
+      "committed": {
+        "t": 4324.000000021225,
+        "batch": 5
+      }
+    },
+    {
+      "name": "batches-become-sweet-grains-credited-in-the-queen-chamber",
+      "pass": true,
+      "batches": 24,
+      "used": 120,
+      "made": 26,
+      "credited": 26,
+      "cookieGain": 34,
+      "carried": {
+        "t": 4370.766666687211,
+        "ant": 1,
+        "role": "forage"
+      },
+      "savedMid": 4370.766666687211
+    },
+    {
+      "name": "invalid-fermentation-records-are-refused",
+      "pass": true
+    }
+  ],
+  "hashes": {
+    "core.js": "d45203a932744cd8ab1fd17d94ab458f268b028c3de12262777e030d242f4b24",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "game.js": "763c181eb8e8e8a3770178b8f72c3092043c101994a82959a3b210be69340644"
+  },
+  "inputHash": "028da2642b574b6490d71bc13daa5df55f2cc99f71aeeb39f8b217d3ca554d79"
+}

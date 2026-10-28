@@ -1,0 +1,155 @@
+{
+  "pass": true,
+  "adopted": false,
+  "beganAt": "2026-10-28T07:51:52.596Z",
+  "finishedAt": "2026-10-28T07:57:00.662Z",
+  "source": {
+    "core.js": "c7d73a8f8f662b4a20d6b17803e0040d816e1422edf2604d08b7f25706982582",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "game.js": "763c181eb8e8e8a3770178b8f72c3092043c101994a82959a3b210be69340644",
+    "build.cjs": "e68c1736f03f0ccd588ea22d11fb5c6d6e49be362c78eec5eee5f462820a82d8"
+  },
+  "candidate": {
+    "core.js": "d45203a932744cd8ab1fd17d94ab458f268b028c3de12262777e030d242f4b24",
+    "lifecycle.js": "cea8f5aedd40dab851dd387e0802308d625c4a3452c1503f31361ad84764d8a0",
+    "game.js": "763c181eb8e8e8a3770178b8f72c3092043c101994a82959a3b210be69340644",
+    "build.cjs": "c3203dbdaf7811a99061e5d237f9dd1034312511e25f937e68ba83000c5d26c9"
+  },
+  "inputs": {
+    "world-900.json": "bfb9fbafee2e76b4a6f4e4aec8b97def004a8e9c8ed12a07ebed1c2a000860da",
+    "world-256.json": "ea79db5a2a5488c62871365f122f27b154ea186a8e09f9c7af93d2242fd0d23d",
+    "before-512.json": "524443b0e8436a73275aa0e723f359e72ef7ef56f6d8a9ef623a4a378f62a6de",
+    "housing-512-pressure.json": "c12a0d8aedddcfe10355ae944227bf2195ba0c16381aca38e2e3949c58ad6cd3",
+    "raid-stuck-loot.json": "6997ce7ce6935b2e60cb45a5321a09a00ebd303b9268e9d4a15ab8ad76f7eb6e",
+    "retreat-turnback-64.json": "54d0a3ac4d32f5227d2ef5d1718438c64f62a907c35eb9f33cfbdaab52575b92",
+    "pop512-20261027/active512-post-turnback-input.json": "02b55685ce47e5bbd6eee41dbb423ac316a5753f8581f2909660e9d9186016c6",
+    "world-512.json": "2b43a65e181bd53635770d12888a93415febd059755e23a001b90f657b6fb1d0"
+  },
+  "rows": [
+    {
+      "file": "world-900.json",
+      "ants": 33,
+      "research": null,
+      "warmup": 120,
+      "steps": 600,
+      "oldMsPerStep": 1.4870216666666594,
+      "newMsPerStep": 1.444505500000007,
+      "stateSha256": "81a79a4d950a980f0abc62abb6786f21222e59c91415511ce8d4f2609e22edf4",
+      "delta": {
+        "dug": 3,
+        "delivered": 10,
+        "distance": 401.32274452890124
+      }
+    },
+    {
+      "file": "world-256.json",
+      "ants": 256,
+      "research": null,
+      "warmup": 120,
+      "steps": 600,
+      "oldMsPerStep": 6.72176533333329,
+      "newMsPerStep": 5.856942000000017,
+      "stateSha256": "7d0da1ca94e7dd7c76617524f21e9e9afdbe4a1aec4abaabbc1f81e2986f25f7",
+      "delta": {
+        "dug": 9,
+        "delivered": 5,
+        "distance": 1223.1812702901661
+      }
+    },
+    {
+      "file": "before-512.json",
+      "ants": 256,
+      "research": "queen_embrace",
+      "warmup": 120,
+      "steps": 600,
+      "oldMsPerStep": 15.801086333333199,
+      "newMsPerStep": 14.106142833333422,
+      "stateSha256": "d1cf78a4ec2b74542b8029701670c68b79080d55918127a2ebd5b32517ac409a",
+      "delta": {
+        "dug": 10,
+        "delivered": 5,
+        "distance": 4077.924130378291
+      }
+    },
+    {
+      "file": "housing-512-pressure.json",
+      "ants": 491,
+      "research": null,
+      "warmup": 120,
+      "steps": 600,
+      "oldMsPerStep": 18.140035333333437,
+      "newMsPerStep": 15.19520033333356,
+      "stateSha256": "7078c6b7056e639d2fd2774f08d231ec2b61031adf28044946842fe201015753",
+      "delta": {
+        "dug": 24,
+        "delivered": 12,
+        "distance": 2008.9758085838985
+      }
+    },
+    {
+      "file": "raid-stuck-loot.json",
+      "ants": 128,
+      "research": null,
+      "warmup": 120,
+      "steps": 600,
+      "oldMsPerStep": 2.093317166666748,
+      "newMsPerStep": 2.082747333333124,
+      "stateSha256": "86d3bffcfd58180aeca99dd03f7a2ad083f482b2d935c1df2d2aeb1dfc97bd76",
+      "delta": {
+        "dug": 12,
+        "delivered": 4,
+        "distance": 541.3838725356327
+      }
+    },
+    {
+      "file": "retreat-turnback-64.json",
+      "ants": 64,
+      "research": null,
+      "warmup": 120,
+      "steps": 600,
+      "oldMsPerStep": 5.154258666666186,
+      "newMsPerStep": 4.861833333333246,
+      "stateSha256": "2413bba54d20117155231c094a62af3fa350fa9387546968f417131917140770",
+      "delta": {
+        "dug": 0,
+        "delivered": 4,
+        "distance": 323.61194269842235
+      }
+    },
+    {
+      "file": "pop512-20261027/active512-post-turnback-input.json",
+      "ants": 512,
+      "research": null,
+      "warmup": 120,
+      "steps": 1200,
+      "oldMsPerStep": 14.87364300000018,
+      "newMsPerStep": 12.096467000000144,
+      "stateSha256": "4d4369efb79307d8c1bcff9820ec85b28955f24ce46a3baa38da02f406716fc5",
+      "delta": {
+        "dug": 26,
+        "delivered": 28,
+        "distance": 2562.090191137977
+      }
+    },
+    {
+      "file": "world-512.json",
+      "ants": 512,
+      "research": "geo_depth_4",
+      "warmup": 120,
+      "steps": 1200,
+      "oldMsPerStep": 24.350281083334412,
+      "newMsPerStep": 19.527835249999747,
+      "stateSha256": "34be06d5f25f96a37b97cfc43a54c87d2322ef191e0600e289453a6d3e6022a7",
+      "delta": {
+        "dug": 52,
+        "delivered": 62,
+        "distance": 8573.5451406613
+      }
+    }
+  ],
+  "host": {
+    "node": "v24.22.1",
+    "cpu": "AMD Ryzen 7 5800H with Radeon Graphics         "
+  },
+  "note": "当方の他の負荷検証と並走しない順序交互のモデル比較。8実保存の全保存バイト一致。スナップショットは1回の同期的な収納先照会の内側だけで使い、次の照会では作り直す。密度の全同種物体と加算順は不変。"
+}
